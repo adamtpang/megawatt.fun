@@ -18,32 +18,43 @@
 <main>
   <header class="hero">
     <p class="kicker">Tool 002 · the climb</p>
-    <h1>K = <span class="fun">0.727</span></h1>
+    <h1>K = <span class="fun">0.728</span></h1>
     <p class="sub">Humanity's position on the Kardashev scale, computed from the latest real
     world energy figure, with the formula and every assumption on the table.</p>
   </header>
 
   <section>
     <p class="tool-tag">The number</p>
-    <h2>18.78 terawatts, continuously</h2>
+    <h2>19.02 terawatts, continuously</h2>
     <p class="what">
-      World primary energy consumption in 2024 was 592.2 EJ (Energy Institute Statistical
-      Review of World Energy 2025). Spread over the year that is an average power draw of
-      18.78 TW. Sagan's interpolation puts that at K = 0.727.
+      World commercial primary energy in 2025 was just over 600 EJ (600.3 EJ per the OWID
+      sum of the Energy Institute Statistical Review 2026 series, up 1.7% on 2024). Spread
+      over the year that is an average power draw of 19.02 TW, K = 0.728. Including
+      traditional biomass (~40 EJ) it is K = 0.731; the log scale makes the methodology
+      choice worth only 0.003.
     </p>
 
-    <div class="formula mono">K = (log₁₀(P watts) − 6) / 10 &nbsp;=&nbsp; (log₁₀(1.878 × 10¹³) − 6) / 10 &nbsp;=&nbsp; 0.727</div>
+    <div class="formula mono">K = (log₁₀(P watts) − 6) / 10 &nbsp;=&nbsp; (log₁₀(1.902 × 10¹³) − 6) / 10 &nbsp;=&nbsp; 0.728</div>
 
     <div class="kbar-wrap">
       <div class="kbar-label mono"><span>Type 0</span><span>K axis (log scale)</span><span>Type I = 10¹⁶ W</span></div>
-      <div class="kbar"><div style="width:72.7%"></div></div>
+      <div class="kbar"><div style="width:72.8%"></div></div>
     </div>
 
     <div class="stats">
-      <div class="stat"><div class="n green">72.7%</div><div class="l">of the log climb to Type I</div></div>
+      <div class="stat"><div class="n green">72.8%</div><div class="l">of the log climb to Type I</div></div>
       <div class="stat"><div class="n amber">0.19%</div><div class="l">of the actual power. The log scale flatters us.</div></div>
-      <div class="stat"><div class="n">533×</div><div class="l">current output needed for Type I</div></div>
+      <div class="stat"><div class="n">526×</div><div class="l">current output needed for Type I</div></div>
     </div>
+  </section>
+
+  <section>
+    <p class="tool-tag">The climb so far</p>
+    <h2>Every energy empire fits in 0.12 K</h2>
+    <p class="what">Biomass-inclusive series: Smil (2017) via OWID before 1965, the BP/EI
+    annual series after. Standard Oil, Insull, Aramco, and Tesla all happened between the
+    first bar and the last. <a href="/titans">The titans study</a> tells that story.</p>
+    <div class="kseries" id="kseries" role="img" aria-label="K value by year, 1900 to 2025, rising from 0.614 to 0.731"></div>
   </section>
 
   <section>
@@ -54,16 +65,17 @@
 
     <div class="slider-row">
       <label for="growth">Sustained growth rate: <b class="mono" id="gval">2.0%</b> per year
-      (2024's real growth was 1.8%)</label>
+      (2025's real growth was 1.7%)</label>
       <input type="range" id="growth" min="0.5" max="6" step="0.1" value="2.0">
     </div>
-    <p class="eta-line">Type I in <b class="mono" id="eta">317 years</b><span class="mono" id="year"> · around 2343</span></p>
+    <p class="eta-line">Type I in <b class="mono" id="eta">316 years</b><span class="mono" id="year"> · around 2342</span></p>
 
     <ul class="assumptions">
-      <li>Energy-only method (Sagan's formula). Economic or technosignature proxies exist; not used here.</li>
-      <li>Primary energy, gross consumption, all sources, per the Energy Institute definition.</li>
-      <li>Constant compound growth is an assumption, not a forecast. 2024's actual growth was 1.8%.</li>
-      <li>Cross-check: <a href="https://www.kardashev1.com/scale">kardashev1.com</a> computes K = 0.730 ± 0.02 on the same method; our 0.727 sits inside their stated band.</li>
+      <li>Energy-only method, via the interpolation commonly attributed to Sagan. Honest provenance note: Gray (2020, The Astronomical Journal) shows no explicit equation appears in Sagan's Cosmic Connection; Sagan interpolated in prose (classing 1973 Earth as Type 0.7), and the explicit formula appears later. We cite the interpolation, not "Sagan's equation."</li>
+      <li>Commercial primary energy, gross consumption, per the Energy Institute definition. Traditional biomass (~40 EJ) excluded from the headline; including it gives K = 0.731.</li>
+      <li>Seconds per year: 31,556,952 (mean Gregorian year).</li>
+      <li>Constant compound growth is an assumption, not a forecast. 2025's actual growth was 1.7%.</li>
+      <li>Cross-check: <a href="https://www.kardashev1.com/scale">kardashev1.com</a> states K = 0.730 ± 0.02 on the same method; our commercial-only 0.728 sits inside their band, and a biomass-inclusive computation lands on their 0.730 exactly.</li>
     </ul>
 
     <div class="links mono">
@@ -74,13 +86,14 @@
 
   <footer>
     Built by <a href="https://github.com/adamtpang">Adam Pangelinan</a> ·
-    part of <a href="/">megawatt.fun</a> · every number sourced above; the historical
-    K-by-decade series lands with the <a href="/titans">titans study</a>.
+    part of <a href="/">megawatt.fun</a> · sources: Energy Institute Statistical Review
+    (2025, 2026 via OWID), Smil (2017) via OWID, Gray (2020), kardashev1.com. See also the
+    <a href="/titans">titans study</a>.
   </footer>
 </main>
 
 <script>
-  const RATIO = 533; // 10^16 W over 1.878e13 W
+  const RATIO = 526; // 10^16 W over 1.902e13 W (2025, EI 2026 via OWID)
   const BASE_YEAR = 2026;
   const growth = document.getElementById("growth");
   const gval = document.getElementById("gval");
@@ -95,6 +108,33 @@
   }
   growth.addEventListener("input", update);
   update();
+
+  // Biomass-inclusive K by year: Smil (2017) via OWID pre-1965, BP/EI after.
+  const series = [
+    { y: 1900, k: 0.614 },
+    { y: 1920, k: 0.631 },
+    { y: 1950, k: 0.650 },
+    { y: 1975, k: 0.693 },
+    { y: 2000, k: 0.713 },
+    { y: 2025, k: 0.731 },
+  ];
+  const wrap = document.getElementById("kseries");
+  const kmin = 0.58; // baseline so the differences are visible
+  series.forEach((row) => {
+    const col = document.createElement("div");
+    col.className = "kcol";
+    const v = document.createElement("div");
+    v.className = "kv mono";
+    v.textContent = row.k.toFixed(3);
+    const bar = document.createElement("div");
+    bar.className = "kbarv";
+    bar.style.height = Math.round(((row.k - kmin) / (0.75 - kmin)) * 100) + "%";
+    const yl = document.createElement("div");
+    yl.className = "ky mono";
+    yl.textContent = row.y;
+    col.appendChild(v); col.appendChild(bar); col.appendChild(yl);
+    wrap.appendChild(col);
+  });
 </script>
 </body>
 </html>

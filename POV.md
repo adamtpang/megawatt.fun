@@ -18,8 +18,9 @@ discharge the evening ramp at $33 to 38/MWh.
 
 ## The finding
 
-On that day the energy-only floor is $0.43 per battery. Across the 30,000+
-homes your careers page states, that is roughly $4.7M a year. Real fleet
+On that day the energy-only floor is $0.43 per battery. Across the 17,000
+battery homes your Series D coverage reports, that is roughly $2.7M a
+year. Real fleet
 revenue is obviously a multiple of this floor, and that multiple is the
 point: it comes almost entirely from software problems, not from the
 arbitrage math, which fits in one afternoon of Go.

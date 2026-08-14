@@ -91,6 +91,31 @@ footer a { color: var(--dim); }
 .assumptions { margin-top: 24px; font-size: 13px; color: var(--faint); }
 .assumptions li { margin: 6px 0 6px 18px; }
 
+/* Study prose */
+.study h3 { font-size: 17px; margin-top: 26px; letter-spacing: -.01em; color: var(--ink); }
+.study p { margin-top: 10px; color: var(--dim); font-size: 14.5px; }
+.study p b { color: var(--ink); }
+.study ol { margin: 14px 0 0 20px; }
+.study ol li { margin-top: 12px; color: var(--dim); font-size: 14.5px; }
+.study ol li b { color: var(--ink); }
+.tbl-wrap { overflow-x: auto; margin-top: 18px; }
+table.numbers { border-collapse: collapse; width: 100%; min-width: 720px; font-size: 13px; }
+table.numbers th, table.numbers td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+table.numbers th { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); }
+table.numbers td { color: var(--dim); }
+table.numbers td:first-child { color: var(--ink); font-weight: 600; white-space: nowrap; }
+details.contested { margin-top: 10px; border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; }
+details.contested summary { cursor: pointer; color: var(--dim); font-size: 13px; font-weight: 600; }
+details.contested ul { margin: 8px 0 4px 18px; }
+details.contested li { font-size: 13px; color: var(--faint); margin-top: 6px; }
+
+/* Kardashev history series */
+.kseries { display: flex; align-items: flex-end; gap: 10px; height: 150px; margin-top: 16px; }
+.kseries .kcol { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 6px; height: 100%; }
+.kseries .kbarv { width: 100%; max-width: 54px; background: linear-gradient(180deg, var(--charge), var(--idle)); border-radius: 4px 4px 0 0; }
+.kseries .kv { font-size: 12px; color: var(--ink); font-weight: 600; }
+.kseries .ky { font-size: 10px; color: var(--faint); }
+
 /* Titans page */
 .roster { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-top: 24px; }
 .titan { border: 1px solid var(--line); border-radius: 12px; background: var(--bg); padding: 18px; }
