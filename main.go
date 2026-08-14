@@ -1,4 +1,4 @@
-// basepower-fleet-dispatch: plan one day of energy arbitrage for a fleet of
+// megawatt.fun fleet dispatch: plan one day of energy arbitrage for a fleet of
 // home batteries against real ERCOT settlement point prices.
 //
 //	go run . -csv data/ercot-spp.csv -batteries 1000 -kwh 25 -kw 5 -eff 0.88
@@ -15,8 +15,8 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/adamtpang/basepower-fleet-dispatch/dispatch"
-	"github.com/adamtpang/basepower-fleet-dispatch/ercot"
+	"github.com/adamtpang/megawatt.fun/dispatch"
+	"github.com/adamtpang/megawatt.fun/ercot"
 )
 
 func loadCSV(path string) ([]dispatch.PricePoint, error) {

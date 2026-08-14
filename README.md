@@ -1,7 +1,12 @@
-# basepower-fleet-dispatch
+# megawatt.fun
 
-A day-ahead arbitrage dispatch planner for a fleet of home batteries, run
-against real ERCOT day-ahead settlement prices. Written in Go.
+An energy tooling suite, built in public. Live at
+[megawatt.fun](https://megawatt.fun).
+
+**Tool 001: fleet dispatch.** A day-ahead arbitrage dispatch planner for a
+fleet of home batteries, run against real ERCOT day-ahead settlement
+prices. Written in Go; the demo page (`index.html`) bakes in a real
+captured price day.
 
 Built by a candidate as a working point-of-view artifact for
 [Base Power](https://www.basepowercompany.com). Not affiliated with, endorsed

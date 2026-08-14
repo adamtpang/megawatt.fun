@@ -14,7 +14,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/adamtpang/basepower-fleet-dispatch/dispatch"
+	"github.com/adamtpang/megawatt.fun/dispatch"
 )
 
 const Endpoint = "https://www.ercot.com/api/1/services/read/dashboards/systemWidePrices.json"
@@ -55,7 +55,7 @@ func FetchDayAhead() ([]dispatch.PricePoint, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
-	req.Header.Set("User-Agent", "basepower-fleet-dispatch demo (github.com/adamtpang)")
+	req.Header.Set("User-Agent", "megawatt.fun dispatch demo (github.com/adamtpang)")
 	res, err := client.Do(req)
 	if err != nil {
 		return nil, "", err

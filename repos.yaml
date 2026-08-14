@@ -1,0 +1,22 @@
+# repos.yaml v0 — see github.com/adamtpang/repo-protocol
+repo: megawatt.fun
+is: An energy tooling suite, built in public. Tool 001 is a Go fleet-dispatch planner run on real ERCOT prices, with its live demo page.
+url: https://megawatt.fun
+cluster: energy
+
+provides:
+  - id: dispatch-planner
+    what: day-ahead single-cycle arbitrage planner for a home-battery fleet, tested, efficiency-gated
+    at: dispatch/dispatch.go
+  - id: ercot-feed
+    what: keyless fetch and parse of ERCOT's public system-wide day-ahead prices (geo-block caveat documented)
+    at: ercot/fetch.go
+  - id: dispatch-demo
+    what: the public demo page, real captured ERCOT day baked in, deployed at megawatt.fun
+    at: index.html
+
+stack: [go, static-html]
+
+kin:
+  - repo: skill.supply
+    why: this suite was born inside skill.supply's job search; the dispatch planner is the proof-of-work artifact attached to the Base Power outreach, and megawatt.fun is its public demo surface.

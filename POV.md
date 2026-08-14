@@ -9,7 +9,7 @@ I built a Go dispatch planner and ran it against real ERCOT day-ahead
 prices (hub average, 2026-08-13): given a home battery's physical envelope,
 plan the most profitable charge-then-discharge cycle, and refuse to cycle
 when the spread does not clear round-trip losses. Tests cover the physics
-(power caps, efficiency gates, no discharge before charge). Repo: https://github.com/adamtpang/basepower-fleet-dispatch
+(power caps, efficiency gates, no discharge before charge). Repo: https://github.com/adamtpang/megawatt.fun
 Live demo: https://megawatt.fun
 
 Without being told anything about the grid, it recovers the shape your
