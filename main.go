@@ -57,6 +57,8 @@ func main() {
 	kwh := flag.Float64("kwh", 25, "battery capacity, kWh (assumption, not a Base spec)")
 	kw := flag.Float64("kw", 5, "battery power, kW (assumption, not a Base spec)")
 	eff := flag.Float64("eff", 0.88, "round-trip efficiency")
+	capexPerKWh := flag.Float64("capex-per-kwh", dispatch.CapexManufacturerLow.USDPerKWh, "battery hardware cost, $/kWh, for the capex breakeven line")
+	capexLifeYears := flag.Float64("capex-life-years", dispatch.CapexManufacturerLow.LifeYears, "calendar life used to amortize capex (LFP cycle life outlasts 1 cycle/day at any realistic install lifetime, so years is the binding constraint, not cycles)")
 	flag.Parse()
 
 	var prices []dispatch.PricePoint
@@ -99,6 +101,18 @@ func main() {
 	fmt.Printf("  net per battery: $%.2f/day\n", profit)
 	fmt.Printf("  fleet of %d: $%.2f/day, ~$%.0f/year at this day's spread\n",
 		*batteries, profit*float64(*batteries), profit*float64(*batteries)*365)
+
+	capex := dispatch.CapexModel{USDPerKWh: *capexPerKWh, LifeYears: *capexLifeYears, CyclesPerYear: 365}
+	be := capex.Evaluate(b, plan)
+	fmt.Printf("\n  capex breakeven: $%.0f/kWh over %.0f years -> $%.2f amortized per cycle-day\n",
+		*capexPerKWh, *capexLifeYears, be.AmortizedUSD)
+	if be.Clears {
+		fmt.Printf("  this cycle clears its own hardware cost by $%.2f/day\n", be.NetUSD)
+	} else {
+		fmt.Printf("  this cycle does NOT clear its own hardware cost: $%.2f short/day\n", -be.NetUSD)
+		fmt.Println("  energy-only arbitrage is not the investment thesis here; see below")
+	}
+
 	fmt.Println("\n  Floor model only: one cycle, energy-only, perfect foresight.")
 	fmt.Println("  Real fleet value adds ancillary services, retail hedge, resilience.")
 }

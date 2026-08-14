@@ -51,10 +51,11 @@ through the midday solar trough, discharge into the evening peak.
 ## Run it
 
 ```
-go test ./...        # 10 tests: dispatch logic + ERCOT payload parsing
+go test ./...        # 14 tests: dispatch logic, capex breakeven, ERCOT payload parsing
 go run .             # vendored real day, default battery assumptions
 go run . -live       # fetch today's real prices (US IPs only, see below)
 go run . -kwh 39.2 -kw 5 -eff 0.9 -batteries 30000
+go run . -capex-per-kwh 875 -capex-life-years 15   # see capex breakeven below
 ```
 
 Battery defaults (25 kWh / 5 kW / 88%) are labeled assumptions, not Base
@@ -80,6 +81,44 @@ The interesting conclusion is the number itself: on a mild day the
 energy-only floor is under half a dollar per battery. The value of a
 battery fleet is mostly in the machine around the arbitrage: markets
 participation, telemetry, and operations software.
+
+## Capex breakeven
+
+`dispatch.CapexModel` (`dispatch/capex.go`) answers a narrower question than
+"is this battery valuable": does one day's energy-only cycle even cover the
+hardware cost sitting behind it? It amortizes `$/kWh` capacity cost over a
+calendar life, not a cycle-count life, since at one cycle/day an LFP
+battery's 6,000-10,000+ cycle rating outlasts any realistic install
+lifetime, years, not cycles, is the binding constraint.
+
+Three presets ship in `dispatch/capex.go`:
+
+| Preset | $/kWh | Basis |
+|---|---|---|
+| `CapexManufacturerLow` | $150 | LFP cells ~$60-80/kWh, ~2x for pack/electronics/install at OEM scale |
+| `CapexManufacturerHigh` | $300 | same basis, upper end |
+| `CapexRetailInstalled` | $875 | third-party solar-installer benchmark, $800-950/kWh installed |
+
+Run it (`-capex-per-kwh` defaults to the manufacturer-low preset):
+
+```
+go run . -batteries 30000
+
+  ...
+  net per battery: $0.43/day
+
+  capex breakeven: $150/kWh over 15 years -> $0.68 amortized per cycle-day
+  this cycle does NOT clear its own hardware cost: $0.25 short/day
+```
+
+Even at the cheapest plausible capex, one energy-only cycle doesn't cover
+its own amortized hardware cost, before the retail-installed case ($4.00
+amortized/cycle) or fleet-level financing, O&M, or return requirements.
+This isn't a bug in the plan, it's the same conclusion the section above
+already draws from a different angle: energy-only arbitrage is a floor,
+not the investment thesis. Whatever carries the actual capex (ancillary
+services, retail hedge, resilience) has to show up as a separate revenue
+line, not inside this number.
 
 ## Data source
 
