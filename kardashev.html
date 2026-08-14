@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kardashev climb · megawatt.fun</title>
+<meta name="description" content="Where humanity actually is on the Kardashev scale, computed from real world energy data with the formula and every assumption stated.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<nav class="tabs">
+  <a href="/" class="brand">megawatt<span class="fun">.fun</span></a>
+  <a href="/">tools</a>
+  <a href="/kardashev" class="active">kardashev</a>
+  <a href="/titans">titans</a>
+</nav>
+<main>
+  <header class="hero">
+    <p class="kicker">Tool 002 · the climb</p>
+    <h1>K = <span class="fun">0.727</span></h1>
+    <p class="sub">Humanity's position on the Kardashev scale, computed from the latest real
+    world energy figure, with the formula and every assumption on the table.</p>
+  </header>
+
+  <section>
+    <p class="tool-tag">The number</p>
+    <h2>18.78 terawatts, continuously</h2>
+    <p class="what">
+      World primary energy consumption in 2024 was 592.2 EJ (Energy Institute Statistical
+      Review of World Energy 2025). Spread over the year that is an average power draw of
+      18.78 TW. Sagan's interpolation puts that at K = 0.727.
+    </p>
+
+    <div class="formula mono">K = (log₁₀(P watts) − 6) / 10 &nbsp;=&nbsp; (log₁₀(1.878 × 10¹³) − 6) / 10 &nbsp;=&nbsp; 0.727</div>
+
+    <div class="kbar-wrap">
+      <div class="kbar-label mono"><span>Type 0</span><span>K axis (log scale)</span><span>Type I = 10¹⁶ W</span></div>
+      <div class="kbar"><div style="width:72.7%"></div></div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="n green">72.7%</div><div class="l">of the log climb to Type I</div></div>
+      <div class="stat"><div class="n amber">0.19%</div><div class="l">of the actual power. The log scale flatters us.</div></div>
+      <div class="stat"><div class="n">533×</div><div class="l">current output needed for Type I</div></div>
+    </div>
+  </section>
+
+  <section>
+    <p class="tool-tag">The calculator</p>
+    <h2>When does Type I arrive?</h2>
+    <p class="what">Pure arithmetic from the number above: pick a sustained global
+    energy-consumption growth rate and see how long 533× takes.</p>
+
+    <div class="slider-row">
+      <label for="growth">Sustained growth rate: <b class="mono" id="gval">2.0%</b> per year
+      (2024's real growth was 1.8%)</label>
+      <input type="range" id="growth" min="0.5" max="6" step="0.1" value="2.0">
+    </div>
+    <p class="eta-line">Type I in <b class="mono" id="eta">317 years</b><span class="mono" id="year"> · around 2343</span></p>
+
+    <ul class="assumptions">
+      <li>Energy-only method (Sagan's formula). Economic or technosignature proxies exist; not used here.</li>
+      <li>Primary energy, gross consumption, all sources, per the Energy Institute definition.</li>
+      <li>Constant compound growth is an assumption, not a forecast. 2024's actual growth was 1.8%.</li>
+      <li>Cross-check: <a href="https://www.kardashev1.com/scale">kardashev1.com</a> computes K = 0.730 ± 0.02 on the same method; our 0.727 sits inside their stated band.</li>
+    </ul>
+
+    <div class="links mono">
+      <a href="https://www.energyinst.org/statistical-review">Energy Institute Statistical Review</a>
+      <a href="https://www.kardashev1.com/scale">kardashev1.com/scale</a>
+    </div>
+  </section>
+
+  <footer>
+    Built by <a href="https://github.com/adamtpang">Adam Pangelinan</a> ·
+    part of <a href="/">megawatt.fun</a> · every number sourced above; the historical
+    K-by-decade series lands with the <a href="/titans">titans study</a>.
+  </footer>
+</main>
+
+<script>
+  const RATIO = 533; // 10^16 W over 1.878e13 W
+  const BASE_YEAR = 2026;
+  const growth = document.getElementById("growth");
+  const gval = document.getElementById("gval");
+  const eta = document.getElementById("eta");
+  const year = document.getElementById("year");
+  function update() {
+    const g = parseFloat(growth.value);
+    const years = Math.round(Math.log(RATIO) / Math.log(1 + g / 100));
+    gval.textContent = g.toFixed(1) + "%";
+    eta.textContent = years.toLocaleString() + " years";
+    year.textContent = " · around " + (BASE_YEAR + years);
+  }
+  growth.addEventListener("input", update);
+  update();
+</script>
+</body>
+</html>

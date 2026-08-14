@@ -6,76 +6,17 @@
 <title>megawatt.fun · energy tooling</title>
 <meta name="description" content="An energy tooling suite. Tool 001: a day-ahead ERCOT arbitrage dispatch planner for home-battery fleets, run on real settlement prices.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
-<style>
-  :root {
-    --bg: #0c0f0d;
-    --panel: #121713;
-    --line: #232b25;
-    --ink: #e8ede9;
-    --dim: #8fa096;
-    --faint: #5c6b61;
-    --charge: #4ade80;
-    --discharge: #fbbf24;
-    --idle: #2e3a32;
-  }
-  * { box-sizing: border-box; margin: 0; }
-  body {
-    background: var(--bg); color: var(--ink);
-    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-    line-height: 1.6; padding: 0 20px 80px;
-  }
-  .mono { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; }
-  main { max-width: 860px; margin: 0 auto; }
-  header { padding: 56px 0 40px; }
-  .kicker { font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: var(--dim); }
-  h1 { font-size: clamp(34px, 6vw, 52px); letter-spacing: -.02em; line-height: 1.1; margin-top: 10px; }
-  h1 .fun { color: var(--charge); }
-  .sub { margin-top: 14px; color: var(--dim); max-width: 56ch; }
-  .rule-of-thumb { margin-top: 18px; font-size: 13px; color: var(--faint); }
-  .rule-of-thumb b { color: var(--dim); font-weight: 600; }
-
-  section { border: 1px solid var(--line); background: var(--panel); border-radius: 14px; padding: 26px 26px 30px; margin-top: 26px; }
-  .tool-tag { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--charge); }
-  h2 { font-size: 22px; letter-spacing: -.01em; margin-top: 6px; }
-  .what { color: var(--dim); margin-top: 10px; max-width: 62ch; }
-
-  .chart-wrap { margin-top: 28px; }
-  .chart-title { font-size: 12px; color: var(--faint); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-  .legend span { display: inline-flex; align-items: center; gap: 6px; margin-left: 14px; }
-  .dot { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
-  #chart { display: flex; align-items: flex-end; gap: 3px; height: 180px; margin-top: 12px; }
-  #chart .bar { flex: 1; border-radius: 3px 3px 0 0; background: var(--idle); position: relative; min-width: 8px; }
-  #chart .bar.charge { background: var(--charge); }
-  #chart .bar.discharge { background: var(--discharge); }
-  #chart .bar:hover::after {
-    content: attr(data-tip); position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%);
-    background: #000; color: var(--ink); font-size: 11px; padding: 4px 8px; border-radius: 6px;
-    white-space: nowrap; border: 1px solid var(--line); font-family: ui-monospace, Consolas, monospace; z-index: 2;
-  }
-  .axis { display: flex; gap: 3px; margin-top: 6px; }
-  .axis span { flex: 1; font-size: 9px; color: var(--faint); text-align: center; min-width: 8px; }
-
-  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-top: 28px; }
-  .stat { border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; background: var(--bg); }
-  .stat .n { font-size: 24px; font-weight: 650; letter-spacing: -.01em; }
-  .stat .n.green { color: var(--charge); }
-  .stat .n.amber { color: var(--discharge); }
-  .stat .l { font-size: 12px; color: var(--faint); margin-top: 4px; }
-
-  .honest { margin-top: 26px; border-left: 3px solid var(--discharge); padding: 4px 0 4px 16px; color: var(--dim); font-size: 14px; max-width: 66ch; }
-  .honest b { color: var(--ink); }
-
-  .links { margin-top: 24px; display: flex; gap: 18px; flex-wrap: wrap; font-size: 14px; }
-  a { color: var(--charge); text-decoration: none; }
-  a:hover { text-decoration: underline; }
-
-  footer { margin-top: 44px; color: var(--faint); font-size: 13px; }
-  footer a { color: var(--dim); }
-</style>
+<link rel="stylesheet" href="/style.css">
 </head>
 <body>
+<nav class="tabs">
+  <a href="/" class="brand">megawatt<span class="fun">.fun</span></a>
+  <a href="/" class="active">tools</a>
+  <a href="/kardashev">kardashev</a>
+  <a href="/titans">titans</a>
+</nav>
 <main>
-  <header>
+  <header class="hero">
     <p class="kicker">An energy tooling suite</p>
     <h1>megawatt<span class="fun">.fun</span></h1>
     <p class="sub">Tools and resources for the grid era, built in public. A megawatt is where homes stop being houses and start being a power plant.</p>
@@ -124,6 +65,27 @@
       <a href="https://github.com/adamtpang/megawatt.fun">source + tests on GitHub</a>
       <a href="https://www.ercot.com/gridmktinfo/dashboards/systemwideprices">the live ERCOT price feed</a>
     </div>
+  </section>
+
+  <section>
+    <p class="tool-tag">Tool 002 · the climb</p>
+    <h2>Kardashev: where humanity actually is</h2>
+    <p class="what">
+      Humanity runs at K = 0.727 on Sagan's scale, computed from real world energy data.
+      The tracker shows the formula, the assumptions, and how many years of growth Type I
+      actually takes at any growth rate you pick.
+    </p>
+    <div class="links mono"><a href="/kardashev">open the tracker →</a></div>
+  </section>
+
+  <section>
+    <p class="tool-tag">Study · the titans</p>
+    <h2>The greatest energy companies of all time</h2>
+    <p class="what">
+      Standard Oil to Base Power: the mechanisms that repeat across 150 years of energy
+      empires, with sourced numbers. Study scaffold live, full sourced write-up in progress.
+    </p>
+    <div class="links mono"><a href="/titans">open the study →</a></div>
   </section>
 
   <footer>
