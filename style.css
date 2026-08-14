@@ -109,6 +109,20 @@ details.contested summary { cursor: pointer; color: var(--dim); font-size: 13px;
 details.contested ul { margin: 8px 0 4px 18px; }
 details.contested li { font-size: 13px; color: var(--faint); margin-top: 6px; }
 
+/* Live prices page */
+.price-now { font-size: clamp(48px, 10vw, 84px); font-weight: 700; letter-spacing: -.03em; line-height: 1; color: var(--charge); }
+.price-now small { font-size: .32em; color: var(--dim); font-weight: 500; letter-spacing: 0; }
+.price-meta { margin-top: 10px; font-size: 13px; color: var(--faint); }
+.hub-row { margin-top: 18px; display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--dim); }
+.hub-row select {
+  background: var(--bg); color: var(--ink); border: 1px solid var(--line);
+  border-radius: 8px; padding: 6px 10px; font-size: 13px;
+}
+#chart.dense, .dense { gap: 1px; }
+.dense .bar { min-width: 2px; border-radius: 1px 1px 0 0; }
+.chart-block { margin-top: 26px; }
+.err { margin-top: 20px; border: 1px solid #7f1d1d; background: #1a0f0f; color: #fca5a5; border-radius: 10px; padding: 12px 16px; font-size: 14px; }
+
 /* Kardashev history series */
 .kseries { display: flex; align-items: flex-end; gap: 10px; height: 150px; margin-top: 16px; }
 .kseries .kcol { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 6px; height: 100%; }

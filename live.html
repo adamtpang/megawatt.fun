@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Live ERCOT prices · megawatt.fun</title>
+<meta name="description" content="Live ERCOT system-wide settlement point prices: real-time 15-minute and day-ahead hourly, every hub and load zone, refreshed from ERCOT's public feed.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<nav class="tabs">
+  <a href="/" class="brand">megawatt<span class="fun">.fun</span></a>
+  <a href="/">tools</a>
+  <a href="/live" class="active">live</a>
+  <a href="/kardashev">kardashev</a>
+  <a href="/titans">titans</a>
+</nav>
+<main>
+  <header class="hero">
+    <p class="kicker">Tool 003 · live prices</p>
+    <h1>ERCOT, <span class="fun">right now</span></h1>
+    <p class="sub">Real-time and day-ahead settlement point prices from ERCOT's public
+    system-wide feed, cached one minute at the edge. Pick any hub or load zone.</p>
+  </header>
+
+  <section>
+    <p class="tool-tag">Latest real-time interval</p>
+    <div id="err" class="err" style="display:none"></div>
+    <p class="price-now mono"><span id="pnow">–</span><small> $/MWh</small></p>
+    <p class="price-meta mono" id="pmeta">loading ERCOT feed…</p>
+
+    <div class="hub-row">
+      <label for="hub">Settlement point:</label>
+      <select id="hub"></select>
+    </div>
+
+    <div class="chart-block">
+      <div class="chart-title mono"><span>Real-time SPP · 15-minute intervals · today</span><span id="rt-count"></span></div>
+      <div id="rt-chart" class="dense" style="display:flex;align-items:flex-end;gap:1px;height:150px;margin-top:12px"></div>
+    </div>
+
+    <div class="chart-block">
+      <div class="chart-title mono"><span>Day-ahead SPP · hourly · today</span><span id="dam-count"></span></div>
+      <div id="dam-chart" style="display:flex;align-items:flex-end;gap:3px;height:150px;margin-top:12px"></div>
+    </div>
+
+    <p class="honest">
+      <b>Informational, not tradable.</b> Served through a one-minute edge cache of ERCOT's
+      public dashboard feed, the same one ercot.com renders. Delayed and simplified; if you
+      are settling money on these numbers, use ERCOT's own systems.
+    </p>
+
+    <div class="links mono">
+      <a href="https://www.ercot.com/gridmktinfo/dashboards/systemwideprices">ERCOT's own dashboard</a>
+      <a href="/">back to the dispatch tool</a>
+    </div>
+  </section>
+
+  <footer>
+    Built by <a href="https://github.com/adamtpang">Adam Pangelinan</a> ·
+    part of <a href="/">megawatt.fun</a> · auto-refreshes every 60 seconds ·
+    not affiliated with ERCOT.
+  </footer>
+</main>
+
+<script>
+  const HUBS = {
+    hbHubAvg: "Hub Average", hbBusAvg: "Bus Average", hbHouston: "Houston Hub",
+    hbNorth: "North Hub", hbPan: "Panhandle Hub", hbSouth: "South Hub", hbWest: "West Hub",
+    lzAen: "LZ AEN", lzCps: "LZ CPS", lzHouston: "LZ Houston", lzLcra: "LZ LCRA",
+    lzNorth: "LZ North", lzRaybn: "LZ Rayburn", lzSouth: "LZ South", lzWest: "LZ West",
+  };
+  const sel = document.getElementById("hub");
+  for (const [k, label] of Object.entries(HUBS)) {
+    const o = document.createElement("option");
+    o.value = k; o.textContent = label;
+    sel.appendChild(o);
+  }
+  sel.value = "hbHubAvg";
+
+  let payload = null;
+
+  function bars(el, rows, key, labelKey, dense) {
+    el.innerHTML = "";
+    const vals = rows.map((r) => r[key]).filter((v) => typeof v === "number");
+    if (vals.length === 0) return;
+    const max = Math.max(...vals, 1);
+    const min = Math.min(...vals, 0);
+    rows.forEach((r) => {
+      const v = r[key];
+      if (typeof v !== "number") return;
+      const bar = document.createElement("div");
+      bar.className = "bar";
+      // Negative prices are real in ERCOT; clamp bar height, color them charge-green.
+      const h = Math.max(3, ((v - Math.min(min, 0)) / (max - Math.min(min, 0))) * 100);
+      bar.style.height = h + "%";
+      bar.style.background = v < 0 ? "var(--charge)" : v > 100 ? "var(--discharge)" : "var(--idle)";
+      bar.setAttribute("data-tip", `${r[labelKey]} · $${v.toFixed(2)}`);
+      el.appendChild(bar);
+    });
+  }
+
+  function render() {
+    if (!payload) return;
+    const key = sel.value;
+    const rt = payload.rtSppData ?? [];
+    const dam = payload.damSppData ?? [];
+    const last = rt.length ? rt[rt.length - 1] : null;
+    if (last && typeof last[key] === "number") {
+      document.getElementById("pnow").textContent = last[key].toFixed(2);
+      document.getElementById("pmeta").textContent =
+        `${HUBS[key]} · interval ending ${last.intervalEnding} · feed updated ${payload.lastUpdated}`;
+    }
+    bars(document.getElementById("rt-chart"), rt, key, "intervalEnding", true);
+    bars(document.getElementById("dam-chart"), dam, key, "hourEnding", false);
+    document.getElementById("rt-count").textContent = rt.length + " intervals";
+    document.getElementById("dam-count").textContent = dam.length + " hours";
+  }
+
+  async function load() {
+    const err = document.getElementById("err");
+    try {
+      const res = await fetch("/api/prices");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? ("HTTP " + res.status));
+      payload = data;
+      err.style.display = "none";
+      render();
+    } catch (e) {
+      err.textContent = "Could not load the ERCOT feed: " + e.message +
+        ". ERCOT's upstream occasionally rejects requests; it usually recovers within a minute.";
+      err.style.display = "block";
+    }
+  }
+
+  sel.addEventListener("change", render);
+  load();
+  setInterval(load, 60_000);
+</script>
+</body>
+</html>
