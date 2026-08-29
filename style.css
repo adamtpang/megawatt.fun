@@ -28,6 +28,9 @@ nav.tabs .brand .fun { color: var(--charge); }
 nav.tabs a { color: var(--dim); text-decoration: none; }
 nav.tabs a:hover { color: var(--ink); }
 nav.tabs a.active { color: var(--charge); }
+a:focus-visible, select:focus-visible, summary:focus-visible {
+  outline: 3px solid var(--discharge); outline-offset: 3px; border-radius: 4px;
+}
 
 header.hero { padding: 46px 0 34px; }
 .kicker { font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: var(--dim); }
@@ -71,6 +74,21 @@ h2 { font-size: 22px; letter-spacing: -.01em; margin-top: 6px; }
 .links { margin-top: 24px; display: flex; gap: 18px; flex-wrap: wrap; font-size: 14px; }
 a { color: var(--charge); text-decoration: none; }
 a:hover { text-decoration: underline; }
+
+.actions { margin-top: 24px; display: flex; gap: 12px; flex-wrap: wrap; }
+.button-link {
+  display: inline-flex; align-items: center; min-height: 44px; padding: 9px 14px;
+  border: 1px solid var(--charge); border-radius: 9px; font-size: 14px; font-weight: 650;
+}
+.button-link.primary { background: var(--charge); color: var(--bg); }
+.button-link:hover { text-decoration: none; border-color: var(--ink); }
+.button-link.primary:hover { background: var(--ink); }
+
+.trust-page section p { margin-top: 12px; color: var(--dim); max-width: 68ch; }
+.trust-page section p:first-of-type { margin-top: 10px; }
+.trust-page .plain-list { margin: 14px 0 0 20px; color: var(--dim); }
+.trust-page .plain-list li { margin-top: 8px; }
+.footer-links { display: inline-flex; gap: 12px; flex-wrap: wrap; }
 
 footer { margin-top: 44px; color: var(--faint); font-size: 13px; max-width: 860px; margin-left: auto; margin-right: auto; }
 footer a { color: var(--dim); }

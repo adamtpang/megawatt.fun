@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy at megawatt.fun · data practices</title>
+<meta name="description" content="Learn what megawatt.fun collects, what Vercel processes to serve the site, how live ERCOT prices load, and how external links affect privacy.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<link rel="canonical" href="https://megawatt.fun/privacy">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<nav class="tabs" aria-label="Primary navigation">
+  <a href="/" class="brand">megawatt<span class="fun">.fun</span></a>
+  <a href="/">tools</a>
+  <a href="/live">live</a>
+  <a href="/kardashev">kardashev</a>
+  <a href="/titans">titans</a>
+  <a href="/privacy" class="active" aria-current="page">privacy</a>
+</nav>
+<main class="trust-page">
+  <header class="hero">
+    <p class="kicker">Data practices</p>
+    <h1>Privacy at megawatt<span class="fun">.fun</span></h1>
+    <p class="sub">megawatt.fun is a public, read-only energy site with no accounts, payments, advertising, analytics scripts, newsletter form, or first-party tracking cookies.</p>
+  </header>
+
+  <section>
+    <p class="tool-tag">Data you provide</p>
+    <h2>No personal-data forms on this site</h2>
+    <p>megawatt.fun does not ask visitors to create an account, enter an email address, submit payment details, or complete a contact form. The interactive controls on the live-price and Kardashev pages change values in the visitor’s browser and do not ask for personal information.</p>
+  </section>
+
+  <section>
+    <p class="tool-tag">Hosting</p>
+    <h2>Request data processed by Vercel</h2>
+    <p>Vercel hosts megawatt.fun and processes requests needed to deliver its pages and serverless function. As with ordinary web hosting, request metadata such as an IP address, user agent, requested URL, referrer, status, and timing may be processed in infrastructure and security logs under Vercel’s own terms and privacy practices.</p>
+    <p>The site’s initial public response sets no cookies, and the project does not include third-party analytics, advertising pixels, session replay, or chat trackers. If those practices change, this page and the public source should be updated to describe the change.</p>
+  </section>
+
+  <section>
+    <p class="tool-tag">Live prices</p>
+    <h2>How the ERCOT feed is retrieved</h2>
+    <p>The live-price page requests the same-origin <span class="mono">/api/prices</span> function, which retrieves ERCOT’s public system-wide price feed and caches the result briefly at the edge. The function does not accept visitor-entered data, and its upstream request identifies megawatt.fun rather than forwarding a visitor identity to ERCOT.</p>
+  </section>
+
+  <section>
+    <p class="tool-tag">External services</p>
+    <h2>Links leave megawatt.fun</h2>
+    <p>Pages link to GitHub, ERCOT, skill.supply, and cited research sources. Following an external link sends a request to that service, which can receive standard request information and applies its own privacy policy. Contact is offered through GitHub, so information posted there is handled by GitHub and may be public.</p>
+  </section>
+
+  <section>
+    <p class="tool-tag">Questions and changes</p>
+    <h2>A public revision trail</h2>
+    <p>Privacy questions or corrections can be raised through the project’s published GitHub contact path. This policy is stored with the site in the public repository, so material revisions remain visible in the repository history.</p>
+    <div class="links mono"><a href="/contact">Contact the project →</a><a href="https://github.com/adamtpang/megawatt.fun">Inspect the public source →</a></div>
+  </section>
+
+  <footer>
+    <a href="/">megawatt.fun</a> · Built by <a href="https://github.com/adamtpang">Adam Pangelinan</a> ·
+    <span class="footer-links"><a href="/about">About</a><a href="/contact">Contact</a><a href="/privacy">Privacy</a></span>
+  </footer>
+</main>
+</body>
+</html>

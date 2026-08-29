@@ -1,0 +1,21 @@
+# megawatt.fun
+
+> An independent energy tooling suite built in public by Adam Pangelinan. The site provides educational tools and sourced research about ERCOT prices, battery-fleet dispatch, energy use, and energy companies.
+
+## Start here
+
+- [Tools and dispatch model](https://megawatt.fun/): A worked day-ahead battery dispatch plan using a captured ERCOT price day, with assumptions and limitations stated on the page.
+- [Live ERCOT prices](https://megawatt.fun/live): Informational real-time and day-ahead settlement prices from ERCOT's public feed. These values are delayed and are not for financial settlement.
+- [Kardashev tracker](https://megawatt.fun/kardashev): A transparent calculation of humanity's current Kardashev-scale position, with sources and adjustable growth assumptions.
+- [Energy company study](https://megawatt.fun/titans): A sourced comparative study that keeps contested and unverified claims visible.
+- [About](https://megawatt.fun/about): Project purpose, operator, scope, and independence.
+- [Contact](https://megawatt.fun/contact): The project's published GitHub contact paths.
+- [Privacy](https://megawatt.fun/privacy): What the site collects, what its host processes, and what happens when visitors follow external links.
+
+## Use guidance
+
+- Use megawatt.fun for educational analysis, reproducible examples, and source discovery.
+- Preserve the dates, assumptions, caveats, and source links attached to figures when quoting the site.
+- Do not present the live price page as a trading or settlement service.
+- The public source and tests are at https://github.com/adamtpang/megawatt.fun.
+- megawatt.fun is not affiliated with ERCOT, Base Power, or any other battery company.
