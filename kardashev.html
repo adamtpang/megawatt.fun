@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kardashev climb · megawatt.fun</title>
+<title>Earlier scale analysis · megawatt.fun</title>
 <meta name="description" content="Where humanity actually is on the Kardashev scale, computed from real world energy data with the formula and every assumption stated.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
 <link rel="stylesheet" href="/style.css">
@@ -12,22 +12,62 @@
 <body>
 <nav class="tabs">
   <a href="/" class="brand">megawatt<span class="fun">.fun</span></a>
-  <a href="/">tools</a>
+  <a href="/">plan</a>
+  <a href="/tools">tools</a>
   <a href="/live">live</a>
   <a href="/kardashev" class="active">kardashev</a>
   <a href="/titans">titans</a>
 </nav>
 <main>
+  <aside class="honest" aria-label="Earlier analysis notice"><b>Earlier analysis, preserved for reference.</b> The 2025 estimate and build arithmetic below have been superseded on the <a href="/">main roadmap</a>. Its verified 2024 OWID baseline is 20.12 TW (K ≈ 0.730), with explicit accounting caveats. Primary energy cannot be treated as an equivalent quantity of new electric generation. Use the <a href="/#method">current method and source snapshot</a> for calculations.</aside>
   <header class="hero">
     <p class="kicker">Tool 002 · the climb</p>
-    <h1>K = <span class="fun">0.728</span></h1>
-    <p class="sub">Humanity's position on the Kardashev scale, computed from the latest real
-    world energy figure, with the formula and every assumption on the table.</p>
+    <h1>Humanity is at <span class="fun">K = 0.728</span></h1>
+    <p class="sub">The log index makes us look close. The physical power gap does not.
+    Here is the species scoreboard, the real distance to K = 1.0, and the bottleneck
+    slowing the climb right now.</p>
   </header>
 
   <section>
-    <p class="tool-tag">The number</p>
-    <h2>19.02 terawatts, continuously</h2>
+    <p class="tool-tag">What the scale means</p>
+    <h2>Power under command, counted on a logarithmic scale</h2>
+    <p class="what">
+      Under the modern continuous version of the Kardashev scale, K = 1.0 means a
+      civilization using 10<sup>16</sup> watts. Every +0.1 K is a 10× increase in power.
+      It is a measure of energy capability, not wisdom, wellbeing, justice, or survival.
+    </p>
+
+    <div class="scale-ladder" role="img" aria-label="Logarithmic Kardashev scale from K zero at one megawatt to K one at ten petawatts, with humanity in 2025 at K 0.728 and 19 terawatts">
+      <div class="scale-track">
+        <span class="scale-fill" style="width:72.8%"></span>
+        <span class="scale-marker" style="left:72.8%"><b>Humanity</b><small>2025 · 19.02 TW</small></span>
+        <i style="left:0%"></i><i style="left:20%"></i><i style="left:40%"></i>
+        <i style="left:60%"></i><i style="left:80%"></i><i style="left:100%"></i>
+      </div>
+      <div class="scale-labels mono" aria-hidden="true">
+        <span>K 0<br><small>1 MW</small></span>
+        <span>K .2<br><small>100 MW</small></span>
+        <span>K .4<br><small>10 GW</small></span>
+        <span>K .6<br><small>1 TW</small></span>
+        <span>K .8<br><small>100 TW</small></span>
+        <span>K 1<br><small>10 PW</small></span>
+      </div>
+    </div>
+
+    <div class="formula mono">K = (log₁₀(P watts) − 6) / 10</div>
+
+    <details class="contested">
+      <summary>Why this is called the modern scale</summary>
+      <p class="detail-copy">Kardashev's 1964 paper proposed three discrete civilization
+      types for SETI. Type I was near then-current Earth. The now-familiar 10<sup>16</sup> W
+      Type I anchor and decimal interpolation are later conventions. This page uses that
+      modern convention so the calculation is explicit and reproducible.</p>
+    </details>
+  </section>
+
+  <section>
+    <p class="tool-tag">The honest distance</p>
+    <h2>19.02 TW now. 10,000 TW at K = 1.0.</h2>
     <p class="what">
       World commercial primary energy in 2025 was just over 600 EJ (600.3 EJ per the OWID
       sum of the Energy Institute Statistical Review 2026 series, up 1.7% on 2024). Spread
@@ -38,15 +78,169 @@
 
     <div class="formula mono">K = (log₁₀(P watts) − 6) / 10 &nbsp;=&nbsp; (log₁₀(1.902 × 10¹³) − 6) / 10 &nbsp;=&nbsp; 0.728</div>
 
-    <div class="kbar-wrap">
-      <div class="kbar-label mono"><span>Type 0</span><span>K axis (log scale)</span><span>Type I = 10¹⁶ W</span></div>
-      <div class="kbar"><div style="width:72.8%"></div></div>
+    <div class="distance-compare">
+      <div class="distance-row">
+        <div class="distance-head"><b>Index view</b><span class="mono">72.8%</span></div>
+        <div class="kbar"><div style="width:72.8%"></div></div>
+        <p>Useful for comparing orders of magnitude. Visually flattering.</p>
+      </div>
+      <div class="distance-row physical">
+        <div class="distance-head"><b>Physical power view</b><span class="mono">0.1902%</span></div>
+        <div class="physical-track"><span class="physical-slice"></span><span class="physical-marker"></span></div>
+        <p>Humanity has 1 part of the required power. Roughly 525 parts remain.</p>
+      </div>
     </div>
 
     <div class="stats">
-      <div class="stat"><div class="n green">72.8%</div><div class="l">of the log climb to Type I</div></div>
-      <div class="stat"><div class="n amber">0.19%</div><div class="l">of the actual power. The log scale flatters us.</div></div>
-      <div class="stat"><div class="n">526×</div><div class="l">current output needed for Type I</div></div>
+      <div class="stat"><div class="n green">19.02 TW</div><div class="l">current continuous primary-energy throughput</div></div>
+      <div class="stat"><div class="n amber">10 PW</div><div class="l">K = 1.0 target, equal to 315.6 ZJ per year</div></div>
+      <div class="stat"><div class="n">526×</div><div class="l">current power needed to reach the target</div></div>
+    </div>
+  </section>
+
+  <section class="questline-section">
+    <p class="tool-tag">Species questline</p>
+    <h2>Next practical checkpoint: K = 0.8</h2>
+    <p class="what">
+      There is no official named rung between today's K = 0.728 and Type I. For an
+      actionable checkpoint, use the next tenth: K = 0.8, equal to 100 TW of continuous
+      power. That is 5.26× today's throughput. The next named Kardashev milestone remains
+      Type I at K = 1.0.
+    </p>
+
+    <div class="milestone-route" aria-label="Kardashev milestones from humanity today to Type I">
+      <div class="milestone current"><span>NOW</span><b>K .728</b><small>19.02 TW</small></div>
+      <i aria-hidden="true">→</i>
+      <div class="milestone"><span>RUNG</span><b>K .75</b><small>31.6 TW</small></div>
+      <i aria-hidden="true">→</i>
+      <div class="milestone next"><span>NEXT</span><b>K .8</b><small>100 TW</small></div>
+      <i aria-hidden="true">→</i>
+      <div class="milestone"><span>LATER</span><b>K .9</b><small>1 PW</small></div>
+      <i aria-hidden="true">→</i>
+      <div class="milestone type-one"><span>TYPE I</span><b>K 1.0</b><small>10 PW</small></div>
+    </div>
+
+    <div class="next-meter-wrap">
+      <div class="distance-head"><b>Physical progress to K = 0.8</b><span class="mono">19.02%</span></div>
+      <div class="next-meter" role="img" aria-label="Humanity has 19.02 terawatts out of the 100 terawatts required for K 0.8">
+        <span class="next-fill"></span>
+        <span class="rung-marker"><small>K .75<br>31.6 TW</small></span>
+        <span class="next-marker"><small>K .8<br>100 TW</small></span>
+      </div>
+      <div class="next-meter-labels mono"><span>0 TW</span><span>Humanity · 19.02 TW</span><span>100 TW</span></div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="n amber">+80.98 TW</div><div class="l">net continuous power still required</div></div>
+      <div class="stat"><div class="n green">5.26×</div><div class="l">today's throughput at completion</div></div>
+      <div class="stat"><div class="n">3.156 ZJ</div><div class="l">energy supplied per year at K = 0.8</div></div>
+    </div>
+
+    <h3 class="gate-title">Eight gates humanity must close</h3>
+    <p class="gate-intro">Generation creates the added energy. The other gates ensure those
+    watts can be delivered, used, repeated, and sustained. Storage is counted as flexibility,
+    not as new energy.</p>
+
+    <ol class="species-todos">
+      <li>
+        <span class="todo-box" aria-hidden="true"></span>
+        <div><strong>Measure net continuous power</strong><p>Maintain an independently reproducible global scoreboard for average power, net additions, retirements, curtailment, reliability, cost, access, and harms.</p><small>DONE WHEN · the same audited method verifies progress every year</small></div>
+        <span class="owner">STATISTICAL AGENCIES</span>
+      </li>
+      <li>
+        <span class="todo-box" aria-hidden="true"></span>
+        <div><strong>Commission +80.98 TW of net average output</strong><p>Build the locally appropriate mix of solar, wind, nuclear, geothermal, hydro, and other sources. Count delivered annual output after retirements and curtailment, not nameplate announcements.</p><small>DONE WHEN · verified global throughput reaches 100 TW</small></div>
+        <span class="owner">BUILDERS + CAPITAL</span>
+      </li>
+      <li class="is-bottleneck">
+        <span class="todo-box" aria-hidden="true"></span>
+        <div><strong>Connect and move every added watt</strong><p>Clear interconnection queues, expand transmission and distribution, upgrade substations, deploy grid-enhancing technology, and create faster connection rules.</p><small>DONE WHEN · the added output is commissioned and deliverable, not waiting in a queue</small></div>
+        <span class="owner">GRIDS + REGULATORS</span>
+      </li>
+      <li>
+        <span class="todo-box" aria-hidden="true"></span>
+        <div><strong>Make the 100 TW dependable</strong><p>Add firm supply, interregional transfer, batteries, thermal and long-duration storage, reserves, and flexible demand at every required timescale.</p><small>DONE WHEN · demand and operating reserves are met through adverse hours and seasons</small></div>
+        <span class="owner">SYSTEM OPERATORS</span>
+      </li>
+      <li>
+        <span class="todo-box" aria-hidden="true"></span>
+        <div><strong>Create useful demand for the new power</strong><p>Electrify transport, buildings, industry, mining, water, fuels, compute, and new production while shifting flexible loads toward abundant hours and regions.</p><small>DONE WHEN · 100 TW produces useful capability rather than chronic curtailment</small></div>
+        <span class="owner">INDUSTRY + CITIES</span>
+      </li>
+      <li>
+        <span class="todo-box" aria-hidden="true"></span>
+        <div><strong>Multiply the physical supply chain</strong><p>Scale transformers, cables, power electronics, turbines, reactors, panels, storage, chips, critical materials, factories, and the skilled workforce behind them.</p><small>DONE WHEN · equipment and labor throughput supports the required annual build rate</small></div>
+        <span class="owner">MANUFACTURERS</span>
+      </li>
+      <li>
+        <span class="todo-box" aria-hidden="true"></span>
+        <div><strong>Turn projects into a compounding production system</strong><p>Standardize designs, contracts, permits, financing, construction, and failure reporting. Use AI for siting, engineering, queue studies, operations, maintenance, and materials discovery.</p><small>DONE WHEN · time and cost per dependable MW fall as cumulative deployment rises</small></div>
+        <span class="owner">AI + INSTITUTIONS</span>
+      </li>
+      <li>
+        <span class="todo-box" aria-hidden="true"></span>
+        <div><strong>Keep the climb inside civilization's guardrails</strong><p>Protect reliability, affordability, safety, ecosystems, resilience, security, human agency, and public legitimacy while energy capability compounds.</p><small>DONE WHEN · the milestone survives independent safety and welfare thresholds</small></div>
+        <span class="owner">EVERYONE</span>
+      </li>
+    </ol>
+
+    <div class="completion-rule">
+      <span class="mono">COMPLETION RULE</span>
+      <b>19.02 TW existing + 80.98 TW net new = 100 TW sustained for one audited year.</b>
+      <p>All eight gates must hold simultaneously. Otherwise humanity has capacity on paper,
+      stranded projects, unreliable supply, unused energy, or an unstable achievement.</p>
+    </div>
+  </section>
+
+  <section class="constraint-section">
+    <p class="tool-tag">Current limiting factor</p>
+    <h2>Deployment throughput, especially grids and interconnection</h2>
+    <p class="what">
+      Humanity has abundant generation projects and rapidly improving storage. The near-term
+      constraint is turning them into connected, dependable power systems quickly enough.
+      The IEA reports more than 2,500 GW of generation, storage, and large-load projects stalled
+      in grid queues worldwide. Grid infrastructure can take 5 to 15 years to complete, versus
+      1 to 5 years for new solar and wind projects.
+    </p>
+
+    <div class="pipeline" role="img" aria-label="Energy projects flow into a bottleneck at grid and interconnection deployment, then into dependable power additions and progress toward ten petawatts">
+      <div class="pipe-node ready">
+        <span class="pipe-tag">AVAILABLE</span>
+        <strong>Generation + storage + new loads</strong>
+        <small>&gt;2,500 GW waiting in global queues</small>
+      </div>
+      <div class="pipe-arrow" aria-hidden="true">→</div>
+      <div class="pipe-node blocked">
+        <span class="pipe-tag">BLOCKED HERE</span>
+        <strong>Grid + interconnection throughput</strong>
+        <small>Planning, permits, equipment, studies, construction</small>
+      </div>
+      <div class="pipe-arrow" aria-hidden="true">→</div>
+      <div class="pipe-node goal">
+        <span class="pipe-tag">UNLOCKS</span>
+        <strong>More dependable TW added each year</strong>
+        <small>Faster progress from 19 TW toward 10 PW</small>
+      </div>
+    </div>
+
+    <div class="constraint-grid">
+      <div>
+        <span class="constraint-label">Who must resolve it</span>
+        <p>Governments, regulators, utilities, grid operators, equipment manufacturers,
+        developers, and large flexible power users.</p>
+      </div>
+      <div>
+        <span class="constraint-label">Fastest near-term unlock</span>
+        <p>Use existing grids harder while building new ones. The IEA estimates non-firm
+        connections, dynamic line ratings, power-flow control, reconductoring, and related
+        reforms could connect 1,200 to 1,600 GW of advanced-stage projects.</p>
+      </div>
+    </div>
+
+    <div class="links mono">
+      <a href="https://www.iea.org/reports/electricity-2026/grids">IEA Electricity 2026: Grids</a>
+      <a href="https://emp.lbl.gov/queues">Berkeley Lab: Queued Up</a>
+      <a href="https://www.iea.org/reports/energy-and-ai/executive-summary">IEA: Energy and AI</a>
     </div>
   </section>
 
@@ -77,6 +271,7 @@
       <li>Commercial primary energy, gross consumption, per the Energy Institute definition. Traditional biomass (~40 EJ) excluded from the headline; including it gives K = 0.731.</li>
       <li>Seconds per year: 31,556,952 (mean Gregorian year).</li>
       <li>Constant compound growth is an assumption, not a forecast. 2025's actual growth was 1.7%.</li>
+      <li>The limiting factor is a current systems diagnosis, not a permanent law. It should be re-evaluated as queue times, grid investment, equipment lead times, and dependable annual additions change.</li>
       <li>Cross-check: <a href="https://www.kardashev1.com/scale">kardashev1.com</a> states K = 0.730 ± 0.02 on the same method; our commercial-only 0.728 sits inside their band, and a biomass-inclusive computation lands on their 0.730 exactly.</li>
     </ul>
 
@@ -89,7 +284,8 @@
   <footer>
     Built by <a href="https://github.com/adamtpang">Adam Pangelinan</a> ·
     part of <a href="/">megawatt.fun</a> · sources: Energy Institute Statistical Review
-    (2025, 2026 via OWID), Smil (2017) via OWID, Gray (2020), kardashev1.com. See also the
+    (2025, 2026 via OWID), IEA Electricity 2026, Berkeley Lab Queued Up, Smil (2017)
+    via OWID, Gray (2020), kardashev1.com. See also the
     <a href="/titans">titans study</a>. ·
     <span class="footer-links"><a href="/about">About</a><a href="/contact">Contact</a><a href="/privacy">Privacy</a></span>
   </footer>
