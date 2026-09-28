@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Energy tools · megawatt.fun</title>
+<meta name="description" content="An energy tooling suite. Tool 001: a day-ahead ERCOT arbitrage dispatch planner for home-battery fleets, run on real settlement prices.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<link rel="canonical" href="https://megawatt.fun/tools">
+<link rel="stylesheet" href="/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://megawatt.fun/#organization",
+      "name": "megawatt.fun",
+      "url": "https://megawatt.fun/",
+      "sameAs": [
+        "https://github.com/adamtpang",
+        "https://github.com/adamtpang/megawatt.fun"
+      ]
+    },
+    {
+      "@type": "Person",
+      "@id": "https://megawatt.fun/#adam-pangelinan",
+      "name": "Adam Pangelinan",
+      "url": "https://github.com/adamtpang",
+      "sameAs": ["https://github.com/adamtpang"]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://megawatt.fun/#website",
+      "url": "https://megawatt.fun/",
+      "name": "megawatt.fun",
+      "description": "An energy tooling suite. Tool 001: a day-ahead ERCOT arbitrage dispatch planner for home-battery fleets, run on real settlement prices.",
+      "publisher": { "@id": "https://megawatt.fun/#organization" },
+      "author": { "@id": "https://megawatt.fun/#adam-pangelinan" },
+      "inLanguage": "en"
+    }
+  ]
+}
+</script>
+<script data-posthog-fleet>(function(){if(window.__posthogFleet)return;window.__posthogFleet=1;var s=document.createElement('script');s.async=true;s.src='https://us-assets.i.posthog.com/static/array.js';s.onload=function(){if(!window.posthog||!window.posthog.init)return;window.posthog.init('phc_FCpCP9mIsb9IcxpX0Qqi6FmJ48sVvscAYIrZmtRHIq4',{api_host:'https://us.i.posthog.com',person_profiles:'identified_only',capture_pageview:'history_change',capture_pageleave:true,autocapture:false,disable_session_recording:true,disable_surveys:true,loaded:function(p){p.register({site:location.hostname})}});};document.head.appendChild(s);})();</script>
+</head>
+<body>
+<nav class="tabs">
+  <a href="/" class="brand">megawatt<span class="fun">.fun</span></a>
+  <a href="/">plan</a>
+  <a href="/tools" class="active">tools</a>
+  <a href="/live">live</a>
+  <a href="/kardashev">kardashev</a>
+  <a href="/titans">titans</a>
+</nav>
+<main>
+  <header class="hero">
+    <p class="kicker">Working contributions to the climb</p>
+    <h1>megawatt<span class="fun">.fun</span></h1>
+    <p class="sub">Small experiments and tools that support <a href="/">the larger energy roadmap</a>. Each should make one real decision easier to inspect.</p>
+    <p class="rule-of-thumb mono">1 MW ≈ 200 Texas homes at peak · 1 MW for 1 hour = 1 MWh</p>
+  </header>
+
+  <section id="dispatch-study">
+    <p class="tool-tag">Dispatch evaluation · synthetic experiment</p>
+    <h2>What survives forecast error?</h2>
+    <p class="what">Compare idle, clock-based, forecast-committed and hindsight battery schedules under price error, losses and a household reserve. The Go planner selects profitable partial cycles, and a separate replay checks physical constraints and realized settlement.</p>
+    <p class="honest"><b>A measured failure is useful evidence.</b> With 88% efficiency and a 5 kWh reserve, the strongest synthetic error setting gives the forecast strategy 38 losing days out of 120. Its mean is $0.145/day versus $0.097 for the clock baseline. These are synthetic stress outcomes, not validated customer economics or a production controller.</p>
+    <div class="formula mono">go test ./...<br>go run ./cmd/dispatch-study</div>
+    <div class="links"><a href="/demo/dispatch-study/README.md">Five-minute study (Markdown)</a><a href="/demo/dispatch-study/results/summary.csv">Results (CSV)</a><a href="/demo/dispatch-study/DEMO.md">Walkthrough (Markdown)</a><a href="/demo/dispatch-study/source.zip">Reproducible source (ZIP)</a></div>
+  </section>
+
+  <section>
+    <p class="tool-tag">Tool 001 · fleet dispatch</p>
+    <h2>One day's arbitrage is a scenario, not a valuation.</h2>
+    <p class="what">
+      A day-ahead dispatch planner for a fleet of home batteries, written in Go and run on
+      real ERCOT day-ahead prices (hub average, captured 2026-08-13). It charges the midday
+      solar trough, discharges the evening ramp, and refuses to cycle when the spread does
+      not clear round-trip losses.
+    </p>
+
+    <div class="chart-wrap">
+      <div class="chart-title mono">
+        <span>ERCOT DAM hub average · $/MWh · hour ending</span>
+        <span class="legend">
+          <span><i class="dot" style="background:var(--charge)"></i>charge</span>
+          <span><i class="dot" style="background:var(--discharge)"></i>discharge</span>
+          <span><i class="dot" style="background:var(--idle)"></i>idle</span>
+        </span>
+      </div>
+      <div id="chart" role="img" aria-label="24 hourly ERCOT prices with charge hours 9 to 13 and discharge hours 20 to 24 highlighted"></div>
+      <div class="axis mono" id="axis"></div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="n green">$11.02</div><div class="l">cheapest hour bought (10:00)</div></div>
+      <div class="stat"><div class="n amber">$38.46</div><div class="l">priciest hour sold (22:00)</div></div>
+      <div class="stat"><div class="n">$0.43</div><div class="l">net per battery, this day (25 kWh / 5 kW / 88% RT)</div></div>
+      <div class="stat"><div class="n">$7,312</div><div class="l">per day across 17,000 battery homes (Series D coverage, Aug 2026)</div></div>
+    </div>
+
+    <p class="honest">
+      <b>This is not a revenue floor.</b> One cycle, energy-only, supplied prices, no
+      forecast error or backup reserve. Omitted revenues and optimistic operating
+      assumptions pull in opposite directions; one day cannot establish fleet economics.
+      The local Go study compares forecast schedules with clock and idle baselines
+      under synthetic price error, losses, and reserves.
+    </p>
+
+    <div class="links mono">
+      <a href="https://github.com/adamtpang/megawatt.fun">source + tests on GitHub</a>
+      <a href="https://www.ercot.com/gridmktinfo/dashboards/systemwideprices">the live ERCOT price feed</a>
+    </div>
+  </section>
+
+  <section>
+    <p class="tool-tag">Tool 003 · live prices</p>
+    <h2>ERCOT, right now</h2>
+    <p class="what">
+      Real-time 15-minute and day-ahead hourly settlement prices for every ERCOT hub and
+      load zone, from the same public feed the dispatch planner uses, refreshed every
+      minute at the edge.
+    </p>
+    <div class="links mono"><a href="/live">open live prices →</a></div>
+  </section>
+
+  <section>
+    <p class="tool-tag">Tool 002 · the climb</p>
+    <h2>Kardashev: where humanity actually is</h2>
+    <p class="what">
+      The earlier scale analysis is preserved as an archive. It explores
+      the formula, the assumptions, the climb since 1900, and how many years of growth
+      Type I actually takes at any growth rate you pick.
+    </p>
+    <div class="links mono"><a href="/">current roadmap</a><a href="/kardashev">earlier analysis →</a></div>
+  </section>
+
+  <section>
+    <p class="tool-tag">Study · the titans</p>
+    <h2>The greatest energy companies of all time</h2>
+    <p class="what">
+      Standard Oil to Base Power: the five mechanisms that repeat across 150 years of
+      energy empires, with sourced numbers, one table of seven empires, six lessons for a
+      builder, and the contested claims listed instead of dropped.
+    </p>
+    <div class="links mono"><a href="/titans">open the study →</a></div>
+  </section>
+
+  <footer>
+    Built by <a href="https://github.com/adamtpang">Adam Pangelinan</a> ·
+    sibling of <a href="https://skill.supply">skill.supply</a> ·
+    prices are real, captured 2026-08-13; assumptions labeled in the
+    <a href="https://github.com/adamtpang/megawatt.fun#the-model-honestly">README</a>.
+    Not affiliated with any battery company or with ERCOT.
+  </footer>
+</main>
+
+<script>
+  // Real ERCOT day-ahead hub-average prices, hour ending 01:00 to 24:00, 2026-08-13.
+  const prices = [22.56,21.07,20.33,19.10,19.55,21.12,21.19,19.91,12.83,11.02,12.43,14.78,17.43,19.56,20.63,23.28,25.02,23.96,26.48,35.65,36.66,38.46,32.81,27.32];
+  const charge = new Set([9,10,11,12,13]);      // hour-ending, from the planner's real output
+  const discharge = new Set([20,21,22,23,24]);
+  const max = Math.max(...prices);
+  const chart = document.getElementById("chart");
+  const axis = document.getElementById("axis");
+  prices.forEach((p, i) => {
+    const he = i + 1;
+    const bar = document.createElement("div");
+    bar.className = "bar" + (charge.has(he) ? " charge" : discharge.has(he) ? " discharge" : "");
+    bar.style.height = Math.max(4, (p / max) * 100) + "%";
+    bar.setAttribute("data-tip", `HE ${String(he).padStart(2, "0")}:00 · $${p.toFixed(2)}/MWh`);
+    chart.appendChild(bar);
+    const tick = document.createElement("span");
+    tick.textContent = he % 3 === 0 ? he : "";
+    axis.appendChild(tick);
+  });
+</script>
+</body>
+</html>

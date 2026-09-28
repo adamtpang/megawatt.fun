@@ -1,0 +1,18 @@
+{
+  "retrieved": "2026-09-21",
+  "source": "https://raw.githubusercontent.com/owid/energy-data/master/owid-energy-data.csv",
+  "codebook_source": "https://raw.githubusercontent.com/owid/energy-data/master/owid-energy-codebook.csv",
+  "entity": "World",
+  "year": 2024,
+  "primary_energy_twh": 176737.094,
+  "hours_in_year": 8784,
+  "average_power_tw": 20.120343123861566,
+  "codebook": {
+    "column": "primary_energy_consumption",
+    "title": "Primary energy consumption",
+    "description": "Measured in terawatt-hours.",
+    "unit": "terawatt-hours (TWh)",
+    "source": "U.S. Energy Information Administration - International Energy Data (2025) [https://www.eia.gov/opendata/bulkfiles.php]; Energy Institute - Statistical Review of World Energy (2025) [https://www.energyinst.org/statistical-review/]"
+  },
+  "note": "Latest nonempty World primary energy row found on retrieval. 2025 primary energy is blank. This is an energy-accounting proxy, not useful electric output."
+}
