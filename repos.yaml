@@ -20,3 +20,5 @@ stack: [go, static-html]
 kin:
   - repo: skill.supply
     why: this suite was born inside skill.supply's job search; the dispatch planner is the proof-of-work artifact attached to the Base Power outreach, and megawatt.fun is its public demo surface.
+  - repo: optimism.fun
+    why: optimism.fun ranks the energy-abundance problem civilizationally (its renewable-energy category, src/lib/signals/categories.ts, tracks share of final energy consumption from renewables); megawatt.fun is a concrete engineering artifact against one slice of that same problem, grid-battery dispatch economics on real ERCOT prices, macro problem-ranking paired with a micro proof-of-work build.
