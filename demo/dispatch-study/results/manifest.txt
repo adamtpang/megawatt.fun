@@ -1,0 +1,11 @@
+Synthetic stress experiment v1
+seed=20260908
+days_per_condition=120
+capacity_kwh=25
+power_kw=5
+interval_hours=1
+initial_soc=terminal_soc=reserve
+error_scales=0,30,90
+efficiencies=1,0.88
+reserves_kwh=0,5,10
+No Base data or validated economics.

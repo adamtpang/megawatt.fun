@@ -4,8 +4,8 @@
 //	go run . -csv data/ercot-spp.csv -batteries 1000 -kwh 25 -kw 5 -eff 0.88
 //
 // Prices come in as a two-column CSV (interval label, $/MWh). The planner is
-// deliberately a floor model: one daily cycle, energy-only, perfect
-// foresight. See README for what that leaves out and why.
+// a restricted scenario: one daily cycle, energy-only, supplied prices.
+// This is neither a revenue floor nor a valuation. See README.
 package main
 
 import (
@@ -99,8 +99,8 @@ func main() {
 	fmt.Printf("\n  charged %.1f kWh for $%.2f, discharged %.1f kWh for $%.2f\n",
 		plan.ChargeKWh, plan.CostUSD, plan.DischargeKWh, plan.RevenueUSD)
 	fmt.Printf("  net per battery: $%.2f/day\n", profit)
-	fmt.Printf("  fleet of %d: $%.2f/day, ~$%.0f/year at this day's spread\n",
-		*batteries, profit*float64(*batteries), profit*float64(*batteries)*365)
+	fmt.Printf("  arithmetic scaling to %d identical batteries: $%.2f for this day only\n",
+		*batteries, profit*float64(*batteries))
 
 	capex := dispatch.CapexModel{USDPerKWh: *capexPerKWh, LifeYears: *capexLifeYears, CyclesPerYear: 365}
 	be := capex.Evaluate(b, plan)
@@ -110,9 +110,10 @@ func main() {
 		fmt.Printf("  this cycle clears its own hardware cost by $%.2f/day\n", be.NetUSD)
 	} else {
 		fmt.Printf("  this cycle does NOT clear its own hardware cost: $%.2f short/day\n", -be.NetUSD)
-		fmt.Println("  energy-only arbitrage is not the investment thesis here; see below")
+		fmt.Println("  illustrative capex arithmetic only; this day cannot establish investment viability")
 	}
 
-	fmt.Println("\n  Floor model only: one cycle, energy-only, perfect foresight.")
-	fmt.Println("  Real fleet value adds ancillary services, retail hedge, resilience.")
+	fmt.Println("\n  Restricted scenario: one cycle, energy-only, supplied prices. Not a revenue floor.")
+	fmt.Println("  Omits forecast error, reserve, degradation, retail and ancillary-service interactions.")
+	fmt.Println("  Run go run ./cmd/dispatch-study for synthetic forecast-error/reserve comparisons.")
 }

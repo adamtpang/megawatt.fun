@@ -4,12 +4,13 @@
 // Model, stated plainly: perfect price foresight (a day-ahead plan, not
 // real-time operation), one charge window followed by one discharge window
 // per day, energy-only arbitrage. Real fleet value stacks more than this
-// (ancillary services, retail hedging, resilience), so treat the output as
-// a floor on battery value, not an estimate of it.
+// (ancillary services, retail hedging, resilience). This is a restricted
+// scenario, neither a revenue floor nor a valuation.
 package dispatch
 
 import (
 	"fmt"
+	"math"
 	"sort"
 )
 
@@ -23,7 +24,7 @@ type Battery struct {
 
 // PricePoint is one settlement interval.
 type PricePoint struct {
-	Interval string  // label, e.g. "14:00"
+	Interval  string // label, e.g. "14:00"
 	USDPerMWh float64
 }
 
@@ -48,6 +49,9 @@ type Plan struct {
 func (p Plan) ProfitUSD() float64 { return p.RevenueUSD - p.CostUSD }
 
 func (b Battery) validate() error {
+	if !finite(b.CapacityKWh) || !finite(b.PowerKW) || !finite(b.RoundTripEff) {
+		return fmt.Errorf("battery values must be finite")
+	}
 	if b.CapacityKWh <= 0 || b.PowerKW <= 0 {
 		return fmt.Errorf("battery capacity and power must be positive, got %.1f kWh / %.1f kW", b.CapacityKWh, b.PowerKW)
 	}
@@ -56,6 +60,8 @@ func (b Battery) validate() error {
 	}
 	return nil
 }
+
+func finite(v float64) bool { return !math.IsNaN(v) && !math.IsInf(v, 0) }
 
 // fill greedily allocates `energy` kWh across the given intervals (already
 // sorted by attractiveness), at most PowerKW per interval. Returns the
@@ -86,14 +92,21 @@ func value(actions []Action) float64 {
 	return usd
 }
 
-// PlanDay computes the best single-cycle plan: a boundary t is chosen so
+// PlanDay computes the best closed single-cycle plan on hourly intervals: a boundary t is chosen so
 // that all charging happens strictly before t and all discharging at or
-// after t; within each side, intervals are picked greedily by price. Every
+// after t; profitable marginal energy pairs are selected in price order. Every
 // boundary is tried and the most profitable non-negative plan wins. An
 // unprofitable day returns an empty plan, never a forced cycle.
 func PlanDay(b Battery, prices []PricePoint) (Plan, error) {
 	if err := b.validate(); err != nil {
 		return Plan{}, err
+	}
+	seen := make(map[string]bool)
+	for _, p := range prices {
+		if p.Interval == "" || seen[p.Interval] || !finite(p.USDPerMWh) {
+			return Plan{}, fmt.Errorf("prices require unique nonempty labels and finite values")
+		}
+		seen[p.Interval] = true
 	}
 	if len(prices) < 2 {
 		return Plan{}, nil
@@ -104,10 +117,33 @@ func PlanDay(b Battery, prices []PricePoint) (Plan, error) {
 		before := append([]PricePoint(nil), prices[:t]...)
 		after := append([]PricePoint(nil), prices[t:]...)
 
-		sort.Slice(before, func(i, j int) bool { return before[i].USDPerMWh < before[j].USDPerMWh })
-		sort.Slice(after, func(i, j int) bool { return after[i].USDPerMWh > after[j].USDPerMWh })
+		sort.SliceStable(before, func(i, j int) bool { return before[i].USDPerMWh < before[j].USDPerMWh })
+		sort.SliceStable(after, func(i, j int) bool { return after[i].USDPerMWh > after[j].USDPerMWh })
 
-		charges, charged := fill(before, b.CapacityKWh, b.PowerKW, "charge")
+		// In charge-side kWh, a marginal pair earns eta*sell - buy.
+		// Margins decrease monotonically as we consume sorted intervals;
+		// stop before an unprofitable pair instead of forcing a full cycle.
+		var energy float64
+		i, j := 0, 0
+		buyLeft, sellLeft := b.PowerKW, b.PowerKW/b.RoundTripEff
+		for i < len(before) && j < len(after) && energy < b.CapacityKWh-1e-9 {
+			if b.RoundTripEff*after[j].USDPerMWh-before[i].USDPerMWh <= 0 {
+				break
+			}
+			e := math.Min(b.CapacityKWh-energy, math.Min(buyLeft, sellLeft))
+			energy += e
+			buyLeft -= e
+			sellLeft -= e
+			if buyLeft < 1e-9 {
+				i++
+				buyLeft = b.PowerKW
+			}
+			if sellLeft < 1e-9 {
+				j++
+				sellLeft = b.PowerKW / b.RoundTripEff
+			}
+		}
+		charges, charged := fill(before, energy, b.PowerKW, "charge")
 		if charged <= 1e-9 {
 			continue
 		}
