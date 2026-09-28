@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1119">
+<title>We Are a 0.73 Civilization</title>
+<meta name="description" content="A one-screenshot essay: where humanity sits on the Kardashev scale, why energy tracks prosperity, and how much we would have to build to level up.">
+<meta name="robots" content="noindex">
+<link rel="canonical" href="https://megawatt.fun/essay">
+<script src="/climb.js" defer></script>
+<style>
+  :root { --night:#070d16; --ink:#edf2f6; --muted:#9fb1c1; --lamp:#ffc46b; --rung:#9fd8ec; --line:#22364b;
+    --display: Georgia, "Iowan Old Style", serif; --body: "Segoe UI", -apple-system, Arial, sans-serif; --mono: Consolas, "SF Mono", ui-monospace, monospace; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--night); }
+  .sheet { width: 1119px; height: 2244px; overflow: hidden; position: relative; color: var(--ink); font-family: var(--body);
+    background: radial-gradient(900px 700px at 105% 8%, rgba(255,196,107,.16), transparent 60%), radial-gradient(700px 500px at -10% 55%, rgba(159,216,236,.08), transparent 60%), var(--night); padding: 72px 76px 0; }
+  .kicker { font: 600 20px var(--mono); letter-spacing: .18em; text-transform: uppercase; color: var(--lamp); margin: 0 0 18px; }
+  h1 { font: 400 92px/0.98 var(--display); margin: 0 0 22px; letter-spacing: -.01em; }
+  h1 em { font-style: normal; color: var(--lamp); }
+  .lede { font-size: 29px; line-height: 1.4; color: #d5dfe8; margin: 0 0 30px; max-width: 900px; }
+  h2 { font: 400 46px/1.05 var(--display); margin: 0 0 10px; }
+  .n { font: 700 18px var(--mono); color: var(--lamp); letter-spacing: .1em; margin: 0 0 8px; }
+  .sec { border-top: 2px solid var(--line); padding: 26px 0 24px; }
+  p.t { font-size: 24px; line-height: 1.45; color: #cfd9e3; margin: 0 0 16px; max-width: 940px; }
+  .mono { font-family: var(--mono); }
+  /* ladder */
+  .ladder { position: relative; height: 128px; margin: 14px 0 0; }
+  .ladder .bar { position: absolute; left: 0; right: 0; top: 46px; height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--lamp) 0 24.3%, #2a3d52 24.3%); }
+  .ladder .stop { position: absolute; top: 66px; transform: translateX(-50%); text-align: center; font: 600 22px var(--display); white-space: nowrap; }
+  .ladder .stop small { display: block; font: 16px var(--mono); color: var(--muted); margin-top: 4px; }
+  .ladder .you { position: absolute; top: 29px; left: 24.3%; transform: translateX(-50%); width: 40px; height: 40px; border-radius: 50%; background: var(--lamp); box-shadow: 0 0 34px rgba(255,196,107,.8); }
+  .ladder .youl { position: absolute; top: 0; left: 24.3%; transform: translateX(-50%); font: 700 18px var(--mono); color: var(--lamp); white-space: nowrap; }
+  /* chart */
+  .chart svg { display: block; width: 100%; height: auto; }
+  .chart .ax { stroke: #22364b; } .chart .tick { fill: var(--muted); font: 15px var(--mono); }
+  .chart .dot { opacity: .9; } .chart .lab { fill: var(--ink); font: 600 16px var(--body); paint-order: stroke; stroke: var(--night); stroke-width: 4px; }
+  .chart .trend { stroke: var(--lamp); stroke-width: 3; stroke-dasharray: 9 7; }
+  /* build */
+  .three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 18px; }
+  .big { border: 2px solid var(--line); border-radius: 18px; padding: 22px 20px; background: rgba(13,23,36,.7); }
+  .big .ic { font-size: 40px; }
+  .big .v { font: 700 52px/1 var(--mono); color: var(--lamp); margin: 10px 0 6px; }
+  .big .u { font-size: 21px; line-height: 1.3; }
+  .big .x { font: 17px var(--mono); color: var(--muted); margin-top: 10px; }
+  .or { font: 22px var(--display); color: var(--muted); margin: 14px 0 0; }
+  .wait { display: flex; align-items: center; gap: 28px; }
+  .wait .v { font: 700 128px/1 var(--mono); color: var(--lamp); }
+  .foot { position: absolute; left: 76px; right: 76px; bottom: 0; height: 104px; border-top: 2px solid var(--lamp); display: flex; align-items: center; justify-content: space-between; }
+  .foot .brand { font: 700 34px var(--mono); } .foot .brand span { color: var(--lamp); }
+  .foot .src { font: 14px/1.45 var(--mono); color: var(--muted); text-align: right; max-width: 660px; }
+</style>
+</head>
+<body>
+<main class="sheet">
+  <p class="kicker">The Kardashev climb</p>
+  <h1>We are a <em>0.73</em> civilization.</h1>
+  <p class="lede">The Kardashev scale ranks a civilization by the power it can use. A planet's worth is Type I. We use about <b class="mono" id="tw">20.1</b> terawatts, all day, every day. That's 0.2% of the way there in power.</p>
+
+  <section class="sec">
+    <p class="n">01 · THE LADDER</p>
+    <h2>Each 0.1 is ten times more power.</h2>
+    <div class="ladder" aria-hidden="true">
+      <div class="bar"></div>
+      <div class="youl">YOU ARE HERE · K <span id="k">0.730</span></div>
+      <div class="you"></div>
+      <div class="stop" style="left:3%">Type 0<small>town</small></div>
+      <div class="stop" style="left:33.3%">Type I<small>planet</small></div>
+      <div class="stop" style="left:66.6%">Type II<small>star</small></div>
+      <div class="stop" style="left:96%">Type III<small>galaxy</small></div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <p class="n">02 · WHY IT MATTERS</p>
+    <h2>Energy tracks prosperity.</h2>
+    <p class="t">191 countries: energy per person against income per person. Correlation <b class="mono" id="r">0.93</b> on log scales. No country has become rich while staying energy-poor.</p>
+    <div class="chart" id="chart"></div>
+  </section>
+
+  <section class="sec">
+    <p class="n">03 · THE BILL</p>
+    <h2>To reach K 0.8, we need <span class="mono" style="color:var(--lamp)" id="gap">80</span> TW more. Pick one:</h2>
+    <div class="three">
+      <div class="big"><div class="ic">☀</div><div class="v" id="b-solar">…</div><div class="u">more gigawatt-size solar farms</div><div class="x" id="x-solar"></div></div>
+      <div class="big"><div class="ic">🌬</div><div class="v" id="b-wind">…</div><div class="u">more wind turbines</div><div class="x" id="x-wind"></div></div>
+      <div class="big"><div class="ic">⚛</div><div class="v" id="b-nuclear">…</div><div class="u">more nuclear reactors</div><div class="x" id="x-nuclear"></div></div>
+    </div>
+    <p class="or">Or any mix. By 2100, that's about <b class="mono" style="color:var(--lamp)" id="perday">3</b> reactors' worth, every single day.</p>
+  </section>
+
+  <section class="sec">
+    <p class="n">04 · THE CATCH</p>
+    <div class="wait"><div class="v">&gt;5</div><div><h2>years to plug in.</h2><p class="t" style="margin:0">That's the median US wait from asking to connect to switching on. The bottleneck isn't only building power. It's connecting it.</p></div></div>
+  </section>
+
+  <footer class="foot">
+    <div class="brand">megawatt<span>.fun</span></div>
+    <div class="src">Sources: OWID (Energy Institute 2026, World Bank), EIA Table 6.07.B, GWEC 2026, IRENA 2026, IAEA PRIS, Berkeley Lab Queued Up. Full citations and live calculators at megawatt.fun.</div>
+  </footer>
+</main>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const S = window.MegawattScale, $ = (id) => document.getElementById(id);
+  const fmt = (n, d = 0) => n.toLocaleString('en-US', { maximumFractionDigits: d });
+  const base = S.BASELINE_TW, k = (Math.log10(base * 1e12) - 6) / 10;
+  $('tw').textContent = base.toFixed(1); $('k').textContent = k.toFixed(3);
+  const A = (await (await fetch('/data/build-assumptions.json')).json()).sources;
+  const gap = S.powerTW(0.8) - base; $('gap').textContent = fmt(gap);
+  const avg = { solar: A.solar.unit_mw * 1e6 * A.solar.capacity_factor, wind: A.wind.unit_mw * 1e6 * A.wind.capacity_factor, nuclear: A.nuclear.unit_mw * 1e6 * A.nuclear.capacity_factor };
+  const c = (s) => gap * 1e12 / avg[s];
+  $('b-solar').textContent = fmt(c('solar')); $('b-wind').textContent = fmt(c('wind') / 1e6, 1) + 'M'; $('b-nuclear').textContent = fmt(c('nuclear'));
+  $('x-solar').textContent = fmt(gap * 1e3 / A.solar.capacity_factor / A.solar.fleet_gw) + '× today\'s solar';
+  $('x-wind').textContent = fmt(gap * 1e3 / A.wind.capacity_factor / A.wind.fleet_gw) + '× today\'s wind';
+  $('x-nuclear').textContent = fmt(c('nuclear') / A.nuclear.fleet_reactors_high) + '× today\'s reactors';
+  $('perday').textContent = fmt(c('nuclear') / ((2100 - 2026) * 365.25), 1);
+
+  const D = await (await fetch('/data/energy-gdp.json')).json(); $('r').textContent = D.r_loglog.toFixed(2);
+  const W = 967, H = 430, m = { l: 84, r: 16, t: 10, b: 42 }, X = [500, 200000], Y = [60, 400000], NS = 'http://www.w3.org/2000/svg';
+  const lx = (v) => m.l + (Math.log10(v / X[0])) / Math.log10(X[1] / X[0]) * (W - m.l - m.r), ly = (v) => H - m.b - Math.log10(v / Y[0]) / Math.log10(Y[1] / Y[0]) * (H - m.t - m.b);
+  const e = (t, a, txt) => { const n = document.createElementNS(NS, t); for (const x in a) n.setAttribute(x, a[x]); if (txt) n.textContent = txt; return n; };
+  const svg = e('svg', { viewBox: `0 0 ${W} ${H}` });
+  [1000, 10000, 100000].forEach((v) => svg.append(e('line', { class: 'ax', x1: lx(v), x2: lx(v), y1: m.t, y2: H - m.b }), e('text', { class: 'tick', x: lx(v), y: H - 12, 'text-anchor': 'middle' }, '$' + fmt(v) + ' GDP/person')));
+  [100, 1000, 10000, 100000].forEach((v) => svg.append(e('line', { class: 'ax', x1: m.l, x2: W - m.r, y1: ly(v), y2: ly(v) }), e('text', { class: 'tick', x: m.l - 10, y: ly(v) + 5, 'text-anchor': 'end' }, fmt(v) + ' kWh')));
+  const R = { 'Africa': '#f08a6e', 'Asia': '#ffc46b', 'Europe': '#9fd8ec', 'North America': '#7fd6a4', 'South America': '#c9a7f5', 'Oceania': '#f5a3c7' };
+  const xs = D.points.map((p) => Math.log10(p.g)), ys = D.points.map((p) => Math.log10(p.e)), mx = xs.reduce((a, b) => a + b) / xs.length, my = ys.reduce((a, b) => a + b) / ys.length;
+  let sxy = 0, sxx = 0; xs.forEach((x, i) => { sxy += (x - mx) * (ys[i] - my); sxx += (x - mx) ** 2; }); const b = sxy / sxx, a = my - b * mx, f = (g) => 10 ** (a + b * Math.log10(g));
+  svg.append(e('line', { class: 'trend', x1: lx(1000), y1: ly(f(1000)), x2: lx(150000), y2: ly(f(150000)) }));
+  const L = ['United States', 'China', 'India', 'Ethiopia', 'Germany', 'Nigeria'];
+  D.points.forEach((p) => svg.append(e('circle', { class: 'dot', cx: lx(p.g), cy: ly(p.e), r: L.includes(p.n) ? 9 : 6, fill: R[p.r] || '#888' })));
+  D.points.filter((p) => L.includes(p.n)).forEach((p) => svg.append(e('text', { class: 'lab', x: lx(p.g) + 13, y: ly(p.e) + 6 }, p.n)));
+  $('chart').append(svg);
+  document.body.dataset.ready = '1';
+});
+</script>
+</body>
+</html>

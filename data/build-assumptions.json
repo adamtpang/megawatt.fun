@@ -1,0 +1,30 @@
+{
+  "retrieved": "2026-09-28",
+  "note": "Average power per unit = nameplate x capacity factor. A watt of electricity is counted as a watt of power, the same way K counts watts. Solar uses the US utility-scale capacity factor, which is higher than the global average, so the solar count is a floor.",
+  "sources": {
+    "wind": {
+      "unit_mw": 6.16,
+      "unit_label": "average new onshore turbine, 2025",
+      "unit_source": "https://www.gwec.net/reports/globalwindreport",
+      "capacity_factor": 0.342,
+      "fleet_gw": 1291
+    },
+    "solar": {
+      "unit_mw": 1000,
+      "unit_label": "1 GW solar farm",
+      "capacity_factor": 0.244,
+      "fleet_gw": 2392
+    },
+    "nuclear": {
+      "unit_mw": 1110,
+      "unit_label": "AP1000 reactor (Vogtle 3 and 4)",
+      "unit_source": "https://westinghousenuclear.com/energy-systems/ap1000-pwr/overview/",
+      "capacity_factor": 0.91,
+      "fleet_reactors_low": 404,
+      "fleet_reactors_high": 413
+    }
+  },
+  "capacity_factor_source": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_6_07_b",
+  "fleet_source_renewables": "https://www.irena.org/Publications/2026/Mar/Renewable-capacity-statistics-2026",
+  "fleet_source_nuclear": ["https://www.worldnuclearreport.org/Number-of-Operating-Reactors-Drops-Taiwan-Completes-Nuclear-Phaseout", "https://pris.iaea.org/PRIS/WorldStatistics/OperationalReactorsByType.aspx"]
+}

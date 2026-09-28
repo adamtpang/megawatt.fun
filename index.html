@@ -4,13 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The Kardashev Climb</title>
-<meta name="description" content="Humanity's guide to the Kardashev scale: what it measures, where we are (K = 0.73), how we got here, what is holding us back, and what you can do. Every number sourced.">
+<meta name="description" content="A fun, fully sourced explainer of the Kardashev scale: what it is, where we are (K = 0.73), why energy tracks prosperity, and how many solar farms, wind turbines, or reactors humanity needs to level up.">
 <meta name="theme-color" content="#070d16">
 <link rel="canonical" href="https://megawatt.fun/">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
 <link rel="stylesheet" href="/guide.css">
 <script src="/climb.js" defer></script>
 <script src="/guide.js" defer></script>
+<script src="/explain.js" defer></script>
 <script type="module" src="/earth.js"></script>
 <script data-posthog-fleet>(function(){if(location.hostname==='localhost'||location.hostname==='127.0.0.1'||window.__posthogFleet)return;window.__posthogFleet=1;var s=document.createElement('script');s.async=true;s.src='https://us-assets.i.posthog.com/static/array.js';s.onload=function(){if(!window.posthog||!window.posthog.init)return;window.posthog.init('phc_FCpCP9mIsb9IcxpX0Qqi6FmJ48sVvscAYIrZmtRHIq4',{api_host:'https://us.i.posthog.com',person_profiles:'identified_only',capture_pageview:'history_change',capture_pageleave:true,autocapture:false,disable_session_recording:true,disable_surveys:true,loaded:function(p){p.register({site:location.hostname})}});};document.head.appendChild(s);})();</script>
 </head>
@@ -22,7 +23,7 @@
 <header class="topbar">
   <a class="brand" href="/">megawatt<span>.fun</span></a>
   <nav aria-label="Main navigation">
-    <a href="#what">Scale</a><a href="#where">Today</a><a href="#history">History</a><a href="#levelup">Level up</a><a href="#you">You</a><a href="/roadmap">Roadmap</a><a href="/tools">Tools</a>
+    <a href="#what">Scale</a><a href="#where">Today</a><a href="#why">Why</a><a href="#history">History</a><a href="#build">How much</a><a href="#levelup">Level up</a><a href="#you">You</a><a href="/roadmap">Roadmap</a><a href="/tools">Tools</a>
   </nav>
 </header>
 
@@ -69,11 +70,33 @@
     </div>
   </section>
 
+  <!-- Scene: why it matters -->
+  <section class="scene" id="why" aria-labelledby="why-title">
+    <div class="scene-wide">
+      <div class="card" style="margin-bottom:16px">
+        <p class="eyebrow">3 · Why does it matter?</p>
+        <h2 id="why-title">Richer countries use more energy. Almost without exception.</h2>
+        <p class="answer">Across 191 countries, energy use per person tracks income per person closely. On a log scale the correlation is <span class="mono" id="why-r">0.93</span>.<sup><a href="#fn17" id="r17">17</a></sup></p>
+        <p class="gloss">Correlation is not a law of physics. Some countries do more with less energy, and rich countries can cut waste. But no country has become rich while staying energy-poor.</p>
+      </div>
+      <figure class="vc-chart" aria-labelledby="vc-title">
+        <div class="vc-head">
+          <p class="vc-kicker">Energy and prosperity</p>
+          <h3 id="vc-title">Every dot is a country</h3>
+          <p class="vc-dek">Energy used per person vs GDP per person, latest year available (2022 to 2025). Both axes use a log scale: each step is 10×.</p>
+          <div class="vc-legend" id="vc-legend"></div>
+        </div>
+        <div class="vc-plot" id="vc-plot" role="img" aria-label="Scatter plot of 191 countries: energy use per person rises with GDP per person, correlation 0.93 on log scales. The United States uses about 75,000 kWh per person at about $77,000 GDP per person; Ethiopia about 700 kWh at about $2,900."></div>
+        <figcaption class="vc-source">Source: Our World in Data, from the Energy Institute Statistical Review of World Energy (2026) and World Bank. GDP is PPP, 2021 international dollars.<sup><a href="#fn17">17</a></sup> Chart: megawatt.fun</figcaption>
+      </figure>
+    </div>
+  </section>
+
   <!-- Scene 3 -->
   <section id="history" aria-labelledby="history-title">
     <div class="scene" style="min-height:60vh">
       <div class="card">
-        <p class="eyebrow">3 · How we got here</p>
+        <p class="eyebrow">4 · How we got here</p>
         <h2 id="history-title">Every jump came from a new way to release energy.</h2>
         <p class="answer">Scroll, and watch the night side of the Earth light up.</p>
       </div>
@@ -86,11 +109,45 @@
     <div class="era" data-lights="0.55"><div class="card"><p class="year">Today</p><h3>K ≈ 0.73</h3><p>All of that history, coal, oil, the grid, nuclear, solar, moved us about 0.12 on the scale since 1900.<sup><a href="#fn3">3</a></sup> To reach Type I we need 500 times more.</p></div></div>
   </section>
 
+  <!-- Scene: how much do we need -->
+  <section class="scene" id="build" aria-labelledby="build-title">
+    <div class="scene-wide">
+      <div class="card build-card">
+        <p class="eyebrow">5 · How much do we need?</p>
+        <h2 id="build-title">To level up, build this much. On top of everything we have.</h2>
+        <p class="answer" id="build-answer">…</p>
+
+        <div class="seg" role="group" aria-label="Target level">
+          <button type="button" class="seg-btn" data-rung="0.8" aria-pressed="true">K 0.8</button>
+          <button type="button" class="seg-btn" data-rung="0.9" aria-pressed="false">K 0.9</button>
+          <button type="button" class="seg-btn" data-rung="1" aria-pressed="false">Type I</button>
+        </div>
+        <div class="seg" role="group" aria-label="Energy source">
+          <button type="button" class="seg-btn src" data-src="solar" aria-pressed="true">☀ Solar</button>
+          <button type="button" class="seg-btn src" data-src="wind" aria-pressed="false">🌬 Wind</button>
+          <button type="button" class="seg-btn src" data-src="nuclear" aria-pressed="false">⚛ Nuclear</button>
+        </div>
+
+        <div class="build-big"><span class="mono" id="build-count">…</span><span id="build-unit">…</span></div>
+        <p class="gloss" id="build-fleet">…</p>
+        <div class="fleet-grid" id="fleet-grid" aria-hidden="true"></div>
+        <p class="gloss" id="fleet-key">Each square is one copy of today's entire world fleet.</p>
+
+        <div class="control">
+          <label for="by-slider">Finish by <span class="mono" id="by-year">2100</span></label>
+          <input id="by-slider" type="range" min="2040" max="2300" step="5" value="2100">
+        </div>
+        <div class="readout" id="build-rate" aria-live="polite">…</div>
+        <p class="gloss" style="margin-top:12px">How it's counted: average power per unit is its size times how often it actually runs (capacity factor). We count one watt of electricity as one watt, the same way K does. This ignores storage, grids, and land, which are the next scene's problem.<sup><a href="#fn18" id="r18">18</a></sup><sup><a href="#fn19" id="r19">19</a></sup><sup><a href="#fn20" id="r20">20</a></sup><sup><a href="#fn21" id="r21">21</a></sup></p>
+      </div>
+    </div>
+  </section>
+
   <!-- Scene 4 -->
   <section class="scene" id="levelup" aria-labelledby="levelup-title">
     <div class="scene-wide">
       <div class="card" style="margin-bottom:16px">
-        <p class="eyebrow">4 · What levels us up</p>
+        <p class="eyebrow">6 · What levels us up</p>
         <h2 id="levelup-title">Four bottlenecks decide how fast we climb.</h2>
         <p class="answer">The biggest one right now is not making power. It is connecting it: new projects wait years to plug into the grid.<sup><a href="#fn11" id="r11">11</a></sup></p>
       </div>
@@ -147,7 +204,7 @@
   <!-- Scene 5 -->
   <section class="scene" id="you" aria-labelledby="you-title">
     <div class="card">
-      <p class="eyebrow">5 · What you can do</p>
+      <p class="eyebrow">7 · What you can do</p>
       <h2 id="you-title">Pick one bottleneck and move it.</h2>
       <p class="answer">There are three honest ways to help: build, fund, or advocate.</p>
       <div class="paths">
@@ -158,7 +215,7 @@
         <div class="path"><h3>Advocate</h3><p class="gloss">Push for faster grid connections and fair permitting, with the facts.</p>
           <ul><li><a href="https://ifp.org/interconnection-for-ai/">Institute for Progress</a> · fast grid interconnection</li><li><a href="https://rmi.org/resources/interconnection-reform-ai-data-centers-generator-queues/">RMI</a> · interconnection queue reform</li></ul></div>
       </div>
-      <p class="gloss" style="margin-top:14px">Want the detailed plan? Read the <a href="/roadmap">working roadmap</a>.</p>
+      <p class="gloss" style="margin-top:14px">Want the detailed plan? Read the <a href="/roadmap">working roadmap</a>. Want to share it? Here is the whole story as <a href="/essay/kardashev-073.png">one image</a>.</p>
     </div>
   </section>
 </main>
@@ -183,6 +240,11 @@
       <li id="fn14">ERCOT day-ahead hub-average prices, 13 August 2026, from ERCOT's public <a href="https://www.ercot.com/api/1/services/read/dashboards/systemWidePrices.json">system-wide prices feed</a>; saved copy: <a href="/data/ercot-dam-hubavg-2026-08-13.csv">CSV</a>. <a href="#r14">↩</a></li>
       <li id="fn15">This site's own <a href="https://github.com/adamtpang/megawatt.fun/blob/main/dispatch/capex.go">capex model</a> and <a href="https://github.com/adamtpang/megawatt.fun#capex-breakeven">README</a>: $150/kWh over a 15-year life, one cycle a day. Energy-only floor, not full battery value. <a href="#r15">↩</a></li>
       <li id="fn16">World Bank, <a href="https://www.worldbank.org/en/news/press-release/2026/06/16/accelerating-universal-energy-access">Tracking SDG 7, 2026</a>: people without electricity in 2024. <a href="#r16">↩</a></li>
+      <li id="fn17">Our World in Data, <a href="https://ourworldindata.org/grapher/energy-use-per-person-vs-gdp-per-capita">Energy use per person vs GDP per capita</a>: total energy supply per person (Energy Institute Statistical Review 2026 and other sources) and GDP per capita, PPP (World Bank et al.). Latest year per country, 191 countries, retrieved 28 September 2026. Correlation computed on log10 values. Saved copy: <a href="/data/energy-gdp.json">energy-gdp.json</a>. <a href="#r17">↩</a></li>
+      <li id="fn18">Capacity factors for 2025, US utility-scale plants: nuclear 91.0%, wind 34.2%, solar PV 24.4%. EIA, <a href="https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_6_07_b">Electric Power Monthly, Table 6.07.B</a>. Solar runs less often in cloudier and higher-latitude places, so the solar count here is a floor. <a href="#r18">↩</a></li>
+      <li id="fn19">Unit sizes: average new onshore wind turbine 6.16 MW in 2025, <a href="https://www.gwec.net/reports/globalwindreport">GWEC Global Wind Report 2026</a>; AP1000 reactor 1,110 MW net, <a href="https://westinghousenuclear.com/energy-systems/ap1000-pwr/overview/">Westinghouse</a>. <a href="#r19">↩</a></li>
+      <li id="fn20">World fleets at the end of 2025: solar 2,392 GW, wind 1,291 GW. Added in 2025: solar 511 GW, wind 158.7 GW, both records. IRENA, <a href="https://www.irena.org/Publications/2026/Mar/Renewable-capacity-statistics-2026">Renewable Capacity Statistics 2026</a>. <a href="#r20">↩</a></li>
+      <li id="fn21">Operating reactors: 404 on 1 January 2026 per the <a href="https://www.worldnuclearreport.org/Number-of-Operating-Reactors-Drops-Taiwan-Completes-Nuclear-Phaseout">World Nuclear Industry Status Report</a>, 413 per <a href="https://pris.iaea.org/PRIS/WorldStatistics/OperationalReactorsByType.aspx">IAEA PRIS</a>. They count idle reactors differently; we use 413. All assumptions: <a href="/data/build-assumptions.json">build-assumptions.json</a>. <a href="#r21">↩</a></li>
     </ol>
   </div>
 </section>
