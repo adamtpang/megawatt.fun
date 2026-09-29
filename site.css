@@ -1,0 +1,69 @@
+/* megawatt.fun shared design system. Loaded LAST on every page so its tokens win.
+   One palette (night + city-light amber), one type system, one header, one footer. */
+:root {
+  color-scheme: dark;
+  /* canonical tokens */
+  --night: #070d16;
+  --panel-solid: #0e1826;
+  --line: #24374c;
+  --ink: #edf2f6;
+  --muted: #a6b7c6;
+  --lamp: #ffc46b;
+  --rung: #9fd8ec;
+  --good: #7fd6a4;
+  --bad: #f08a6e;
+  --display: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+  --body: "Segoe UI", -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --mono: Consolas, "SF Mono", "Cascadia Code", ui-monospace, monospace;
+
+  /* legacy names in style.css (tools, live, kardashev, titans, trust pages) */
+  --bg: var(--night);
+  --panel: var(--panel-solid);
+  --dim: var(--muted);
+  --faint: #6f8295;
+  --charge: var(--good);
+  --discharge: var(--lamp);
+  --idle: #34506a;
+
+  /* legacy names in climb.css / scorecard.css (roadmap) */
+  --raised: #13233a;
+  --accent: var(--lamp);
+  --gold: var(--lamp);
+  --deep: #050a12;
+}
+
+body { background: var(--night); color: var(--ink); font-family: var(--body); }
+a { color: var(--lamp); }
+a:hover { color: var(--ink); }
+.mono, code { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+h1, h2 { font-family: var(--display); font-weight: 400; letter-spacing: -.01em; text-wrap: balance; }
+:focus-visible { outline: 2px solid var(--lamp); outline-offset: 3px; }
+
+/* one header everywhere */
+.site-top {
+  position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 12px 20px; margin: 0; background: linear-gradient(var(--night) 60%, rgba(7,13,22,0));
+  font: 13px var(--mono);
+}
+.site-top .brand { color: var(--ink); text-decoration: none; font-weight: 700; letter-spacing: .02em; font-size: 14px; }
+.site-top .brand span { color: var(--lamp); }
+.site-top nav { display: flex; gap: 16px; overflow-x: auto; white-space: nowrap; scrollbar-width: none; min-width: 0; }
+.site-top nav a { color: var(--muted); text-decoration: none; padding: 4px 0; }
+.site-top nav a:hover { color: var(--ink); }
+.site-top nav a[aria-current="page"] { color: var(--lamp); border-bottom: 1px solid var(--lamp); }
+@media (max-width: 560px) { .site-top nav { gap: 12px; font-size: 12px; } }
+
+/* one footer everywhere */
+.site-bottom {
+  position: relative; z-index: 1; margin-top: 56px; padding: 20px; border-top: 1px solid var(--line);
+  font-size: 13px; color: var(--muted); text-align: center; background: var(--night);
+}
+.site-bottom a { margin: 0 6px; color: var(--muted); }
+.site-bottom a:hover { color: var(--lamp); }
+
+.page-note { max-width: 860px; margin: 44px auto 0; padding: 0 20px; font-size: 13px; color: var(--muted); text-align: center; }
+.page-note + .site-bottom { margin-top: 12px; }
+
+/* pull page-specific headline styles onto the shared type system */
+.intro h1, .section-heading h2, .milestone-main h3, .hero h1 { font-family: var(--display); font-weight: 400; letter-spacing: -.01em; }
+.hero h1 span, h1 .fun { color: var(--lamp); }
