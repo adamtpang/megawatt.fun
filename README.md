@@ -64,3 +64,43 @@ The old planner also forced excessive energy through each candidate boundary. A 
 `dispatch/capex.go` remains illustrative amortization arithmetic with assumed presets, not verified Base costs. Neither a single day's proceeds nor these presets establish investment viability. See the [audit](demo/dispatch-study/AUDIT.md).
 
 Other static energy-history pages remain in the repository.
+
+## Your battery today (`/base`)
+
+A concept member screen: what a Texas home battery did in the last 24 hours, in plain words.
+Built after the Base Power x AITX Talent Hackathon (Austin, 25 to 27 September 2026). Not
+affiliated with Base Power.
+
+**What it shows**
+
+1. Today in one sentence, generated from the day's data.
+2. The day's power price, with the hours the battery charged, powered the home (and sent extra to
+   the grid), or held its backup, labeled directly on the chart.
+3. Backup right now, in hours at the home's usual use, with a home-size picker.
+4. Outage mode: what stays on, for how long, and what to turn off to stretch it.
+5. How it works, in three lines.
+
+**Data**
+
+- Real: ERCOT day-ahead settlement point prices for Houston Hub (`HB_HOUSTON`), fetched live through
+  `/api/prices` and cached in `data/ercot-dam-houston.json` with its source URL and download time.
+- Real: battery size 39.2 kWh (smaller Base Core, pv magazine USA, 2026-08-04); average Texas home
+  1,096 kWh a month (EIA 2024, Table 5A).
+- Assumed, and labeled on the page: 5 kW charge rate, 88% round trip, half the battery kept as
+  backup, the shape of a day's home use, and appliance running power.
+- Simulated: what the battery did. Not Base's control logic, fleet behavior, or revenue.
+
+**Failure behavior**
+
+- Live prices missing or older than 2 days: shows the last good cached day and says so.
+- Battery report missing: shows "We can't reach your battery right now" and no numbers.
+- Try it: `/base?prices=offline`, `/base?battery=offline`.
+- Tests: `node --test tests/base.test.cjs` (includes the planner's marginal-matching regression from
+  `demo/dispatch-study/AUDIT.md`).
+
+**What I'd build next**
+
+- Read the member's real battery telemetry and meter data instead of a simulated day.
+- Real-time (15-minute) prices, and a "what happened while you slept" push notification.
+- A monthly view: backup readiness, outages covered, and bill impact, stated only where measured.
+- Outage mode driven by live circuit data, so "what to turn off" is specific to the home.

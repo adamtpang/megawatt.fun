@@ -1,0 +1,108 @@
+{
+ "source": "https://www.ercot.com/api/1/services/read/dashboards/systemWidePrices.json",
+ "via": "https://megawatt.fun/api/prices (server-side proxy; ercot.com blocks many non-US IPs)",
+ "downloaded": "2026-09-30T09:24:57+00:00",
+ "ercot_last_updated": "2026-09-30 04:17:00-0500",
+ "market": "Day-ahead market settlement point prices",
+ "settlement_point": "HB_HOUSTON (Houston Hub)",
+ "units": "USD per MWh",
+ "delivery_date": "2026-09-30",
+ "hours": [
+  {
+   "hour_ending": 1,
+   "usd_mwh": 30.15
+  },
+  {
+   "hour_ending": 2,
+   "usd_mwh": 28.32
+  },
+  {
+   "hour_ending": 3,
+   "usd_mwh": 26.41
+  },
+  {
+   "hour_ending": 4,
+   "usd_mwh": 26.61
+  },
+  {
+   "hour_ending": 5,
+   "usd_mwh": 27.9
+  },
+  {
+   "hour_ending": 6,
+   "usd_mwh": 29.61
+  },
+  {
+   "hour_ending": 7,
+   "usd_mwh": 32.19
+  },
+  {
+   "hour_ending": 8,
+   "usd_mwh": 32.64
+  },
+  {
+   "hour_ending": 9,
+   "usd_mwh": 29.55
+  },
+  {
+   "hour_ending": 10,
+   "usd_mwh": 26.57
+  },
+  {
+   "hour_ending": 11,
+   "usd_mwh": 28.71
+  },
+  {
+   "hour_ending": 12,
+   "usd_mwh": 32.99
+  },
+  {
+   "hour_ending": 13,
+   "usd_mwh": 42.12
+  },
+  {
+   "hour_ending": 14,
+   "usd_mwh": 41.67
+  },
+  {
+   "hour_ending": 15,
+   "usd_mwh": 42.84
+  },
+  {
+   "hour_ending": 16,
+   "usd_mwh": 46.08
+  },
+  {
+   "hour_ending": 17,
+   "usd_mwh": 51.01
+  },
+  {
+   "hour_ending": 18,
+   "usd_mwh": 57.54
+  },
+  {
+   "hour_ending": 19,
+   "usd_mwh": 59.76
+  },
+  {
+   "hour_ending": 20,
+   "usd_mwh": 53.34
+  },
+  {
+   "hour_ending": 21,
+   "usd_mwh": 56.77
+  },
+  {
+   "hour_ending": 22,
+   "usd_mwh": 64.3
+  },
+  {
+   "hour_ending": 23,
+   "usd_mwh": 51.35
+  },
+  {
+   "hour_ending": 24,
+   "usd_mwh": 46.95
+  }
+ ]
+}

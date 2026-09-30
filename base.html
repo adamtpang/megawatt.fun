@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your Battery Today</title>
+<meta name="description" content="A concept member screen: what a Texas home battery did in the last 24 hours on real ERCOT prices, in plain words. Independent, not affiliated with Base Power.">
+<meta name="theme-color" content="#070d16">
+<link rel="canonical" href="https://megawatt.fun/base">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔋</text></svg>">
+<link rel="stylesheet" href="/guide.css">
+<link rel="stylesheet" href="/site.css">
+<link rel="stylesheet" href="/base.css">
+<script src="/base-core.js" defer></script>
+<script src="/base.js" defer></script>
+</head>
+<body>
+<header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/">Guide</a><a href="/base" aria-current="page">Battery</a><a href="/tools">Tools</a><a href="/live">Live</a></nav></header>
+
+<main class="app" id="main">
+  <p class="concept">Concept screen · real ERCOT prices · simulated battery</p>
+
+  <section class="tile hero" aria-labelledby="today-title">
+    <p class="eyebrow">Your battery today</p>
+    <h1 id="today-title" class="sr-only">Your battery today</h1>
+    <p class="today" id="today" aria-live="polite">Loading today…</p>
+    <p class="note" id="data-note" hidden></p>
+  </section>
+
+  <section class="tile" aria-labelledby="chart-title">
+    <h2 id="chart-title">Power prices today</h2>
+    <p class="sub" id="chart-sub">Houston, $ per MWh</p>
+    <div class="chart" id="chart" role="img" aria-label="Hourly power price with the hours your battery charged, powered your home, or held backup."></div>
+    <p class="fine">Prices: ERCOT day-ahead, Houston Hub, <span id="price-date">…</span>. <a href="/data/ercot-dam-houston.json">Source data</a></p>
+  </section>
+
+  <section class="tile" aria-labelledby="backup-title">
+    <h2 id="backup-title">Backup right now</h2>
+    <div id="battery-ok">
+      <p class="big"><span class="mono" id="backup-hours">…</span> <span>hours</span></p>
+      <p class="sub">at your usual use, with <span class="mono" id="backup-kwh">…</span> kWh kept in reserve</p>
+      <label class="field">Your home
+        <select id="home-size">
+          <option value="700">Small (700 kWh a month)</option>
+          <option value="1096" selected>Average Texas home (1,096 kWh a month)</option>
+          <option value="1600">Large (1,600 kWh a month)</option>
+        </select>
+      </label>
+      <p class="fine">Average: <a href="https://www.eia.gov/electricity/sales_revenue_price/pdf/table_5A.pdf">EIA 2024</a>. Small and large are assumptions.</p>
+    </div>
+    <p class="offline" id="battery-off" hidden role="status">We can't reach your battery right now.</p>
+  </section>
+
+  <section class="tile" aria-labelledby="outage-title">
+    <div class="row">
+      <h2 id="outage-title">Outage mode</h2>
+      <label class="switch"><input type="checkbox" id="outage"><span>Simulate an outage</span></label>
+    </div>
+    <div id="outage-panel" hidden>
+      <p class="alert">The grid is down. Your home is running on its battery.</p>
+      <p class="big"><span class="mono" id="out-hours">…</span> <span>hours</span></p>
+      <p class="sub">for the essentials: <span id="out-list"></span></p>
+      <p class="sub">With air conditioning on: <b class="mono" id="out-ac">…</b> hours.</p>
+      <p class="h3">To stretch it</p>
+      <ul class="tips">
+        <li>Set the thermostat to 80°F or turn the AC off.</li>
+        <li>Skip the oven, dryer, and pool pump.</li>
+        <li>Keep the fridge closed.</li>
+      </ul>
+      <p class="fine">Running power for each appliance is an assumption.</p>
+    </div>
+  </section>
+
+  <section class="tile" aria-labelledby="how-title">
+    <h2 id="how-title">How it works</h2>
+    <ol class="how">
+      <li>Your battery charges when power is cheap, usually at night.</li>
+      <li>It powers your home when power is expensive, and can help the grid when demand spikes.</li>
+      <li>It always keeps a backup reserve for outages.</li>
+    </ol>
+    <p class="fine"><a href="https://www.basepowercompany.com/how-it-works">How Base describes it</a></p>
+  </section>
+
+  <section class="tile fine-print" aria-labelledby="assume-title">
+    <h2 id="assume-title">What's real and what's assumed</h2>
+    <ul>
+      <li><b>Real:</b> hourly ERCOT day-ahead prices for Houston Hub, cached with source and download time.</li>
+      <li><b>Real:</b> battery size, 39.2 kWh, the smaller Base Core (<a href="https://pv-magazine-usa.com/2026/08/04/base-power-launches-39-2-kwh-u-s-made-base-core-home-battery-secures-1-billion-in-new-funding/">pv magazine USA</a>).</li>
+      <li><b>Assumed:</b> 5 kW charge rate, 88% round trip, half the battery kept as backup, the shape of a day's home use, and appliance power.</li>
+      <li><b>Simulated:</b> what the battery did. This is not Base's real control logic, fleet behavior, or revenue.</li>
+    </ul>
+    <p class="disclaimer">Not affiliated with Base Power. An independent concept built after the Base Power x AITX hackathon.</p>
+  </section>
+</main>
+
+<footer class="site-bottom">Built by <a href="https://github.com/adamtpang">Adam Pangelinan</a>. Not affiliated with Base Power or ERCOT.<br><a href="/">Guide</a><a href="/tools">Tools</a><a href="/sources">Sources</a><a href="https://github.com/adamtpang/megawatt.fun">Code</a></footer>
+</body>
+</html>
