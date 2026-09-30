@@ -25,7 +25,7 @@
       const km2 = solarMW * A.solar_land.acres_per_mwac * 0.00404686;
       const tx = km2 / A.texas_area_km2.value;
       show('lv-solar', fmt(tx, tx < 10 ? 1 : 0), `${fmt(gapW / 1e12)} TW ÷ ${src.solar.capacity_factor * 100}% capacity factor = ${fmt(solarMW / 1e6, 1)} TW of panels × ${A.solar_land.acres_per_mwac} acres/MW = ${fmt(km2)} km² ÷ ${fmt(A.texas_area_km2.value)} km² per Texas`);
-      $('lv-solar-note').textContent = `${fmt(km2)} km² of solar farms. Each square below is one Texas.`;
+      $('lv-solar-note').textContent = `${fmt(km2)} km² of solar farms. Each square above is one Texas.`;
       const row = $('lv-texas'); row.textContent = '';
       const n = Math.min(120, Math.ceil(tx));
       for (let i = 0; i < n; i++) { const t = document.createElement('i'); if (i === n - 1 && tx % 1 && tx < 120) t.style.opacity = String(Math.max(0.25, tx % 1)); row.append(t); }

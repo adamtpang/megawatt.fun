@@ -218,3 +218,6 @@ input[type=range] { width: 100%; accent-color: var(--lamp); }
 .net-status { font-size: 15px; min-height: 48px; margin: 8px 0; }
 .check { display: flex; gap: 8px; align-items: center; font-size: 14px; margin: 10px 0 6px; color: var(--muted); }
 .check input { accent-color: var(--lamp); width: 18px; height: 18px; }
+
+/* readable, tappable source markers */
+sup a { display: inline-block; min-width: 22px; padding: 2px 3px; margin-left: 2px; text-align: center; }

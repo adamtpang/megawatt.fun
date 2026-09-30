@@ -67,3 +67,8 @@ h1, h2 { font-family: var(--display); font-weight: 400; letter-spacing: -.01em; 
 /* pull page-specific headline styles onto the shared type system */
 .intro h1, .section-heading h2, .milestone-main h3, .hero h1 { font-family: var(--display); font-weight: 400; letter-spacing: -.01em; }
 .hero h1 span, h1 .fun { color: var(--lamp); }
+
+/* hint that the nav scrolls on narrow screens */
+@media (max-width: 560px) {
+  .site-top nav { -webkit-mask-image: linear-gradient(90deg, #000 82%, transparent); mask-image: linear-gradient(90deg, #000 82%, transparent); padding-right: 24px; }
+}
