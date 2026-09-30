@@ -99,7 +99,7 @@ func TestCrawlerDiscoveryFiles(t *testing.T) {
 func TestHomepagePublishesActionAndTrustLinks(t *testing.T) {
 	home := readSiteFile(t, "index.html")
 	for _, fragment := range []string{
-		`href="/live">Live ERCOT prices`,
+		`href="/live">Live</a>`,
 		`href="/about">About`,
 		`href="/contact">Contact`,
 		`href="/privacy">Privacy`,

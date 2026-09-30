@@ -11,7 +11,6 @@
 <link rel="stylesheet" href="/guide.css">
 <script src="/climb.js" defer></script>
 <script src="/guide.js" defer></script>
-<script src="/explain.js" defer></script>
 <script src="/levelup.js" defer></script>
 <script type="module" src="/earth.js"></script>
 <script data-posthog-fleet>(function(){if(location.hostname==='localhost'||location.hostname==='127.0.0.1'||window.__posthogFleet)return;window.__posthogFleet=1;var s=document.createElement('script');s.async=true;s.src='https://us-assets.i.posthog.com/static/array.js';s.onload=function(){if(!window.posthog||!window.posthog.init)return;window.posthog.init('phc_FCpCP9mIsb9IcxpX0Qqi6FmJ48sVvscAYIrZmtRHIq4',{api_host:'https://us.i.posthog.com',person_profiles:'identified_only',capture_pageview:'history_change',capture_pageleave:true,autocapture:false,disable_session_recording:true,disable_surveys:true,loaded:function(p){p.register({site:location.hostname})}});};document.head.appendChild(s);})();</script>
@@ -21,195 +20,92 @@
 <a class="skip" href="#main">Skip to the guide</a>
 <canvas id="earth" aria-hidden="true"></canvas>
 <div class="fallback-planet" id="fallback" aria-hidden="true" hidden></div>
-
 <header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/" aria-current="page">Guide</a><a href="/roadmap">Roadmap</a><a href="/tools">Tools</a><a href="/live">Live</a><a href="/kardashev">Kardashev</a><a href="/titans">Titans</a></nav></header>
 
-<main id="main">
+<main id="main" class="essence">
 
-  <!-- Scene 1 -->
   <section class="scene" id="what" aria-labelledby="what-title">
     <div class="card">
-      <p class="eyebrow">1 · What is the Kardashev scale?</p>
-      <h1 id="what-title">A civilization's level is how much power it can use.</h1>
-      <p class="answer">The Kardashev scale ranks a civilization by the power it harnesses: a planet's worth, a star's worth, or a galaxy's worth.</p>
-      <p class="gloss">Power means energy per second, measured in watts (W). A kettle uses about 2,000 W.</p>
-
+      <p class="eyebrow">You are here</p>
+      <h1 id="what-title">K = <span class="lamp" id="k-now">0.730</span></h1>
+      <p class="answer">A civilization's level is how much power it uses. We use <span class="mono" id="tw-now">20.1</span> TW.<sup><a href="/sources#fn2" id="r2" aria-label="Source">ⓘ</a></sup></p>
       <div class="ladder" id="ladder">
-        <div class="rung" data-rung="3"><b>Type III</b><span class="mono">10<sup>36</sup> W · a galaxy</span></div>
-        <div class="rung" data-rung="2"><b>Type II</b><span class="mono">10<sup>26</sup> W · a star</span></div>
-        <div class="rung" data-rung="1"><b>Type I</b><span class="mono">10<sup>16</sup> W · a planet</span></div>
-        <div class="rung" data-rung="0"><b>Type 0</b><span class="mono">10<sup>6</sup> W · a small town</span></div>
+        <div class="rung" data-rung="3"><b>Type III</b><span class="mono">a galaxy</span></div>
+        <div class="rung" data-rung="2"><b>Type II</b><span class="mono">a star</span></div>
+        <div class="rung" data-rung="1"><b>Type I</b><span class="mono">a planet</span></div>
+        <div class="rung" data-rung="0"><b>Type 0</b><span class="mono">a town</span></div>
       </div>
-
       <div class="control">
-        <label for="k-slider">Drag to set a civilization's power</label>
-        <input id="k-slider" type="range" min="0" max="3" step="0.01" value="0.73" aria-describedby="k-readout">
+        <label for="k-slider" class="sr-only">Civilization power</label>
+        <input id="k-slider" type="range" min="0" max="3" step="0.01" value="0.73">
         <div class="readout" id="k-readout" aria-live="polite">K = <strong id="k-val">0.73</strong> · <span id="k-power">about 20 TW</span></div>
       </div>
-      <p class="formula">K = (log<sub>10</sub>(P) − 6) / 10, with P in watts<sup><a href="#fn1" id="r1">1</a></sup></p>
-      <p class="gloss">Each step of 0.1 on K means 10 times more power. So the scale climbs like a staircase of powers of ten, not a straight line.</p>
     </div>
   </section>
 
-  <!-- Scene 2 -->
-  <section class="scene" id="where" aria-labelledby="where-title">
-    <div class="card">
-      <p class="eyebrow">2 · Where are we?</p>
-      <h2 id="where-title">We are at about K = 0.73.</h2>
-      <div class="big" id="k-now">0.730</div>
-      <p class="answer">Humanity uses about <span class="mono" id="tw-now">20.1</span> terawatts on average, all day, every day.<sup><a href="#fn2" id="r2">2</a></sup></p>
-      <div class="stat-row">
-        <div class="stat"><div class="v" id="to-type1">~500×</div><div class="l">more power needed for Type I</div></div>
-        <div class="stat"><div class="v" id="pct-type1">0.2%</div><div class="l">of Type I power, today</div></div>
-        <div class="stat"><div class="v" id="next-k">K 0.75</div><div class="l" id="next-k-l">next level, about 11.5 TW more</div></div>
-      </div>
-      <p class="formula" id="calc-line">K = (log<sub>10</sub>(2.01 × 10<sup>13</sup>) − 6) / 10 = 0.730</p>
-      <p class="gloss"><b>Honest caveat:</b> this counts primary energy, the fuel and electricity we put in. It is not useful work. A lot of that energy is lost as heat along the way.<sup><a href="#fn2">2</a></sup></p>
-    </div>
-  </section>
-
-  <!-- Scene: why it matters -->
-  <section class="scene" id="why" aria-labelledby="why-title">
-    <div class="scene-wide">
-      <div class="card" style="margin-bottom:16px">
-        <p class="eyebrow">3 · Why does it matter?</p>
-        <h2 id="why-title">Richer countries use more energy. Almost without exception.</h2>
-        <p class="answer">Across 191 countries, energy use per person tracks income per person closely. On a log scale the correlation is <span class="mono" id="why-r">0.93</span>.<sup><a href="#fn17" id="r17">3</a></sup></p>
-        <p class="gloss">Correlation is not a law of physics. Some countries do more with less energy, and rich countries can cut waste. But no country has become rich while staying energy-poor.</p>
-      </div>
-      <figure class="vc-chart" aria-labelledby="vc-title">
-        <div class="vc-head">
-          <p class="vc-kicker">Energy and prosperity</p>
-          <h3 id="vc-title">Every dot is a country</h3>
-          <p class="vc-dek">Energy used per person vs GDP per person, latest year available (2022 to 2025). Both axes use a log scale: each step is 10×.</p>
-          <div class="vc-legend" id="vc-legend"></div>
-        </div>
-        <div class="vc-plot" id="vc-plot" role="img" aria-label="Scatter plot of 191 countries: energy use per person rises with GDP per person, correlation 0.93 on log scales. The United States uses about 75,000 kWh per person at about $77,000 GDP per person; Ethiopia about 700 kWh at about $2,900."></div>
-        <figcaption class="vc-source">Source: Our World in Data, from the Energy Institute Statistical Review of World Energy (2026) and World Bank. GDP is PPP, 2021 international dollars.<sup><a href="#fn17">3</a></sup> Chart: megawatt.fun</figcaption>
-      </figure>
-    </div>
-  </section>
-
-  <!-- Screen 4: how much -->
-  <section class="scene" id="levelup" aria-labelledby="levelup-title">
+  <section class="scene" id="next" aria-labelledby="next-title">
     <div class="scene-wide">
       <div class="card build-card">
-        <p class="eyebrow">4 · How much would it take?</p>
-        <h2 id="levelup-title">Pick a goal. See what we'd have to build.</h2>
+        <p class="eyebrow">Next level</p>
+        <h2 id="next-title">K 0.75 needs <span class="lamp" id="lv-gap">12</span> TW more.</h2>
         <div class="seg" role="group" aria-label="Goal">
-          <button type="button" class="seg-btn goal" data-goal="0.75" aria-pressed="true">Next level: K 0.75</button>
-          <button type="button" class="seg-btn goal" data-goal="double" aria-pressed="false">Double today (K 0.76)</button>
+          <button type="button" class="seg-btn goal" data-goal="0.75" aria-pressed="true">K 0.75</button>
           <button type="button" class="seg-btn goal" data-goal="0.8" aria-pressed="false">K 0.8</button>
           <button type="button" class="seg-btn goal" data-goal="1" aria-pressed="false">Type I</button>
         </div>
-        <p class="answer" id="lv-answer">…</p>
         <div class="pics">
-          <div class="pic"><p class="pic-h">☀ Solar farms</p><div class="pic-v"><span class="mono" id="lv-solar" tabindex="0">…</span> <span>Texases of land</span></div><div class="texas-row" id="lv-texas" aria-hidden="true"></div><p class="gloss" id="lv-solar-note"></p></div>
-          <div class="pic"><p class="pic-h">⚛ Nuclear</p><div class="pic-v"><span class="mono" id="lv-nuke" tabindex="0">…</span> <span>reactors</span></div><p class="gloss" id="lv-nuke-note"></p></div>
-          <div class="pic"><p class="pic-h">🌬 Wind</p><div class="pic-v"><span class="mono" id="lv-wind" tabindex="0">…</span> <span>turbines</span></div><p class="gloss" id="lv-wind-note"></p></div>
-          <div class="pic"><p class="pic-h">🔋 Batteries</p><div class="pic-v"><span class="mono" id="lv-bat" tabindex="0">…</span> <span>homes with a battery</span></div><p class="gloss" id="lv-bat-note"></p></div>
+          <div class="pic"><p class="pic-h">☀ Solar</p><div class="pic-v"><span class="mono" id="lv-solar" tabindex="0">…</span> <span>Texases</span></div><div class="texas-row" id="lv-texas" aria-hidden="true"></div></div>
+          <div class="pic"><p class="pic-h">⚛ Nuclear</p><div class="pic-v"><span class="mono" id="lv-nuke" tabindex="0">…</span> <span>reactors</span></div></div>
+          <div class="pic"><p class="pic-h">🌬 Wind</p><div class="pic-v"><span class="mono" id="lv-wind" tabindex="0">…</span> <span>turbines</span></div></div>
+          <div class="pic"><p class="pic-h">🔋 Batteries</p><div class="pic-v"><span class="mono" id="lv-bat" tabindex="0">…</span> <span>homes</span></div></div>
         </div>
-        <p class="gloss">Each card is one way to do it alone. A real grid mixes them. Hover or tap a number to see the math. Sources:<sup><a href="#fn18" id="r18">4</a></sup><sup><a href="#fn19" id="r19">5</a></sup><sup><a href="#fn20" id="r20">6</a></sup><sup><a href="#fn21" id="r21">7</a></sup><sup><a href="#fnS1" id="rS1">8</a></sup><sup><a href="#fnS2" id="rS2">9</a></sup><sup><a href="#fnB1" id="rB1">10</a></sup></p>
+        <p class="gloss">Any one of these alone. Tap a number for the math.<sup><a href="/sources#fn18" aria-label="Sources">ⓘ</a></sup></p>
       </div>
     </div>
   </section>
 
-  <!-- Screen 5: why storage -->
   <section class="scene" id="storage" aria-labelledby="storage-title">
     <div class="scene-wide">
       <div class="card build-card">
-        <p class="eyebrow">5 · Why storage matters</p>
-        <h2 id="storage-title">The sun shines at noon. People need power at night.</h2>
-        <p class="answer">Here is one day on a grid that runs on solar alone. Drag the sliders and watch the gaps.</p>
-        <div class="day-chart" id="day-chart" role="img" aria-label="Demand and solar over 24 hours, with battery use, wasted solar, and shortfall shaded."></div>
-        <div class="control"><label for="sun-slider">Solar built: <span class="mono" id="sun-val"></span></label><input id="sun-slider" type="range" min="0.5" max="2.5" step="0.05" value="1.2"></div>
-        <div class="control"><label for="st-slider">Storage: <span class="mono" id="st-val"></span></label><input id="st-slider" type="range" min="0" max="16" step="0.5" value="0"></div>
+        <p class="eyebrow">The catch</p>
+        <h2 id="storage-title">Sun at noon. People at night.</h2>
+        <div class="day-chart" id="day-chart" role="img" aria-label="One day: demand, solar, battery use, wasted solar and shortfall."></div>
+        <div class="control"><label for="sun-slider">Solar <span class="mono" id="sun-val"></span></label><input id="sun-slider" type="range" min="0.5" max="2.5" step="0.05" value="1.2"></div>
+        <div class="control"><label for="st-slider">Storage <span class="mono" id="st-val"></span></label><input id="st-slider" type="range" min="0" max="16" step="0.5" value="0"></div>
         <div class="stat-row">
-          <div class="stat"><div class="v" id="d-met">…</div><div class="l">of demand met</div></div>
-          <div class="stat"><div class="v bad" id="d-short">…</div><div class="l">short (blackout unless other plants cover it)</div></div>
-          <div class="stat"><div class="v" id="d-waste">…</div><div class="l">of solar wasted</div></div>
+          <div class="stat"><div class="v" id="d-met">…</div><div class="l">met</div></div>
+          <div class="stat"><div class="v bad" id="d-short">…</div><div class="l">short</div></div>
+          <div class="stat"><div class="v" id="d-waste">…</div><div class="l">wasted</div></div>
         </div>
-        <p class="gloss">The curves are an illustrative shape, not measured data: demand is low overnight and peaks in the evening, solar peaks at noon.<sup><a href="#fnD1" id="rD1">11</a></sup> Solar built is how much the panels make in a day, compared with what the grid uses in a day. Storage is in hours of average demand.</p>
+        <p class="gloss">Illustrative day.<sup><a href="/sources#fnD1" aria-label="How this is drawn">ⓘ</a></sup></p>
       </div>
     </div>
   </section>
 
-  <!-- Screen 6: battery network -->
   <section class="scene" id="network" aria-labelledby="network-title">
     <div class="scene-wide">
       <div class="card build-card">
-        <p class="eyebrow">6 · How a battery network works</p>
-        <h2 id="network-title">Thousands of home batteries can act like one power plant.</h2>
-        <p class="answer">Each home gets backup. Together, they charge when power is cheap and send power to the grid when it's short.</p>
+        <p class="eyebrow">The fix</p>
+        <h2 id="network-title">Many home batteries, one power plant.</h2>
         <div class="net" id="net" aria-hidden="true"></div>
         <div class="net-status" id="net-status" aria-live="polite">…</div>
-        <div class="btn-row"><button class="btn" type="button" id="net-play">Pause</button><button class="btn" type="button" id="net-storm">Storm: grid goes down</button></div>
-        <p class="gloss" style="margin-top:12px"><b>A real example:</b> Base Power, in Texas, sells the Base Core home battery in 39.2 kWh and 78.4 kWh sizes.<sup><a href="#fnB1">10</a></sup> Base says the battery "powers your home and strengthens the grid".<sup><a href="#fnB2" id="rB2">12</a></sup> This site is not affiliated with Base. The animation is a simplified picture, not Base's real fleet.</p>
+        <div class="btn-row"><button class="btn" type="button" id="net-play">Pause</button><button class="btn" type="button" id="net-storm">Storm</button></div>
+        <p class="gloss">Real example: Base Power in Texas (not affiliated).<sup><a href="/sources#fnB2" aria-label="Source">ⓘ</a></sup></p>
+        <details class="play">
+          <summary>Play grid operator</summary>
+          <p class="gloss">Real Texas prices, 13 Aug 2026.<sup><a href="/sources#fn14" aria-label="Source">ⓘ</a></sup> Tap hours: idle → charge → sell.</p>
+          <div class="grid-game" id="grid-game" role="group" aria-label="24 hourly prices. Each bar cycles idle, charge, sell."></div>
+          <div class="hour-axis" id="hour-axis" aria-hidden="true"></div>
+          <label class="check"><input type="checkbox" id="game-reserve" checked> Keep 5 kWh backup</label>
+          <div class="readout" id="game-out" aria-live="polite">Tap some hours.</div>
+          <div class="btn-row"><button class="btn" id="game-best" type="button">Best day</button><button class="btn" id="game-reset" type="button">Reset</button></div>
+        </details>
       </div>
-    </div>
-  </section>
-
-  <!-- Screen 7: play grid operator -->
-  <section class="scene" id="play" aria-labelledby="play-title">
-    <div class="scene-wide">
-      <div class="card build-card">
-        <p class="eyebrow">7 · Play grid operator</p>
-        <h2 id="play-title">Charge low. Sell high. Keep a backup.</h2>
-        <p class="answer">ERCOT runs the Texas grid, where the price of power changes every hour.<sup><a href="#fnE1" id="rE1">13</a></sup></p>
-        <p class="gloss">These are real ERCOT prices for 13 August 2026.<sup><a href="#fn14" id="r14">14</a></sup> Your battery holds 25 kWh, moves 5 kWh an hour, and loses 12% on the round trip. Tap an hour: <b>idle → charge → sell</b>.</p>
-        <div class="grid-game" id="grid-game" role="group" aria-label="24 hourly prices. Each bar is a button that cycles idle, charge, sell."></div>
-        <div class="hour-axis" id="hour-axis" aria-hidden="true"></div>
-        <div class="legend"><span><i style="background:#34506a"></i>idle</span><span><i style="background:var(--good)"></i>charge (buy)</span><span><i style="background:var(--lamp)"></i>sell</span></div>
-        <label class="check"><input type="checkbox" id="game-reserve" checked> Keep 5 kWh as backup for an outage</label>
-        <div class="readout" id="game-out" aria-live="polite">Tap some hours to start.</div>
-        <div class="btn-row"><button class="btn" id="game-best" type="button">Show the best possible day</button><button class="btn" id="game-reset" type="button">Reset</button></div>
-        <p class="gloss" style="margin-top:12px">Price swings alone earn well under a dollar a day. Paying off the hardware costs about $0.68 a day.<sup><a href="#fn15" id="r15">15</a></sup> That's why real battery networks also get paid for backup and grid services.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- Scene 5 -->
-  <section class="scene" id="you" aria-labelledby="you-title">
-    <div class="card">
-      <p class="eyebrow">8 · What you can do</p>
-      <h2 id="you-title">Pick one bottleneck and move it.</h2>
-      <p class="answer">There are three honest ways to help: build, fund, or advocate.</p>
-      <div class="paths">
-        <div class="path"><h3>Build</h3><p class="gloss">Work on the things that make power cheaper, faster to connect, or easier to store.</p>
-          <ul><li><a href="https://www.basepowercompany.com">Base Power</a> · home batteries on the Texas grid</li><li><a href="https://terraformindustries.com">Terraform Industries</a> · fuel made from sunlight and air</li><li><a href="/tools">megawatt.fun tools</a> · open source, with tests</li><li><a href="/live">Live ERCOT prices</a> · watch the Texas grid price move</li></ul></div>
-        <div class="path"><h3>Fund</h3><p class="gloss">Put money behind hard energy technology that needs patient capital.</p>
-          <ul><li><a href="https://www.breakthroughenergy.org">Breakthrough Energy</a> · funds and policy work on clean energy</li></ul></div>
-        <div class="path"><h3>Advocate</h3><p class="gloss">Push for faster grid connections and fair permitting, with the facts.</p>
-          <ul><li><a href="https://ifp.org/interconnection-for-ai/">Institute for Progress</a> · fast grid interconnection</li><li><a href="https://rmi.org/resources/interconnection-reform-ai-data-centers-generator-queues/">RMI</a> · interconnection queue reform</li></ul></div>
-      </div>
-      <p class="gloss" style="margin-top:14px">Want the detailed plan? Read the <a href="/roadmap">working roadmap</a>. Want to share it? Here is the whole story as <a href="/essay/kardashev-073.png">one image</a>.</p>
     </div>
   </section>
 </main>
 
-<section class="notes" aria-labelledby="notes-title">
-  <div>
-    <h2 id="notes-title" style="font-size:24px">Sources</h2>
-    <ol>
-      <li id="fn1">The continuous formula is the interpolation usually credited to Carl Sagan. Gray (2020) shows it appears in his prose, not as an explicit equation. <a href="https://doi.org/10.3847/1538-3881/ab792b">Gray, The Astronomical Journal (2020)</a>. <a href="#r1">↩</a></li>
-      <li id="fn2">2024 world primary energy, 176,737 TWh, divided by 8,784 hours = 20.1 TW. <a href="https://github.com/owid/energy-data">Our World in Data energy dataset</a> (EIA and Energy Institute); saved copy: <a href="/data/kardashev-baseline.json">kardashev-baseline.json</a>, retrieved 21 September 2026. <a href="#r2">↩</a></li>
-      <li id="fn17">Our World in Data, <a href="https://ourworldindata.org/grapher/energy-use-per-person-vs-gdp-per-capita">Energy use per person vs GDP per capita</a>: total energy supply per person (Energy Institute Statistical Review 2026 and other sources) and GDP per capita, PPP (World Bank et al.). Latest year per country, 191 countries, retrieved 28 September 2026. Correlation computed on log10 values. Saved copy: <a href="/data/energy-gdp.json">energy-gdp.json</a>. <a href="#r17">↩</a></li>
-      <li id="fn18">Capacity factors for 2025, US utility-scale plants: nuclear 91.0%, wind 34.2%, solar PV 24.4%. EIA, <a href="https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_6_07_b">Electric Power Monthly, Table 6.07.B</a>. Solar runs less often in cloudier and higher-latitude places, so the solar count here is a floor. <a href="#r18">↩</a></li>
-      <li id="fn19">Unit sizes: average new onshore wind turbine 6.16 MW in 2025, <a href="https://www.gwec.net/reports/globalwindreport">GWEC Global Wind Report 2026</a>; AP1000 reactor 1,110 MW net, <a href="https://westinghousenuclear.com/energy-systems/ap1000-pwr/overview/">Westinghouse</a>. <a href="#r19">↩</a></li>
-      <li id="fn20">World fleets at the end of 2025: solar 2,392 GW, wind 1,291 GW. Added in 2025: solar 511 GW, wind 158.7 GW, both records. IRENA, <a href="https://www.irena.org/Publications/2026/Mar/Renewable-capacity-statistics-2026">Renewable Capacity Statistics 2026</a>. <a href="#r20">↩</a></li>
-      <li id="fn21">Operating reactors: 404 on 1 January 2026 per the <a href="https://www.worldnuclearreport.org/Number-of-Operating-Reactors-Drops-Taiwan-Completes-Nuclear-Phaseout">World Nuclear Industry Status Report</a>, 413 per <a href="https://pris.iaea.org/PRIS/WorldStatistics/OperationalReactorsByType.aspx">IAEA PRIS</a>. They count idle reactors differently; we use 413. All assumptions: <a href="/data/build-assumptions.json">build-assumptions.json</a>. <a href="#r21">↩</a></li>
-      <li id="fnS1">Solar land: 8.9 acres per MW of capacity, total site area, US average. NREL, <a href="https://docs.nrel.gov/docs/fy13osti/56290.pdf">Land-Use Requirements for Solar Power Plants in the United States</a> (Ong et al., 2013). <a href="#rS1">↩</a></li>
-      <li id="fnS2">Texas total area 695,662 km². US Census Bureau, <a href="https://www.census.gov/geographies/reference-files/2010/geo/state-area.html">State Area Measurements</a>. <a href="#rS2">↩</a></li>
-      <li id="fnB1">Base Core sizes 39.2 kWh and 78.4 kWh, <a href="https://pv-magazine-usa.com/2026/08/04/base-power-launches-39-2-kwh-u-s-made-base-core-home-battery-secures-1-billion-in-new-funding/">pv magazine USA, 4 August 2026</a>. The homes count is an estimate: it assumes 12 hours of the new power has to come out of storage, using the 39.2 kWh size. <a href="#rB1">↩</a></li>
-      <li id="fnD1">Illustrative day: the demand and solar shapes are drawn to show the timing mismatch, not taken from a real grid. The math on top of them (what charges, what's wasted, what's short) is exact. <a href="#rD1">↩</a></li>
-      <li id="fnB2">Base Power, <a href="https://www.basepowercompany.com/core">Base Core</a> and <a href="https://www.basepowercompany.com/how-it-works">How it works</a>. <a href="#rB2">↩</a></li>
-      <li id="fnE1">ERCOT, <a href="https://www.ercot.com/about">About ERCOT</a>. <a href="#rE1">↩</a></li>
-      <li id="fn14">ERCOT day-ahead hub-average prices, 13 August 2026, from ERCOT's public <a href="https://www.ercot.com/api/1/services/read/dashboards/systemWidePrices.json">system-wide prices feed</a>; saved copy: <a href="/data/ercot-dam-hubavg-2026-08-13.csv">CSV</a>. <a href="#r14">↩</a></li>
-      <li id="fn15">This site's own <a href="https://github.com/adamtpang/megawatt.fun/blob/main/dispatch/capex.go">capex model</a> and <a href="https://github.com/adamtpang/megawatt.fun#capex-breakeven">README</a>: $150/kWh over a 15-year life, one cycle a day. Energy-only floor, not full battery value. <a href="#r15">↩</a></li>
-    </ol>
-  </div>
-</section>
-
+<p class="page-note"><a href="/why">Why energy matters</a> · <a href="/sources">All sources</a> · Build: <a href="https://www.basepowercompany.com">Base</a>, <a href="https://terraformindustries.com">Terraform</a> · Fund: <a href="https://www.breakthroughenergy.org">Breakthrough Energy</a> · Advocate: <a href="https://ifp.org/interconnection-for-ai/">IFP</a></p>
 <footer class="site-bottom">Built by <a href="https://github.com/adamtpang">Adam Pangelinan</a>. Not affiliated with any battery company or with ERCOT. No non-public information.<br><a href="/">Guide</a><a href="/roadmap">Roadmap</a><a href="/tools">Tools</a><a href="/live">Live</a><a href="/kardashev">Kardashev</a><a href="/titans">Titans</a><a href="/about">About</a><a href="/contact">Contact</a><a href="/privacy">Privacy</a></footer>
 </body>
 </html>

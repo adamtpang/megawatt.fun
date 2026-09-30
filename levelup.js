@@ -2,7 +2,8 @@
    Conversion factors come from data/build-assumptions.json; every one is cited in the page footnotes. */
 (function () {
   'use strict';
-  const $ = (id) => document.getElementById(id);
+  const SINK = document.createElement('div');
+  const $ = (id) => document.getElementById(id) || SINK;
   const fmt = (n, d = 0) => n.toLocaleString('en-US', { maximumFractionDigits: d });
   const big = (n) => n >= 1e12 ? fmt(n / 1e12, 1) + ' trillion' : n >= 1e9 ? fmt(n / 1e9, 1) + ' billion' : n >= 1e6 ? fmt(n / 1e6, 1) + ' million' : fmt(n);
   const SVG = 'http://www.w3.org/2000/svg';
@@ -21,6 +22,8 @@
       const targetTW = goal === 'double' ? base * 2 : S.powerTW(Number(goal));
       const gapW = (targetTW - base) * 1e12;
       const name = goal === 'double' ? 'double today' : goal === '1' ? 'Type I' : goal === '0.75' ? 'the next level, K 0.75' : 'K ' + goal;
+      $('lv-gap').textContent = fmt(gapW / 1e12);
+      document.getElementById('next-title').firstChild.textContent = (goal === '1' ? 'Type I' : 'K ' + goal) + ' needs ';
       $('lv-answer').textContent = `To ${goal === 'double' ? '' : 'reach '}${name} (${fmt(targetTW)} TW), we need ${fmt(gapW / 1e12)} TW more power, running all day and night. Any one of these would do it:`;
 
       const solarMW = gapW / src.solar.capacity_factor / 1e6;

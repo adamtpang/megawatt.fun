@@ -1,7 +1,8 @@
 /* Guide interactions. Math comes from climb.js (window.MegawattScale); the 3D layer listens for "mw:scene" events. */
 (function () {
   'use strict';
-  const $ = (id) => document.getElementById(id);
+  const SINK = document.createElement('div');
+  const $ = (id) => document.getElementById(id) || SINK;
   const fmt = (n, d = 0) => n.toLocaleString('en-US', { maximumFractionDigits: d });
   const kOf = (watts) => (Math.log10(watts) - 6) / 10;
   const lightsFor = (k) => Math.min(1, Math.max(0, (k - 0.3) / 0.8));
@@ -44,7 +45,7 @@
     }
     showBaseline(baselineTW);
     fetch('/data/kardashev-baseline.json').then((r) => r.json()).then((b) => {
-      baselineTW = b.primary_energy_twh / b.hours_in_year; showBaseline(baselineTW); if ($('g-slider')) onGrowth();
+      baselineTW = b.primary_energy_twh / b.hours_in_year; showBaseline(baselineTW); if (document.getElementById('g-slider')) onGrowth();
     }).catch(() => {});
 
     /* Scene 4a: growth */
@@ -55,15 +56,15 @@
       $('g-08').textContent = y8 + ' years (' + (S.BASELINE_YEAR + y8) + ')';
       $('g-1').textContent = y1 + ' years (' + (S.BASELINE_YEAR + y1) + ')';
     }
-    if ($('g-slider')) { $('g-slider').addEventListener('input', onGrowth); onGrowth(); }
+    if (document.getElementById('g-slider')) { $('g-slider').addEventListener('input', onGrowth); onGrowth(); }
 
     /* Scene 4b: queue */
     function onQueue() { const w = Number($('q-slider').value); $('q-wait').textContent = w; $('q-on').textContent = 2026 + w; }
-    if ($('q-slider')) { $('q-slider').addEventListener('input', onQueue); onQueue(); }
+    if (document.getElementById('q-slider')) { $('q-slider').addEventListener('input', onQueue); onQueue(); }
 
     /* Scene 4c: play the grid operator (same battery and rules as dispatch/dispatch.go) */
     const BAT = { kwh: 25, kw: 5, eff: 0.88 };
-    const reserveKwh = () => ($('game-reserve') && $('game-reserve').checked ? 5 : 0);
+    const reserveKwh = () => (document.getElementById('game-reserve') && $('game-reserve').checked ? 5 : 0);
     const game = $('grid-game'), out = $('game-out');
     let prices = [], state = [];
     const STATES = ['idle', 'charge', 'discharge'];
@@ -113,7 +114,7 @@
       render();
     }).catch(() => { out.textContent = 'Price data failed to load. The saved CSV is linked in source 14.'; });
     $('game-best').addEventListener('click', () => { if (prices.length) { state = bestPlan(); render(); } });
-    if ($('game-reserve')) $('game-reserve').addEventListener('change', () => { if (prices.length) render(); });
+    if (document.getElementById('game-reserve')) $('game-reserve').addEventListener('change', () => { if (prices.length) render(); });
     $('game-reset').addEventListener('click', () => { state = prices.map(() => 'idle'); render(); });
 
     /* Scene 3 and page position drive the Earth */
@@ -128,7 +129,7 @@
         if (e.target.id === 'what') onK();
         else if (e.target.id !== 'history') emit({ lights: lightsFor(kOf(baselineTW * 1e12)), zoom: 0 });
       }), { threshold: 0.4 });
-      ['what', 'where', 'levelup', 'you'].forEach((id) => sceneIO.observe($(id)));
+      ['what', 'next', 'storage', 'network'].forEach((id) => { const n = document.getElementById(id); if (n) sceneIO.observe(n); });
     }
     onK();
   }

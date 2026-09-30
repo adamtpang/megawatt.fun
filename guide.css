@@ -221,3 +221,11 @@ input[type=range] { width: 100%; accent-color: var(--lamp); }
 
 /* readable, tappable source markers */
 sup a { display: inline-block; min-width: 22px; padding: 2px 3px; margin-left: 2px; text-align: center; }
+
+/* essence layout */
+.lamp { color: var(--lamp); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.essence h1 { font-size: clamp(56px, 14vw, 104px); margin-bottom: 8px; }
+.essence .scene { min-height: 88vh; }
+details.play { margin-top: 18px; border-top: 1px solid var(--line); padding-top: 12px; }
+details.play summary { cursor: pointer; font-weight: 600; color: var(--lamp); }
