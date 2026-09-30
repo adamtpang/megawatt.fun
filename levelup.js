@@ -12,13 +12,15 @@
   /* ---------- Screen 4: how much would it take ---------- */
   function levelUp(A) {
     const S = window.MegawattScale, base = S.BASELINE_TW;
+    const nextGap = S.powerTW(0.75) - base;
+    $('next-k-l').textContent = `next level, about ${fmt(nextGap, 1)} TW more (${fmt(S.powerTW(0.75) / base, 1)}× today)`;
     const src = A.sources;
-    let goal = 'double';
+    let goal = '0.75';
     function show(id, value, math) { const e = $(id); e.textContent = value; e.title = math; }
     function render() {
       const targetTW = goal === 'double' ? base * 2 : S.powerTW(Number(goal));
       const gapW = (targetTW - base) * 1e12;
-      const name = goal === 'double' ? 'double today' : goal === '1' ? 'Type I' : 'K ' + goal;
+      const name = goal === 'double' ? 'double today' : goal === '1' ? 'Type I' : goal === '0.75' ? 'the next level, K 0.75' : 'K ' + goal;
       $('lv-answer').textContent = `To ${goal === 'double' ? '' : 'reach '}${name} (${fmt(targetTW)} TW), we need ${fmt(gapW / 1e12)} TW more power, running all day and night. Any one of these would do it:`;
 
       const solarMW = gapW / src.solar.capacity_factor / 1e6;
