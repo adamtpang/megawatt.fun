@@ -76,7 +76,7 @@ async function boot() {
     const w = innerWidth, h = innerHeight;
     renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
     // Mobile: Earth sits lower and smaller so text stays on top of dark sky
-    earth.position.set(w < 700 ? 0.3 : 1.15, w < 700 ? -0.55 : 0, 0);
+    earth.position.set(w < 700 ? 0.45 : 1.15, w < 700 ? 0.2 : 0, 0); earth.scale.setScalar(w < 700 ? 1.45 : 1);
   }
   addEventListener('resize', resize); resize();
 

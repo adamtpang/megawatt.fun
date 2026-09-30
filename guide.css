@@ -229,3 +229,9 @@ sup a { display: inline-block; min-width: 22px; padding: 2px 3px; margin-left: 2
 .essence .scene { min-height: 88vh; }
 details.play { margin-top: 18px; border-top: 1px solid var(--line); padding-top: 12px; }
 details.play summary { cursor: pointer; font-weight: 600; color: var(--lamp); }
+
+/* mobile: a bigger, brighter Earth behind lighter cards */
+@media (max-width: 700px) {
+  .card, .panel { background: rgba(13, 23, 36, 0.62); backdrop-filter: blur(3px); }
+  .fallback-planet { width: 120vmin; height: 120vmin; right: -38vmin; top: 6vh; }
+}
