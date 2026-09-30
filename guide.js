@@ -77,18 +77,17 @@
       });
       return { cost, revenue, bought, sold, profit: revenue - cost };
     }
-    function bestPlan() { // port of PlanDay: one charge window before a boundary, one discharge window after
-      let best = null, bestProfit = 0;
-      for (let t = 1; t < prices.length; t++) {
-        const plan = new Array(prices.length).fill('idle');
-        const before = [...prices.keys()].slice(0, t).sort((a, b) => prices[a].usd - prices[b].usd);
-        const after = [...prices.keys()].slice(t).sort((a, b) => prices[b].usd - prices[a].usd);
-        let toBuy = BAT.kwh; for (const h of before) { if (toBuy <= 0) break; plan[h] = 'charge'; toBuy -= BAT.kw; }
-        let toSell = (BAT.kwh - reserveKwh()) * BAT.eff; for (const h of after) { if (toSell <= 1e-9) break; plan[h] = 'discharge'; toSell -= BAT.kw; }
-        const r = simulate(plan);
-        if (r.profit > bestProfit) { bestProfit = r.profit; best = plan; }
-      }
-      return best || new Array(prices.length).fill('idle');
+    function bestPlan() { // the fixed planner from base-core.js: only profitable marginal buy/sell pairs
+      const tradable = BAT.kwh - reserveKwh();
+      const p = window.BaseCore.planDay(prices.map((x) => x.usd), { kwh: tradable, kw: BAT.kw, eff: BAT.eff, reservePct: 0 });
+      const plan = prices.map((_, h) => (p.charge[h] > 1e-9 ? 'charge' : p.discharge[h] > 1e-9 ? 'discharge' : 'idle'));
+      if (p.profit <= 0) return plan;
+      // the backup reserve still has to be bought once: add the cheapest free hours before the first sale
+      const firstSell = plan.indexOf('discharge');
+      let need = BAT.kwh - plan.filter((x) => x === 'charge').length * BAT.kw;
+      [...Array(firstSell).keys()].filter((h) => plan[h] === 'idle').sort((a, b) => prices[a].usd - prices[b].usd)
+        .forEach((h) => { if (need > 1e-9) { plan[h] = 'charge'; need -= BAT.kw; } });
+      return plan;
     }
     function render() {
       const r = simulate(state);
