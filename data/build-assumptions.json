@@ -26,5 +26,25 @@
   },
   "capacity_factor_source": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_6_07_b",
   "fleet_source_renewables": "https://www.irena.org/Publications/2026/Mar/Renewable-capacity-statistics-2026",
-  "fleet_source_nuclear": ["https://www.worldnuclearreport.org/Number-of-Operating-Reactors-Drops-Taiwan-Completes-Nuclear-Phaseout", "https://pris.iaea.org/PRIS/WorldStatistics/OperationalReactorsByType.aspx"]
+  "fleet_source_nuclear": [
+    "https://www.worldnuclearreport.org/Number-of-Operating-Reactors-Drops-Taiwan-Completes-Nuclear-Phaseout",
+    "https://pris.iaea.org/PRIS/WorldStatistics/OperationalReactorsByType.aspx"
+  ],
+  "solar_land": {
+    "acres_per_mwac": 8.9,
+    "basis": "total site area, capacity-weighted average of US utility-scale PV and CSP plants",
+    "source": "https://docs.nrel.gov/docs/fy13osti/56290.pdf"
+  },
+  "texas_area_km2": {
+    "value": 695662,
+    "basis": "total area, land plus water",
+    "source": "https://www.census.gov/geographies/reference-files/2010/geo/state-area.html"
+  },
+  "home_battery": {
+    "kwh": 39.2,
+    "label": "Base Core, smaller size (a 78.4 kWh version also exists)",
+    "source": "https://pv-magazine-usa.com/2026/08/04/base-power-launches-39-2-kwh-u-s-made-base-core-home-battery-secures-1-billion-in-new-funding/",
+    "storage_hours_assumption": 12,
+    "storage_note": "Estimate: assumes half a day (12 hours) of the new power has to come out of storage, for example solar power used at night."
+  }
 }

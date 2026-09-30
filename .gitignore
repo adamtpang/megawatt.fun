@@ -1,2 +1,5 @@
 .vercel
 .env*
+.preview-shots/
+.preview-shots*.png
+__pycache__/

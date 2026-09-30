@@ -174,3 +174,47 @@ input[type=range] { width: 100%; accent-color: var(--lamp); }
 .fleet-grid { display: flex; flex-wrap: wrap; gap: 3px; margin: 10px 0 6px; max-height: 220px; overflow: hidden; }
 .fleet-grid i { width: 9px; height: 9px; border-radius: 2px; background: var(--lamp-dim); }
 .fleet-grid i.today { background: var(--rung); }
+
+/* Screen 4: how much, as pictures */
+.pics { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; margin: 14px 0; }
+@media (min-width: 700px) { .pics { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.pic { background: var(--panel-solid); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; min-width: 0; }
+.pic-h { font-weight: 600; margin: 0 0 4px; }
+.pic-v { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; margin-bottom: 6px; }
+.pic-v .mono { font-size: clamp(30px, 7vw, 44px); color: var(--lamp); line-height: 1.05; cursor: help; border-bottom: 1px dotted var(--lamp-dim); }
+.pic .gloss { margin: 4px 0 0; font-size: 14px; }
+.texas-row { display: flex; flex-wrap: wrap; gap: 3px; align-items: center; }
+.texas-row i { width: 12px; height: 12px; background: var(--lamp); border-radius: 2px; }
+.texas-row span { font: 12px var(--mono); color: var(--muted); margin-left: 4px; }
+
+/* Screen 5: one day */
+.day-chart { margin: 10px 0 4px; }
+.day-chart svg { display: block; width: 100%; height: auto; }
+.day-chart .tick { fill: var(--muted); font: 11px var(--mono); }
+.day-chart .b-sun { fill: var(--lamp); opacity: .85; }
+.day-chart .b-bat { fill: var(--good); }
+.day-chart .b-charge { fill: var(--good); opacity: .45; }
+.day-chart .b-waste { fill: var(--lamp); opacity: .25; }
+.day-chart .b-short { fill: var(--bad); opacity: .8; }
+.day-chart .l-demand { fill: none; stroke: var(--ink); stroke-width: 2; }
+.day-chart .dl { font: 600 12px var(--body); fill: var(--ink); paint-order: stroke; stroke: var(--panel-solid); stroke-width: 3px; }
+.day-chart .dl.short { fill: #ffd7cc; } .day-chart .dl.bat, .day-chart .dl.charge { fill: #d4f5e2; }
+
+/* Screen 6: network */
+.net svg { display: block; width: 100%; height: auto; max-width: 560px; }
+.n-grid { fill: #13233a; stroke: var(--line); }
+.n-grid.short { fill: #3a2e18; stroke: var(--lamp); }
+.n-grid.down { fill: #3a1d17; stroke: var(--bad); }
+.n-gridt { fill: var(--ink); font: 700 11px var(--mono); letter-spacing: .08em; }
+.n-house { fill: #1a2b40; stroke: #3b5470; }
+.n-win { fill: #0b1420; } .n-win.on { fill: #fff3d6; }
+.n-bat { fill: none; stroke: #3b5470; }
+.n-lvl { fill: var(--good); }
+.n-flow { stroke-width: 1.5; stroke-dasharray: 3 5; }
+.n-flow.send { stroke: var(--lamp); animation: flowUp .7s linear infinite; }
+.n-flow.charge { stroke: var(--good); opacity: .6; animation: flowDown .7s linear infinite; }
+@keyframes flowUp { to { stroke-dashoffset: 8; } } @keyframes flowDown { to { stroke-dashoffset: -8; } }
+@media (prefers-reduced-motion: reduce) { .n-flow { animation: none; } }
+.net-status { font-size: 15px; min-height: 48px; margin: 8px 0; }
+.check { display: flex; gap: 8px; align-items: center; font-size: 14px; margin: 10px 0 6px; color: var(--muted); }
+.check input { accent-color: var(--lamp); width: 18px; height: 18px; }

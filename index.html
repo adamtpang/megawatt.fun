@@ -12,6 +12,7 @@
 <script src="/climb.js" defer></script>
 <script src="/guide.js" defer></script>
 <script src="/explain.js" defer></script>
+<script src="/levelup.js" defer></script>
 <script type="module" src="/earth.js"></script>
 <script data-posthog-fleet>(function(){if(location.hostname==='localhost'||location.hostname==='127.0.0.1'||window.__posthogFleet)return;window.__posthogFleet=1;var s=document.createElement('script');s.async=true;s.src='https://us-assets.i.posthog.com/static/array.js';s.onload=function(){if(!window.posthog||!window.posthog.init)return;window.posthog.init('phc_FCpCP9mIsb9IcxpX0Qqi6FmJ48sVvscAYIrZmtRHIq4',{api_host:'https://us.i.posthog.com',person_profiles:'identified_only',capture_pageview:'history_change',capture_pageleave:true,autocapture:false,disable_session_recording:true,disable_surveys:true,loaded:function(p){p.register({site:location.hostname})}});};document.head.appendChild(s);})();</script>
 <link rel="stylesheet" href="/site.css">
@@ -72,7 +73,7 @@
       <div class="card" style="margin-bottom:16px">
         <p class="eyebrow">3 · Why does it matter?</p>
         <h2 id="why-title">Richer countries use more energy. Almost without exception.</h2>
-        <p class="answer">Across 191 countries, energy use per person tracks income per person closely. On a log scale the correlation is <span class="mono" id="why-r">0.93</span>.<sup><a href="#fn17" id="r17">17</a></sup></p>
+        <p class="answer">Across 191 countries, energy use per person tracks income per person closely. On a log scale the correlation is <span class="mono" id="why-r">0.93</span>.<sup><a href="#fn17" id="r17">3</a></sup></p>
         <p class="gloss">Correlation is not a law of physics. Some countries do more with less energy, and rich countries can cut waste. But no country has become rich while staying energy-poor.</p>
       </div>
       <figure class="vc-chart" aria-labelledby="vc-title">
@@ -83,116 +84,84 @@
           <div class="vc-legend" id="vc-legend"></div>
         </div>
         <div class="vc-plot" id="vc-plot" role="img" aria-label="Scatter plot of 191 countries: energy use per person rises with GDP per person, correlation 0.93 on log scales. The United States uses about 75,000 kWh per person at about $77,000 GDP per person; Ethiopia about 700 kWh at about $2,900."></div>
-        <figcaption class="vc-source">Source: Our World in Data, from the Energy Institute Statistical Review of World Energy (2026) and World Bank. GDP is PPP, 2021 international dollars.<sup><a href="#fn17">17</a></sup> Chart: megawatt.fun</figcaption>
+        <figcaption class="vc-source">Source: Our World in Data, from the Energy Institute Statistical Review of World Energy (2026) and World Bank. GDP is PPP, 2021 international dollars.<sup><a href="#fn17">3</a></sup> Chart: megawatt.fun</figcaption>
       </figure>
     </div>
   </section>
 
-  <!-- Scene 3 -->
-  <section id="history" aria-labelledby="history-title">
-    <div class="scene" style="min-height:60vh">
-      <div class="card">
-        <p class="eyebrow">4 · How we got here</p>
-        <h2 id="history-title">Every jump came from a new way to release energy.</h2>
-        <p class="answer">Scroll, and watch the night side of the Earth light up.</p>
-      </div>
-    </div>
-    <div class="era" data-lights="0.03"><div class="card"><p class="year">About 1 million years ago</p><h3>Fire</h3><p>The oldest strong evidence of controlled fire, found in a cave in South Africa. Cooking and warmth let humans spread.<sup><a href="#fn4" id="r4">4</a></sup></p></div></div>
-    <div class="era" data-lights="0.08"><div class="card"><p class="year">1712</p><h3>Coal and steam</h3><p>Thomas Newcomen's engine is the first practical machine to turn burning coal into motion.<sup><a href="#fn5" id="r5">5</a></sup></p></div></div>
-    <div class="era" data-lights="0.15"><div class="card"><p class="year">1859</p><h3>Oil</h3><p>The Drake Well in Pennsylvania sets off the first American oil boom.<sup><a href="#fn6" id="r6">6</a></sup></p></div></div>
-    <div class="era" data-lights="0.25"><div class="card"><p class="year">1882</p><h3>Electricity</h3><p>Edison's Pearl Street Station in Manhattan is his first commercial power plant. Power starts arriving through wires.<sup><a href="#fn7" id="r7">7</a></sup></p><p class="gloss">By 1900 the world sat near K = 0.61.<sup><a href="#fn3" id="r3">3</a></sup></p></div></div>
-    <div class="era" data-lights="0.4"><div class="card"><p class="year">1954</p><h3>Nuclear and solar</h3><p>Obninsk in the Soviet Union becomes the first nuclear plant connected to a grid.<sup><a href="#fn8" id="r8">8</a></sup> The same spring, Bell Labs shows the first practical silicon solar cell.<sup><a href="#fn9" id="r9">9</a></sup></p><p class="gloss">1950: K ≈ 0.65.<sup><a href="#fn3">3</a></sup></p></div></div>
-    <div class="era" data-lights="0.55"><div class="card"><p class="year">Today</p><h3>K ≈ 0.73</h3><p>All of that history, coal, oil, the grid, nuclear, solar, moved us about 0.12 on the scale since 1900.<sup><a href="#fn3">3</a></sup> To reach Type I we need 500 times more.</p></div></div>
-  </section>
-
-  <!-- Scene: how much do we need -->
-  <section class="scene" id="build" aria-labelledby="build-title">
-    <div class="scene-wide">
-      <div class="card build-card">
-        <p class="eyebrow">5 · How much do we need?</p>
-        <h2 id="build-title">To level up, build this much. On top of everything we have.</h2>
-        <p class="answer" id="build-answer">…</p>
-
-        <div class="seg" role="group" aria-label="Target level">
-          <button type="button" class="seg-btn" data-rung="0.8" aria-pressed="true">K 0.8</button>
-          <button type="button" class="seg-btn" data-rung="0.9" aria-pressed="false">K 0.9</button>
-          <button type="button" class="seg-btn" data-rung="1" aria-pressed="false">Type I</button>
-        </div>
-        <div class="seg" role="group" aria-label="Energy source">
-          <button type="button" class="seg-btn src" data-src="solar" aria-pressed="true">☀ Solar</button>
-          <button type="button" class="seg-btn src" data-src="wind" aria-pressed="false">🌬 Wind</button>
-          <button type="button" class="seg-btn src" data-src="nuclear" aria-pressed="false">⚛ Nuclear</button>
-        </div>
-
-        <div class="build-big"><span class="mono" id="build-count">…</span><span id="build-unit">…</span></div>
-        <p class="gloss" id="build-fleet">…</p>
-        <div class="fleet-grid" id="fleet-grid" aria-hidden="true"></div>
-        <p class="gloss" id="fleet-key">Each square is one copy of today's entire world fleet.</p>
-
-        <div class="control">
-          <label for="by-slider">Finish by <span class="mono" id="by-year">2100</span></label>
-          <input id="by-slider" type="range" min="2040" max="2300" step="5" value="2100">
-        </div>
-        <div class="readout" id="build-rate" aria-live="polite">…</div>
-        <p class="gloss" style="margin-top:12px">How it's counted: average power per unit is its size times how often it actually runs (capacity factor). We count one watt of electricity as one watt, the same way K does. This ignores storage, grids, and land, which are the next scene's problem.<sup><a href="#fn18" id="r18">18</a></sup><sup><a href="#fn19" id="r19">19</a></sup><sup><a href="#fn20" id="r20">20</a></sup><sup><a href="#fn21" id="r21">21</a></sup></p>
-      </div>
-    </div>
-  </section>
-
-  <!-- Scene 4 -->
+  <!-- Screen 4: how much -->
   <section class="scene" id="levelup" aria-labelledby="levelup-title">
     <div class="scene-wide">
-      <div class="card" style="margin-bottom:16px">
-        <p class="eyebrow">6 · What levels us up</p>
-        <h2 id="levelup-title">Four bottlenecks decide how fast we climb.</h2>
-        <p class="answer">The biggest one right now is not making power. It is connecting it: new projects wait years to plug into the grid.<sup><a href="#fn11" id="r11">11</a></sup></p>
+      <div class="card build-card">
+        <p class="eyebrow">4 · How much would it take?</p>
+        <h2 id="levelup-title">Pick a goal. See what we'd have to build.</h2>
+        <div class="seg" role="group" aria-label="Goal">
+          <button type="button" class="seg-btn goal" data-goal="double" aria-pressed="true">Double today</button>
+          <button type="button" class="seg-btn goal" data-goal="0.8" aria-pressed="false">K 0.8</button>
+          <button type="button" class="seg-btn goal" data-goal="1" aria-pressed="false">Type I</button>
+        </div>
+        <p class="answer" id="lv-answer">…</p>
+        <div class="pics">
+          <div class="pic"><p class="pic-h">☀ Solar farms</p><div class="pic-v"><span class="mono" id="lv-solar" tabindex="0">…</span> <span>Texases of land</span></div><div class="texas-row" id="lv-texas" aria-hidden="true"></div><p class="gloss" id="lv-solar-note"></p></div>
+          <div class="pic"><p class="pic-h">⚛ Nuclear</p><div class="pic-v"><span class="mono" id="lv-nuke" tabindex="0">…</span> <span>reactors</span></div><p class="gloss" id="lv-nuke-note"></p></div>
+          <div class="pic"><p class="pic-h">🌬 Wind</p><div class="pic-v"><span class="mono" id="lv-wind" tabindex="0">…</span> <span>turbines</span></div><p class="gloss" id="lv-wind-note"></p></div>
+          <div class="pic"><p class="pic-h">🔋 Batteries</p><div class="pic-v"><span class="mono" id="lv-bat" tabindex="0">…</span> <span>homes with a battery</span></div><p class="gloss" id="lv-bat-note"></p></div>
+        </div>
+        <p class="gloss">Each card is one way to do it alone. A real grid mixes them. Hover or tap a number to see the math. Sources:<sup><a href="#fn18" id="r18">4</a></sup><sup><a href="#fn19" id="r19">5</a></sup><sup><a href="#fn20" id="r20">6</a></sup><sup><a href="#fn21" id="r21">7</a></sup><sup><a href="#fnS1" id="rS1">8</a></sup><sup><a href="#fnS2" id="rS2">9</a></sup><sup><a href="#fnB1" id="rB1">10</a></sup></p>
       </div>
-      <div class="panels">
+    </div>
+  </section>
 
-        <div class="panel">
-          <p class="tag">Generation</p>
-          <h3>How fast must we grow?</h3>
-          <p class="gloss">The world already makes about 31,772 TWh of electricity a year.<sup><a href="#fn10" id="r10">10</a></sup> Pick a yearly growth rate for all energy use.</p>
-          <div class="control">
-            <label for="g-slider">Growth per year: <span class="mono" id="g-val">2.0%</span></label>
-            <input id="g-slider" type="range" min="0.5" max="6" step="0.1" value="2">
-          </div>
-          <div class="readout">K = 0.8 in <strong id="g-08">…</strong><br>Type I in <strong id="g-1">…</strong></div>
-          <p class="gloss">One extra point of growth, kept up, pulls Type I in by about a century. Steady compound growth is an assumption, not a forecast.</p>
+  <!-- Screen 5: why storage -->
+  <section class="scene" id="storage" aria-labelledby="storage-title">
+    <div class="scene-wide">
+      <div class="card build-card">
+        <p class="eyebrow">5 · Why storage matters</p>
+        <h2 id="storage-title">The sun shines at noon. People need power at night.</h2>
+        <p class="answer">Here is one day on a grid that runs on solar alone. Drag the sliders and watch the gaps.</p>
+        <div class="day-chart" id="day-chart" role="img" aria-label="Demand and solar over 24 hours, with battery use, wasted solar, and shortfall shaded."></div>
+        <div class="control"><label for="sun-slider">Solar built: <span class="mono" id="sun-val"></span></label><input id="sun-slider" type="range" min="0.5" max="2.5" step="0.05" value="1.2"></div>
+        <div class="control"><label for="st-slider">Storage: <span class="mono" id="st-val"></span></label><input id="st-slider" type="range" min="0" max="16" step="0.5" value="0"></div>
+        <div class="stat-row">
+          <div class="stat"><div class="v" id="d-met">…</div><div class="l">of demand met</div></div>
+          <div class="stat"><div class="v bad" id="d-short">…</div><div class="l">short (blackout unless other plants cover it)</div></div>
+          <div class="stat"><div class="v" id="d-waste">…</div><div class="l">of solar wasted</div></div>
         </div>
+        <p class="gloss">The curves are an illustrative shape, not measured data: demand is low overnight and peaks in the evening, solar peaks at noon.<sup><a href="#fnD1" id="rD1">11</a></sup> Solar built is how much the panels make in a day, compared with what the grid uses in a day. Storage is in hours of average demand.</p>
+      </div>
+    </div>
+  </section>
 
-        <div class="panel">
-          <p class="tag">Transmission</p>
-          <h3>The waiting line</h3>
-          <p class="gloss">In the US, the median project built in 2025 waited more than 5 years from asking to connect to switching on.<sup><a href="#fn11">11</a></sup> Grids, not just generators, are the constraint.<sup><a href="#fn12" id="r12">12</a></sup></p>
-          <div class="control">
-            <label for="q-slider">If a solar farm is ready to build in <span class="mono" id="q-year">2026</span>, and the wait is <span class="mono" id="q-wait">5</span> years…</label>
-            <input id="q-slider" type="range" min="1" max="10" step="1" value="5">
-          </div>
-          <div class="readout">…it powers homes in <strong id="q-on">2031</strong>.</div>
-        </div>
+  <!-- Screen 6: battery network -->
+  <section class="scene" id="network" aria-labelledby="network-title">
+    <div class="scene-wide">
+      <div class="card build-card">
+        <p class="eyebrow">6 · How a battery network works</p>
+        <h2 id="network-title">Thousands of home batteries can act like one power plant.</h2>
+        <p class="answer">Each home gets backup. Together, they charge when power is cheap and send power to the grid when it's short.</p>
+        <div class="net" id="net" aria-hidden="true"></div>
+        <div class="net-status" id="net-status" aria-live="polite">…</div>
+        <div class="btn-row"><button class="btn" type="button" id="net-play">Pause</button><button class="btn" type="button" id="net-storm">Storm: grid goes down</button></div>
+        <p class="gloss" style="margin-top:12px"><b>A real example:</b> Base Power, in Texas, sells the Base Core home battery in 39.2 kWh and 78.4 kWh sizes.<sup><a href="#fnB1">10</a></sup> Base says the battery "powers your home and strengthens the grid".<sup><a href="#fnB2" id="rB2">12</a></sup> This site is not affiliated with Base. The animation is a simplified picture, not Base's real fleet.</p>
+      </div>
+    </div>
+  </section>
 
-        <div class="panel wide">
-          <p class="tag">Storage · play the grid operator</p>
-          <h3>Run one home battery for a day</h3>
-          <p class="gloss">These are real Texas wholesale prices for 13 August 2026, hour by hour.<sup><a href="#fn14" id="r14">14</a></sup> Your battery holds 25 kWh, moves 5 kWh per hour, and loses 12% on the round trip. Tap an hour to cycle it: <b>idle → charge → sell</b>.</p>
-          <div class="grid-game" id="grid-game" role="group" aria-label="24 hourly prices. Each bar is a button that cycles idle, charge, sell."></div>
-          <div class="hour-axis" id="hour-axis" aria-hidden="true"></div>
-          <div class="legend"><span><i style="background:#34506a"></i>idle</span><span><i style="background:var(--good)"></i>charge (buy)</span><span><i style="background:var(--lamp)"></i>sell</span></div>
-          <div class="readout" id="game-out" aria-live="polite">Tap some hours to start.</div>
-          <div class="btn-row"><button class="btn" id="game-best" type="button">Show the planner's best day</button><button class="btn" id="game-reset" type="button">Reset</button></div>
-          <p class="gloss" style="margin-top:12px">The best possible day earns about <b>$0.43</b>. Paying off the battery's hardware costs about <b>$0.68 a day</b>, even at a cheap $150 per kWh.<sup><a href="#fn15" id="r15">15</a></sup> Price swings alone don't pay for storage yet. The money is in the grid services and software around it.</p>
-        </div>
-
-        <div class="panel wide">
-          <p class="tag">Compute and making things</p>
-          <h3>Turning power into capability</h3>
-          <p class="gloss">Power only matters for what it does. Data centers used about 415 TWh in 2024, about 1.5% of the world's electricity, and the IEA expects that to roughly double by 2030.<sup><a href="#fn13" id="r13">13</a></sup></p>
-          <div class="meter" role="img" aria-label="Data centers use about 1.5 percent of world electricity"><div id="dc-bar" style="width:1.5%"></div></div>
-          <p class="gloss mono">1.5% of world electricity · 2024</p>
-          <p class="gloss">Meanwhile about 655 million people still have no electricity at all.<sup><a href="#fn16" id="r16">16</a></sup> Leveling up means both: more power for new tools, and some power for everyone.</p>
-        </div>
-
+  <!-- Screen 7: play grid operator -->
+  <section class="scene" id="play" aria-labelledby="play-title">
+    <div class="scene-wide">
+      <div class="card build-card">
+        <p class="eyebrow">7 · Play grid operator</p>
+        <h2 id="play-title">Charge low. Sell high. Keep a backup.</h2>
+        <p class="answer">ERCOT runs the Texas grid, where the price of power changes every hour.<sup><a href="#fnE1" id="rE1">13</a></sup></p>
+        <p class="gloss">These are real ERCOT prices for 13 August 2026.<sup><a href="#fn14" id="r14">14</a></sup> Your battery holds 25 kWh, moves 5 kWh an hour, and loses 12% on the round trip. Tap an hour: <b>idle → charge → sell</b>.</p>
+        <div class="grid-game" id="grid-game" role="group" aria-label="24 hourly prices. Each bar is a button that cycles idle, charge, sell."></div>
+        <div class="hour-axis" id="hour-axis" aria-hidden="true"></div>
+        <div class="legend"><span><i style="background:#34506a"></i>idle</span><span><i style="background:var(--good)"></i>charge (buy)</span><span><i style="background:var(--lamp)"></i>sell</span></div>
+        <label class="check"><input type="checkbox" id="game-reserve" checked> Keep 5 kWh as backup for an outage</label>
+        <div class="readout" id="game-out" aria-live="polite">Tap some hours to start.</div>
+        <div class="btn-row"><button class="btn" id="game-best" type="button">Show the best possible day</button><button class="btn" id="game-reset" type="button">Reset</button></div>
+        <p class="gloss" style="margin-top:12px">Price swings alone earn well under a dollar a day. Paying off the hardware costs about $0.68 a day.<sup><a href="#fn15" id="r15">15</a></sup> That's why real battery networks also get paid for backup and grid services.</p>
       </div>
     </div>
   </section>
@@ -200,7 +169,7 @@
   <!-- Scene 5 -->
   <section class="scene" id="you" aria-labelledby="you-title">
     <div class="card">
-      <p class="eyebrow">7 · What you can do</p>
+      <p class="eyebrow">8 · What you can do</p>
       <h2 id="you-title">Pick one bottleneck and move it.</h2>
       <p class="answer">There are three honest ways to help: build, fund, or advocate.</p>
       <div class="paths">
@@ -222,25 +191,19 @@
     <ol>
       <li id="fn1">The continuous formula is the interpolation usually credited to Carl Sagan. Gray (2020) shows it appears in his prose, not as an explicit equation. <a href="https://doi.org/10.3847/1538-3881/ab792b">Gray, The Astronomical Journal (2020)</a>. <a href="#r1">↩</a></li>
       <li id="fn2">2024 world primary energy, 176,737 TWh, divided by 8,784 hours = 20.1 TW. <a href="https://github.com/owid/energy-data">Our World in Data energy dataset</a> (EIA and Energy Institute); saved copy: <a href="/data/kardashev-baseline.json">kardashev-baseline.json</a>, retrieved 21 September 2026. <a href="#r2">↩</a></li>
-      <li id="fn3">Historical K values (1900: 0.614, 1950: 0.650, 2025: 0.731) computed from Smil (2017) and the Energy Institute series, via <a href="https://ourworldindata.org/energy-production-consumption">Our World in Data</a>. Method on the <a href="/kardashev">Kardashev page</a>. <a href="#r3">↩</a></li>
-      <li id="fn4">Berna et al., "Microstratigraphic evidence of in situ fire in the Acheulean strata of Wonderwerk Cave," <a href="https://doi.org/10.1073/pnas.1117620109">PNAS (2012)</a>. <a href="#r4">↩</a></li>
-      <li id="fn5"><a href="https://en.wikipedia.org/wiki/Newcomen_atmospheric_engine">Newcomen atmospheric engine</a> (1712). <a href="#r5">↩</a></li>
-      <li id="fn6"><a href="https://en.wikipedia.org/wiki/Drake_Well">Drake Well</a> (1859). <a href="#r6">↩</a></li>
-      <li id="fn7"><a href="https://en.wikipedia.org/wiki/Pearl_Street_Station">Pearl Street Station</a> (1882). <a href="#r7">↩</a></li>
-      <li id="fn8"><a href="https://en.wikipedia.org/wiki/Obninsk_Nuclear_Power_Plant">Obninsk Nuclear Power Plant</a>, grid-connected June 1954. <a href="#r8">↩</a></li>
-      <li id="fn9">American Physical Society, <a href="https://www.aps.org/publications/apsnews/200904/physicshistory.cfm">"April 25, 1954: Bell Labs demonstrates the first practical silicon solar cell"</a>. <a href="#r9">↩</a></li>
-      <li id="fn10">World electricity generation, <a href="https://github.com/owid/energy-data">Our World in Data energy dataset</a> (electricity_generation series). <a href="#r10">↩</a></li>
-      <li id="fn11">Berkeley Lab, <a href="https://emp.lbl.gov/queues">Queued Up 2026</a>: median time from interconnection request to commercial operation for projects built in 2025. <a href="#r11">↩</a></li>
-      <li id="fn12">IEA, <a href="https://www.iea.org/reports/electricity-grids-and-secure-energy-transitions/executive-summary">Electricity Grids and Secure Energy Transitions</a>. <a href="#r12">↩</a></li>
-      <li id="fn13">IEA, <a href="https://www.iea.org/reports/energy-and-ai/executive-summary">Energy and AI</a> (2025): 415 TWh in 2024, around 945 TWh by 2030 in the Base Case. <a href="#r13">↩</a></li>
-      <li id="fn14">ERCOT day-ahead hub-average prices, 13 August 2026, from ERCOT's public <a href="https://www.ercot.com/api/1/services/read/dashboards/systemWidePrices.json">system-wide prices feed</a>; saved copy: <a href="/data/ercot-dam-hubavg-2026-08-13.csv">CSV</a>. <a href="#r14">↩</a></li>
-      <li id="fn15">This site's own <a href="https://github.com/adamtpang/megawatt.fun/blob/main/dispatch/capex.go">capex model</a> and <a href="https://github.com/adamtpang/megawatt.fun#capex-breakeven">README</a>: $150/kWh over a 15-year life, one cycle a day. Energy-only floor, not full battery value. <a href="#r15">↩</a></li>
-      <li id="fn16">World Bank, <a href="https://www.worldbank.org/en/news/press-release/2026/06/16/accelerating-universal-energy-access">Tracking SDG 7, 2026</a>: people without electricity in 2024. <a href="#r16">↩</a></li>
       <li id="fn17">Our World in Data, <a href="https://ourworldindata.org/grapher/energy-use-per-person-vs-gdp-per-capita">Energy use per person vs GDP per capita</a>: total energy supply per person (Energy Institute Statistical Review 2026 and other sources) and GDP per capita, PPP (World Bank et al.). Latest year per country, 191 countries, retrieved 28 September 2026. Correlation computed on log10 values. Saved copy: <a href="/data/energy-gdp.json">energy-gdp.json</a>. <a href="#r17">↩</a></li>
       <li id="fn18">Capacity factors for 2025, US utility-scale plants: nuclear 91.0%, wind 34.2%, solar PV 24.4%. EIA, <a href="https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_6_07_b">Electric Power Monthly, Table 6.07.B</a>. Solar runs less often in cloudier and higher-latitude places, so the solar count here is a floor. <a href="#r18">↩</a></li>
       <li id="fn19">Unit sizes: average new onshore wind turbine 6.16 MW in 2025, <a href="https://www.gwec.net/reports/globalwindreport">GWEC Global Wind Report 2026</a>; AP1000 reactor 1,110 MW net, <a href="https://westinghousenuclear.com/energy-systems/ap1000-pwr/overview/">Westinghouse</a>. <a href="#r19">↩</a></li>
       <li id="fn20">World fleets at the end of 2025: solar 2,392 GW, wind 1,291 GW. Added in 2025: solar 511 GW, wind 158.7 GW, both records. IRENA, <a href="https://www.irena.org/Publications/2026/Mar/Renewable-capacity-statistics-2026">Renewable Capacity Statistics 2026</a>. <a href="#r20">↩</a></li>
       <li id="fn21">Operating reactors: 404 on 1 January 2026 per the <a href="https://www.worldnuclearreport.org/Number-of-Operating-Reactors-Drops-Taiwan-Completes-Nuclear-Phaseout">World Nuclear Industry Status Report</a>, 413 per <a href="https://pris.iaea.org/PRIS/WorldStatistics/OperationalReactorsByType.aspx">IAEA PRIS</a>. They count idle reactors differently; we use 413. All assumptions: <a href="/data/build-assumptions.json">build-assumptions.json</a>. <a href="#r21">↩</a></li>
+      <li id="fnS1">Solar land: 8.9 acres per MW of capacity, total site area, US average. NREL, <a href="https://docs.nrel.gov/docs/fy13osti/56290.pdf">Land-Use Requirements for Solar Power Plants in the United States</a> (Ong et al., 2013). <a href="#rS1">↩</a></li>
+      <li id="fnS2">Texas total area 695,662 km². US Census Bureau, <a href="https://www.census.gov/geographies/reference-files/2010/geo/state-area.html">State Area Measurements</a>. <a href="#rS2">↩</a></li>
+      <li id="fnB1">Base Core sizes 39.2 kWh and 78.4 kWh, <a href="https://pv-magazine-usa.com/2026/08/04/base-power-launches-39-2-kwh-u-s-made-base-core-home-battery-secures-1-billion-in-new-funding/">pv magazine USA, 4 August 2026</a>. The homes count is an estimate: it assumes 12 hours of the new power has to come out of storage, using the 39.2 kWh size. <a href="#rB1">↩</a></li>
+      <li id="fnD1">Illustrative day: the demand and solar shapes are drawn to show the timing mismatch, not taken from a real grid. The math on top of them (what charges, what's wasted, what's short) is exact. <a href="#rD1">↩</a></li>
+      <li id="fnB2">Base Power, <a href="https://www.basepowercompany.com/core">Base Core</a> and <a href="https://www.basepowercompany.com/how-it-works">How it works</a>. <a href="#rB2">↩</a></li>
+      <li id="fnE1">ERCOT, <a href="https://www.ercot.com/about">About ERCOT</a>. <a href="#rE1">↩</a></li>
+      <li id="fn14">ERCOT day-ahead hub-average prices, 13 August 2026, from ERCOT's public <a href="https://www.ercot.com/api/1/services/read/dashboards/systemWidePrices.json">system-wide prices feed</a>; saved copy: <a href="/data/ercot-dam-hubavg-2026-08-13.csv">CSV</a>. <a href="#r14">↩</a></li>
+      <li id="fn15">This site's own <a href="https://github.com/adamtpang/megawatt.fun/blob/main/dispatch/capex.go">capex model</a> and <a href="https://github.com/adamtpang/megawatt.fun#capex-breakeven">README</a>: $150/kWh over a 15-year life, one cycle a day. Energy-only floor, not full battery value. <a href="#r15">↩</a></li>
     </ol>
   </div>
 </section>

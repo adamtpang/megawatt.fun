@@ -93,7 +93,7 @@
 
   function start() {
     fetch('/data/energy-gdp.json').then((r) => r.json()).then(chart).catch(() => { $('vc-plot').textContent = 'Chart data failed to load. The saved file is linked in source 17.'; });
-    fetch('/data/build-assumptions.json').then((r) => r.json()).then(build).catch(() => { $('build-answer').textContent = 'Assumptions failed to load. The saved file is linked in source 21.'; });
+    if ($('build-answer')) fetch('/data/build-assumptions.json').then((r) => r.json()).then(build).catch(() => { $('build-answer').textContent = 'Assumptions failed to load. The saved file is linked in source 21.'; });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();

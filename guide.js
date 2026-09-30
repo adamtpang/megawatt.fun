@@ -44,7 +44,7 @@
     }
     showBaseline(baselineTW);
     fetch('/data/kardashev-baseline.json').then((r) => r.json()).then((b) => {
-      baselineTW = b.primary_energy_twh / b.hours_in_year; showBaseline(baselineTW); onGrowth();
+      baselineTW = b.primary_energy_twh / b.hours_in_year; showBaseline(baselineTW); if ($('g-slider')) onGrowth();
     }).catch(() => {});
 
     /* Scene 4a: growth */
@@ -55,14 +55,15 @@
       $('g-08').textContent = y8 + ' years (' + (S.BASELINE_YEAR + y8) + ')';
       $('g-1').textContent = y1 + ' years (' + (S.BASELINE_YEAR + y1) + ')';
     }
-    $('g-slider').addEventListener('input', onGrowth); onGrowth();
+    if ($('g-slider')) { $('g-slider').addEventListener('input', onGrowth); onGrowth(); }
 
     /* Scene 4b: queue */
     function onQueue() { const w = Number($('q-slider').value); $('q-wait').textContent = w; $('q-on').textContent = 2026 + w; }
-    $('q-slider').addEventListener('input', onQueue); onQueue();
+    if ($('q-slider')) { $('q-slider').addEventListener('input', onQueue); onQueue(); }
 
     /* Scene 4c: play the grid operator (same battery and rules as dispatch/dispatch.go) */
     const BAT = { kwh: 25, kw: 5, eff: 0.88 };
+    const reserveKwh = () => ($('game-reserve') && $('game-reserve').checked ? 5 : 0);
     const game = $('grid-game'), out = $('game-out');
     let prices = [], state = [];
     const STATES = ['idle', 'charge', 'discharge'];
@@ -71,7 +72,7 @@
       plan.forEach((s, h) => {
         const p = prices[h].usd / 1000;
         if (s === 'charge') { const e = Math.min(BAT.kw, BAT.kwh - stored); stored += e; bought += e; cost += e * p; }
-        if (s === 'discharge') { const e = Math.min(BAT.kw, stored * BAT.eff); stored -= e / BAT.eff; sold += e; revenue += e * p; }
+        if (s === 'discharge') { const e = Math.min(BAT.kw, Math.max(0, stored - reserveKwh()) * BAT.eff); stored -= e / BAT.eff; sold += e; revenue += e * p; }
       });
       return { cost, revenue, bought, sold, profit: revenue - cost };
     }
@@ -82,7 +83,7 @@
         const before = [...prices.keys()].slice(0, t).sort((a, b) => prices[a].usd - prices[b].usd);
         const after = [...prices.keys()].slice(t).sort((a, b) => prices[b].usd - prices[a].usd);
         let toBuy = BAT.kwh; for (const h of before) { if (toBuy <= 0) break; plan[h] = 'charge'; toBuy -= BAT.kw; }
-        let toSell = BAT.kwh * BAT.eff; for (const h of after) { if (toSell <= 1e-9) break; plan[h] = 'discharge'; toSell -= BAT.kw; }
+        let toSell = (BAT.kwh - reserveKwh()) * BAT.eff; for (const h of after) { if (toSell <= 1e-9) break; plan[h] = 'discharge'; toSell -= BAT.kw; }
         const r = simulate(plan);
         if (r.profit > bestProfit) { bestProfit = r.profit; best = plan; }
       }
@@ -112,6 +113,7 @@
       render();
     }).catch(() => { out.textContent = 'Price data failed to load. The saved CSV is linked in source 14.'; });
     $('game-best').addEventListener('click', () => { if (prices.length) { state = bestPlan(); render(); } });
+    if ($('game-reserve')) $('game-reserve').addEventListener('change', () => { if (prices.length) render(); });
     $('game-reset').addEventListener('click', () => { state = prices.map(() => 'idle'); render(); });
 
     /* Scene 3 and page position drive the Earth */
