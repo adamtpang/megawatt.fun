@@ -26,6 +26,23 @@ The renderer updates static HTML in `index.html` and the public CSV so all indic
 
 For deployment, run `python scripts/package-site.py` and deploy only the printed staging directory. Its allowlist excludes private drafts and session history.
 
+## Expansion map
+
+`/notes/expansion-map` ranks states, and utilities with at least 10,000 residential customers, for a home-battery program. The score is a weighted average of percentile ranks. A missing factor is left out of that row's denominator. It is not stored as zero.
+
+```sh
+python3 -m pip install openpyxl pyshp
+python3 analysis/build_expansion.py
+```
+
+The script downloads into `analysis/cache/` (gitignored) and writes `data/expansion-map.json`. Sliders in `notes/expansion-map.js` use the same percentile function as `analysis/score.py`. Shared numeric cases live in `tests/fixtures/expansion-score-cases.json`.
+
+Sources and vintages are on the page. In short: Census ACS 2024 5-year table B25032 for owner-occupied one-unit homes; EIA-861 2025 final (released 7 Oct 2026) for SAIDI, SAIFI, retail delivery share, RTO tags, net-metered batteries, demand response, and dynamic pricing; FEMA National Risk Index counties for storm and heat. The Texas section is ERCOT day-ahead node prices minus the settlement load zone (report NP4-190-CD), over the files on the public list at build time.
+
+SolarAPP+ permitting was not scored: the jurisdiction CSV returned HTTP 403, and the HTML table was only an alphabetical fragment. No national home-battery interconnection timeline was retrieved. Price volatility outside ERCOT was not filled in with a zero.
+
+The map marks are public footprint, not score bonuses. Texas is the operating retail market. Illinois is Base Retail's ComEd offer (ARES 26-0121). Georgia is a reported Central Georgia EMC plan for 2027, from a secondary article. Connecticut is a hiring post. This site is not affiliated with Base Power.
+
 ## Supporting dispatch work
 
 An independent Go demonstration, not affiliated with Base Power and using no proprietary Base data.

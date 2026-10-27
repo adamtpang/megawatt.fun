@@ -16,7 +16,11 @@ class Handler(SimpleHTTPRequestHandler):
 
     def do_GET(self):
         path = urlsplit(self.path).path
-        if path in {"/tools", "/kardashev", "/live", "/titans", "/roadmap", "/essay", "/why", "/sources", "/base", "/about", "/contact", "/privacy"}:
+        if path == "/notes":
+            self.path = "/notes/index.html"
+        elif path == "/notes/expansion-map":
+            self.path = "/notes/expansion-map.html"
+        elif path in {"/tools", "/kardashev", "/live", "/titans", "/roadmap", "/essay", "/why", "/sources", "/base", "/about", "/contact", "/privacy"}:
             self.path = path + ".html"
         super().do_GET()
 

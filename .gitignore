@@ -3,3 +3,4 @@
 .preview-shots/
 .preview-shots*.png
 __pycache__/
+analysis/cache/
