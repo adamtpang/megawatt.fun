@@ -24,6 +24,8 @@ class Handler(SimpleHTTPRequestHandler):
             self.path = "/notes/where-batteries-earn-most.html"
         elif path == "/notes/kardashev-stack":
             self.path = "/notes/kardashev-stack.html"
+        elif path == "/notes/financing-a-home-battery":
+            self.path = "/notes/financing-a-home-battery.html"
         elif path in {"/tools", "/kardashev", "/live", "/titans", "/roadmap", "/essay", "/why", "/sources", "/base", "/about", "/contact", "/privacy"}:
             self.path = path + ".html"
         super().do_GET()

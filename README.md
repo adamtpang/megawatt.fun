@@ -26,6 +26,20 @@ The renderer updates static HTML in `index.html` and the public CSV so all indic
 
 For deployment, run `python scripts/package-site.py` and deploy only the printed staging directory. Its allowlist excludes private drafts and session history.
 
+## Suite
+
+`/notes` is the index. Two questions: which states have a faster public path to a launch, and what cash flow one home battery would have produced on historical ERCOT load-zone prices. Both say what the public record does not contain.
+
+## Financing a home battery
+
+`/notes/financing-a-home-battery` dispatches one battery against ERCOT day-ahead load-zone prices, report 13060, for the complete years 2018 through 2025. The default energy is the published Base Core size, 39.2 kWh. Power, efficiency, fade, term, and capital cost are labeled illustrations where Base does not publish them. Debt service is blank until a $/kWh is set.
+
+```sh
+python3 analysis/build_financing.py
+```
+
+The script caches yearly workbooks in `analysis/cache/ercot-lz/` and writes `data/financing.json`.
+
 ## Make, move, store, sell
 
 `/notes/kardashev-stack` ranks those four jobs by whether they change K. K counts average primary power. Storage and retail do not add joules on their own. The slider uses `data/kardashev-baseline.json`: at 20.12 TW, +0.001 K is 469 GW of new average primary power. The page is an outside reading of public interviews. It is not a Base roadmap.

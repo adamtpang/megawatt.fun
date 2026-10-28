@@ -8,6 +8,8 @@
 - [Live ERCOT prices](https://megawatt.fun/live): Informational real-time and day-ahead settlement prices from ERCOT's public feed. These values are delayed and are not for financial settlement.
 - [Kardashev tracker](https://megawatt.fun/kardashev): A transparent calculation of humanity's current Kardashev-scale position, with sources and adjustable growth assumptions.
 - [Energy company study](https://megawatt.fun/titans): A sourced comparative study that keeps contested and unverified claims visible.
+- [Notes](https://megawatt.fun/notes): A public-data suite on how long a new market takes to open, and on whether one home battery's historical revenue could cover a loan. Independent of Base Power.
+- [Financing a home battery](https://megawatt.fun/notes/financing-a-home-battery): One battery on ERCOT day-ahead load-zone prices, 2018 through 2025, with an illustrative debt layer. Independent of Base Power.
 - [Make, move, store, sell](https://megawatt.fun/notes/kardashev-stack): An outside ranking of those four energy jobs by whether they change the Kardashev numerator. Independent of Base Power.
 - [Where batteries earn the most](https://megawatt.fun/notes/where-batteries-earn-most): Day-ahead ERCOT resource-node basis for Houston, North, and South, 27 September through 28 October 2026. Independent of Base Power.
 - [Expansion map](https://megawatt.fun/notes/expansion-map): An outside view of state and utility signals for a home-battery program, from Census, EIA-861, and FEMA. Weights are on the page. Independent of Base Power.

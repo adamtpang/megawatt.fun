@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Expansion map — megawatt.fun</title>
-<meta name="description" content="A US heatmap and tier list of states for a home-battery program, scored from Census housing, EIA-861 outages and retail access, and FEMA storm and heat risk. Each tier says which public signals carry the state and which constraint holds it back.">
+<meta name="description" content="Where a home-battery launch has a public case. States are scored from Census, EIA-861, and FEMA, with a retail-choice path marked as a time-to-launch proxy. Independent of Base Power.">
 <meta name="theme-color" content="#1e4d2b">
 <link rel="canonical" href="https://megawatt.fun/notes/expansion-map">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
@@ -19,12 +19,13 @@
 <main id="main" class="note">
   <p class="meta"><a href="/notes">Notes</a> · Independent · No Base Power data</p>
   <h1>Where to look next</h1>
-  <p class="lede">A heatmap and a tier list of states, from public housing, outage, weather, and market data. The letter is a band on that score. The line under each state is the data that put it there, and the constraint that holds it down.</p>
+  <p class="lede">Where a home-battery launch has a public case, and which states have a retail-choice path instead of a utility partnership. The map opens on the start-here weights. Equal weights are still a button. The letter is a band on the score in front of you.</p>
   <p class="meta" id="vintage">Loading the public datasets…</p>
 
   <form id="weights" class="groups"></form>
   <div class="presets" role="group" aria-label="Weight presets">
-    <button type="button" id="preset-equal" aria-pressed="true">Equal weights</button>
+    <button type="button" id="preset-start" aria-pressed="true">Start here</button>
+    <button type="button" id="preset-equal" aria-pressed="false">Equal weights</button>
     <button type="button" id="preset-pull" aria-pressed="false">Customer pull only</button>
     <button type="button" id="preset-access" aria-pressed="false">Market access only</button>
     <button type="button" id="preset-nosize" aria-pressed="false">Ignore size</button>
@@ -50,6 +51,12 @@
       <p class="quiet">Select a state.</p>
     </aside>
   </div>
+
+  <section class="deep" id="start" aria-labelledby="start-title">
+    <h2 id="start-title">Start here first</h2>
+    <p class="quiet">The first five states at the weights on the sliders. Retail-choice path means at least 30% of residential customers are on delivery service in EIA-861 2025. That cut is a label for this page. A partnership path is every other state. Operating, announced, and hiring marks stay off the score.</p>
+    <ol id="start-list" class="sources"></ol>
+  </section>
 
   <section class="deep" id="tiers" aria-labelledby="tier-title">
     <h2 id="tier-title">Tier list</h2>
@@ -99,9 +106,9 @@
   <section class="deep" aria-labelledby="suggest-title">
     <h2 id="suggest-title">What this suggests</h2>
     <div class="prose" id="narrative"><!-- findings:start -->
-<p>At equal weights, Michigan (76), Texas (71), and Maryland (69) lead the 51 geographies. Michigan's strongest public signals on this scale are outage duration (saidi) (98) and demand response per 1,000 customers (92). Read the score as a stack of percentiles. A high score means the public series line up. It is an outside view, with no Base install times, permit outcomes, or crew plan in it.</p>
-<p>The home-count factor rewards size. California has the most owner-occupied single-family homes, 6,771,188. With that weight set to zero, the top three become Michigan (75), Maryland (70), and Texas (68).</p>
-<p>Base's public footprint, marked on the map and kept out of the weights: Texas ranks 2 (score 71), with SAIDI 225 minutes, retail delivery share 56.2%, and wholesale mix ERCOT 88%, MISO 5%, SPP 5%. Illinois ranks 8 (score 60), with SAIDI 144 minutes, retail delivery share 22.1%, and wholesale mix PJM 71%, MISO 29%. Georgia ranks 30 (score 47), with SAIDI 270 minutes, retail delivery share 0.0%, and wholesale mix No ISO balancing authority. Connecticut ranks 19 (score 54), with SAIDI 211 minutes, retail delivery share 15.8%, and wholesale mix ISO-NE 100%.</p>
+<p>At equal weights, including the retail-choice path, Texas (74), Michigan (73), and California (71) lead the 51 geographies. Read the score as a stack of percentiles. A high score means the public series line up. It is an outside view, with no Base install times, permit outcomes, or crew plan in it.</p>
+<p>The home-count factor rewards size. California has the most owner-occupied single-family homes, 6,771,188. With that weight set to zero, and every other factor including the launch path left on, the top three become Michigan (72), Texas (71), and California (68).</p>
+<p>Base's public footprint, marked on the map and kept out of the weights: Texas ranks 1 at equal weights (score 74), with SAIDI 225 minutes, retail delivery share 56.2%, and wholesale mix ERCOT 88%, MISO 5%, SPP 5%. Illinois ranks 9 (score 58), with SAIDI 144 minutes, retail delivery share 22.1%, and wholesale mix PJM 71%, MISO 29%. Georgia ranks 30 (score 47), with SAIDI 270 minutes, retail delivery share 0.0%, and wholesale mix No ISO balancing authority. Connecticut ranks 21 (score 53), with SAIDI 211 minutes, retail delivery share 15.8%, and wholesale mix ISO-NE 100%.</p>
 <p>Georgia's largest balancing authority in this file is Southern Company Services, Inc. - Trans. EIA reports no residential delivery service there. A utility contract, the shape of the reported Central Georgia EMC project, does not appear in the retail-choice factor, so Georgia's rank is a weak guide to that path.</p>
 <p>The longest state SAIDI in this file is West Virginia at 1013 minutes. The highest residential delivery share is Massachusetts at 61.5%. Commonwealth Edison reports 3,753,924 residential customers, SAIDI 77 minutes, and wholesale tag PJM. Central Georgia (Central Georgia El Member Corp) reports 62,546 residential customers and SAIDI 168 minutes.</p>
 <p>Install friction and a national price-volatility series sit outside the score. The Texas section is a short public day-ahead window, a congestion example rather than a yearly value of the nodes.</p>
@@ -115,7 +122,8 @@
   </section>
 
   <section class="deep" aria-labelledby="limits-title">
-    <h2 id="limits-title">What was left out</h2>
+    <h2 id="limits-title">What I couldn't see</h2>
+    <p class="quiet">Independent analysis, not affiliated with Base Power. Public data only. Base's actual onboarding times, permit outcomes, and which utilities will sign are not public and are not in this score.</p>
     <ul id="omitted" class="sources"></ul>
   </section>
 
