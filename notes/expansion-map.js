@@ -29,10 +29,12 @@
     renderErcot();
     renderLists();
     refresh();
+    document.getElementById("preset-start").addEventListener("click", function () { applyPreset("start"); });
     document.getElementById("preset-equal").addEventListener("click", function () { applyPreset("equal"); });
     document.getElementById("preset-pull").addEventListener("click", function () { applyPreset("pull"); });
     document.getElementById("preset-access").addEventListener("click", function () { applyPreset("access"); });
     document.getElementById("preset-nosize").addEventListener("click", function () { applyPreset("nosize"); });
+    applyPreset("start");
   }
 
   function groupOf(id) {
@@ -40,20 +42,25 @@
     return factor ? factor.group : "";
   }
 
+  var PRESET_KEYS = ["start", "equal", "pull", "access", "nosize"];
+  var START_WEIGHTS = { launch_path: 3, wholesale: 2, retail: 1, homes: 1, batteries: 1, saidi: 1 };
+
   function applyPreset(name) {
     data.factors.forEach(function (factor) {
       var on = true;
       if (name === "pull") on = factor.group === "Customer pull";
       if (name === "access") on = factor.group === "Market access";
       if (name === "nosize") on = factor.id !== "homes";
-      weights[factor.id] = on ? 1 : 0;
+      if (name === "start") on = START_WEIGHTS[factor.id] > 0;
+      weights[factor.id] = name === "start" ? (START_WEIGHTS[factor.id] || 0) : (on ? 1 : 0);
       var input = document.getElementById("w-" + factor.id);
       var output = document.getElementById("o-" + factor.id);
       if (input) input.value = String(Math.round(weights[factor.id] * 100));
       if (output) output.textContent = input.value;
     });
-    ["equal", "pull", "access", "nosize"].forEach(function (key) {
-      document.getElementById("preset-" + key).setAttribute("aria-pressed", key === name ? "true" : "false");
+    PRESET_KEYS.forEach(function (key) {
+      var button = document.getElementById("preset-" + key);
+      if (button) button.setAttribute("aria-pressed", key === name ? "true" : "false");
     });
     refresh();
   }
@@ -69,13 +76,13 @@
         var value = Math.round(factor.weight * 100);
         return '<div class="slider"><label for="w-' + factor.id + '">' + escapeHtml(factor.label) +
           '</label><output id="o-' + factor.id + '" for="w-' + factor.id + '">' + value +
-          '</output><input id="w-' + factor.id + '" type="range" min="0" max="100" value="' + value +
+          '</output><input id="w-' + factor.id + '" type="range" min="0" max="300" value="' + value +
           '" aria-describedby="h-' + factor.id + '"><p class="quiet" id="h-' + factor.id + '">' +
           escapeHtml(factor.help) + "</p></div>";
       }).join("");
       return '<fieldset class="group"><legend><h2>' + escapeHtml(group) + "</h2></legend>" + sliders + "</fieldset>";
     }).join("") +
-      '<section class="group"><h2>Install friction</h2><p class="quiet">No national permitting or home-battery interconnection timeline made it into the score. The reasons are under What was left out.</p></section>';
+      '<section class="group"><h2>Not in the score</h2><p class="quiet">DSIRE, a complete SolarAPP+ jurisdiction list, and a national home-battery interconnection clock were not retrieved. The reasons are under What I could not see.</p></section>';
     form.addEventListener("submit", function (event) { event.preventDefault(); });
     form.addEventListener("input", function (event) {
       var target = event.target;
@@ -83,8 +90,9 @@
       var id = target.id.slice(2);
       weights[id] = Number(target.value) / 100;
       document.getElementById("o-" + id).textContent = target.value;
-      ["equal", "pull", "access", "nosize"].forEach(function (key) {
-        document.getElementById("preset-" + key).setAttribute("aria-pressed", "false");
+      PRESET_KEYS.forEach(function (key) {
+        var button = document.getElementById("preset-" + key);
+        if (button) button.setAttribute("aria-pressed", "false");
       });
       refresh();
     });
@@ -126,12 +134,18 @@
     });
     paintMap(stateScores);
     renderTiers(ranked, stateScores);
+    renderStart(ranked);
     fillTable("state-body", ranked.slice(0, 10), stateRow);
     fillTable("utility-body", ordered(ranksFor(data.utilities)).slice(0, 10), utilityRow);
     var equal = data.factors.every(function (factor) { return Math.abs(weights[factor.id] - factor.weight) < 0.001; });
-    document.getElementById("weight-note").textContent = equal
-      ? "This table matches the equal-weight reading in What this suggests."
-      : "The weights have moved. What this suggests still describes equal weights.";
+    var start = data.factors.every(function (factor) {
+      return Math.abs(weights[factor.id] - (START_WEIGHTS[factor.id] || 0)) < 0.001;
+    });
+    document.getElementById("weight-note").textContent = start
+      ? "This table is the start-here weighting: retail-choice path 3, wholesale 2, homes, batteries, SAIDI, and delivery share at 1. Other factors are off."
+      : equal
+        ? "This table matches the equal-weight reading in What this suggests."
+        : "The weights have moved. What this suggests still describes equal weights.";
     showState(selected, stateScores[selected]);
   }
 
@@ -170,6 +184,7 @@
     if (id === "homes" || id === "saidi") return Math.round(value).toLocaleString("en-US");
     if (id === "saifi") return Number(value).toFixed(2);
     if (id === "retail" || id === "wholesale") return (value * 100).toFixed(1) + "%";
+    if (id === "launch_path") return value >= 1 ? "Choice" : "Partnership";
     if (id === "storm" || id === "heat") return Number(value).toFixed(1);
     return Number(value).toFixed(2);
   }
@@ -236,6 +251,19 @@
     { id: "Later", label: "Thin public case" }
   ];
 
+  function renderStart(ranked) {
+    var list = document.getElementById("start-list");
+    if (!list) return;
+    list.innerHTML = ranked.slice(0, 5).map(function (item, index) {
+      var row = item.row;
+      var path = row.values.launch_path === 1 ? "Retail-choice path" : "Partnership path";
+      var mark = row.footprint ? " · " + row.footprint.label : "";
+      return "<li><strong>" + (index + 1) + ". " + escapeHtml(row.name) + "</strong> " +
+        '<span class="mono">' + points(item.score) + "</span> · " + path + escapeHtml(mark) +
+        "<br>" + escapeHtml(whyText(item)) + "</li>";
+    }).join("");
+  }
+
   function renderTiers(ranked, scores) {
     var board = document.getElementById("tier-board");
     board.innerHTML = TIER_ORDER.map(function (tier) {
@@ -281,6 +309,7 @@
     if (factor.id === "storm") return "storm risk " + value;
     if (factor.id === "heat") return "heat-wave risk " + value;
     if (factor.id === "retail") return value + " residential delivery share";
+    if (factor.id === "launch_path") return row.values.launch_path === 1 ? "a retail-choice path" : "a partnership path";
     if (factor.id === "wholesale") {
       return row.detail && row.detail.rtos ? "wholesale mix " + row.detail.rtos : value + " of residential customers in an ISO";
     }

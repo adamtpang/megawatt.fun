@@ -1,4 +1,9 @@
 .note { max-width: 1120px; margin: 0 auto; padding: 8px 20px 64px; }
+.stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 12px 0; }
+.stat { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+.stat .v { font-weight: 600; font-size: 22px; color: #1e4d2b; }
+.stat .l { color: var(--muted); font-size: 13px; }
+select, .group select { font: 600 14px var(--body); color: var(--ink); background: #fff; border: 1px solid #1e4d2b; border-radius: 8px; padding: 8px 10px; }
 .note h1 { font-size: clamp(36px, 5vw, 48px); line-height: 1.15; font-weight: 600; margin: 12px 0 12px; letter-spacing: 0; }
 .lede { font-size: 18px; line-height: 1.5; max-width: 68ch; color: var(--ink); }
 .lede em { font-style: normal; color: var(--lamp); }

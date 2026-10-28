@@ -39,6 +39,14 @@ class ExpansionDataTests(unittest.TestCase):
         joined = json.dumps(DATA["factors"])
         self.assertNotIn("volatility", joined)
 
+    def test_launch_path_is_a_labeled_proxy(self):
+        self.assertEqual(state("TX")["values"]["launch_path"], 1)
+        self.assertEqual(state("OH")["values"]["launch_path"], 1)
+        self.assertEqual(state("MI")["values"]["launch_path"], 0)
+        self.assertEqual(state("GA")["values"]["launch_path"], 0)
+        self.assertLess(state("IL")["values"]["retail"], 0.30)
+        self.assertEqual(state("IL")["values"]["launch_path"], 0)
+
     def test_footprints_are_labeled(self):
         self.assertEqual(state("TX")["footprint"]["status"], "operating")
         self.assertEqual(state("IL")["footprint"]["status"], "operating")

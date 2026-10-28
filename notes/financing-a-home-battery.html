@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Financing a home battery — megawatt.fun</title>
+<meta name="description" content="Outside view of one Base-style home battery on historical ERCOT load-zone prices, 2018 through 2025, with an illustrative debt layer. Independent analysis, not affiliated with Base Power.">
+<meta name="theme-color" content="#1e4d2b">
+<link rel="canonical" href="https://megawatt.fun/notes/financing-a-home-battery">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<link rel="stylesheet" href="/site.css">
+<link rel="stylesheet" href="/notes/expansion.css">
+<link rel="stylesheet" href="/notes/congestion.css">
+<script src="/notes/financing.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to the note</a>
+<header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/">Guide</a><a href="/roadmap">Roadmap</a><a href="/base">Battery</a><a href="/tools">Tools</a><a href="/live">Live</a><a href="/kardashev">Kardashev</a><a href="/titans">Titans</a><a href="/notes" aria-current="page">Notes</a></nav></header>
+<main id="main" class="note">
+  <p class="meta"><a href="/notes">Notes</a> · Independent analysis, not affiliated with Base Power</p>
+  <h1>Financing a home battery</h1>
+  <p class="lede">What a lender could see from public prices: one battery, settled at the ERCOT load zone, across 2018 through 2025, including the extreme years. Base’s debt structure and fleet dispatch are not public. This is an outside view.</p>
+  <p class="meta" id="vintage">Loading the price years…</p>
+
+  <section class="prose" id="question">
+    <h2>The question</h2>
+    <p>A home battery that is paid the load-zone price earns the gap between the hours it charges and the hours it discharges. Report 13060 is the public day-ahead history of those load-zone prices back to 2011. This note uses the eight complete years 2018 through 2025. 2021 and 2023 are in the set. 2026 is a partial file and is left out.</p>
+    <p>The battery in the default run is a Base Core’s published 39.2 kWh. Continuous kilowatts, round-trip efficiency, fade, and cost are not on that spec sheet, so those inputs start as labeled illustrations. Changing them recomputes the debt math on the revenues below. It does not rerun the dispatch. The dispatch was run once, at the defaults, by <span class="mono">analysis/build_financing.py</span>.</p>
+  </section>
+
+  <section class="deep" id="results" aria-labelledby="results-title">
+    <h2 id="results-title">Annual revenue</h2>
+    <p class="quiet" id="method"></p>
+    <div class="presets" role="group" aria-label="Load zone">
+      <button type="button" data-zone="LZ_HOUSTON" aria-pressed="true">Houston</button>
+      <button type="button" data-zone="LZ_NORTH" aria-pressed="false">North</button>
+      <button type="button" data-zone="LZ_SOUTH" aria-pressed="false">South</button>
+      <button type="button" data-zone="LZ_WEST" aria-pressed="false">West</button>
+    </div>
+    <p class="quiet">West is context. The public Base footprint named in the other notes is Houston, North, and South.</p>
+    <div class="stat-row" id="headline"></div>
+    <div id="bars"></div>
+    <div class="table-wrap">
+      <table>
+        <caption>Each historical year, same battery</caption>
+        <thead>
+          <tr><th scope="col">Year</th><th scope="col" class="num">Revenue</th><th scope="col" class="num">Hours</th></tr>
+        </thead>
+        <tbody id="year-body"></tbody>
+      </table>
+    </div>
+    <p class="quiet" id="predict"></p>
+  </section>
+
+  <section class="deep" id="debt" aria-labelledby="debt-title">
+    <h2 id="debt-title">Illustrative debt</h2>
+    <p class="quiet">Debt service coverage is operating revenue divided by the annual loan payment. The loan is a level payment on the battery’s capital cost. A slower launch capitalizes interest before the first operating year and raises that payment. None of the financing terms are Base’s.</p>
+    <div class="groups">
+      <fieldset class="group">
+        <legend><h2>Battery</h2></legend>
+        <div class="slider"><label for="energy">Energy kWh</label><output id="o-energy" for="energy">39.2</output>
+          <input id="energy" type="range" min="10" max="80" step="0.1" value="39.2"></div>
+        <div class="slider"><label for="power">Power kW</label><output id="o-power" for="power">9.8</output>
+          <input id="power" type="range" min="2" max="20" step="0.1" value="9.8"></div>
+        <div class="slider"><label for="rte">Round-trip efficiency</label><output id="o-rte" for="rte">90%</output>
+          <input id="rte" type="range" min="70" max="100" step="1" value="90"></div>
+        <p class="quiet" id="battery-note"></p>
+      </fieldset>
+      <fieldset class="group">
+        <legend><h2>Loan</h2></legend>
+        <div class="slider"><label for="capex">Capital cost, $/kWh</label><output id="o-capex" for="capex">blank</output>
+          <input id="capex" type="range" min="0" max="1500" step="10" value="0"></div>
+        <div class="slider"><label for="spread">Spread over the 10-year Treasury, percentage points</label><output id="o-spread" for="spread">0</output>
+          <input id="spread" type="range" min="0" max="12" step="0.1" value="0"></div>
+        <div class="slider"><label for="term">Term, years</label><output id="o-term" for="term">10</output>
+          <input id="term" type="range" min="3" max="20" step="1" value="10"></div>
+        <div class="slider"><label for="fade">Fade per year</label><output id="o-fade" for="fade">2%</output>
+          <input id="fade" type="range" min="0" max="8" step="0.1" value="2"></div>
+        <div class="slider"><label for="delay">Months until revenue starts</label><output id="o-delay" for="delay">0</output>
+          <input id="delay" type="range" min="0" max="36" step="1" value="0"></div>
+        <div class="slider"><label for="case">Revenue case</label>
+          <select id="case">
+            <option value="p50">Median year (P50)</option>
+            <option value="p90">Low tail (P90 exceedance)</option>
+            <option value="worst">Worst year</option>
+          </select>
+        </div>
+      </fieldset>
+    </div>
+    <p id="debt-out" class="lede" aria-live="polite"></p>
+    <div class="table-wrap">
+      <table>
+        <caption>Coverage by operating year</caption>
+        <thead><tr><th scope="col">Operating year</th><th scope="col" class="num">Revenue</th><th scope="col" class="num">Debt service</th><th scope="col" class="num">DSCR</th></tr></thead>
+        <tbody id="dscr-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="prose" id="connect">
+    <h2>How the two problems connect</h2>
+    <p>A new market that takes longer to open does not change the price history. It changes when the first operating year begins. In this illustration the loan balance grows at the stated interest rate during that wait, and the payment is sized off the larger balance. The same median revenue then covers less of the payment. The <a href="/notes/expansion-map">state list</a> is the public evidence on which launches have a retail-choice path and which ones wait on a utility partnership. It is not a measured count of months.</p>
+    <p>Revenue here is also not a forecast of what the battery will earn next year. It is what this dispatch would have earned in each historical year. 2021 is in the distribution on purpose. The median is the number to read. The mean is pulled by the extreme year.</p>
+  </section>
+
+  <section class="prose" id="limits">
+    <h2>What I couldn't see</h2>
+    <ul>
+      <li>Base’s actual debt structure, interest rate, tenor, advance rate, and covenants.</li>
+      <li>What the battery cost Base to build. The $695 installation fee and $19 a month on the public site are customer prices, not capital cost. NREL ATB’s residential-battery workbook was not read into a single cost row for this build, so the $/kWh slider starts at zero and debt service stays blank until you move it.</li>
+      <li>Continuous kilowatts, round-trip efficiency, cycle life, and fade. The Core spec sheet publishes 39.2 kWh, 120/240 V, and backup duration. The 9.8 kW default is 39.2 kWh divided by 4 hours.</li>
+      <li>Fleet dispatch, reserve policy, and outage constraints. This run holds nothing back for backup and sees every future price in the year.</li>
+      <li>Real-time prices, nodal prices, and ancillary-service revenue. Report 13060 is day-ahead hubs and load zones.</li>
+      <li>A 10-year Treasury yield, if the public CSV did not load. The page says so in the loan note.</li>
+    </ul>
+  </section>
+
+  <section class="prose sources">
+    <h2>Sources</h2>
+    <ol>
+      <li><a href="https://www.ercot.com/mp/data-products/data-product-details?id=NP4-180-ER">NP4-180-ER</a>, historical DAM load zone and hub prices, report type 13060. Years 2018 through 2025, friendly names DAMLZHBSPP_2018 through DAMLZHBSPP_2025.</li>
+      <li><a href="https://www.basepowercompany.com/core">Base Core spec sheet</a>, read 27 October 2026. 39.2 kWh. No continuous kilowatts.</li>
+      <li><a href="https://www.ercot.com/files/docs/2026/10/06/06.-ADER_Phase-4_WMS_10072026.pdf">ADER Phase 4, WMS, 7 October 2026</a>. Settlement stays at the load zone.</li>
+      <li><a href="/notes/expansion-map">Where to look next</a>, for the launch-path side of the same question.</li>
+    </ol>
+    <p>Rebuild with <code>python3 analysis/build_financing.py</code>. It caches the yearly zips under <code>analysis/cache/ercot-lz/</code> and rewrites <code>data/financing.json</code>.</p>
+  </section>
+</main>
+<footer class="site-bottom">Built by <a href="https://github.com/adamtpang">Adam Pangelinan</a>. Independent analysis, not affiliated with Base Power, a utility, or ERCOT. No non-public information.<br><a href="/">Guide</a><a href="/notes">Notes</a><a href="/about">About</a><a href="/contact">Contact</a><a href="/privacy">Privacy</a></footer>
+</body>
+</html>
