@@ -105,7 +105,7 @@
     });
     var scores = window.ExpansionScore.composite(rankRows, weights);
     return rows.map(function (row, index) {
-      return { row: row, score: scores[index] };
+      return { row: row, score: scores[index], factors: rankRows[index] };
     });
   }
 
@@ -119,12 +119,14 @@
   }
 
   function refresh() {
+    var ranked = ordered(ranksFor(data.states));
     var stateScores = {};
-    ordered(ranksFor(data.states)).forEach(function (item, index) {
-      stateScores[item.row.id] = { score: item.score, rank: index + 1 };
+    ranked.forEach(function (item, index) {
+      stateScores[item.row.id] = { score: item.score, rank: index + 1, tier: window.ExpansionScore.tierOf(item.score) };
     });
     paintMap(stateScores);
-    fillTable("state-body", ordered(ranksFor(data.states)).slice(0, 10), stateRow);
+    renderTiers(ranked, stateScores);
+    fillTable("state-body", ranked.slice(0, 10), stateRow);
     fillTable("utility-body", ordered(ranksFor(data.utilities)).slice(0, 10), utilityRow);
     var equal = data.factors.every(function (factor) { return Math.abs(weights[factor.id] - factor.weight) < 0.001; });
     document.getElementById("weight-note").textContent = equal
@@ -141,7 +143,8 @@
     var row = item.row;
     var mark = row.footprint ? " · " + row.footprint.label : "";
     return "<tr data-state=\"" + row.id + "\" tabindex=\"0\" aria-selected=\"" + (row.id === selected) + "\">" +
-      "<td>" + (index + 1) + "</td><td>" + escapeHtml(row.name) + mark + "</td>" +
+      "<td>" + (index + 1) + "</td><td>" + escapeHtml(window.ExpansionScore.tierOf(item.score) || "—") +
+      "</td><td>" + escapeHtml(row.name) + mark + "</td>" +
       '<td class="num">' + points(item.score) + "</td>" +
       '<td class="num">' + fmt("homes", row.values.homes) + "</td>" +
       '<td class="num">' + fmt("saidi", row.values.saidi) + "</td>" +
@@ -200,6 +203,7 @@
       if (event.key !== "Enter" && event.key !== " ") return;
       onStateEvent(event);
     });
+    document.getElementById("tier-board").addEventListener("click", onStateEvent);
   }
 
   function onStateEvent(event) {
@@ -213,23 +217,82 @@
     document.querySelectorAll("#map path").forEach(function (path) {
       var id = path.getAttribute("data-state");
       var item = scores[id];
-      var score = item ? item.score : null;
-      path.setAttribute("fill", score === null ? "#1a2430" : mix(score));
+      var tier = item ? item.tier : null;
+      path.setAttribute("fill", TIER_FILL[tier] || "#1a2430");
       path.classList.toggle("selected", id === selected);
       var state = data.states.find(function (row) { return row.id === id; });
       var rank = item ? item.rank : "—";
       var pts = item ? points(item.score) : "—";
-      path.setAttribute("aria-label", (state ? state.name : id) + ", score " + pts + ", rank " + rank);
+      path.setAttribute("aria-label", (state ? state.name : id) + ", tier " + (tier || "—") + ", score " + pts + ", rank " + rank);
     });
   }
 
-  function mix(t) {
-    var low = [28, 51, 72];
-    var high = [255, 196, 107];
-    var channels = low.map(function (value, index) {
-      return Math.round(value + (high[index] - value) * t);
-    });
-    return "rgb(" + channels.join(",") + ")";
+  var TIER_FILL = { S: "#ffc46b", A: "#e09a45", B: "#7f9a62", C: "#3e627f", Later: "#24344a" };
+  var TIER_ORDER = [
+    { id: "S", label: "Target first" },
+    { id: "A", label: "Strong case" },
+    { id: "B", label: "Mixed" },
+    { id: "C", label: "One constraint leads" },
+    { id: "Later", label: "Thin public case" }
+  ];
+
+  function renderTiers(ranked, scores) {
+    var board = document.getElementById("tier-board");
+    board.innerHTML = TIER_ORDER.map(function (tier) {
+      var cards = ranked.filter(function (item) { return scores[item.row.id].tier === tier.id; }).map(function (item) {
+        var row = item.row;
+        var mark = row.footprint ? '<span class="flag ' + row.footprint.status + '">' + escapeHtml(row.footprint.label) + "</span>" : "";
+        return '<button type="button" class="tier-card" data-state="' + row.id + '" aria-current="' + (row.id === selected) + '">' +
+          "<header><strong>" + escapeHtml(row.name) + "</strong><span class=\"mono\">" + points(item.score) + "</span></header>" +
+          (mark ? "<p>" + mark + "</p>" : "") +
+          '<p class="why">' + escapeHtml(whyText(item)) + "</p></button>";
+      }).join("");
+      if (!cards) return "";
+      return '<section class="tier" aria-label="Tier ' + tier.id + '"><h3 class="tier-mark">' + tier.id + "<span>" + tier.label + "</span></h3><div class=\"tier-cards\">" + cards + "</div></section>";
+    }).join("");
+  }
+
+  function whyText(item) {
+    var parts = data.factors.filter(function (factor) {
+      var rank = item.factors[factor.id];
+      return weights[factor.id] > 0 && rank !== null && rank === rank;
+    }).map(function (factor) {
+      return { factor: factor, rank: item.factors[factor.id] };
+    }).sort(function (a, b) { return b.rank - a.rank || a.factor.label.localeCompare(b.factor.label); });
+    if (!parts.length) return "No weighted factor has a published value for this state.";
+    var lead = parts.slice(0, 2).map(function (part) { return phrase(part.factor, item.row); });
+    var text = sentence(lead.join(" and ")) + ".";
+    var low = parts[parts.length - 1];
+    var leadIds = parts.slice(0, 2).map(function (part) { return part.factor.id; });
+    if (leadIds.indexOf(low.factor.id) === -1 && low.rank < 0.5) {
+      var role = low.factor.group === "Market access"
+        ? "The constraint in this score is "
+        : "The weaker pull signal is ";
+      text += " " + role + phrase(low.factor, item.row) + ".";
+    }
+    return text;
+  }
+
+  function phrase(factor, row) {
+    var value = fmt(factor.id, row.values[factor.id]);
+    if (factor.id === "homes") return value + " owner-occupied single-family homes";
+    if (factor.id === "saidi") return "SAIDI " + value + " minutes";
+    if (factor.id === "saifi") return "SAIFI " + value;
+    if (factor.id === "storm") return "storm risk " + value;
+    if (factor.id === "heat") return "heat-wave risk " + value;
+    if (factor.id === "retail") return value + " residential delivery share";
+    if (factor.id === "wholesale") {
+      return row.detail && row.detail.rtos ? "wholesale mix " + row.detail.rtos : value + " of residential customers in an ISO";
+    }
+    if (factor.id === "batteries") return value + " residential batteries per 1,000 customers";
+    if (factor.id === "demand_response") return value + " demand-response enrollments per 1,000 customers";
+    if (factor.id === "dynamic_pricing") return value + " dynamic-pricing enrollments per 1,000 customers";
+    return factor.label + " " + value;
+  }
+
+  function sentence(text) {
+    if (!text) return text;
+    return text.charAt(0).toUpperCase() + text.slice(1);
   }
 
   function showState(id, scored) {
@@ -244,7 +307,7 @@
       return "<dt>" + escapeHtml(factor.label) + "</dt><dd>" + fmt(factor.id, state.values[factor.id]) + "</dd>";
     }).join("");
     document.getElementById("detail").innerHTML =
-      "<p class=\"quiet\">Score " + (scored ? points(scored.score) : "—") + " · rank " + (scored ? scored.rank : "—") + " of " + data.states.length + "</p>" +
+      "<p class=\"quiet\">Tier " + (scored && scored.tier ? scored.tier : "—") + " · score " + (scored ? points(scored.score) : "—") + " · rank " + (scored ? scored.rank : "—") + " of " + data.states.length + "</p>" +
       "<h2>" + escapeHtml(state.name) + "</h2>" + flag +
       "<dl>" + rows + "</dl>" +
       '<p class="quiet">' + escapeHtml(state.detail.note || "") + "</p>";

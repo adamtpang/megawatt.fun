@@ -28,7 +28,24 @@ svg#map path { stroke: #071018; stroke-width: 0.6; cursor: pointer; }
 svg#map path.selected { stroke: var(--ink); stroke-width: 1.6; }
 .badge { font-family: var(--mono); font-size: 11px; fill: var(--night); }
 .legend { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; color: var(--muted); font-size: 13px; margin-top: 8px; }
-.swatch { width: 120px; height: 8px; border-radius: 99px; background: linear-gradient(90deg, #1c3348, #ffc46b); }
+.swatch-tier { width: 14px; height: 14px; border-radius: 4px; display: inline-block; margin-right: 4px; vertical-align: -2px; }
+.swatch-tier.s { background: #ffc46b; }
+.swatch-tier.a { background: #e09a45; }
+.swatch-tier.b { background: #7f9a62; }
+.swatch-tier.c { background: #3e627f; }
+.swatch-tier.later { background: #24344a; }
+.tier { display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 12px; align-items: start; margin: 14px 0 18px; }
+.tier-mark { font-family: var(--display); font-size: 36px; line-height: 1; margin: 0; }
+.tier-mark span { display: block; font-family: var(--body); font-size: 13px; color: var(--muted); margin-top: 4px; }
+.tier-cards { display: flex; flex-direction: column; gap: 8px; }
+.tier-card {
+  width: 100%; text-align: left; font: inherit; color: var(--ink); cursor: pointer;
+  background: var(--night); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px;
+}
+.tier-card[aria-current="true"] { border-color: var(--lamp); }
+.tier-card header { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+.tier-card strong { font-family: var(--display); font-size: 20px; font-weight: 400; }
+.tier-card .why { margin: 6px 0 0; color: var(--muted); font-size: 14px; line-height: 1.45; }
 .dot { width: 9px; height: 9px; border-radius: 99px; display: inline-block; margin-right: 4px; }
 .dot.op { background: var(--good); }
 .dot.an { background: var(--lamp); }
@@ -53,6 +70,6 @@ tbody tr[aria-selected="true"] { background: rgba(255, 196, 107, .08); }
 .skip { position: absolute; left: 12px; top: -40px; background: var(--lamp); color: var(--night); padding: 6px 10px; }
 .skip:focus { top: 8px; }
 @media (max-width: 860px) {
-  .groups, .stage { grid-template-columns: 1fr; }
+  .groups, .stage, .tier { grid-template-columns: 1fr; }
   .note h1 { font-size: 36px; }
 }

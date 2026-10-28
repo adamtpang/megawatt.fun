@@ -49,5 +49,15 @@
     });
   }
 
-  return { percentileRanks: percentileRanks, composite: composite };
+  function tierOf(score) {
+    if (score === null || score === undefined || score !== score) return null;
+    var points = Math.round(score * 100);
+    if (points >= 68) return "S";
+    if (points >= 58) return "A";
+    if (points >= 48) return "B";
+    if (points >= 38) return "C";
+    return "Later";
+  }
+
+  return { percentileRanks: percentileRanks, composite: composite, tierOf: tierOf };
 });

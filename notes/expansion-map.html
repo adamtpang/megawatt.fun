@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Expansion map — megawatt.fun</title>
-<meta name="description" content="An outside view of US state and utility readiness for a home-battery program, scored from Census housing, EIA-861 outages and retail access, and FEMA storm and heat risk. Weights are adjustable. Independent of Base Power.">
+<meta name="description" content="A US heatmap and tier list of states for a home-battery program, scored from Census housing, EIA-861 outages and retail access, and FEMA storm and heat risk. Each tier says which public signals carry the state and which constraint holds it back.">
 <meta name="theme-color" content="#070d16">
 <link rel="canonical" href="https://megawatt.fun/notes/expansion-map">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
@@ -18,8 +18,8 @@
 <header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/">Guide</a><a href="/roadmap">Roadmap</a><a href="/base">Battery</a><a href="/tools">Tools</a><a href="/live">Live</a><a href="/kardashev">Kardashev</a><a href="/titans">Titans</a><a href="/notes" aria-current="page">Notes</a></nav></header>
 <main id="main" class="note">
   <p class="meta"><a href="/notes">Notes</a> · Independent · No Base Power data</p>
-  <h1>Expansion map</h1>
-  <p class="lede">An outside view of where a home battery plus a retail or utility program has <em>public</em> signals: people in single-family houses, long outages, storm and heat risk, retail choice, an organized wholesale market, and utility programs that already enroll customers.</p>
+  <h1>Where to look next</h1>
+  <p class="lede">A heatmap and a tier list of states, from public housing, outage, weather, and market data. The letter is a band on that score. The line under each state is the data that put it there, and the constraint that holds it down.</p>
   <p class="meta" id="vintage">Loading the public datasets…</p>
 
   <form id="weights" class="groups"></form>
@@ -35,9 +35,12 @@
       <svg id="map" role="img" aria-labelledby="map-title" viewBox="0 0 960 600">
         <title id="map-title">United States scored for a home-battery program</title>
       </svg>
-      <div class="legend">
-        <span class="swatch" aria-hidden="true"></span>
-        <span>Lower score</span><span>Higher score</span>
+      <div class="legend" aria-label="Tier colors">
+        <span><i class="swatch-tier s"></i>S 68+</span>
+        <span><i class="swatch-tier a"></i>A 58–67</span>
+        <span><i class="swatch-tier b"></i>B 48–57</span>
+        <span><i class="swatch-tier c"></i>C 38–47</span>
+        <span><i class="swatch-tier later"></i>Later</span>
         <span><i class="dot op"></i>Operating</span>
         <span><i class="dot an"></i>Announced</span>
         <span><i class="dot hi"></i>Hiring</span>
@@ -48,12 +51,19 @@
     </aside>
   </div>
 
+  <section class="deep" id="tiers" aria-labelledby="tier-title">
+    <h2 id="tier-title">Tier list</h2>
+    <p class="quiet">S is a rounded score of 68 or higher, A is 58–67, B is 48–57, C is 38–47, and Later is under 38. The bands follow the sliders. They are a reading of this public score. They are not a company target list. Footprint marks stay off the score.</p>
+    <div id="tier-board"></div>
+  </section>
+
   <div class="table-wrap">
     <table id="state-table">
-      <caption>Top states at these weights</caption>
+      <caption>Leaderboard at these weights</caption>
       <thead>
         <tr>
           <th scope="col">#</th>
+          <th scope="col">Tier</th>
           <th scope="col">State</th>
           <th scope="col" class="num">Score</th>
           <th scope="col" class="num">Homes</th>
