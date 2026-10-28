@@ -19,6 +19,7 @@
 }
 .presets button[aria-pressed="true"] { border-color: var(--lamp); color: var(--lamp); }
 .stage { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(260px, .7fr); gap: 14px; align-items: start; }
+.note > .map-card + .map-card { margin-top: 12px; }
 .map-card, .detail, .table-wrap, .deep {
   background: var(--panel-solid); border: 1px solid var(--line); border-radius: 14px; padding: 12px;
 }

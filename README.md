@@ -43,6 +43,18 @@ SolarAPP+ permitting was not scored: the jurisdiction CSV returned HTTP 403, and
 
 The map marks are public footprint, not score bonuses. Texas is the operating retail market. Illinois is Base Retail's ComEd offer (ARES 26-0121). Georgia is a reported Central Georgia EMC plan for 2027, from a secondary article. Connecticut is a hiring post. This site is not affiliated with Base Power.
 
+## Where batteries earn the most
+
+`/notes/where-batteries-earn-most` ranks ERCOT resource nodes in load zones Houston, North, and South by day-ahead basis: node settlement price minus the load-zone price, same hour. The public nodal list is about a month. This snapshot is delivery dates 2026-09-27 through 2026-10-28, report NP4-190-CD. It is not a year, and it is not interpolated.
+
+```sh
+python3 analysis/build_congestion.py
+```
+
+Optional: `python3 -m pip install pyshp` if you want the script to be able to draw a Texas outline. The current HIFLD name join matched too few of the top nodes, so the page is a ranked chart and the map is omitted on purpose. The script writes `data/congestion.json` and refreshes the findings in `notes/where-batteries-earn-most.html`. Cached downloads stay in `analysis/cache/`.
+
+LZ_LCRA and LZ_AEN were checked. The Base post and the 11 August 2026 DSWG deck name Houston, North, and South. The settlement-point file tags resource nodes to those three zones plus West. Phase 4, in the 7 October 2026 WMS deck, dispatches nodally and still settles at the load zone. The basis is a proxy for that gap. It is not a 100 MW revenue forecast. The note is independent of Base Power.
+
 ## Supporting dispatch work
 
 An independent Go demonstration, not affiliated with Base Power and using no proprietary Base data.

@@ -1,0 +1,29 @@
+.bar-row {
+  display: grid;
+  grid-template-columns: minmax(108px, 0.9fr) minmax(0, 2fr) auto;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  margin: 0 0 6px;
+  padding: 6px 4px;
+  background: transparent;
+  color: var(--ink);
+  border: 0;
+  border-radius: 8px;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.bar-row[aria-current="true"] { background: rgba(255, 196, 107, .08); }
+.bar-name { font-family: var(--mono); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bar-track { height: 10px; background: #132033; border-radius: 99px; overflow: hidden; }
+.bar-fill { display: block; height: 100%; background: var(--lamp); border-radius: 99px; }
+.bar-fill.LZ_NORTH { background: var(--rung); }
+.bar-fill.LZ_SOUTH { background: var(--good); }
+.bar-val { font-family: var(--mono); font-size: 12px; color: var(--lamp); min-width: 64px; text-align: right; }
+.zone-chip { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+#bars { min-height: 280px; }
+@media (max-width: 640px) {
+  .bar-row { grid-template-columns: 1fr auto; }
+  .bar-name { grid-column: 1 / -1; }
+}

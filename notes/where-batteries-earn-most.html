@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Where the next 100 MW of home batteries is worth the most in ERCOT</title>
+<meta name="description" content="Independent day-ahead ranking of ERCOT resource nodes in Houston, North, and South by node price minus load-zone price, September 27 to October 28, 2026. Not affiliated with Base Power.">
+<meta name="theme-color" content="#070d16">
+<link rel="canonical" href="https://megawatt.fun/notes/where-batteries-earn-most">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<link rel="stylesheet" href="/site.css">
+<link rel="stylesheet" href="/notes/expansion.css">
+<link rel="stylesheet" href="/notes/congestion.css">
+<script src="/notes/congestion.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to the note</a>
+<header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/">Guide</a><a href="/roadmap">Roadmap</a><a href="/base">Battery</a><a href="/tools">Tools</a><a href="/live">Live</a><a href="/kardashev">Kardashev</a><a href="/titans">Titans</a><a href="/notes" aria-current="page">Notes</a></nav></header>
+<main id="main" class="note">
+  <p class="meta"><a href="/notes">Notes</a> · Independent analysis, not affiliated with Base Power</p>
+  <h1>Where the next 100 MW of home batteries is worth the most in ERCOT</h1>
+  <p class="lede">A public-price look at Houston, North, and South: which resource nodes cleared farthest above their load zone, and which of those substations show up on a binding day-ahead constraint.</p>
+  <p class="meta" id="vintage">Day-ahead settlement point prices, 27 September 2026 through 28 October 2026. The chart reads <code>/data/congestion.json</code>.</p>
+
+  <section class="prose" id="question">
+    <h2>The question</h2>
+    <p>Chase Dowling’s Inside Base post, <a href="https://inside.basepowercompany.com/aggregated-ders-and-the-capacity-crunch">“ADER Phase IV and the capacity crunch,”</a> says an aggregated battery relieves a transmission limit only on the constrained side of it. The example is West Texas. With a parallel 345 kV circuit out at DMLBRK45, flow on 5127__A after the contingency is 1,232 MW against a 1,200 MVA emergency rating. He writes that the same 32 MW of relief takes 40 MW sited in the pocket, or about 490 MW spread across the load zone.</p>
+    <p>Base’s ADER chart is in three other zones. August 2026 shows 205.5 MW of fleet nameplate, 39% in an ADER: North 22.9 MW, South 7.2 MW, Houston 50.5 MW, plus 30 MW pending in Houston. The caption calls this nameplate, pinned to a running maximum, with partner fleets excluded and August partial. The <a href="https://www.ercot.com/files/docs/2026/08/12/2026-08-11-Base-Power-Company-ADER-Updates.pdf">11 August 2026 DSWG deck</a> on ercot.com says 100 MW were approved across Houston, North, and South. The slides are marked confidential. This note cites the public posting.</p>
+    <p>The post and the deck do not name LZ_LCRA or LZ_AEN. The settlement-point list tags resource nodes to Houston, North, South, and West only. The ranking is the three ADER zones. West is the scale check, because that is where the example sits.</p>
+  </section>
+
+  <section class="prose" id="why">
+    <h2>Why it matters for ADER Phase 4</h2>
+    <p>The <a href="https://www.ercot.com/files/docs/2026/10/06/06.-ADER_Phase-4_WMS_10072026.pdf">7 October 2026 WMS deck</a> says Phase 4 changes dispatch and leaves settlement and metering as they are. An Aggregate Distributed Energy Storage Resource would be dispatched in SCED with nodal shift factors and mapped to one substation transformer. Its resource node would be non-biddable in the day-ahead market and in CRR auctions. Settlement stays at the load-zone price. Ancillary services wait. The pilot’s energy, ECRS, and non-spin caps would not apply. The deck calls this a governing-document change, headed for the 7 December 2026 Board, and puts qualified ADER capacity at 293 MW of a 500 MW energy limit. <a href="https://www.ercot.com/mktrules/pilots/ader/">The pilot page</a> is the standing reference.</p>
+    <p>The spread below is the public trace of that gap: where the node cleared above the zone that would still set the payment. These are observed day-ahead differences for one month. They are not a 100 MW earnings quote.</p>
+  </section>
+
+  <section class="prose" id="method">
+    <h2>Method</h2>
+    <p>Prices are day-ahead settlement point prices, NP4-190-CD, 32 delivery dates from 27 September 2026 through 28 October 2026, 768 hours, no gap inside the span. The public list keeps about 31 days. The yearly hub and load-zone archives, reports 13060 and 13061, have no resource nodes. Real-time nodal prices, report 12301, covered only 20–27 October 2026 and stay out of the rank. State-estimator line flows, NP6-619-ER report 12999, came back as an empty public list.</p>
+    <p>Basis is the resource-node price minus the load-zone price, same date, hour ending, and daylight-saving flag. Zone and substation come from NP4-160-SG. A node needs 100 hours. The rank is the 95th percentile. Mean basis and the share of hours at least $20/MWh above the zone sit beside it. Hours with a node price of at least $100/MWh are counted on their own. Both cutoffs are labels for this note. Blocks are hour-ending 1–6, 7–12, 13–18, and 19–24. There is no season filter on a one-month autumn window.</p>
+    <p>A shadow-price row from NP4-191-CD matches a node only when the from-station or to-station equals the substation name. Contingencies can repeat an hour. HIFLD coordinates matched 41 of 774 substations and 2 of the top 15, so the map is omitted. Blank locations stayed blank.</p>
+  </section>
+
+  <section class="deep" id="rank" aria-labelledby="rank-title">
+    <h2 id="rank-title">Rank the nodes</h2>
+    <p class="quiet">Basis is node price minus load-zone price, in $/MWh, except the share filter, which is the fraction of hours at least $20/MWh above the zone. Shadow-price counts cover the full window, including when an hour block is selected.</p>
+    <div class="presets" role="group" aria-label="Load zone">
+      <button type="button" data-zone="all" aria-pressed="true">Houston, North, and South</button>
+      <button type="button" data-zone="LZ_HOUSTON" aria-pressed="false">Houston</button>
+      <button type="button" data-zone="LZ_NORTH" aria-pressed="false">North</button>
+      <button type="button" data-zone="LZ_SOUTH" aria-pressed="false">South</button>
+    </div>
+    <div class="presets" role="group" aria-label="Hour block">
+      <button type="button" data-block="all" aria-pressed="true">All hours</button>
+      <button type="button" data-block="night" aria-pressed="false">Night, HE 1–6</button>
+      <button type="button" data-block="morning" aria-pressed="false">Morning, HE 7–12</button>
+      <button type="button" data-block="afternoon" aria-pressed="false">Afternoon, HE 13–18</button>
+      <button type="button" data-block="evening" aria-pressed="false">Evening, HE 19–24</button>
+    </div>
+    <div class="presets" role="group" aria-label="Rank measure">
+      <button type="button" data-metric="p95" aria-pressed="true">95th percentile</button>
+      <button type="button" data-metric="mean" aria-pressed="false">Mean basis</button>
+      <button type="button" data-metric="share20" aria-pressed="false">Share of hours ≥ $20</button>
+    </div>
+    <p class="quiet" id="status" aria-live="polite">Loading the price file…</p>
+    <div class="stage">
+      <div class="map-card">
+        <div id="bars" role="list" aria-label="Top resource nodes by the selected measure"></div>
+      </div>
+      <aside class="detail" id="detail" aria-live="polite">
+        <p class="quiet">Select a node.</p>
+      </aside>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <caption>Top 10 in the current filter</caption>
+        <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Node</th>
+            <th scope="col">Zone</th>
+            <th scope="col">Substation</th>
+            <th scope="col" class="num">Hours</th>
+            <th scope="col" class="num">Mean</th>
+            <th scope="col" class="num">P95</th>
+            <th scope="col" class="num">≥ $20</th>
+            <th scope="col" class="num">≥ $100</th>
+            <th scope="col" class="num">Shadow rows</th>
+          </tr>
+        </thead>
+        <tbody id="top-body"></tbody>
+      </table>
+    </div>
+    <p class="quiet" id="map-note"></p>
+  </section>
+
+  <section class="prose" id="findings">
+    <h2>Findings</h2>
+    <!-- findings:start -->
+<p>From 2026-09-27 through 2026-10-28 (32 delivery dates, 768 hours), the largest 95th-percentile basis in Houston, North, and South was RHESS2_ESS1 in LZ_SOUTH, substation GEORSO: $64.31/MWh. Mean $10.62/MWh. 16.4% of hours cleared at least $20.00/MWh above the zone. The node price reached $100.00/MWh in 73 hours.</p>
+<p>By zone: LZ_HOUSTON led with CR_RN at a 95th percentile of $43.73/MWh (mean $7.73/MWh, 768 hours). LZ_NORTH led with JUNG_SLR_RN at a 95th percentile of $60.70/MWh (mean $11.09/MWh, 768 hours). LZ_SOUTH led with RHESS2_ESS1 at a 95th percentile of $64.31/MWh (mean $10.62/MWh, 768 hours). Most nodes sit close to the zone. LZ_HOUSTON median $6.36 (217 nodes); LZ_NORTH median $2.48 (219 nodes); LZ_SOUTH median $6.16 (338 nodes). 42 of 774 reached $20.00/MWh at the 95th percentile. Same files, outside the rank: KNAPP_RN in LZ_WEST at $196.68/MWh. At RHESS2_ESS1 the highest block was afternoon, $103.21/MWh over 192 hours.</p>
+<p>GEORSO has no positive shadow-price row in this window, so the RHESS2_ESS1 basis is a price gap without a same-name constraint. PAVLOV (PAVLOV_BT_RN and PAVLOV_RN) is named on 469 positive rows, sum $14,099.70, including BLESSI_PAVLOV1_1, LAN_CT_PAVLOV1_1. Constraint 5127 does not appear in this day-ahead shadow-price extract. The largest shadow-price sum was 6437__F, SCRCV to KNAPP: 958 rows, sum $94,696.80. No map. Unique HIFLD names matched 41 of 774 substations and 2 of the top 15. Unmatched nodes were left unplaced.</p>
+<!-- findings:end -->
+  </section>
+
+  <section class="prose" id="limits">
+    <h2>Limitations</h2>
+    <p>Phase 4, as drafted, still pays the load-zone price. Congestion and marginal losses are both inside the basis, and there is no shift factor, so a high price does not show that a battery would unload the binding line. These resource nodes are generation and storage settlement points. An ADESR maps to a transformer load, which can be a different bus. GEORSO is the worked example: the largest basis in the three zones, and no shadow-price row that uses the name. The largest shadow-price sums sit on the West Texas KNAPP path, outside the three ADER zones, in the same region as the post’s example. This file has no Base customer locations. An October window is silent on summer.</p>
+  </section>
+
+  <section class="prose" id="next">
+    <h2>What I would look at next</h2>
+    <p>A longer nodal archive, once one is public. Shift factors, so a constraint names the nodes that move it. Real-time prices after the public window grows past one week. State-estimator flows if report 12999 is posted. Which substations have houses on the feeders behind them. The fleet’s own nodes, which this site does not have.</p>
+  </section>
+
+  <section class="prose sources">
+    <h2>Sources</h2>
+    <ul>
+      <li><a href="https://www.ercot.com/mp/data-products/data-product-details?id=NP4-190-CD">NP4-190-CD</a>, day-ahead settlement point prices, report type 12331. Delivery dates 2026-09-27 through 2026-10-28.</li>
+      <li><a href="https://www.ercot.com/mp/data-products/data-product-details?id=NP4-160-SG">NP4-160-SG</a>, settlement points list, report type 10008. Resource node, substation, and load zone.</li>
+      <li><a href="https://www.ercot.com/mp/data-products/data-product-details?id=NP4-191-CD">NP4-191-CD</a>, day-ahead shadow prices, report type 12332. Same delivery dates.</li>
+      <li><a href="https://www.ercot.com/files/docs/2026/10/06/06.-ADER_Phase-4_WMS_10072026.pdf">ADER Phase 4, WMS, 7 October 2026</a>. Dispatch nodal, settlement zonal. Pilot page: <a href="https://www.ercot.com/mktrules/pilots/ader/">ercot.com/mktrules/pilots/ader</a>.</li>
+      <li><a href="https://www.ercot.com/files/docs/2026/08/12/2026-08-11-Base-Power-Company-ADER-Updates.pdf">Base Power ADER updates, DSWG, 11 August 2026</a>. Public ERCOT posting.</li>
+      <li><a href="https://inside.basepowercompany.com/aggregated-ders-and-the-capacity-crunch">Chase Dowling, ADER Phase IV and the capacity crunch</a>.</li>
+      <li><a href="https://services5.arcgis.com/HDRa0B57OVrv2E1q/ArcGIS/rest/services/Electric_Substations/FeatureServer">HIFLD electric substations</a>. Tried for a map. Match rate was too low to draw one.</li>
+    </ul>
+    <p>Rebuild with <code>python3 analysis/build_congestion.py</code>. The script reads and refreshes the public files, writes <code>data/congestion.json</code>, and replaces the findings between the markers in this page. Nothing in the JSON is interpolated.</p>
+  </section>
+</main>
+<footer class="site-bottom">Built by <a href="https://github.com/adamtpang">Adam Pangelinan</a>. Independent analysis, not affiliated with Base Power, a utility, or ERCOT. No non-public information.<br><a href="/">Guide</a><a href="/notes">Notes</a><a href="/about">About</a><a href="/contact">Contact</a><a href="/privacy">Privacy</a></footer>
+</body>
+</html>
