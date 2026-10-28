@@ -125,7 +125,7 @@ h1, h2, h3 { font-family: var(--sans); font-weight: 600; letter-spacing: 0; text
 .door a, .button-link.primary, .seg-btn[aria-pressed="true"] {
   background: var(--bpc-green-20); color: var(--bpc-green-90); border: 1px solid transparent; border-radius: 8px;
 }
-.door a { display: inline-block; padding: 8px 14px; text-decoration: none; font-family: var(--sans); font-size: 14px; font-weight: 600; }
+.door a { display: inline-block; margin: 0 8px 8px 0; padding: 8px 14px; text-decoration: none; font-family: var(--sans); font-size: 14px; font-weight: 600; }
 .door a:hover, .button-link.primary:hover { background: var(--bpc-green-60); color: var(--bpc-green-100); }
 .button-link { border-radius: 8px; border-color: var(--bpc-green-90); color: var(--bpc-green-90); font-weight: 600; }
 .card, .panel, .path, .pic, .stat, .readout {

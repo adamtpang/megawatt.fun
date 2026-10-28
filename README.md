@@ -26,6 +26,10 @@ The renderer updates static HTML in `index.html` and the public CSV so all indic
 
 For deployment, run `python scripts/package-site.py` and deploy only the printed staging directory. Its allowlist excludes private drafts and session history.
 
+## Make, move, store, sell
+
+`/notes/kardashev-stack` ranks those four jobs by whether they change K. K counts average primary power. Storage and retail do not add joules on their own. The slider uses `data/kardashev-baseline.json`: at 20.12 TW, +0.001 K is 469 GW of new average primary power. The page is an outside reading of public interviews. It is not a Base roadmap.
+
 ## Expansion map
 
 `/notes/expansion-map` ranks states, and utilities with at least 10,000 residential customers, for a home-battery program. The score is a weighted average of percentile ranks. A missing factor is left out of that row's denominator. It is not stored as zero. The map colors those scores as tiers: S is a rounded score of 68 or higher, A is 58–67, B is 48–57, C is 38–47, and Later is under 38. Each state line names its two strongest weighted factors and, when one sits below the midpoint, the factor that constrains it. The bands move with the sliders. They are a reading of the public score.

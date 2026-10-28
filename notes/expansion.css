@@ -43,6 +43,7 @@ svg#map path.selected { stroke: #292826; stroke-width: 1.8; }
   background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 12px 14px;
 }
 .tier-card[aria-current="true"] { border-color: #1e4d2b; background: #d6f0b4; }
+.tier-card.static { cursor: default; }
 .tier-card header { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
 .tier-card strong { font-family: var(--display); font-size: 20px; font-weight: 600; }
 .tier-card .why { margin: 6px 0 0; color: var(--muted); font-size: 14px; line-height: 1.45; }
