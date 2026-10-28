@@ -22,7 +22,7 @@ async function boot() {
 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: 'low-power' });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
-  renderer.setClearColor(0x070d16);
+  renderer.setClearColor(0xf0eeeb);
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 2000);
 
@@ -40,12 +40,12 @@ async function boot() {
         vec3 p = normalize(vP);
         float land = smoothstep(0.50, 0.56, fbm(p*1.8));
         float day = clamp(dot(vN, uSun)*1.4+0.15, 0.0, 1.0);
-        vec3 ocean = vec3(0.03,0.08,0.15), ground = vec3(0.10,0.16,0.12);
+        vec3 ocean = vec3(0.07,0.16,0.11), ground = vec3(0.16,0.30,0.18);
         vec3 col = mix(ocean, ground, land) * (0.18 + 0.9*day);
         float cities = smoothstep(0.62 - 0.22*uLights, 0.80, fbm(p*14.0)) * land;
         float spark = step(0.985 - 0.05*uLights, h(floor(p*220.0))) * land;
         float glow = (cities*0.9 + spark*0.6) * uLights * (1.0 - day);
-        col += vec3(1.0,0.77,0.42) * glow * 1.6;
+        col += vec3(0.93,0.42,0.19) * glow * 1.6;
         float rim = pow(1.0 - abs(dot(vN, vec3(0,0,1))), 3.0);
         col += vec3(0.62,0.85,0.93) * rim * 0.25;
         gl_FragColor = vec4(col, 1.0);
@@ -59,13 +59,13 @@ async function boot() {
   const starGeo = new THREE.BufferGeometry(), N = 1800, pos = new Float32Array(N * 3);
   for (let i = 0; i < N; i++) { const r = 300 + Math.random() * 600, t = Math.random() * Math.PI * 2, u = Math.random() * 2 - 1, s = Math.sqrt(1 - u * u); pos.set([r * s * Math.cos(t), r * s * Math.sin(t), r * u], i * 3); }
   starGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xcfe3ef, size: 1.2, sizeAttenuation: false, transparent: true, opacity: 0.7 })));
+  scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xf0eeeb, size: 1.2, sizeAttenuation: false, transparent: true, opacity: 0 })));
 
   // The Sun, only visible once the reader pushes past Type I
-  const sun = new THREE.Mesh(new THREE.SphereGeometry(6, 32, 16), new THREE.MeshBasicMaterial({ color: 0xffc46b, transparent: true, opacity: 0 }));
+  const sun = new THREE.Mesh(new THREE.SphereGeometry(6, 32, 16), new THREE.MeshBasicMaterial({ color: 0xf7c33c, transparent: true, opacity: 0 }));
   sun.position.set(22, 6, -60);
   scene.add(sun);
-  const swarm = new THREE.Mesh(new THREE.TorusGeometry(9, 0.08, 6, 120), new THREE.MeshBasicMaterial({ color: 0x9fd8ec, transparent: true, opacity: 0 }));
+  const swarm = new THREE.Mesh(new THREE.TorusGeometry(9, 0.08, 6, 120), new THREE.MeshBasicMaterial({ color: 0xb2dd79, transparent: true, opacity: 0 }));
   swarm.position.copy(sun.position); swarm.rotation.x = 1.2;
   scene.add(swarm);
 

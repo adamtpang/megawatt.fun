@@ -55,7 +55,7 @@ h2 { font-size: 22px; letter-spacing: -.01em; margin-top: 6px; }
 #chart .bar.discharge { background: var(--discharge); }
 #chart .bar:hover::after {
   content: attr(data-tip); position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%);
-  background: #000; color: var(--ink); font-size: 11px; padding: 4px 8px; border-radius: 6px;
+  background: #292826; color: #fff; font-size: 11px; padding: 4px 8px; border-radius: 6px;
   white-space: nowrap; border: 1px solid var(--line); font-family: ui-monospace, Consolas, monospace; z-index: 2;
 }
 .axis { display: flex; gap: 3px; margin-top: 6px; }
@@ -151,7 +151,7 @@ footer a { color: var(--dim); }
 .gate-intro { color: var(--faint); font-size: 13px; margin-top: 7px; max-width: 68ch; }
 .species-todos { list-style: none; padding: 0; margin-top: 18px; display: grid; gap: 9px; counter-reset: species-gate; }
 .species-todos li { counter-increment: species-gate; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 13px; align-items: start; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); padding: 14px; }
-.species-todos li.is-bottleneck { border-color: var(--discharge); background: #17150f; }
+.species-todos li.is-bottleneck { border-color: var(--discharge); background: #fbe3d8; }
 .todo-box { width: 17px; height: 17px; border: 1px solid var(--faint); border-radius: 4px; margin-top: 2px; position: relative; }
 .todo-box::after { content: counter(species-gate); position: absolute; left: 24px; top: -3px; color: var(--faint); font: 10px/1 ui-monospace, Consolas, monospace; }
 .species-todos li > div { padding-left: 14px; }
@@ -160,8 +160,8 @@ footer a { color: var(--dim); }
 .species-todos small { display: block; color: var(--faint); font-size: 9px; letter-spacing: .04em; margin-top: 8px; }
 .species-todos .owner { color: var(--charge); font-size: 8px; font-weight: 700; letter-spacing: .1em; text-align: right; max-width: 100px; }
 .species-todos li.is-bottleneck .owner { color: var(--discharge); }
-.completion-rule { margin-top: 18px; border: 1px solid #365b7a; border-radius: 10px; background: #0d1318; padding: 16px 18px; }
-.completion-rule > span { display: block; color: #79b8e8; font-size: 10px; letter-spacing: .12em; }
+.completion-rule { margin-top: 18px; border: 1px solid #d8d7d5; border-radius: 8px; background: #fff; padding: 16px 18px; }
+.completion-rule > span { display: block; color: #1e4d2b; font-size: 10px; letter-spacing: .12em; }
 .completion-rule b { display: block; margin-top: 7px; font-size: 15px; }
 .completion-rule p { color: var(--faint); font-size: 12px; line-height: 1.5; margin-top: 6px; }
 .constraint-section { border-color: #594819; }
@@ -169,7 +169,7 @@ footer a { color: var(--dim); }
 .pipe-node { border: 1px solid var(--line); border-radius: 10px; background: var(--bg); padding: 16px; display: flex; flex-direction: column; min-height: 138px; }
 .pipe-node strong { display: block; margin-top: 10px; font-size: 15px; line-height: 1.35; }
 .pipe-node small { display: block; margin-top: auto; padding-top: 14px; color: var(--faint); font-size: 11px; line-height: 1.45; }
-.pipe-node.blocked { border: 2px solid var(--discharge); background: #1a170e; box-shadow: 0 0 28px rgba(251, 191, 36, .08); }
+.pipe-node.blocked { border: 2px solid var(--discharge); background: #fbe3d8; box-shadow: none; }
 .pipe-node.goal { border-color: #265d3a; }
 .pipe-tag { color: var(--charge); font-size: 10px; letter-spacing: .13em; font-weight: 700; }
 .pipe-node.blocked .pipe-tag { color: var(--discharge); }
@@ -216,7 +216,7 @@ details.contested li { font-size: 13px; color: var(--faint); margin-top: 6px; }
 #chart.dense, .dense { gap: 1px; }
 .dense .bar { min-width: 2px; border-radius: 1px 1px 0 0; }
 .chart-block { margin-top: 26px; }
-.err { margin-top: 20px; border: 1px solid #7f1d1d; background: #1a0f0f; color: #fca5a5; border-radius: 10px; padding: 12px 16px; font-size: 14px; }
+.err { margin-top: 20px; border: 1px solid #c51808; background: #ffccc7; color: #742c0b; border-radius: 8px; padding: 12px 16px; font-size: 14px; }
 
 /* Kardashev history series */
 .kseries { display: flex; align-items: flex-end; gap: 10px; height: 150px; margin-top: 16px; }

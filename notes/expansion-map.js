@@ -185,7 +185,7 @@
     }).map(function (shape) {
       var state = data.states.find(function (item) { return item.id === shape.id; });
       var letter = state.footprint.status === "operating" ? "O" : state.footprint.status === "announced" ? "A" : "H";
-      var fill = state.footprint.status === "operating" ? "#7fd6a4" : state.footprint.status === "announced" ? "#ffc46b" : "#9fd8ec";
+      var fill = state.footprint.status === "operating" ? "#1e4d2b" : state.footprint.status === "announced" ? "#ed6c30" : "#048ee5";
       return '<g class="mark" transform="translate(' + shape.cx + "," + shape.cy + ')" aria-hidden="true">' +
         '<circle r="9" fill="' + fill + '"></circle>' +
         '<text class="badge" text-anchor="middle" y="4">' + letter + "</text></g>";
@@ -218,7 +218,7 @@
       var id = path.getAttribute("data-state");
       var item = scores[id];
       var tier = item ? item.tier : null;
-      path.setAttribute("fill", TIER_FILL[tier] || "#1a2430");
+      path.setAttribute("fill", TIER_FILL[tier] || "#d8d7d5");
       path.classList.toggle("selected", id === selected);
       var state = data.states.find(function (row) { return row.id === id; });
       var rank = item ? item.rank : "—";
@@ -227,7 +227,7 @@
     });
   }
 
-  var TIER_FILL = { S: "#ffc46b", A: "#e09a45", B: "#7f9a62", C: "#3e627f", Later: "#24344a" };
+  var TIER_FILL = { S: "#102a17", A: "#1e4d2b", B: "#77a45a", C: "#b2dd79", Later: "#d8d7d5" };
   var TIER_ORDER = [
     { id: "S", label: "Target first" },
     { id: "A", label: "Strong case" },
