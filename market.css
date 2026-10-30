@@ -111,3 +111,8 @@
 .mm-card dl { font-size: 13px; }
 .mm-map .fp.solid { stroke: #048ee5; }
 .mm-key.solid { border-top-color: #048ee5; }
+.mm-bars { list-style: none; margin: 8px 0; padding: 0; display: grid; gap: 3px; }
+.mm-bars li { display: grid; grid-template-columns: 92px 1fr 52px; align-items: center; gap: 6px; font-size: 12px; }
+.mm-bars span { font-family: var(--mono); font-size: 11px; }
+.mm-bars i { height: 10px; background: var(--brand-foreground); border-radius: 3px; }
+.mm-bars b { text-align: right; font-variant-numeric: tabular-nums; }

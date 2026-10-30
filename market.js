@@ -7,7 +7,7 @@
   const NS = 'http://www.w3.org/2000/svg';
   const el = (t, a) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); return e; };
   const esc = (v) => String(v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-  const fmt = (n, d = 0) => (n === null || n === undefined || n !== n) ? '—' : Number(n).toLocaleString('en-US', { maximumFractionDigits: d, minimumFractionDigits: d });
+  const fmt = (n, d = 0) => (n === null || n === undefined || n !== n) ? 'n/a' : Number(n).toLocaleString('en-US', { maximumFractionDigits: d, minimumFractionDigits: d });
   const S = () => window.ExpansionScore;
 
   const WARM = ['#f3e6c8', '#efbd6f', '#d9822b', '#a3471b'];
@@ -26,7 +26,7 @@
   const data = (name) => byName[name];
 
   function factorFmt(id, v) {
-    if (v === null || v === undefined || v !== v) return '—';
+    if (v === null || v === undefined || v !== v) return 'n/a';
     if (id === 'homes' || id === 'saidi') return fmt(v);
     if (id === 'saifi') return fmt(v, 2);
     if (id === 'retail' || id === 'wholesale') return fmt(v * 100, 1) + '%';
@@ -51,7 +51,7 @@
     ranked.forEach((it, i) => { scored[it.row.name] = { score: it.score, rank: i + 1, tier: S().tierOf(it.score), factors: it.factors }; });
     return ranked;
   }
-  const pts = (s) => (s === null || s === undefined ? '—' : String(Math.round(s * 100)));
+  const pts = (s) => (s === null || s === undefined ? 'n/a' : String(Math.round(s * 100)));
 
   function why(name) {
     const st = data(name), it = scored[name];
@@ -136,14 +136,15 @@
     const fp = st.footprint ? `<p class="mm-flag ${st.footprint.status}"><b>${esc(st.footprint.label)}.</b> ${esc(st.footprint.detail)}</p>` : '';
     const rows = E.factors.map((f) => `<dt>${esc(f.label)}</dt><dd>${factorFmt(f.id, st.values[f.id])}</dd>`).join('');
     const c = $('detail'); c.hidden = false;
-    c.innerHTML = `<p class="mm-small">Tier ${it.tier || '—'} · score ${pts(it.score)} · #${it.rank} of ${states.length}</p>
+    c.innerHTML = `<p class="mm-small">Tier ${it.tier || 'n/a'} · score ${pts(it.score)} · #${it.rank} of ${states.length}</p>
       <h2>${esc(name)}</h2>${fp}<p class="mm-why">${esc(why(name))}</p>
       <dl>${rows}
         <dt>Outage minutes, 2024 / 2025</dt><dd>${fmt(st.saidi_2024)} / ${fmt(st.saidi_2025)}</dd>
         <dt>Power price, 2024</dt><dd>${fmt(st.cents_kwh, 2)}¢/kWh</dd>
         <dt>Monthly bill, 2024</dt><dd>$${fmt(st.bill_usd, 2)}</dd>
-        <dt>Grid operators</dt><dd>${esc(st.detail.rtos || '—')}</dd></dl>
+        <dt>Grid operators</dt><dd>${esc(st.detail.rtos || 'n/a')}</dd></dl>
       ${st.detail.note ? `<p class="mm-small">${esc(st.detail.note)}</p>` : ''}`;
+    if (st.abbr === 'TX') { const s = $('sec-value'); s.open = true; c.insertAdjacentHTML('beforeend', '<p class="mm-small"><a href="#sec-value">Where one battery earns most inside Texas</a></p>'); }
     utilities(st);
     if (scroll && innerWidth <= 700) { $('ov-body').hidden = false; $('ov-toggle').setAttribute('aria-expanded', 'true'); c.scrollIntoView({ block: 'nearest' }); }
   }
@@ -266,8 +267,16 @@
     $('ov-toggle').addEventListener('click', () => { const b = $('ov-body'), open = b.hidden; b.hidden = !open; $('ov-toggle').setAttribute('aria-expanded', String(open)); });
   }
 
-  Promise.all([fetch('/data/expansion-map.json').then((r) => r.json()), fetch('/data/market-states.json').then((r) => r.json())]).then(([e, m]) => {
-    E = e; M = m;
+  function zoneValue(z) {
+    if (!z) { $('zone-value').innerHTML = '<p class="mm-small">Zone values failed to load.</p>'; return; }
+    const max = Math.max(...z.zones.map((x) => x.usdPerYear));
+    $('zone-value').innerHTML = `<p class="mm-small">What one Base Core (20 kW / 39.2 kWh) would have earned from buying cheap power at night and selling it 5 to 9 PM, at each ERCOT settlement point, ${esc(z.period.start)} to ${esc(z.period.endExclusive)} (12 real months). Energy arbitrage only: no capacity, tolling, backup or retail revenue. Not Base revenue.</p>` +
+      '<ol class="mm-bars">' + z.zones.map((x) => `<li><span>${esc(x.id)}</span><i style="width:${Math.max(2, (x.usdPerYear / max) * 100)}%"></i><b>$${fmt(x.usdPerYear)}</b></li>`).join('') + '</ol>' +
+      `<p class="mm-small">Load zones (LZ_) are where homes settle; hubs (HB_) are trading averages. Best: ${esc(z.zones[0].id)} ($${fmt(z.zones[0].usdPerYear)} a year). Worst: ${esc(z.zones[z.zones.length - 1].id)} ($${fmt(z.zones[z.zones.length - 1].usdPerYear)}). See <a href="/deploy">/deploy</a> for monthly detail and <a href="/finance">/finance</a> for what this means for debt.</p>`;
+  }
+
+  Promise.all([fetch('/data/expansion-map.json').then((r) => r.json()), fetch('/data/market-states.json').then((r) => r.json()), fetch('/data/zone-value.json').then((r) => r.json()).catch(() => null)]).then(([e, m, z]) => {
+    E = e; M = m; zoneValue(z);
     const shape = Object.fromEntries(m.states.map((s) => [s.name, s]));
     states = e.states.filter((s) => shape[s.name]).map((s) => ({ ...shape[s.name], ...s, values: s.values, detail: s.detail || {} }));
     byName = Object.fromEntries(states.map((s) => [s.name, s]));

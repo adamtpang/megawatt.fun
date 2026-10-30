@@ -1,0 +1,117 @@
+{
+ "built": "2026-10-30",
+ "period": {
+  "start": "2025-10-01",
+  "endExclusive": "2026-10-01",
+  "asOf": "2026-10-19",
+  "timezone": "America/Chicago",
+  "expectedHours": 8760,
+  "description": "Latest twelve complete calendar months; current partial month excluded"
+ },
+ "spec": {
+  "capacity": 39.2,
+  "power": 20,
+  "efficiency": 0.88,
+  "reserve": 0.2,
+  "wear": 0,
+  "label": "Base Core: 20 kW / 39.2 kWh (Base utilities page); 88% round trip and 20% backup reserve are assumptions"
+ },
+ "method": "Fixed daily clock from deployment-core.js: charge 1 to 5 AM, discharge 5 to 9 PM, settled at the zone price. Energy arbitrage only: no capacity, ancillary, tolling or retail revenue. Not Base revenue.",
+ "sources": [
+  "https://www.ercot.com/mktinfo/prices",
+  "https://www.basepowercompany.com/utilities",
+  "/data/deployment/manifest.json"
+ ],
+ "zones": [
+  {
+   "id": "LZ_LCRA",
+   "kind": "load zone",
+   "usdPerYear": 199.83,
+   "mwhSold": 10.74
+  },
+  {
+   "id": "LZ_AEN",
+   "kind": "load zone",
+   "usdPerYear": 182.9,
+   "mwhSold": 10.74
+  },
+  {
+   "id": "LZ_NORTH",
+   "kind": "load zone",
+   "usdPerYear": 169.15,
+   "mwhSold": 10.74
+  },
+  {
+   "id": "LZ_RAYBN",
+   "kind": "load zone",
+   "usdPerYear": 163.44,
+   "mwhSold": 10.74
+  },
+  {
+   "id": "LZ_CPS",
+   "kind": "load zone",
+   "usdPerYear": 161.09,
+   "mwhSold": 10.74
+  },
+  {
+   "id": "LZ_SOUTH",
+   "kind": "load zone",
+   "usdPerYear": 160.22,
+   "mwhSold": 10.74
+  },
+  {
+   "id": "LZ_HOUSTON",
+   "kind": "load zone",
+   "usdPerYear": 136.33,
+   "mwhSold": 10.74
+  },
+  {
+   "id": "HB_HOUSTON",
+   "kind": "hub",
+   "usdPerYear": 132.27,
+   "mwhSold": 10.74
+  },
+  {
+   "id": "HB_NORTH",
+   "kind": "hub",
+   "usdPerYear": 126.87,
+   "mwhSold": 10.74
+  },
+  {
+   "id": "HB_BUSAVG",
+   "kind": "hub",
+   "usdPerYear": 117.48,
+   "mwhSold": 10.74
+  },
+  {
+   "id": "HB_SOUTH",
+   "kind": "hub",
+   "usdPerYear": 114.39,
+   "mwhSold": 10.74
+  },
+  {
+   "id": "HB_HUBAVG",
+   "kind": "hub",
+   "usdPerYear": 109.85,
+   "mwhSold": 10.74
+  },
+  {
+   "id": "HB_PAN",
+   "kind": "hub",
+   "usdPerYear": 82.58,
+   "mwhSold": 10.74
+  },
+  {
+   "id": "HB_WEST",
+   "kind": "hub",
+   "usdPerYear": 65.88,
+   "mwhSold": 10.74
+  },
+  {
+   "id": "LZ_WEST",
+   "kind": "load zone",
+   "usdPerYear": 27.02,
+   "mwhSold": 10.74
+  }
+ ]
+}
