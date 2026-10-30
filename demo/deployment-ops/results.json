@@ -1,0 +1,307 @@
+{
+  "basis": "Synthetic operating assumptions; not Base data or forecasts",
+  "method": "30 eight-hour production shifts after warm-up; seeded discrete-event simulation",
+  "engine": "AirsupHQ/factory-skill 9fde7554e6a30e77ea1008dec08f2ba8d8d37f27 (MIT); Megawatt aggregates full-horizon counters",
+  "cases": {
+    "baseline": {
+      "parameters": {
+        "crews": 6,
+        "commissioning": 2,
+        "installHours": 3,
+        "buffer": 12,
+        "target": 24,
+        "seed": 11
+      },
+      "result": {
+        "perDay": 15.6,
+        "completed": 468,
+        "bottleneck": "install",
+        "st": {
+          "review": {
+            "busy": 0.3278053740316795,
+            "blocked": 0.6721946259683204,
+            "idle": 0,
+            "down": 0,
+            "starved": 0,
+            "active": 0.3278053740316795
+          },
+          "prep": {
+            "busy": 0.366136660984218,
+            "blocked": 0.6338633390157821,
+            "idle": 0,
+            "down": 0,
+            "starved": 0,
+            "active": 0.366136660984218
+          },
+          "delivery": {
+            "busy": 0.38767498581334553,
+            "blocked": 0.6123250141866544,
+            "idle": 0,
+            "down": 0,
+            "starved": 0,
+            "active": 0.38767498581334553
+          },
+          "install": {
+            "busy": 0.9753905317148339,
+            "blocked": 0,
+            "idle": 0,
+            "down": 0.024609468285166105,
+            "starved": 0,
+            "active": 1
+          },
+          "commission": {
+            "busy": 0.7331243375059755,
+            "blocked": 0,
+            "idle": 0.26687566249402456,
+            "down": 0,
+            "starved": 0.26687566249402456,
+            "active": 0.7331243375059755
+          },
+          "fleet": {
+            "busy": 0.24217322310947167,
+            "blocked": 0,
+            "idle": 0.7578267768905284,
+            "down": 0,
+            "starved": 0.7578267768905284,
+            "active": 0.24217322310947167
+          }
+        },
+        "wip": 56,
+        "days": 30,
+        "failures": {
+          "review": 0,
+          "prep": 0,
+          "delivery": 0,
+          "install": 42,
+          "commission": 0,
+          "fleet": 0
+        }
+      }
+    },
+    "moreCrews": {
+      "parameters": {
+        "crews": 9,
+        "commissioning": 2,
+        "installHours": 3,
+        "buffer": 12,
+        "target": 24,
+        "seed": 11
+      },
+      "result": {
+        "perDay": 21.3,
+        "completed": 639,
+        "bottleneck": "commission",
+        "st": {
+          "review": {
+            "busy": 0.44615876310478475,
+            "blocked": 0.5538412368952154,
+            "idle": 0,
+            "down": 0,
+            "starved": 0,
+            "active": 0.44615876310478475
+          },
+          "prep": {
+            "busy": 0.5027666483338096,
+            "blocked": 0.4972333516661906,
+            "idle": 0,
+            "down": 0,
+            "starved": 0,
+            "active": 0.5027666483338096
+          },
+          "delivery": {
+            "busy": 0.5390478834337833,
+            "blocked": 0.46095211656621665,
+            "idle": 0,
+            "down": 0,
+            "starved": 0,
+            "active": 0.5390478834337833
+          },
+          "install": {
+            "busy": 0.8994385255740823,
+            "blocked": 0.07645785820757026,
+            "idle": 0,
+            "down": 0.024103616218347338,
+            "starved": 0,
+            "active": 0.9235421417924297
+          },
+          "commission": {
+            "busy": 0.9999999999999999,
+            "blocked": 0,
+            "idle": 0,
+            "down": 0,
+            "starved": 0,
+            "active": 0.9999999999999999
+          },
+          "fleet": {
+            "busy": 0.3304411555163162,
+            "blocked": 0,
+            "idle": 0.6695588444836839,
+            "down": 0,
+            "starved": 0.6695588444836839,
+            "active": 0.3304411555163162
+          }
+        },
+        "wip": 72,
+        "days": 30,
+        "failures": {
+          "review": 0,
+          "prep": 0,
+          "delivery": 0,
+          "install": 64,
+          "commission": 0,
+          "fleet": 0
+        }
+      }
+    },
+    "moreCrewsAndCommissioning": {
+      "parameters": {
+        "crews": 9,
+        "commissioning": 3,
+        "installHours": 3,
+        "buffer": 12,
+        "target": 24,
+        "seed": 11
+      },
+      "result": {
+        "perDay": 23.266666666666666,
+        "completed": 698,
+        "bottleneck": "install",
+        "st": {
+          "review": {
+            "busy": 0.4830051760566625,
+            "blocked": 0.5169948239433375,
+            "idle": 0,
+            "down": 0,
+            "starved": 0,
+            "active": 0.4830051760566625
+          },
+          "prep": {
+            "busy": 0.5447207306558556,
+            "blocked": 0.45527926934414453,
+            "idle": 0,
+            "down": 0,
+            "starved": 0,
+            "active": 0.5447207306558556
+          },
+          "delivery": {
+            "busy": 0.582495343970322,
+            "blocked": 0.41750465602967807,
+            "idle": 0,
+            "down": 0,
+            "starved": 0,
+            "active": 0.582495343970322
+          },
+          "install": {
+            "busy": 0.9659766581232797,
+            "blocked": 0,
+            "idle": 0,
+            "down": 0.03402334187672018,
+            "starved": 0,
+            "active": 0.9999999999999999
+          },
+          "commission": {
+            "busy": 0.7247874325148774,
+            "blocked": 0,
+            "idle": 0.27521256748512263,
+            "down": 0,
+            "starved": 0.27521256748512263,
+            "active": 0.7247874325148774
+          },
+          "fleet": {
+            "busy": 0.36201384740966797,
+            "blocked": 0,
+            "idle": 0.6379861525903321,
+            "down": 0,
+            "starved": 0.6379861525903321,
+            "active": 0.36201384740966797
+          }
+        },
+        "wip": 59,
+        "days": 30,
+        "failures": {
+          "review": 0,
+          "prep": 0,
+          "delivery": 0,
+          "install": 66,
+          "commission": 0,
+          "fleet": 0
+        }
+      }
+    },
+    "longerVisits": {
+      "parameters": {
+        "crews": 6,
+        "commissioning": 2,
+        "installHours": 4.5,
+        "buffer": 12,
+        "target": 24,
+        "seed": 11
+      },
+      "result": {
+        "perDay": 10.4,
+        "completed": 312,
+        "bottleneck": "install",
+        "st": {
+          "review": {
+            "busy": 0.21703350286077056,
+            "blocked": 0.7829664971392295,
+            "idle": 0,
+            "down": 0,
+            "starved": 0,
+            "active": 0.21703350286077056
+          },
+          "prep": {
+            "busy": 0.2457522686315434,
+            "blocked": 0.7542477313684567,
+            "idle": 0,
+            "down": 0,
+            "starved": 0,
+            "active": 0.2457522686315434
+          },
+          "delivery": {
+            "busy": 0.26193777437062027,
+            "blocked": 0.7380622256293797,
+            "idle": 0,
+            "down": 0,
+            "starved": 0,
+            "active": 0.26193777437062027
+          },
+          "install": {
+            "busy": 0.9744829568017758,
+            "blocked": 0,
+            "idle": 0,
+            "down": 0.02551704319822403,
+            "starved": 0,
+            "active": 0.9999999999999998
+          },
+          "commission": {
+            "busy": 0.4854189745779726,
+            "blocked": 0,
+            "idle": 0.5145810254220274,
+            "down": 0,
+            "starved": 0.5145810254220274,
+            "active": 0.4854189745779726
+          },
+          "fleet": {
+            "busy": 0.16325126653834984,
+            "blocked": 0,
+            "idle": 0.8367487334616504,
+            "down": 0,
+            "starved": 0.8367487334616504,
+            "active": 0.16325126653834984
+          }
+        },
+        "wip": 56,
+        "days": 30,
+        "failures": {
+          "review": 0,
+          "prep": 0,
+          "delivery": 0,
+          "install": 33,
+          "commission": 0,
+          "fleet": 0
+        }
+      }
+    }
+  }
+}

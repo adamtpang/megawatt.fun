@@ -1,0 +1,26 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>From battery to backup · Megawatt</title><meta name="description" content="A synthetic deployment-operations simulation inspired by Base Power's public engineering work.">
+<link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/site.css"><link rel="stylesheet" href="/ops.css">
+<script src="/vendor/airsup/three.bundle.js" defer></script><script src="/vendor/airsup/des.js" defer></script><script src="/ops-core.js" defer></script><script src="/ops.js" defer></script>
+</head><body>
+<header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav><a href="/deploy">Market study</a><a href="/ops" aria-current="page">Operations</a></nav><span class="study-badge">Synthetic scenario · independent of Base</span></header>
+<main>
+  <section class="stage" aria-label="Deployment flow simulation">
+    <div class="scene-heading"><p class="eyebrow">Deployment lab</p><h1>From battery to backup.</h1><p id="tour-caption">Find what slows the next installation.</p></div>
+    <canvas id="ops-scene" aria-label="Interactive 3D process diorama. Use the six stage buttons for keyboard access."></canvas>
+    <p id="scene-error" role="alert" hidden>3D unavailable. The simulation and stage controls still work.</p>
+    <div class="scene-legend"><span><i class="green"></i>Working</span><span><i class="amber"></i>Blocked</span><span><i class="red"></i>Interrupted</span><span>Illustrative layout · drag to orbit</span></div>
+    <div class="transport"><button id="pause" aria-pressed="false">Pause</button><label class="sr-only" for="speed">Simulation speed</label><select id="speed"><option value="600">10 minutes / second</option><option value="1800" selected>30 minutes / second</option><option value="3600">1 hour / second</option></select><span id="sim-clock">Shift 1 · 08:00</span><button id="camera-home">Overview</button></div>
+  </section>
+  <aside class="controls">
+    <div class="forecast"><p class="eyebrow">30-shift scenario</p><div class="number"><strong id="forecast">—</strong><span>homes / shift</span></div><p id="comparison">Calculating baseline…</p><div class="mini-kpis"><div><span>Completed this run</span><b id="completed">0</b></div><div><span>Work in progress</span><b id="wip">0</b></div></div></div>
+    <section class="bottleneck"><span class="eyebrow">Forecast bottleneck</span><h2 id="bottleneck">Installation</h2><p id="decision">Try adding a crew.</p></section>
+    <div class="settings"><label>Installation crews <output id="crew-value">6</output><input id="crews" type="range" min="1" max="24" value="6"></label><label>Commissioning resources <output id="commission-value">2</output><input id="commissioning" type="range" min="1" max="12" value="2"></label><details><summary>Visit time &amp; queues</summary><label>Install time · hours <output id="hours-value">3</output><input id="install-hours" type="range" min="0.5" max="12" step="0.5" value="3"></label><label>Queue capacity per stage <output id="buffer-value">12</output><input id="buffer" type="range" min="1" max="60" value="12"></label></details></div>
+    <div class="actions"><button id="add-crews">Add 3 crews</button><button id="slow-visits">Longer visits</button><button id="reset">Reset</button></div>
+    <div class="stage-list" id="stage-list" aria-label="Inspect a stage"></div>
+    <section class="inspector"><p class="eyebrow" id="inspect-name">Installation</p><p id="inspect-note"></p><div id="inspect-metrics"></div></section>
+    <div class="links"><button id="evidence-open">Assumptions &amp; sources</button><a href="/demo/deployment-ops/README.md">Method ↗</a></div>
+  </aside>
+</main>
+<dialog id="evidence"><button id="evidence-close" class="close" aria-label="Close assumptions">×</button><p class="eyebrow">What this shows</p><h2>More crews. Then what?</h2><p>A queueing model of eligible jobs moving through six stages. It tests which capacity change increases completed installations. It is not Base’s operating system, forecast or facility layout.</p><div id="assumption-table"></div><p>All cycle times, staffing, buffers, variability and interruptions are synthetic. One shift is 8 production hours. The model starts after a 2-shift warm-up. The forecast uses a fresh seeded run, warms the pipeline, then measures 30 shifts. Capacity mode assumes a replenished supply of jobs and batteries.</p><p>Production time pauses between shifts; this is not calendar lead time. Travel routes, permitting delays, customer availability, shared crews, actual material shortages and rework are not modeled. No Base operational or customer data is used. The red outline follows the forecast constraint; live bars show recent stage states.</p><p><a href="https://inside.basepowercompany.com/self-scheduling" target="_blank" rel="noopener">Base: install scheduling</a> · <a href="https://www.basepowercompany.com/utilities" target="_blank" rel="noopener">Base: deployment operations</a> · <a href="https://github.com/AirsupHQ/factory-skill" target="_blank" rel="noopener">Airsup’s MIT simulation engine</a> · <a href="/vendor/airsup/NOTICE.md">Credits</a></p></dialog>
+</body></html>
