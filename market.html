@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Home Battery Market Map</title>
+<link rel="canonical" href="https://megawatt.fun/market">
+<meta name="description" content="Where home backup batteries matter most: outage minutes, power prices and bills for every US state, from EIA data. Independent, not affiliated with Base Power.">
+<link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/site.css"><link rel="stylesheet" href="/market.css">
+<script src="/market.js" defer></script>
+</head>
+<body class="market-page">
+<a class="skip" href="#map">Skip to map</a>
+<header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/">Guide</a><a href="/roadmap">Roadmap</a><a href="/tools">Tools</a><details class="nav-more is-current"><summary>More</summary><div class="nav-more-menu"><a href="/market" aria-current="page">Market map</a><a href="/base">Battery</a><a href="/bench">Battery backup test</a><a href="/live">Live</a><a href="/kardashev">Kardashev</a><a href="/titans">Energy companies</a><a href="/sources">Sources</a></div></details></nav></header>
+
+<main class="mm" id="main">
+  <div class="mm-map" id="map" role="img" aria-label="US map shaded by the selected layer. Select a state for its numbers."></div>
+
+  <div class="mm-tools" aria-label="Map controls">
+    <button class="mm-round" id="btn-search" type="button" aria-label="Search states" aria-expanded="false" title="Search">⌕</button>
+    <button class="mm-round" id="btn-reset" type="button" aria-label="Reset view" title="Reset view">⤢</button>
+    <button class="mm-round" id="btn-full" type="button" aria-label="Full screen" title="Full screen">⛶</button>
+  </div>
+  <form class="mm-search" id="search" hidden role="search"><label class="sr-only" for="search-input">Find a state</label><input id="search-input" list="state-list" placeholder="Find a state" autocomplete="off"><datalist id="state-list"></datalist></form>
+
+  <section class="mm-panel" id="overview" aria-labelledby="ov-title">
+    <button class="mm-close" id="ov-toggle" type="button" aria-expanded="true" aria-controls="ov-body">Overview</button>
+    <div id="ov-body">
+      <h1 id="ov-title">Where home backup matters</h1>
+      <p class="mm-lede" id="ov-lede">…</p>
+      <div class="mm-stats" id="ov-stats"></div>
+      <p class="mm-updated" id="ov-updated">…</p>
+      <div class="mm-card" id="detail" aria-live="polite" hidden></div>
+      <details class="mm-method"><summary>Method and limits</summary>
+        <ul>
+          <li>Outage minutes are SAIDI with major events: the average minutes a customer was without power in a year. The map averages 2024 and 2025 because one storm can swing a single year.</li>
+          <li>Price and bill are 2024 residential averages. They are statewide, so cities and utilities differ.</li>
+          <li>This screens states. It does not rank Base's actual expansion plans, financing, licensing or interconnection rules. Base serves Texas and Illinois today, per its own site.</li>
+          <li>Not affiliated with Base Power.</li>
+        </ul>
+        <p id="ov-sources"></p>
+      </details>
+    </div>
+  </section>
+
+  <aside class="mm-legend" aria-labelledby="lg-title">
+    <h2 id="lg-title" class="mm-legend-h">…</h2>
+    <ol class="mm-bins" id="legend"></ol>
+    <p class="mm-legend-note"><span class="mm-base-key"></span> Base serves today</p>
+  </aside>
+
+  <div class="mm-layers" role="radiogroup" aria-label="Map layer">
+    <button type="button" role="radio" aria-checked="true" data-layer="saidi_avg" title="Outage minutes">⚡<span>Outages</span></button>
+    <button type="button" role="radio" aria-checked="false" data-layer="cents_kwh" title="Power price">¢<span>Price</span></button>
+    <button type="button" role="radio" aria-checked="false" data-layer="bill_usd" title="Monthly bill">$<span>Bill</span></button>
+  </div>
+</main>
+</body>
+</html>

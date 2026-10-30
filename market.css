@@ -1,0 +1,80 @@
+/* Market map: full-bleed map with floating controls, modelled on utility outage maps. */
+.market-page { overflow: hidden; height: 100vh; height: 100dvh; display: flex; flex-direction: column; }
+.market-page .site-top { flex: none; }
+.mm { position: relative; flex: 1; min-height: 0; background: #e8e6e2; }
+.mm-map { position: absolute; inset: 0; }
+.mm-map svg { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
+.mm-map svg.dragging { cursor: grabbing; }
+.mm-map .st { stroke: #fff; stroke-width: .7; vector-effect: non-scaling-stroke; cursor: pointer; transition: fill .25s; }
+.mm-map .st:hover, .mm-map .st:focus-visible { stroke: var(--charcoal); stroke-width: 1.6; outline: none; }
+.mm-map .st.sel { stroke: var(--charcoal); stroke-width: 2.4; }
+.mm-map .base { fill: none; stroke: var(--brand-foreground); stroke-width: 3; vector-effect: non-scaling-stroke; pointer-events: none; }
+.mm-map .lbl { font: 600 11px var(--body); fill: var(--charcoal); paint-order: stroke; stroke: #ffffffcc; stroke-width: 3px; pointer-events: none; }
+
+.mm-round { width: 44px; height: 44px; border-radius: 50%; border: 0; background: var(--charcoal); color: #fff; font-size: 20px; line-height: 1; display: grid; place-items: center; cursor: pointer; box-shadow: 0 2px 8px #0003; }
+.mm-round:hover { background: var(--brand-foreground); }
+.mm-tools { position: absolute; left: 16px; top: 16px; display: flex; flex-direction: column; gap: 10px; z-index: 3; }
+.mm-search { position: absolute; left: 70px; top: 16px; z-index: 4; }
+.mm-search input { width: 220px; height: 44px; padding: 0 14px; border: 1px solid var(--line); border-radius: 22px; font-size: 15px; box-shadow: 0 2px 8px #0002; }
+
+.mm-panel { position: absolute; left: 76px; top: 16px; z-index: 2; width: 340px; max-height: calc(100% - 32px); overflow: auto; background: #fff; border-radius: var(--radius-panel); box-shadow: 0 4px 20px #0002; padding: 14px 18px 16px; }
+.mm-close { font: 600 12px var(--body); color: var(--muted); background: none; border: 0; padding: 0; cursor: pointer; text-transform: uppercase; letter-spacing: .06em; }
+.mm-close::after { content: ' ▾'; }
+.mm-close[aria-expanded="false"]::after { content: ' ▸'; }
+.mm-panel h1 { font-size: 24px; margin: 6px 0 4px; }
+.mm-lede { font-size: 14px; color: var(--muted); margin: 0 0 12px; }
+.mm-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.mm-stat { background: var(--surface); border-radius: 12px; padding: 10px 12px; }
+.mm-stat b { display: block; font-size: 26px; line-height: 1.1; color: var(--brand-foreground); font-variant-numeric: tabular-nums; }
+.mm-stat span { font-size: 12px; color: var(--muted); }
+.mm-updated { font-size: 12px; color: var(--muted); margin: 10px 0 0; }
+.mm-card { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 12px; }
+.mm-card h2 { font-size: 20px; margin: 0 0 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.mm-badge { font-size: 11px; font-weight: 600; background: var(--brand); color: var(--brand-foreground); border-radius: 99px; padding: 2px 8px; }
+.mm-card dl { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; margin: 0; font-size: 14px; }
+.mm-card dt { color: var(--muted); } .mm-card dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+.mm-card .mm-rank { font-size: 13px; color: var(--muted); margin: 8px 0 0; }
+.mm-method { margin-top: 14px; font-size: 13px; color: var(--muted); }
+.mm-method summary { cursor: pointer; color: var(--ink); font-weight: 600; }
+.mm-method ul { padding-left: 18px; margin: 8px 0; }
+.mm-method li { margin: 4px 0; }
+
+.mm-legend { position: absolute; right: 76px; bottom: 16px; z-index: 2; background: #fff; border-radius: 12px; box-shadow: 0 4px 16px #0002; padding: 10px 14px; font-size: 13px; }
+.mm-legend-h { font-size: 13px; margin: 0 0 6px; }
+.mm-bins { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.mm-bins li { display: flex; align-items: center; gap: 8px; font-variant-numeric: tabular-nums; }
+.mm-bins i, .mm-base-key { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
+.mm-base-key { border: 3px solid var(--brand-foreground); background: transparent; width: 12px; height: 12px; vertical-align: -2px; }
+.mm-legend-note { margin: 8px 0 0; color: var(--muted); }
+
+.mm-layers { position: absolute; right: 16px; bottom: 16px; z-index: 2; display: flex; flex-direction: column; background: var(--charcoal); border-radius: 12px; padding: 6px; gap: 4px; box-shadow: 0 2px 8px #0003; }
+.mm-layers button { width: 46px; min-height: 46px; border: 0; border-radius: 8px; background: transparent; color: #fff; font-size: 18px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+.mm-layers button span { font-size: 9px; }
+.mm-layers button[aria-checked="true"] { background: var(--brand); color: var(--brand-foreground); }
+
+@media (max-width: 700px) {
+  .mm-panel { left: 8px; right: 8px; top: auto; bottom: 8px; width: auto; max-height: 46%; }
+  .mm-tools { left: 8px; top: 8px; flex-direction: row; }
+  .mm-search { left: 8px; top: 60px; }
+  .mm-legend { right: 8px; top: 8px; bottom: auto; padding: 8px 10px; font-size: 11px; }
+  .mm-layers { right: 8px; top: auto; bottom: calc(46% + 16px); flex-direction: row; }
+  .mm-map .lbl { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .mm-map .st { transition: none; } }
+.skip { position: absolute; left: -999px; top: 8px; z-index: 30; background: var(--brand); color: var(--brand-foreground); padding: 8px 12px; border-radius: 8px; }
+.skip:focus { left: 8px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (max-width: 700px) {
+  .mm-legend { top: auto; bottom: calc(50% + 8px); left: 8px; right: auto; padding: 6px 8px; }
+  .mm-legend-h { display: none; }
+  .mm-bins { grid-template-columns: repeat(4, auto); gap: 2px 8px; }
+  .mm-bins li { gap: 4px; font-size: 10px; }
+  .mm-legend-note { font-size: 10px; margin-top: 4px; }
+  .mm-layers { bottom: calc(50% + 8px); }
+  .mm-panel { max-height: calc(50% - 8px); }
+}
+@media (max-width: 700px) {
+  .mm-layers { top: 8px; bottom: auto; right: 8px; }
+  .mm-layers button { width: 40px; min-height: 40px; }
+  .mm-legend { right: 8px; }
+}
