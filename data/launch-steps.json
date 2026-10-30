@@ -1,0 +1,377 @@
+{
+  "generated": "2026-10-30",
+  "about": "Steps a home-battery company might take to start selling and installing in a new state. Durations are in weeks. Each step says whether its duration is sourced, partly sourced, or an assumption. Owners are generic roles, not Base's org chart. Nothing here describes Base's internal process.",
+  "sources": {
+    "base-agents": {
+      "title": "Base Power, agents.md (company summary for software agents)",
+      "url": "https://www.basepowercompany.com/agents.md",
+      "retrieved": "2026-10-30",
+      "quote": "Base Texas REP, LLC, PUCT License #10338. Serving Texas and Illinois."
+    },
+    "base-utilities": {
+      "title": "Base Power, Utility partnerships page",
+      "url": "https://www.basepowercompany.com/utilities",
+      "retrieved": "2026-10-30",
+      "quote": "Deploy capacity in months, not years. Across 3 metros and 6 utilities in the last 12 months. Time to deploy 100 MW: 3-6 months (Base) vs 2-4 years (utility-scale storage). Systems connect behind the meter at the existing service point, which eliminates the need for new interconnection agreements or substation upgrades in most cases."
+    },
+    "base-scheduling": {
+      "title": "Colin Cassens, How we cut our install queue from 4 weeks to a few days (Inside Base, Sept 22, 2026)",
+      "url": "https://inside.basepowercompany.com/self-scheduling",
+      "retrieved": "2026-10-30",
+      "quote": "Time in the scheduling queue fell from 4 weeks to a few days. Next steps: programmatically placing anchors and allocating supply, and ingesting constraints and targets."
+    },
+    "base-telemetry": {
+      "title": "Andrew Hitchcock, Building a Telemetry Stack for The Modern Power Company (Inside Base)",
+      "url": "https://inside.basepowercompany.com/building-a-telemetry-stack",
+      "retrieved": "2026-10-30",
+      "quote": "Without the member's Wi-Fi, Base relies on often unreliable and expensive 4G backhaul. Commands are built to persist until they expire."
+    },
+    "puct-25107": {
+      "title": "PUCT Substantive Rule 25.107, Certification of Retail Electric Providers (effective 4/26/23)",
+      "url": "https://www.puc.texas.gov/agency/rulesnlaws/subrules/electric/25.107/25.107.pdf",
+      "retrieved": "2026-10-30",
+      "quote": "Staff recommends on sufficiency within 20 days of filing. The presiding officer decides sufficiency within 10 days of that. Except for good cause, an order issues within 90 days of finding the application sufficient."
+    },
+    "il-ares": {
+      "title": "Illinois Public Utilities Act, 220 ILCS 5/16-115 (alternative retail electric supplier certificate)",
+      "url": "https://www.ilga.gov/Documents/legislation/ilcs/documents/022000050K16-115.htm",
+      "retrieved": "2026-10-30",
+      "quote": "Notice is published within 10 days of filing. No later than 45 days after a complete application is properly filed and notice is published, the Commission shall issue its order granting or denying the application."
+    },
+    "ercot-flights": {
+      "title": "ERCOT, Retail Market Test Flight Information",
+      "url": "https://www.ercot.com/services/rq/lse/tfi",
+      "retrieved": "2026-10-30",
+      "quote": "Testing is required for new Competitive Retailers and for any current CR entering a new service territory. 2026 flights: 0226 (application deadline Jan 14, ends Mar 6), 0626 (Apr 15 to Jun 22), 1026 (Aug 19 to Oct 30)."
+    },
+    "expansion-map": {
+      "title": "megawatt.fun expansion map data (EIA-861 2025, Census ACS, FEMA NRI)",
+      "url": "/data/expansion-map.json",
+      "retrieved": "2026-10-30",
+      "quote": "Retail share, ISO/RTO share, footprint notes, and the omitted list: permitting speed and home-battery interconnection time are not in public data."
+    }
+  },
+  "paths": {
+    "retail": {
+      "label": "Retail provider",
+      "summary": "Become a licensed retail electricity supplier, sell a power plan that includes a home battery, and earn from the wholesale market. Only possible where the state has residential retail choice.",
+      "steps": [
+        {
+          "id": "entity",
+          "name": "State entity, bonding, and credit",
+          "owner": "Legal and finance",
+          "low": 2, "high": 6,
+          "depends_on": [],
+          "basis": "assumption",
+          "note": "Register the entity, post the security the license rules require, set up banking. Duration is a guess."
+        },
+        {
+          "id": "license",
+          "name": "Retail supplier license from the state commission",
+          "owner": "Regulatory",
+          "low": 8, "high": 20,
+          "depends_on": ["entity"],
+          "basis": "assumption",
+          "note": "Each state sets its own review clock. Texas and Illinois have sourced clocks below. Other states: replace with your own data."
+        },
+        {
+          "id": "wholesale",
+          "name": "Wholesale market registration (ISO/RTO)",
+          "owner": "Markets",
+          "low": 6, "high": 16,
+          "depends_on": ["entity"],
+          "basis": "assumption",
+          "note": "Register as a load-serving entity or use a scheduling agent, post collateral, set up settlement. Duration is a guess."
+        },
+        {
+          "id": "edi",
+          "name": "Utility EDI and billing testing",
+          "owner": "Software",
+          "low": 8, "high": 20,
+          "depends_on": ["license"],
+          "basis": "assumption",
+          "note": "Enrollment, usage, and billing transactions must pass testing with each distribution utility before customers can switch."
+        },
+        {
+          "id": "telemetry",
+          "name": "Fleet telemetry and dispatch for the new market",
+          "owner": "Software",
+          "low": 4, "high": 10,
+          "depends_on": ["wholesale"],
+          "basis": "assumption",
+          "note": "Price signals, bidding or scheduling, and device commands for a new market's rules."
+        },
+        {
+          "id": "warehouse",
+          "name": "Warehouse, logistics, and first inventory",
+          "owner": "Operations",
+          "low": 8, "high": 16,
+          "depends_on": ["entity"],
+          "basis": "assumption",
+          "note": "Lease space, set up receiving, position batteries near the first service area."
+        },
+        {
+          "id": "hiring",
+          "name": "Hire and train licensed install crews",
+          "owner": "Field operations",
+          "low": 8, "high": 20,
+          "depends_on": ["entity"],
+          "basis": "assumption",
+          "note": "Electrician licensing is set by each state. Hiring speed depends on the local labor market."
+        },
+        {
+          "id": "permitting",
+          "name": "Permit approach with first local jurisdictions (AHJs)",
+          "owner": "Field operations",
+          "low": 4, "high": 16,
+          "depends_on": ["entity"],
+          "basis": "assumption",
+          "note": "Learn each jurisdiction's battery permit and inspection rules. Public data on permit speed was not available."
+        },
+        {
+          "id": "utility_notice",
+          "name": "Utility interconnection or notification for behind-the-meter storage",
+          "owner": "Regulatory",
+          "low": 4, "high": 12,
+          "depends_on": ["entity"],
+          "basis": "assumption",
+          "note": "Base says behind-the-meter systems avoid new interconnection agreements in most cases. Notification rules and review times still vary by utility."
+        },
+        {
+          "id": "sales",
+          "name": "Open enrollment and install scheduling",
+          "owner": "Growth",
+          "low": 2, "high": 6,
+          "depends_on": ["license", "edi"],
+          "basis": "assumption",
+          "note": "Pricing, marketing, sign-up flow, and the scheduling tool for a new territory."
+        },
+        {
+          "id": "first_installs",
+          "name": "First installs and commissioning",
+          "owner": "Field operations",
+          "low": 2, "high": 4,
+          "depends_on": ["sales", "permitting", "utility_notice", "hiring", "warehouse"],
+          "basis": "assumption",
+          "note": "First homes energized, inspected, and online."
+        },
+        {
+          "id": "scale",
+          "name": "Ramp to target weekly install volume",
+          "owner": "Operations",
+          "low": 8, "high": 26,
+          "depends_on": ["first_installs", "telemetry"],
+          "basis": "assumption",
+          "note": "Crews, inventory, permits, and scheduling all have to keep up. Set the target to your own volume."
+        }
+      ]
+    },
+    "utility": {
+      "label": "Utility partnership",
+      "summary": "Sign a deal with a utility or co-op that pays for battery capacity on its system. Works in any state, including states with no retail choice.",
+      "steps": [
+        {
+          "id": "deal",
+          "name": "RFP or bilateral deal with the utility",
+          "owner": "Partnerships",
+          "low": 12, "high": 40,
+          "depends_on": [],
+          "basis": "assumption",
+          "note": "Sales cycle from first meeting to signed contract. Highly variable. Replace with your own pipeline data."
+        },
+        {
+          "id": "entity",
+          "name": "State entity and contractor licensing",
+          "owner": "Legal and finance",
+          "low": 2, "high": 6,
+          "depends_on": [],
+          "basis": "assumption",
+          "note": "Can start before the deal closes."
+        },
+        {
+          "id": "approval",
+          "name": "Program approval (commission filing or co-op board)",
+          "owner": "Regulatory",
+          "low": 6, "high": 26,
+          "depends_on": ["deal"],
+          "basis": "assumption",
+          "note": "Investor-owned utilities usually file programs with the state commission. Co-ops and municipal utilities answer to their own boards. Timing not sourced."
+        },
+        {
+          "id": "program",
+          "name": "Program design, accreditation, and measurement rules",
+          "owner": "Markets",
+          "low": 6, "high": 16,
+          "depends_on": ["deal"],
+          "basis": "assumption",
+          "note": "How capacity is counted, tested, and paid. Rules differ by utility and market."
+        },
+        {
+          "id": "dispatch",
+          "name": "Dispatch integration with the utility (EMS, SCADA, or DERMS)",
+          "owner": "Software",
+          "low": 8, "high": 20,
+          "depends_on": ["program"],
+          "basis": "assumption",
+          "note": "Signals, telemetry, and settlement data the utility can trust."
+        },
+        {
+          "id": "warehouse",
+          "name": "Warehouse, logistics, and first inventory",
+          "owner": "Operations",
+          "low": 8, "high": 16,
+          "depends_on": ["deal"],
+          "basis": "assumption",
+          "note": "Usually waits for a signed deal."
+        },
+        {
+          "id": "hiring",
+          "name": "Hire and train licensed install crews",
+          "owner": "Field operations",
+          "low": 8, "high": 20,
+          "depends_on": ["entity", "deal"],
+          "basis": "assumption",
+          "note": "Electrician licensing is set by each state."
+        },
+        {
+          "id": "permitting",
+          "name": "Permit approach with first local jurisdictions (AHJs)",
+          "owner": "Field operations",
+          "low": 4, "high": 16,
+          "depends_on": ["entity"],
+          "basis": "assumption",
+          "note": "Public data on permit speed was not available."
+        },
+        {
+          "id": "enrollment",
+          "name": "Customer enrollment (co-branded with the utility)",
+          "owner": "Growth",
+          "low": 4, "high": 10,
+          "depends_on": ["approval", "program"],
+          "basis": "assumption",
+          "note": "Marketing, eligibility checks, and sign-up with the utility's brand."
+        },
+        {
+          "id": "first_installs",
+          "name": "First installs and commissioning",
+          "owner": "Field operations",
+          "low": 2, "high": 4,
+          "depends_on": ["enrollment", "permitting", "hiring", "warehouse"],
+          "basis": "assumption",
+          "note": "First homes energized, inspected, and online."
+        },
+        {
+          "id": "scale",
+          "name": "Ramp to contracted capacity",
+          "owner": "Operations",
+          "low": 12, "high": 30,
+          "depends_on": ["first_installs", "dispatch"],
+          "basis": "assumption",
+          "note": "Compare with Base's public claim of 3 to 6 months to deploy 100 MW. That claim does not say when the clock starts."
+        }
+      ]
+    }
+  },
+  "overrides": {
+    "TX": {
+      "retail": {
+        "license": {
+          "low": 6, "high": 17,
+          "basis": "partly",
+          "source": "puct-25107",
+          "note": "PUCT rule 25.107: 20 days for staff sufficiency review, 10 days for the sufficiency ruling, then an order within 90 days unless there is good cause. That is about 17 weeks at most, before any deficiency cure. The fast case is an assumption."
+        },
+        "edi": {
+          "low": 7, "high": 28,
+          "basis": "sourced",
+          "source": "ercot-flights",
+          "note": "ERCOT retail market testing runs in flights, three in 2026. From application deadline to flight end took 7 to 10 weeks. Missing a deadline adds up to about 18 weeks of waiting for the next one."
+        }
+      }
+    },
+    "IL": {
+      "retail": {
+        "license": {
+          "low": 4, "high": 8,
+          "basis": "partly",
+          "source": "il-ares",
+          "note": "220 ILCS 5/16-115: notice within 10 days of filing, then an order no later than 45 days after a complete application is filed and notice is published. About 8 weeks at most. The fast case is an assumption."
+        }
+      }
+    }
+  },
+  "snags": [
+    {
+      "id": "permit-data",
+      "step": "permitting",
+      "title": "Permit speed is not in public data",
+      "note": "The SolarAPP+ jurisdiction list could not be downloaded (HTTP 403), and its public table stopped at 100 jurisdictions. There is no state-by-state permit time for home batteries to plug in here.",
+      "source": "expansion-map",
+      "kind": "data gap"
+    },
+    {
+      "id": "interconnection-data",
+      "step": "utility_notice",
+      "title": "Home-battery interconnection time is not public",
+      "note": "No national series of residential permission-to-operate times was found. Base says behind-the-meter systems avoid new interconnection agreements in most cases, but notification and review rules still differ by utility.",
+      "source": "base-utilities",
+      "kind": "data gap"
+    },
+    {
+      "id": "license-clock",
+      "step": "license",
+      "title": "License clocks start only on a complete application",
+      "note": "Texas and Illinois both count review days from a complete or sufficient filing. Deficiency letters restart or extend the clock. Other states were not researched.",
+      "source": "puct-25107",
+      "kind": "regulatory"
+    },
+    {
+      "id": "edi-flights",
+      "step": "edi",
+      "title": "EDI testing runs on a fixed calendar in Texas",
+      "note": "ERCOT requires testing even for an existing retailer entering a new service territory. Flights happen a few times a year, so a missed deadline costs months, not days.",
+      "source": "ercot-flights",
+      "kind": "regulatory"
+    },
+    {
+      "id": "accreditation",
+      "step": "program",
+      "title": "How capacity counts is decided per program",
+      "note": "A utility program sets how a fleet of home batteries is tested, measured, and paid. Each new utility can mean new rules. This is an open question to bring to the utility, not a sourced fact about any one program.",
+      "source": null,
+      "kind": "assumption"
+    },
+    {
+      "id": "crew-ramp",
+      "step": "hiring",
+      "title": "Crews take time to hire and license",
+      "note": "Base's public Connecticut job posts (an operations manager and an electrical supervisor in North Haven) show hiring can come before any customer offer. Electrician licensing is a state matter.",
+      "source": "expansion-map",
+      "kind": "public signal"
+    },
+    {
+      "id": "telemetry",
+      "step": "telemetry",
+      "title": "Connectivity in the field is not guaranteed",
+      "note": "Base's telemetry post describes falling back to often unreliable and expensive 4G when a member's Wi-Fi is unavailable, and commands that persist until they expire. A new market's dispatch rules have to work with that.",
+      "source": "base-telemetry",
+      "kind": "engineering"
+    },
+    {
+      "id": "telemetry-utility",
+      "step": "dispatch",
+      "title": "Utilities need dispatch they can trust",
+      "note": "The same connectivity limits apply when a utility, not a market, sends the signal. Expiring commands and patchy links shape what the utility can count on.",
+      "source": "base-telemetry",
+      "kind": "engineering"
+    },
+    {
+      "id": "scheduling",
+      "step": "scale",
+      "title": "The install schedule can be the queue",
+      "note": "Base's scheduling post says time in the scheduling queue fell from 4 weeks to a few days. Its stated next steps are programmatic crew allocation and ingesting constraints and targets. In a new market, there is no history to schedule against yet.",
+      "source": "base-scheduling",
+      "kind": "engineering"
+    }
+  ]
+}

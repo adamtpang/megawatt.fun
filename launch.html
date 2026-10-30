@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>New-Market Launch Planner</title>
+<link rel="canonical" href="https://megawatt.fun/launch">
+<meta name="description" content="How long it might take a home-battery company to start selling and installing in a new state: steps, dependencies, critical path, and known snags. Every duration is sourced or labeled as an assumption you can edit. Independent, not affiliated with Base Power.">
+<link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/site.css"><link rel="stylesheet" href="/launch.css">
+<script src="/launch-core.js" defer></script>
+<script src="/launch.js" defer></script>
+</head>
+<body class="launch-page">
+<header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/">Guide</a><a href="/roadmap">Roadmap</a><a href="/tools">Tools</a><details class="nav-more is-current"><summary>More</summary><div class="nav-more-menu"><a href="/market">Market map</a><a href="/pitch">Utility pitch</a><a href="/launch" aria-current="page">Launch planner</a><a href="/finance">Financing</a><a href="/base">Battery</a><a href="/bench">Battery backup test</a><a href="/live">Live</a><a href="/notes">Notes</a><a href="/sources">Sources</a></div></details></nav></header>
+
+<main class="lp" id="main">
+  <section class="lp-intro">
+    <p class="lp-eyebrow">New-market launch planner</p>
+    <h1>How long does a new state take?</h1>
+    <p class="lp-lede">Pick a state and a way in. The planner lays out the steps a home-battery company would need before it can sell and install there, finds the critical path, and shows which step to attack first.</p>
+    <p class="lp-flag"><strong>Independent. Not affiliated with Base Power.</strong> Base's real launch timelines are not public. Every duration below is either sourced (with a link and date) or marked <span class="lp-badge is-assumption">assumption</span>. Replace assumptions with your own data.</p>
+  </section>
+
+  <section class="lp-card lp-controls" aria-label="Planner settings">
+    <label class="lp-field">State
+      <select id="state"></select>
+    </label>
+    <fieldset class="lp-seg" id="path-seg">
+      <legend>Way in</legend>
+      <button type="button" data-path="retail" aria-pressed="false">Retail provider</button>
+      <button type="button" data-path="utility" aria-pressed="false">Utility partnership</button>
+    </fieldset>
+    <fieldset class="lp-seg" id="case-seg">
+      <legend>Case</legend>
+      <button type="button" data-case="low" aria-pressed="true">Fast</button>
+      <button type="button" data-case="high" aria-pressed="false">Slow</button>
+    </fieldset>
+  </section>
+
+  <section class="lp-card lp-why" id="why" aria-live="polite"></section>
+
+  <section class="lp-stats" id="stats" aria-live="polite"></section>
+
+  <section class="lp-card" aria-labelledby="gantt-title">
+    <div class="lp-head">
+      <h2 id="gantt-title">Timeline</h2>
+      <p class="lp-legend"><span><i class="k-crit"></i>Critical path</span><span><i class="k-norm"></i>Has slack</span><span><i class="k-slack"></i>Slack</span><span><i class="k-ms"></i>First install</span></p>
+    </div>
+    <div class="lp-gantt" id="gantt" role="img" aria-label="Gantt chart of launch steps"></div>
+    <p class="lp-small" id="gantt-note"></p>
+  </section>
+
+  <section class="lp-card" aria-labelledby="steps-title">
+    <div class="lp-head">
+      <h2 id="steps-title">Steps and durations</h2>
+      <button type="button" class="lp-btn" id="reset">Reset to defaults</button>
+    </div>
+    <p class="lp-small">Weeks. Change any number and the timeline updates. Edited values are marked <span class="lp-badge is-edited">yours</span>. Owners are generic roles, not any company's org chart.</p>
+    <div class="lp-steps" id="steps"></div>
+  </section>
+
+  <section class="lp-card" aria-labelledby="snags-title">
+    <h2 id="snags-title">Known snags</h2>
+    <p class="lp-small">Public problems that can stretch a step. Each one is tied to the step it hits.</p>
+    <ul class="lp-snags" id="snags"></ul>
+  </section>
+
+  <section class="lp-card lp-real" aria-labelledby="real-title">
+    <h2 id="real-title">Real vs assumed</h2>
+    <div class="lp-real-grid">
+      <div>
+        <h3>Sourced</h3>
+        <ul id="real-list"></ul>
+      </div>
+      <div>
+        <h3>Assumed</h3>
+        <ul id="assumed-list"></ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="lp-card" aria-labelledby="sources-title">
+    <h2 id="sources-title">Sources</h2>
+    <ol class="lp-sources" id="sources"></ol>
+  </section>
+  <p class="lp-small lp-err" id="err" role="alert" hidden></p>
+</main>
+
+<footer class="site-bottom"><div class="footer-links"><a href="/about">About</a><a href="/sources">Sources</a><a href="/contact">Contact</a><a href="/privacy">Privacy</a></div><p>Independent energy experiments. Not affiliated with Base Power.</p></footer>
+</body>
+</html>
