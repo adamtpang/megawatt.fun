@@ -1,0 +1,82 @@
+{
+  "period": {
+    "start": "2025-10-01",
+    "endExclusive": "2026-10-01",
+    "asOf": "2026-10-19",
+    "timezone": "America/Chicago",
+    "expectedHours": 8760,
+    "description": "Latest twelve complete calendar months; current partial month excluded"
+  },
+  "sources": [
+    {
+      "id": "dam-listing.json",
+      "url": "https://www.ercot.com/misapp/servlets/IceDocListJsonWS?reportTypeId=13060",
+      "retrievedAt": "2026-10-19T14:30:50.394777+00:00",
+      "sha256": "a0ede3d1adbbb1826580a2d826ff92e42c6522266ff4cbd94dad649ea8db6122",
+      "bytes": 7797
+    },
+    {
+      "id": "dam-2025-1177667469-download.zip",
+      "url": "https://www.ercot.com/misdownload/servlets/mirDownload?doclookupId=1177667469",
+      "retrievedAt": "2026-10-19T14:31:36.299185+00:00",
+      "sha256": "30df71ebb306bbe8c6cc075598d2e5bd47079b8ab9e0442979f3331353618320",
+      "bytes": 2050483
+    },
+    {
+      "id": "dam-2026-1287898588-download.zip",
+      "url": "https://www.ercot.com/misdownload/servlets/mirDownload?doclookupId=1287898588",
+      "retrievedAt": "2026-10-19T14:31:37.190837+00:00",
+      "sha256": "36eb96d99cb36bc2c85ec03d3de11f2bb81e85038734a3f2624be0a90e294f7c",
+      "bytes": 1631391
+    },
+    {
+      "id": "rtm-listing.json",
+      "url": "https://www.ercot.com/misapp/servlets/IceDocListJsonWS?reportTypeId=13061",
+      "retrievedAt": "2026-10-19T14:31:37.695869+00:00",
+      "sha256": "7403ddbcf743166869ff9219dcec9dd2ac2baefc6b8dfae7f2ab85b796bdd54b",
+      "bytes": 7813
+    },
+    {
+      "id": "rtm-2025-1177737535-download.zip",
+      "url": "https://www.ercot.com/misdownload/servlets/mirDownload?doclookupId=1177737535",
+      "retrievedAt": "2026-10-19T14:31:39.762183+00:00",
+      "sha256": "522a26678575b93bbc7e2c040760eead52c4aae484e0f353c603d5b1a0378faa",
+      "bytes": 13969454
+    },
+    {
+      "id": "rtm-2026-1287900508-download.zip",
+      "url": "https://www.ercot.com/misdownload/servlets/mirDownload?doclookupId=1287900508",
+      "retrievedAt": "2026-10-19T14:31:52.945562+00:00",
+      "sha256": "e6b05d49ae5ac8b15016dbba713ffec32090e51f1e3c14496cbd2d8aca386a63",
+      "bytes": 10869647
+    },
+    {
+      "id": "texas-counties.geojson",
+      "url": "https://tigerweb.geo.census.gov/arcgis/rest/services/Generalized_ACS2024/State_County/MapServer/13/query?where=STATE%3D%2748%27&outFields=GEOID%2CNAME&outSR=4326&f=geojson&geometryPrecision=3",
+      "retrievedAt": "2026-10-19T14:41:04.044314+00:00",
+      "sha256": "33eca0c4d06b1c78b092d03722911c0bebafe5a4cc063ecce62bb251ea7ea15a",
+      "bytes": 86394
+    }
+  ],
+  "method": "RTM is the mean of four complete 15-minute intervals. DAM matched by date, hour ending and DST repeated-hour flag. Full physical-hour coverage required; no imputation. LZEW excluded; HU/SH/AH preserved separately.",
+  "outputs": {
+    "prices.json": "931882dafd6937f29ad943d5243c52d1c54ab4b5318e84fc5f55e294be386c50",
+    "sites.json": "2ee134939edcf1e4613ce720698238ca706e10c6db7616cfe151bf893a411c62",
+    "texas-counties.geojson": "33eca0c4d06b1c78b092d03722911c0bebafe5a4cc063ecce62bb251ea7ea15a",
+    "HB_BUSAVG.csv": "c7d491141a3c22ef83a0f0e05b4fe0a93de7a42270bcec914565beb39a034630",
+    "HB_HOUSTON.csv": "19cdd2ebe25b5bdd639d3777f540877034b91ee72183f2b355b0f65bafdbcebc",
+    "HB_HUBAVG.csv": "1b341c3275589cd2e09e84646ca3df7f332f45bc2343730b81b50fa549b6811a",
+    "HB_NORTH.csv": "5e2b9a07e13d391b22bd58ea489c4badc45d826b80c78165f6b651972c39d754",
+    "HB_PAN.csv": "7750fce8e6e1dff249e64d89e2cda18f1c99a156cc99d48754e90b03fe6b5402",
+    "HB_SOUTH.csv": "2374bef6e78be5eecf28f9ef234fb60cff3a823fb78fb91bcecf78acc902f1c2",
+    "HB_WEST.csv": "0c8375b44bb5c2ad3ee94e0e472716e5692e5947e93c8a9656d2a92946ea22ea",
+    "LZ_AEN.csv": "fd0611587ae1f0ebaa6b56a2943303c993b35d6304d763379610def6dc77dca0",
+    "LZ_CPS.csv": "33596194cab8ce69b47b2dd7510fe080572b5832a79f9bf1b0d4be5164ab147c",
+    "LZ_HOUSTON.csv": "fc98293cfa155c87272ab91ed22b6cea3b2529e39239286b0a5481df338e1b86",
+    "LZ_LCRA.csv": "915a730cf63fe4509aa9cd1125e758810850ab457d0f648d96ae299572bc814f",
+    "LZ_NORTH.csv": "72fbba7dccc022546430cc7b2ec79707f4b2ef8cc509ce2c8dd77e14f1fb8219",
+    "LZ_RAYBN.csv": "76147d3331f476b9c302f2442a95e8d87ca3476a68e939934cea1442a3245e55",
+    "LZ_SOUTH.csv": "9b012700512a095d561acfc1d2ed9ab2d098b65bad718100d0a3c932940972de",
+    "LZ_WEST.csv": "f6d23570e44c040e192127d053357a3d957099422cbead2984128e0dcdfa0a7f"
+  }
+}
