@@ -142,3 +142,11 @@ input[type=range] { accent-color: var(--brand-foreground); }
 @media(max-width:700px) { .tool-directory { grid-template-columns: 1fr; } }
 @media(max-width:560px) { .site-top { padding: 10px 16px; gap: 12px; }.site-top nav { gap: 0; font-size: 14px; }.site-top nav > a,.nav-more > summary { padding: 8px; }.site-top .brand { font-size: 18px; }.tool-directory > a { padding: 24px; } }
 @media(prefers-reduced-motion:reduce) { html { scroll-behavior: auto; }button:active,.btn:active,.button:active { transform: none; } }
+
+/* Narrow phones: keep the shared header inside 375px. */
+@media (max-width: 480px) {
+  .site-top { gap: 6px; padding-left: 12px; padding-right: 12px; }
+  .site-top .brand { font-size: 18px; }
+  .site-top nav > a, .nav-more > summary { padding: 8px 6px; }
+  .site-top .nav-more-menu { right: 0; left: auto; max-width: calc(100vw - 24px); }
+}
