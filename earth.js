@@ -2,7 +2,7 @@
    Procedural (no textures to download). Falls back to a CSS planet when WebGL is missing or motion is reduced. */
 const canvas = document.getElementById('earth');
 const fallback = document.getElementById('fallback');
-const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
 
 function useFallback() {
   canvas.hidden = true;
@@ -15,7 +15,7 @@ function hasWebGL() {
 }
 
 async function boot() {
-  if (reduced || !hasWebGL()) return useFallback();
+  if (motionPreference.matches || !hasWebGL()) return useFallback();
   let THREE;
   try { THREE = await import('https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js'); }
   catch { return useFallback(); }
@@ -79,10 +79,18 @@ async function boot() {
     earth.position.set(w < 700 ? 0.45 : 1.15, w < 700 ? 0.2 : 0, 0); earth.scale.setScalar(w < 700 ? 1.45 : 1);
   }
   addEventListener('resize', resize); resize();
+  camera.position.set(0, 0, 3.4); camera.lookAt(0, 0, 0);
 
-  let running = true;
-  document.addEventListener('visibilitychange', () => { running = !document.hidden; if (running) requestAnimationFrame(tick); });
+  let running = false, frame = 0;
   let last = performance.now();
+  function syncMotion() {
+    cancelAnimationFrame(frame);
+    running = !document.hidden && !motionPreference.matches;
+    if (running) { last = performance.now(); frame = requestAnimationFrame(tick); }
+    else renderer.render(scene, camera);
+  }
+  document.addEventListener('visibilitychange', syncMotion);
+  motionPreference.addEventListener('change', syncMotion);
   function tick(now) {
     if (!running) return;
     const dt = Math.min(0.05, (now - last) / 1000); last = now;
@@ -97,8 +105,8 @@ async function boot() {
     sun.material.opacity = sunVis; swarm.material.opacity = sunVis * 0.6;
     swarm.rotation.z += dt * 0.1;
     renderer.render(scene, camera);
-    requestAnimationFrame(tick);
+    frame = requestAnimationFrame(tick);
   }
-  requestAnimationFrame(tick);
+  syncMotion();
 }
 boot();

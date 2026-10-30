@@ -2,6 +2,8 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://megawatt.fun/</loc></url>
   <url><loc>https://megawatt.fun/live</loc></url>
+  <url><loc>https://megawatt.fun/bench</loc></url>
+  <url><loc>https://megawatt.fun/deploy</loc></url>
   <url><loc>https://megawatt.fun/kardashev</loc></url>
   <url><loc>https://megawatt.fun/titans</loc></url>
   <url><loc>https://megawatt.fun/about</loc></url>

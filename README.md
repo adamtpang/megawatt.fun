@@ -28,6 +28,19 @@ For deployment, run `python scripts/package-site.py` and deploy only the printed
 
 ## Supporting dispatch work
 
+### Dispatch Bench (`/bench`)
+
+Interactive replay of the recorded 2026-09-30 Houston price day against simulated devices. Compare hold, clock, unguarded price and guarded price policies under duplicate deliveries, expiry, stale telemetry and synthetic forecast timing error. Household reserve and efficiency are configurable; command ledgers, cash versus ending-inventory accounting, exportable traces and share links make the outcomes inspectable.
+
+```sh
+node --test tests/bench.test.cjs tests/base.test.cjs
+node scripts/replay-bench.cjs
+```
+
+See [the five-minute engineer guide and model limits](demo/dispatch-bench/README.md). This reuses `base-core.js` and adds a pure command reducer in `dispatch-bench-core.js`; it is an offline simulation with no durable workers or device control. The packaging allowlist includes current guide/battery pages and the bench source ZIP, and excludes private event/application drafts.
+
+### Original Go study
+
 An independent Go demonstration, not affiliated with Base Power and using no proprietary Base data.
 
 **Start here: [five-minute dispatch study](demo/dispatch-study/README.md).** It improves the existing planner and compares idle, fixed-clock, forecast-committed, and hindsight schedules under synthetic price error, battery losses, and a backup reserve.
@@ -104,3 +117,17 @@ affiliated with Base Power.
 - Real-time (15-minute) prices, and a "what happened while you slept" push notification.
 - A monthly view: backup readiness, outages covered, and bill impact, stated only where measured.
 - Outage mode driven by live circuit data, so "what to turn off" is specific to the home.
+
+
+## Texas market intelligence (`/deploy`)
+
+Public ERCOT annual DAM/RTM files now cover 15 settlement points: five hubs, two hub averages and eight load zones. The cached snapshot spans October 2025–September 2026, retrieved October 19, 2026; ingestion selects the latest twelve complete Central calendar months and rejects incomplete hours. Run `python scripts/ingest-deployment.py --fetch` after installing `scripts/requirements-market.txt`, then `node scripts/replay-deployment.cjs`. Raw-file hashes and dates are in `data/deployment/manifest.json`.
+
+Dispatch charges 01:00–05:00 and discharges 17:00–21:00 Central, with losses and a reserve, against real-time prices. Monthly energy-only P&L retains losses; idle earns $0. DAM–RT spreads are diagnostics, not revenue. Property scoring exposes all four weights and withholds scores for missing active inputs. No real properties have been qualified.
+
+Unsourced scenario numbers: 25 kWh, 5 kW, 88% efficiency, 20% reserve, zero wear cost, dispatch hours, $100/MWh spike threshold, top-three spike hours, county 70/30 weights and property 40/20/20/20 weights. The optional property example is fictional; costs, areas, feeder capacity and eligibility are labeled synthetic. Base compensation, actual installation/operating costs, tariffs, loads, ancillary and reliability value are unknown. See the [five-minute demo README](demo/texas-deployment/README.md#market-intelligence-interface-and-unsourced-numbers) for every example value, method, source and test command.
+
+
+## Deployment operations (`/ops`)
+
+A Base-inspired 3D capacity study using Airsup's MIT discrete-event engine. Change crews, commissioning capacity, visit duration and queues to see the next constraint. All operating inputs are synthetic; the page is not Base telemetry or a forecast of actual operations. [Method, assumptions, video workflow and credits](demo/deployment-ops/README.md). Run `node --test tests/ops.test.cjs` and `node scripts/replay-ops.cjs` to reproduce the comparison. `FEATURE-PARITY.md` records the reference research and remaining gaps.

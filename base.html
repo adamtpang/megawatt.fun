@@ -7,18 +7,20 @@
 <meta name="description" content="A concept member screen: what a Texas home battery did in the last 24 hours on real ERCOT prices, in plain words. Independent, not affiliated with Base Power.">
 <meta name="theme-color" content="#070d16">
 <link rel="canonical" href="https://megawatt.fun/base">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔋</text></svg>">
+<text y='.9em' font-size='90'>🔋</text></svg>">
 <link rel="stylesheet" href="/guide.css">
 <link rel="stylesheet" href="/site.css">
 <link rel="stylesheet" href="/base.css">
 <script src="/base-core.js" defer></script>
 <script src="/base.js" defer></script>
+<link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48 64x64" type="image/x-icon">
 </head>
 <body>
-<header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/">Guide</a><a href="/roadmap">Roadmap</a><a href="/base" aria-current="page">Battery</a><a href="/tools">Tools</a><a href="/live">Live</a><a href="/kardashev">Kardashev</a><a href="/titans">Titans</a></nav></header>
+<header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/">Guide</a><a href="/roadmap">Roadmap</a><a href="/tools">Tools</a><details class="nav-more is-current"><summary>More</summary><div class="nav-more-menu"><a href="/base" aria-current="page">Battery</a><a href="/bench">Battery backup test</a><a href="/live">Live</a><a href="/kardashev">Kardashev</a><a href="/titans">Energy companies</a><a href="/sources">Sources</a></div></details></nav></header>
 
 <main class="app" id="main">
   <p class="concept">Concept screen · real ERCOT prices · simulated battery</p>
+  <p class="fine">Building battery software? <a href="/bench">Stress-test dispatch commands in Battery backup test.</a></p>
 
   <section class="tile hero" aria-labelledby="today-title">
     <p class="eyebrow">Your battery today</p>
@@ -93,6 +95,6 @@
   </section>
 </main>
 
-<footer class="site-bottom">Built by <a href="https://github.com/adamtpang">Adam Pangelinan</a>. Not affiliated with Base Power or ERCOT.<br><a href="/">Guide</a><a href="/tools">Tools</a><a href="/sources">Sources</a><a href="https://github.com/adamtpang/megawatt.fun">Code</a></footer>
+<footer class="site-bottom"><div class="footer-links"><a href="/about">About</a><a href="/sources">Sources</a><a href="/contact">Contact</a><a href="/privacy">Privacy</a></div><p>Independent energy experiments. No real batteries are controlled.</p></footer>
 </body>
 </html>

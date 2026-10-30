@@ -3,3 +3,15 @@
 .preview-shots/
 .preview-shots*.png
 __pycache__/
+.cache/deployment/
+.cache/base-contributions/
+.cache/base-repositories/
+demo/texas-deployment/source.zip
+demo/deployment-ops/*.mp4
+demo/deployment-ops/*.encode.log
+
+# Local research and licensed assets: never publish
+docs/base-current/
+docs/base-repo-learning/
+assets/fonts/
+.vercel/staging/
