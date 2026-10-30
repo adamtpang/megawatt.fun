@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Battery backup test · megawatt.fun</title>
+<meta name="description" content="Test whether repeated battery commands consume blackout backup. A simulation using recorded Texas electricity prices.">
+<link rel="canonical" href="https://megawatt.fun/bench">
+<link rel="stylesheet" href="/guide.css"><link rel="stylesheet" href="/site.css"><link rel="stylesheet" href="/bench.css">
+<script src="/base-core.js" defer></script><script src="/dispatch-bench-core.js" defer></script><script src="/bench.js" defer></script><script src="/restart-evidence.js" defer></script>
+<link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48 64x64" type="image/x-icon">
+</head>
+<body>
+<a class="skip" href="#main">Skip to the replay</a>
+<header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/">Guide</a><a href="/roadmap">Roadmap</a><a href="/tools">Tools</a><details class="nav-more is-current"><summary>More</summary><div class="nav-more-menu"><a href="/base">Battery</a><a href="/bench" aria-current="page">Battery backup test</a><a href="/live">Live</a><a href="/kardashev">Kardashev</a><a href="/titans">Energy companies</a><a href="/sources">Sources</a></div></details></nav></header>
+<main id="main" class="bench">
+  <header class="bench-intro"><h1>Keep backup safe.</h1><p>A battery gets told to send power to the grid. What if that instruction arrives twice?</p></header>
+  <p id="load-error" role="alert" hidden></p>
+  <div class="simple-controls"><button type="button" id="try-failure" class="primary">Repeat a command</button><label class="experiment-label">Experiment<select id="experiment"><option value="none">Everything works</option><option value="duplicate">Command arrives twice</option><option value="late">Command arrives late</option><option value="stale">Connection goes quiet</option><option value="mixed">All three</option></select></label></div>
+  <p id="simple-explanation" class="simple-explanation">Each square is one simulated battery.</p>
+  <div class="simple-comparison" aria-live="polite">
+    <section class="simple-card" aria-labelledby="without-title"><h2 id="without-title">Without safeguards</h2><p class="simple-number" id="without-number">…</p><p id="without-caption">Preparing the experiment</p><div id="without-dots" class="battery-dots" aria-hidden="true"></div><p class="delivery-number" id="without-delivery"></p></section>
+    <section class="simple-card" aria-labelledby="with-title"><h2 id="with-title">With safeguards</h2><p class="simple-number" id="with-number">…</p><p id="with-caption">Preparing the experiment</p><div id="with-dots" class="battery-dots" aria-hidden="true"></div><p class="delivery-number" id="with-delivery"></p></section>
+  </div>
+  <p class="simple-takeaway" id="simple-takeaway" role="status">Loading the experiment…</p>
+  <p class="small" id="simple-scope">Simulated batteries. Recorded Texas prices. No real batteries are controlled.</p>
+  <details class="restart-details"><summary>Restart evidence <span id="restart-score">Loading saved checks…</span></summary>
+    <p class="small">A worker restarts and receives the same instruction. Does it act twice?</p>
+    <div class="table-scroll"><table><caption class="small">Saved local process tests. Counts are applications of one 2 kWh instruction.</caption><thead><tr><th>Crash point</th><th>No durable receipt</th><th>Durable receipt</th><th>Retry decision</th></tr></thead><tbody id="restart-cases"></tbody></table></div>
+    <p class="small">An uncertain receipt pauses this command. That can miss delivery. This tests real process exits with a fake actuator, not hardware or power loss.</p>
+    <div class="actions"><a href="/demo/dispatch-bench/RESTARTS.md">Read the contract</a><a href="/demo/dispatch-bench/restart-results.json">Saved results</a><a href="/demo/dispatch-bench/source.zip">Source + tests</a></div>
+  </details>
+  <details class="engineer-details"><summary>Engineer details</summary><p class="small">Dispatch means telling a battery when to charge or send power to the grid. This replay compares those instructions under simulated failures.</p><p id="source-line" class="small">Loading the recorded ERCOT day…</p>
+  <noscript><p>This replay needs JavaScript. Read the <a href="/demo/dispatch-bench/README.md">method and five-minute demo</a> or download <a href="/demo/dispatch-bench/results.json">the saved results</a>.</p></noscript>
+  <section class="scenario" aria-labelledby="scenario-title"><h2 id="scenario-title">Choose the experiment</h2>
+    <div class="presets" role="group" aria-label="Replay presets"><button type="button" data-preset="clean" class="active">Clean transport</button><button type="button" data-preset="forecast">Missed price peak</button><button type="button" data-preset="retry">Lost acknowledgement</button><button type="button" data-preset="mixed">Multiple failures</button></div>
+    <div class="controls">
+      <label>Household backup reserve <output id="reserve-label">30%</output><input id="reserve" type="range" min="0" max="100" step="5" value="30"></label>
+      <label>Round-trip efficiency <output id="efficiency-label">88%</output><input id="efficiency" type="range" min="50" max="100" step="1" value="88"></label>
+      <label>Devices exposed to failures <output id="affected-label">30%</output><input id="affected" type="range" min="0" max="100" step="5" value="30"></label>
+      <label>Fleet size<input id="fleet" type="number" min="1" max="500" step="1" value="100"></label>
+      <label>Forecast<select id="forecast"><option value="known">Recorded day known in advance</option><option value="shift">Synthetic peak 3 hours late</option></select></label>
+      <label>Transport<select id="fault"><option value="none" selected>Healthy</option><option value="duplicate">Lost ACK, duplicate delivery</option><option value="stale">Telemetry stops at 4 PM</option><option value="late">Commands arrive 2 hours late</option><option value="mixed">All three failures</option></select></label>
+    </div>
+    <p class="small">All batteries: assumed 25 kWh / 5 kW. Initially at reserve. Failure exposure is seeded (42), so runs repeat exactly. Failure window: 4–10 PM. These are simulated devices, not Base equipment.</p>
+  </section>
+  <section aria-labelledby="result-title" class="results"><div class="section-head"><h2 id="result-title">Same day. Four policies.</h2><p id="run-status" role="status">Preparing the replay…</p></div>
+    <p class="small">The guard checks command identity, expiry, fresh telemetry, and local backup reserve. The unguarded comparison has physical power and capacity limits, but omits those four checks. The clock baseline also omits those checks.</p>
+    <div class="table-scroll"><table id="comparison"><caption class="sr-only">Policy results for this experiment</caption><thead><tr><th scope="col">Policy</th><th scope="col">Cash proxy</th><th scope="col">Inventory mark</th><th scope="col">Adjusted proxy</th><th scope="col">Exported</th><th scope="col">Reserve breaches</th></tr></thead><tbody></tbody></table></div>
+    <p class="small">Cash proxy = hourly exports minus imports at the recorded hub price. Inventory mark values the change in stored energy at the last hour's price, after discharge losses. Adjusted proxy includes that mark; it is not executed revenue or a customer bill saving. Compare both money and the remaining energy.</p>
+    <div id="verdict" class="verdict" aria-live="polite"></div>
+  </section>
+  <section class="delivery" aria-labelledby="delivery-title"><div class="section-head"><h2 id="delivery-title">Schedule versus delivery</h2><label>Inspect policy<select id="policy"><option value="guarded">Guarded price plan</option><option value="unguarded">Unguarded price plan</option><option value="clock">Fixed clock</option><option value="idle">Hold reserve</option></select></label></div><p class="small">Power at the grid connection: positive exports, negative imports. Hourly kWh equals average kW for these one-hour intervals.</p><div id="delivery-chart" class="plot" role="img"></div><p class="chart-key"><span class="planned-key">Planned</span><span class="delivered-key">Delivered</span></p></section>
+  <section aria-labelledby="devices-title"><h2 id="devices-title">Every device has a trace</h2><p class="small">Each row is one simulated battery; each column is one hour. Select a device to inspect its command ledger.</p><div class="heat-key"><span class="charge">Charge</span><span class="discharge">Discharge</span><span class="stale">Stale telemetry</span><span class="breach">Reserve breached</span><span class="hold">Hold</span></div><div id="fleet-map" class="fleet-map"></div><div class="ledger-head"><label>Device<input id="device" type="number" min="1" max="100" value="1"></label><p id="device-note"></p><button id="download-trace" type="button" disabled>Download full trace CSV</button></div><div class="table-scroll ledger"><table><caption id="ledger-caption">Command ledger for device 1</caption><thead><tr><th scope="col">Arrived (HE)</th><th scope="col">Scheduled (HE)</th><th scope="col">Attempt</th><th scope="col">Requested</th><th scope="col">Applied</th><th scope="col">Stored after</th><th scope="col">Outcome</th></tr></thead><tbody id="ledger"></tbody></table></div></section>
+  <section class="method" aria-labelledby="method-title"><h2 id="method-title">What this experiment establishes</h2><p>It tests an inspectable command contract in a small deterministic replay. A fleet or markets engineer could use this shape of test to compare the cost of conservative dispatch with violations caused by a faulty command path.</p>
+    <details><summary>Open the model, fault rules, and limits</summary><ul>
+      <li>Price planning reuses Megawatt's corrected single charge-then-discharge optimizer. Known day-ahead prices are an idealized supplied schedule input, not a real-time forecast. The timing-error case is synthetic.</li>
+      <li>Physical losses split equally between charge and discharge: each leg uses the square root of round-trip efficiency. Hourly power, stored energy, and reserve are enforced independently in replay.</li>
+      <li>For exposed devices, lost ACKs duplicate commands once; delays move commands two hours; telemetry ages from the last report at 3 PM. Commands expire after their scheduled hour. The guard holds when telemetry is over one hour old.</li>
+      <li>Idempotency is held in memory. This hourly replay has no real workers, networks, durable queues, authentication or batteries. The separate restart fixture uses actual local child processes and SQLite with a synthetic actuator. Neither is a production controller.</li>
+      <li>One recorded day and identical devices do not establish annual performance. No home load, outages, market impact, tariffs, degradation, ancillary services, settlement rules, or Base control logic are modeled. Reserve breaches here mean scheduled grid dispatch consumed reserved energy.</li>
+    </ul></details>
+    <div class="actions"><button id="share" type="button" disabled>Copy replay link</button><button id="download-run" type="button" disabled>Download replay JSON</button><a href="/demo/dispatch-bench/README.md">Five-minute engineer guide</a><a href="/demo/dispatch-bench/source.zip">Source + tests</a></div><p id="share-status" role="status"></p>
+    <p class="small">Independent work, not affiliated with Base Power. Inspired by the <a href="https://luma.com/aitx-94j6">September 2026 hackathon</a> and Base's <a href="https://inside.basepowercompany.com/p/building-a-telemetry-stack-for-the">public telemetry engineering post</a>. No claim of having entered or won.</p>
+  </section>
+</details>
+</main><footer class="site-bottom"><div class="footer-links"><a href="/about">About</a><a href="/sources">Sources</a><a href="/contact">Contact</a><a href="/privacy">Privacy</a></div><p>Independent energy experiments. No real batteries are controlled.</p></footer>
+</body></html>
