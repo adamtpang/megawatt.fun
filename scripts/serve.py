@@ -28,7 +28,7 @@ class Handler(SimpleHTTPRequestHandler):
         if path == "/notes":
             self.path = "/notes/index.html"
         elif path == "/notes/expansion-map":
-            self.path = "/notes/expansion-map.html"
+            self.send_response(301); self.send_header("Location", "/market"); self.end_headers(); return
         elif path == "/notes/where-batteries-earn-most":
             self.path = "/notes/where-batteries-earn-most.html"
         elif path == "/notes/kardashev-stack":

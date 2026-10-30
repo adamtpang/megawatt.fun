@@ -78,3 +78,36 @@
   .mm-layers button { width: 40px; min-height: 40px; }
   .mm-legend { right: 8px; }
 }
+
+/* merged map: footprint, colour picker, collapsible sections */
+.mm-map .fp { fill: none; stroke: var(--brand-foreground); stroke-width: 3; vector-effect: non-scaling-stroke; pointer-events: none; }
+.mm-map .fp.dashed { stroke: #ed6c30; stroke-dasharray: 5 4; }
+.mm-key { display: inline-block; width: 14px; height: 0; border-top: 3px solid var(--brand-foreground); vertical-align: middle; margin: 0 2px 0 6px; }
+.mm-key.dashed { border-top: 3px dashed #ed6c30; }
+.mm-key.solid:first-child { margin-left: 0; }
+.mm-colorby { display: flex; align-items: center; gap: 8px; margin: 12px 0 0; font-size: 13px; color: var(--muted); }
+.mm-colorby select { flex: 1; min-width: 0; height: 36px; padding: 0 8px; font-size: 14px; border: 1px solid var(--line); border-radius: 8px; }
+.mm-small { font-size: 12px; color: var(--muted); margin: 6px 0; }
+.mm-h { font-size: 12px; font-weight: 600; color: var(--ink); margin: 10px 0 4px; }
+.mm-why { font-size: 14px; margin: 6px 0 10px; }
+.mm-flag { font-size: 13px; margin: 4px 0; padding: 6px 8px; border-radius: 8px; background: var(--brand-subtle); color: var(--brand-foreground); }
+.mm-flag.announced, .mm-flag.hiring { background: #fde3d3; color: #8a3410; }
+.mm-sec { border-top: 1px solid var(--line); margin-top: 12px; padding-top: 10px; }
+.mm-sec > summary { cursor: pointer; font-weight: 600; font-size: 14px; }
+.mm-tier { display: flex; gap: 8px; align-items: flex-start; margin: 8px 0; }
+.mm-tier-id { flex: none; width: 34px; height: 26px; border-radius: 6px; display: grid; place-items: center; font-weight: 700; font-size: 13px; }
+.mm-tier > div { display: flex; flex-wrap: wrap; gap: 4px; }
+.mm-chip { font: 12px var(--body); border: 1px solid var(--line); background: #fff; border-radius: 99px; padding: 3px 8px; cursor: pointer; }
+.mm-chip b { font-variant-numeric: tabular-nums; color: var(--muted); font-weight: 600; }
+.mm-chip:hover, .mm-chip.on { border-color: var(--brand-foreground); background: var(--brand-subtle); }
+.mm-presets { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
+.mm-presets button { font: 12px var(--body); border: 1px solid var(--line); background: #fff; border-radius: 8px; padding: 5px 8px; cursor: pointer; }
+.mm-presets button[aria-pressed="true"] { background: var(--brand); color: var(--brand-foreground); border-color: transparent; }
+.mm-w { display: grid; grid-template-columns: 1fr 90px 24px; gap: 6px; align-items: center; font-size: 12px; margin: 4px 0; }
+.mm-w output { text-align: right; font-variant-numeric: tabular-nums; }
+.mm-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 6px; }
+.mm-table th, .mm-table td { text-align: left; padding: 4px 2px; border-bottom: 1px solid var(--line); }
+.mm-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.mm-card dl { font-size: 13px; }
+.mm-map .fp.solid { stroke: #048ee5; }
+.mm-key.solid { border-top-color: #048ee5; }

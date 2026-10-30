@@ -4,8 +4,9 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Home Battery Market Map</title>
 <link rel="canonical" href="https://megawatt.fun/market">
-<meta name="description" content="Where home backup batteries matter most: outage minutes, power prices and bills for every US state, from EIA data. Independent, not affiliated with Base Power.">
+<meta name="description" content="Where a home-battery program could go next: every US state scored on public Census, EIA-861, FEMA and ERCOT data, with outages, prices and bills as map layers. Weights you can change. Independent, not affiliated with Base Power.">
 <link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/site.css"><link rel="stylesheet" href="/market.css">
+<script src="/notes/score.js" defer></script>
 <script src="/market.js" defer></script>
 </head>
 <body class="market-page">
@@ -25,19 +26,32 @@
   <section class="mm-panel" id="overview" aria-labelledby="ov-title">
     <button class="mm-close" id="ov-toggle" type="button" aria-expanded="true" aria-controls="ov-body">Overview</button>
     <div id="ov-body">
-      <h1 id="ov-title">Where home backup matters</h1>
+      <h1 id="ov-title">Where to look next</h1>
       <p class="mm-lede" id="ov-lede">…</p>
       <div class="mm-stats" id="ov-stats"></div>
+      <label class="mm-colorby">Color the map by <select id="color-by"></select></label>
       <p class="mm-updated" id="ov-updated">…</p>
       <div class="mm-card" id="detail" aria-live="polite" hidden></div>
-      <details class="mm-method"><summary>Method and limits</summary>
-        <ul>
-          <li>Outage minutes are SAIDI with major events: the average minutes a customer was without power in a year. The map averages 2024 and 2025 because one storm can swing a single year.</li>
-          <li>Price and bill are 2024 residential averages. They are statewide, so cities and utilities differ.</li>
-          <li>This screens states. It does not rank Base's actual expansion plans, financing, licensing or interconnection rules. Base serves Texas and Illinois today, per its own site.</li>
+
+      <details class="mm-sec" id="sec-tiers" open><summary>Tier list</summary><div id="tiers"></div></details>
+      <details class="mm-sec"><summary>Score weights</summary>
+        <p class="mm-small">Each factor is a percentile across the 51 states. The score is their weighted average. Set a weight to 0 to drop it.</p>
+        <div class="mm-presets" role="group" aria-label="Weight presets">
+          <button type="button" data-preset="equal" aria-pressed="true">Equal</button><button type="button" data-preset="pull" aria-pressed="false">Customer pull</button><button type="button" data-preset="access" aria-pressed="false">Market access</button><button type="button" data-preset="nosize" aria-pressed="false">Ignore size</button>
+        </div>
+        <div id="weights"></div>
+      </details>
+      <details class="mm-sec"><summary>Utilities in the selected state</summary><div id="utilities"><p class="mm-small">Select a state.</p></div></details>
+      <details class="mm-sec"><summary>ERCOT price hot spots</summary><div id="ercot"></div></details>
+      <details class="mm-sec"><summary>Method, limits and sources</summary>
+        <ul class="mm-small" id="method">
+          <li>The score is an outside view from public data. It has no Base install times, permit outcomes, crew plans, financing terms or customer data.</li>
+          <li>The outage, price and bill layers are not in the score. Outages average 2024 and 2025 because one storm can swing a single year: Texas had 1,271 minutes in 2024 (Hurricane Beryl) and 224 in 2025.</li>
+          <li>Base footprint marks come from public posts and are not part of the score.</li>
           <li>Not affiliated with Base Power.</li>
         </ul>
-        <p id="ov-sources"></p>
+        <p class="mm-h">Left out, and why</p><ul class="mm-small" id="omitted"></ul>
+        <p class="mm-h">Sources</p><ul class="mm-small" id="sources"></ul>
       </details>
     </div>
   </section>
@@ -45,11 +59,12 @@
   <aside class="mm-legend" aria-labelledby="lg-title">
     <h2 id="lg-title" class="mm-legend-h">…</h2>
     <ol class="mm-bins" id="legend"></ol>
-    <p class="mm-legend-note"><span class="mm-base-key"></span> Base serves today</p>
+    <p class="mm-legend-note"><span class="mm-key solid"></span> Operating <span class="mm-key dashed"></span> Announced or hiring</p>
   </aside>
 
   <div class="mm-layers" role="radiogroup" aria-label="Map layer">
-    <button type="button" role="radio" aria-checked="true" data-layer="saidi_avg" title="Outage minutes">⚡<span>Outages</span></button>
+    <button type="button" role="radio" aria-checked="true" data-layer="score" title="Expansion score">★<span>Score</span></button>
+    <button type="button" role="radio" aria-checked="false" data-layer="saidi_avg" title="Outage minutes">⚡<span>Outages</span></button>
     <button type="button" role="radio" aria-checked="false" data-layer="cents_kwh" title="Power price">¢<span>Price</span></button>
     <button type="button" role="radio" aria-checked="false" data-layer="bill_usd" title="Monthly bill">$<span>Bill</span></button>
   </div>

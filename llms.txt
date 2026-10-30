@@ -10,7 +10,7 @@
 - [Energy company study](https://megawatt.fun/titans): A sourced comparative study that keeps contested and unverified claims visible.
 - [Make, move, store, sell](https://megawatt.fun/notes/kardashev-stack): An outside ranking of those four energy jobs by whether they change the Kardashev numerator. Independent of Base Power.
 - [Where batteries earn the most](https://megawatt.fun/notes/where-batteries-earn-most): Day-ahead ERCOT resource-node basis for Houston, North, and South, 27 September through 28 October 2026. Independent of Base Power.
-- [Expansion map](https://megawatt.fun/notes/expansion-map): An outside view of state and utility signals for a home-battery program, from Census, EIA-861, and FEMA. Weights are on the page. Independent of Base Power.
+- [Expansion map](https://megawatt.fun/market): An outside view of state and utility signals for a home-battery program, from Census, EIA-861, and FEMA. Weights are on the page. Independent of Base Power.
 - [About](https://megawatt.fun/about): Project purpose, operator, scope, and independence.
 - [Contact](https://megawatt.fun/contact): The project's published GitHub contact paths.
 - [Privacy](https://megawatt.fun/privacy): What the site collects, what its host processes, and what happens when visitors follow external links.

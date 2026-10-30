@@ -22,5 +22,12 @@
         }
       ]
     }
+  ],
+  "redirects": [
+    {
+      "source": "/notes/expansion-map",
+      "destination": "/market",
+      "permanent": true
+    }
   ]
 }
