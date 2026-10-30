@@ -26,6 +26,39 @@ The renderer updates static HTML in `index.html` and the public CSV so all indic
 
 For deployment, run `python scripts/package-site.py` and deploy only the printed staging directory. Its allowlist excludes private drafts and session history.
 
+## Make, move, store, sell
+
+`/notes/kardashev-stack` ranks those four jobs by whether they change K. K counts average primary power. Storage and retail do not add joules on their own. The slider uses `data/kardashev-baseline.json`: at 20.12 TW, +0.001 K is 469 GW of new average primary power. The page is an outside reading of public interviews. It is not a Base roadmap.
+
+## Expansion map
+
+`/notes/expansion-map` ranks states, and utilities with at least 10,000 residential customers, for a home-battery program. The score is a weighted average of percentile ranks. A missing factor is left out of that row's denominator. It is not stored as zero. The map colors those scores as tiers: S is a rounded score of 68 or higher, A is 58–67, B is 48–57, C is 38–47, and Later is under 38. Each state line names its two strongest weighted factors and, when one sits below the midpoint, the factor that constrains it. The bands move with the sliders. They are a reading of the public score.
+
+```sh
+python3 -m pip install openpyxl pyshp
+python3 analysis/build_expansion.py
+```
+
+The script downloads into `analysis/cache/` (gitignored) and writes `data/expansion-map.json`. Sliders in `notes/expansion-map.js` use the same percentile function as `analysis/score.py`. Shared numeric cases live in `tests/fixtures/expansion-score-cases.json`.
+
+Sources and vintages are on the page. In short: Census ACS 2024 5-year table B25032 for owner-occupied one-unit homes; EIA-861 2025 final (released 7 Oct 2026) for SAIDI, SAIFI, retail delivery share, RTO tags, net-metered batteries, demand response, and dynamic pricing; FEMA National Risk Index counties for storm and heat. The Texas section is ERCOT day-ahead node prices minus the settlement load zone (report NP4-190-CD), over the files on the public list at build time.
+
+SolarAPP+ permitting was not scored: the jurisdiction CSV returned HTTP 403, and the HTML table was only an alphabetical fragment. No national home-battery interconnection timeline was retrieved. Price volatility outside ERCOT was not filled in with a zero.
+
+The map marks are public footprint, not score bonuses. Texas is the operating retail market. Illinois is Base Retail's ComEd offer (ARES 26-0121). Georgia is a reported Central Georgia EMC plan for 2027, from a secondary article. Connecticut is a hiring post. This site is not affiliated with Base Power.
+
+## Where batteries earn the most
+
+`/notes/where-batteries-earn-most` ranks ERCOT resource nodes in load zones Houston, North, and South by day-ahead basis: node settlement price minus the load-zone price, same hour. The public nodal list is about a month. This snapshot is delivery dates 2026-09-27 through 2026-10-28, report NP4-190-CD. It is not a year, and it is not interpolated.
+
+```sh
+python3 analysis/build_congestion.py
+```
+
+Optional: `python3 -m pip install pyshp` if you want the script to be able to draw a Texas outline. The current HIFLD name join matched too few of the top nodes, so the page is a ranked chart and the map is omitted on purpose. The script writes `data/congestion.json` and refreshes the findings in `notes/where-batteries-earn-most.html`. Cached downloads stay in `analysis/cache/`.
+
+LZ_LCRA and LZ_AEN were checked. The Base post and the 11 August 2026 DSWG deck name Houston, North, and South. The settlement-point file tags resource nodes to those three zones plus West. Phase 4, in the 7 October 2026 WMS deck, dispatches nodally and still settles at the load zone. The basis is a proxy for that gap. It is not a 100 MW revenue forecast. The note is independent of Base Power.
+
 ## Supporting dispatch work
 
 ### Dispatch Bench (`/bench`)

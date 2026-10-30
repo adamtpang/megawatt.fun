@@ -1,0 +1,8 @@
+{
+  "percentiles": [
+    {"values": [1, 2, 2, 4], "ranks": [0, 0.5, 0.5, 1]},
+    {"values": [5, null, 5], "ranks": [0.5, null, 0.5]},
+    {"values": [null, 3], "ranks": [null, 1]},
+    {"values": [9, 8, 7], "ranks": [1, 0.5, 0]}
+  ]
+}

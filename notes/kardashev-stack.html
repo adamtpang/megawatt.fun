@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Make, move, store, sell — megawatt.fun</title>
+<meta name="description" content="An outside ranking of make, move, store, and sell by whether they change the Kardashev numerator. Independent analysis, not affiliated with Base Power.">
+<meta name="theme-color" content="#1e4d2b">
+<link rel="canonical" href="https://megawatt.fun/notes/kardashev-stack">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<link rel="stylesheet" href="/site.css">
+<link rel="stylesheet" href="/notes/expansion.css">
+<script src="/notes/kardashev-stack.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to the note</a>
+<header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/">Guide</a><a href="/roadmap">Roadmap</a><a href="/tools">Tools</a><details class="nav-more is-current"><summary>More</summary><div class="nav-more-menu"><a href="/market">Market map</a><a href="/base">Battery</a><a href="/bench">Battery backup test</a><a href="/live">Live</a><a href="/kardashev">Kardashev</a><a href="/titans">Energy companies</a><a href="/notes" aria-current="page">Notes</a><a href="/sources">Sources</a></div></details></nav></header>
+<main id="main" class="note">
+  <p class="meta"><a href="/notes">Notes</a> · Independent analysis, not affiliated with Base Power</p>
+  <h1>Make, move, store, sell</h1>
+  <p class="lede">Zach Dell’s stack has four jobs. The Kardashev number only counts one of them directly: primary energy a civilization uses. This is an outside ranking of those jobs, and of the public products that sit on them.</p>
+
+  <section class="prose" id="question">
+    <h2>The question</h2>
+    <p>On this site, K = (log<sub>10</sub>(P) − 6) / 10. P is average primary power. The 2024 world row used here is 176,737 TWh over a leap year, 20.12 TW, K 0.730. Type I is 10,000 TW. A tenth on the scale is ten times the power.</p>
+    <p>A battery does not add primary energy. It holds energy some generator already made, and gives it back later. That raises K only when the battery causes energy to be generated or used that otherwise would not have been: spilled noon solar that finds an evening load, or a new generator that gets built because something firms its shape. Backup hours are real for the house. They are energy that was already counted when it was made.</p>
+  </section>
+
+  <section class="deep" id="scale" aria-labelledby="scale-title">
+    <h2 id="scale-title">How much power moves the number</h2>
+    <p class="quiet">New average primary power, at the 2024 baseline. This is generation that gets used. It is not battery nameplate.</p>
+    <div class="slider">
+      <label for="dk">Move K by <output id="dk-label" for="dk">0.001</output></label>
+      <input id="dk" type="range" min="0.0002" max="0.01" step="0.0002" value="0.001">
+    </div>
+    <p class="lede" id="climb-out" aria-live="polite">+0.001 K needs 469 GW of average new primary power.</p>
+    <p class="quiet">About 206 MW is the nameplate on Base’s own August 2026 fleet chart, a partial month, with partner-utility fleets left out. That is storage, and it is more than two thousand times smaller than 469 GW. The chart is nameplate, not telemetered capability.</p>
+  </section>
+
+  <section class="prose" id="stack">
+    <h2>The four jobs</h2>
+    <p>Packy McCormick quotes Dell: “You think about the stack and power, it’s really four things: you have to make it (generation), you have to move it (transmission and distribution), you have to store it (batteries) and you have to sell it (retail and wholesale markets).” A Dealroom summary of Dell’s Founders interview says the company entered through store and sell, where scale and return looked best, and that the ambition runs across all four. Packy also writes that Dell has hinted at owning generation. This page does not treat that ambition as a published build schedule.</p>
+  </section>
+
+  <section id="tiers" aria-labelledby="tier-title">
+    <h2 id="tier-title">What to optimize</h2>
+    <p class="quiet">S changes the primary power that gets used. A makes S possible or pays for it. B grows the company on energy that was coming anyway. Later is a means, not a job on the scale.</p>
+
+    <div class="tier">
+      <p class="tier-mark">S<span>The numerator</span></p>
+      <div class="tier-cards">
+        <article class="tier-card static">
+          <header><strong>Make</strong><span class="mono">Generation</span></header>
+          <p class="why">New primary energy that is actually used is the only job that adds joules to P. Public accounts say Base entered elsewhere and that Dell has talked about owning generation. There is no plant list here. The version that climbs is a book that is short power, covered by generation someone builds because the contract exists. The battery’s job in that version is to firm the shape so the generator can be financed.</p>
+        </article>
+        <article class="tier-card static">
+          <header><strong>Move</strong><span class="mono">Wires, and the wait to connect</span></header>
+          <p class="why">Energy that cannot reach a load does not count. This site’s other bottleneck is plugging in, not only building. Base is not, on the sources below, a transmission company. The public substitute is the battery at the house: a Dealroom summary of the same interview says distributed batteries sidestep interconnection limits and congestion by sitting at the load and shifting midday solar toward the evening peak. That is store doing part of move’s work. It climbs when it delivers energy a constraint was blocking. It is not a new line. <a href="/notes/where-batteries-earn-most">The ERCOT note</a> is the public map of where day-ahead constraints were asking for that. Phase 4 would still pay the zone price, so the spread is not a payoff.</p>
+        </article>
+      </div>
+    </div>
+
+    <div class="tier">
+      <p class="tier-mark">A<span>Already shipping</span></p>
+      <div class="tier-cards">
+        <article class="tier-card static">
+          <header><strong>Store</strong><span class="mono">The battery they own</span></header>
+          <p class="why">This is the product. Base installs a battery, keeps it, and operates it. The Dealroom summary says that asset works in the wholesale market 99% of the time the grid is up, and backs up the house when the grid is down. Storage lets variable generation be used. It does not add primary energy. Point it at hours that would otherwise be spilled, and at places a constraint is binding. Backup is why a home will take the box. It is the small slice of the battery’s year.</p>
+        </article>
+        <article class="tier-card static">
+          <header><strong>Sell</strong><span class="mono">The electricity, not the box</span></header>
+          <p class="why">In most of Texas the public model is a retailer that also runs the fleet in the wholesale market. Where the utility is regulated, the public account is a sale to municipal utilities and co-ops, on the order of a decade of megawatts under contract. Selling adds no joules. It is how make and store get paid. Packy describes the retailer as short power, because it has promised to serve homes, and the fleet as long power, because it holds energy it can dispatch. That pairing is the commercial design that can cause generation. A plan that only sells outage coverage is a B.</p>
+        </article>
+      </div>
+    </div>
+
+    <div class="tier">
+      <p class="tier-mark">B<span>Real, small on K</span></p>
+      <div class="tier-cards">
+        <article class="tier-card static">
+          <header><strong>More backup</strong><span class="mono">Homes, boxes, states</span></header>
+          <p class="why">More installations matter to the company and to the houses that lose power. If the energy in the battery was going to be generated and consumed anyway, the Kardashev numerator does not move. <a href="/notes/expansion-map">The state list</a> is about where a battery program has a public case. It is not a ranking of where new primary energy would change K the most.</p>
+        </article>
+      </div>
+    </div>
+
+    <div class="tier">
+      <p class="tier-mark">Later<span>The means</span></p>
+      <div class="tier-cards">
+        <article class="tier-card static">
+          <header><strong>Factory, software, cost</strong><span class="mono">Vertical integration</span></header>
+          <p class="why">Dell describes a cost advantage from designing, building, installing, and selling under one roof. That is how store, and later make, can get cheap enough to exist in volume. It is not a fifth job on the scale. A cheaper battery climbs K only by showing up in make, move, store, or sell.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="prose" id="order">
+    <h2>The order, if the goal is K</h2>
+    <p>Make energy that gets delivered. Move energy that is stuck. Use store and sell to cause those two. The battery and the retail plan are the A that is already public. They become S when the book causes new generation, and when the fleet is placed and dispatched where energy cannot get through. Factory throughput is how many of those batteries exist. It is not the climb by itself.</p>
+    <p>Nothing here is a megawatt target for Base, a forecast of their roadmap, or a claim that a home fleet moves humanity a measurable step toward Type I. At 20 TW, even the S jobs have to be enormous before K notices. The ranking says which jobs are worth aiming at. It does not say a company of this size closes the gap.</p>
+  </section>
+
+  <section class="prose" id="limits">
+    <h2>What this is not</h2>
+    <p>Independent analysis, not affiliated with Base Power, a utility, or a market operator. No internal plan was used. Primary energy is not electricity, and a battery’s nameplate is not average generation. The 99% figure, the regulated-market contracts, and the “entered through store and sell” line are from a Dealroom summary of a podcast, not from a filing. The four-job sentence is Dell’s, as published by Not Boring on 12 August 2026. The 469 GW figure is this site’s formula at the 2024 baseline. The August 2026 fleet chart is Base’s, and it says the series is nameplate.</p>
+  </section>
+
+  <section class="prose sources" id="sources">
+    <h2>Sources</h2>
+    <ol>
+      <li>Packy McCormick, <a href="https://www.notboring.co/p/base-power-company-chapter-3">Base Power Company: Chapter 3</a>, Not Boring, 12 August 2026. Dell’s four jobs, the hint of owned generation, and the long-fleet / short-retailer description.</li>
+      <li>Dealroom, <a href="https://app.dealroom.co/news/note/zach-dell-on-building-basepower-for-the-next-50-years">Zach Dell on Building Base Power for the Next 50 Years</a>, a summary of the Founders interview. Entry through store and sell, ambition across the four, the 99% wholesale claim, and batteries at the load.</li>
+      <li>Our World in Data energy dataset, world primary energy 2024, saved as <a href="/data/kardashev-baseline.json">kardashev-baseline.json</a>, retrieved 21 September 2026. <a href="/sources#fn2">Method</a>.</li>
+      <li>Base Power, <a href="https://inside.basepowercompany.com/aggregated-ders-and-the-capacity-crunch">ADER Phase IV and the capacity crunch</a>, Chase Dowling. August 2026 fleet chart, about 206 MW nameplate.</li>
+      <li><a href="/notes/where-batteries-earn-most">Where batteries earn the most</a> and <a href="/notes/expansion-map">the expansion map</a> on this site.</li>
+    </ol>
+  </section>
+</main>
+<footer class="site-bottom">Built by <a href="https://github.com/adamtpang">Adam Pangelinan</a>. Independent analysis, not affiliated with Base Power, a utility, or a market operator. No non-public information.<br><a href="/">Guide</a><a href="/notes">Notes</a><a href="/about">About</a><a href="/contact">Contact</a><a href="/privacy">Privacy</a></footer>
+</body>
+</html>

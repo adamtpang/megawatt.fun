@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Expansion map — megawatt.fun</title>
+<meta name="description" content="A US heatmap and tier list of states for a home-battery program, scored from Census housing, EIA-861 outages and retail access, and FEMA storm and heat risk. Each tier says which public signals carry the state and which constraint holds it back.">
+<meta name="theme-color" content="#1e4d2b">
+<link rel="canonical" href="https://megawatt.fun/notes/expansion-map">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<link rel="stylesheet" href="/site.css">
+<link rel="stylesheet" href="/notes/expansion.css">
+<script src="/notes/score.js" defer></script>
+<script src="/notes/expansion-map.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to the map</a>
+<header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/">Guide</a><a href="/roadmap">Roadmap</a><a href="/tools">Tools</a><details class="nav-more is-current"><summary>More</summary><div class="nav-more-menu"><a href="/market">Market map</a><a href="/base">Battery</a><a href="/bench">Battery backup test</a><a href="/live">Live</a><a href="/kardashev">Kardashev</a><a href="/titans">Energy companies</a><a href="/notes" aria-current="page">Notes</a><a href="/sources">Sources</a></div></details></nav></header>
+<main id="main" class="note">
+  <p class="meta"><a href="/notes">Notes</a> · Independent · No Base Power data</p>
+  <h1>Where to look next</h1>
+  <p class="lede">A heatmap and a tier list of states, from public housing, outage, weather, and market data. The letter is a band on that score. The line under each state is the data that put it there, and the constraint that holds it down.</p>
+  <p class="meta" id="vintage">Loading the public datasets…</p>
+
+  <form id="weights" class="groups"></form>
+  <div class="presets" role="group" aria-label="Weight presets">
+    <button type="button" id="preset-equal" aria-pressed="true">Equal weights</button>
+    <button type="button" id="preset-pull" aria-pressed="false">Customer pull only</button>
+    <button type="button" id="preset-access" aria-pressed="false">Market access only</button>
+    <button type="button" id="preset-nosize" aria-pressed="false">Ignore size</button>
+  </div>
+
+  <div class="stage">
+    <div class="map-card">
+      <svg id="map" role="img" aria-labelledby="map-title" viewBox="0 0 960 600">
+        <title id="map-title">United States scored for a home-battery program</title>
+      </svg>
+      <div class="legend" aria-label="Tier colors">
+        <span><i class="swatch-tier s"></i>S 68+</span>
+        <span><i class="swatch-tier a"></i>A 58–67</span>
+        <span><i class="swatch-tier b"></i>B 48–57</span>
+        <span><i class="swatch-tier c"></i>C 38–47</span>
+        <span><i class="swatch-tier later"></i>Later</span>
+        <span><i class="dot op"></i>Operating</span>
+        <span><i class="dot an"></i>Announced</span>
+        <span><i class="dot hi"></i>Hiring</span>
+      </div>
+    </div>
+    <aside class="detail" id="detail" aria-live="polite">
+      <p class="quiet">Select a state.</p>
+    </aside>
+  </div>
+
+  <section class="deep" id="tiers" aria-labelledby="tier-title">
+    <h2 id="tier-title">Tier list</h2>
+    <p class="quiet">S is a rounded score of 68 or higher, A is 58–67, B is 48–57, C is 38–47, and Later is under 38. The bands follow the sliders. They are a reading of this public score. They are not a company target list. Footprint marks stay off the score.</p>
+    <div id="tier-board"></div>
+  </section>
+
+  <div class="table-wrap">
+    <table id="state-table">
+      <caption>Leaderboard at these weights</caption>
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Tier</th>
+          <th scope="col">State</th>
+          <th scope="col" class="num">Score</th>
+          <th scope="col" class="num">Homes</th>
+          <th scope="col" class="num">SAIDI min</th>
+          <th scope="col" class="num">Choice</th>
+          <th scope="col">Wholesale</th>
+        </tr>
+      </thead>
+      <tbody id="state-body"></tbody>
+    </table>
+    <p class="quiet" id="weight-note"></p>
+  </div>
+
+  <div class="table-wrap">
+    <table id="utility-table">
+      <caption>Top utilities at these weights</caption>
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Utility</th>
+          <th scope="col">State</th>
+          <th scope="col" class="num">Score</th>
+          <th scope="col" class="num">Customers</th>
+          <th scope="col" class="num">SAIDI min</th>
+          <th scope="col">Wholesale</th>
+        </tr>
+      </thead>
+      <tbody id="utility-body"></tbody>
+    </table>
+    <p class="quiet">Utilities with at least 10,000 residential customers on EIA-861, plus Central Georgia EMC so the announced co-op stays visible. Customer counts are bundled plus delivery service. Retail energy suppliers are left out so their customers are not counted twice.</p>
+  </div>
+
+  <section class="deep" aria-labelledby="suggest-title">
+    <h2 id="suggest-title">What this suggests</h2>
+    <div class="prose" id="narrative"><!-- findings:start -->
+<p>At equal weights, Michigan (76), Texas (71), and Maryland (69) lead the 51 geographies. Michigan's strongest public signals on this scale are outage duration (saidi) (98) and demand response per 1,000 customers (92). Read the score as a stack of percentiles. A high score means the public series line up. It is an outside view, with no Base install times, permit outcomes, or crew plan in it.</p>
+<p>The home-count factor rewards size. California has the most owner-occupied single-family homes, 6,771,188. With that weight set to zero, the top three become Michigan (75), Maryland (70), and Texas (68).</p>
+<p>Base's public footprint, marked on the map and kept out of the weights: Texas ranks 2 (score 71), with SAIDI 225 minutes, retail delivery share 56.2%, and wholesale mix ERCOT 88%, MISO 5%, SPP 5%. Illinois ranks 8 (score 60), with SAIDI 144 minutes, retail delivery share 22.1%, and wholesale mix PJM 71%, MISO 29%. Georgia ranks 30 (score 47), with SAIDI 270 minutes, retail delivery share 0.0%, and wholesale mix No ISO balancing authority. Connecticut ranks 19 (score 54), with SAIDI 211 minutes, retail delivery share 15.8%, and wholesale mix ISO-NE 100%.</p>
+<p>Georgia's largest balancing authority in this file is Southern Company Services, Inc. - Trans. EIA reports no residential delivery service there. A utility contract, the shape of the reported Central Georgia EMC project, does not appear in the retail-choice factor, so Georgia's rank is a weak guide to that path.</p>
+<p>The longest state SAIDI in this file is West Virginia at 1013 minutes. The highest residential delivery share is Massachusetts at 61.5%. Commonwealth Edison reports 3,753,924 residential customers, SAIDI 77 minutes, and wholesale tag PJM. Central Georgia (Central Georgia El Member Corp) reports 62,546 residential customers and SAIDI 168 minutes.</p>
+<p>Install friction and a national price-volatility series sit outside the score. The Texas section is a short public day-ahead window, a congestion example rather than a yearly value of the nodes.</p>
+<p>From 2026-09-27 through 2026-10-28, KNAPP_RN in LZ_WEST (substation KNAPP) had a 95th-percentile day-ahead basis of $196.68/MWh across 768 hours, and 53% of those hours cleared at least $20/MWh above the zone. The median resource node in LZ_HOUSTON had a 95th-percentile basis of $6.36/MWh. The constraint with the most positive shadow-price rows was 6437__F.</p>
+<!-- findings:end --></div>
+  </section>
+
+  <section class="deep" aria-labelledby="ercot-title">
+    <h2 id="ercot-title">Texas grid value</h2>
+    <div id="ercot"></div>
+  </section>
+
+  <section class="deep" aria-labelledby="limits-title">
+    <h2 id="limits-title">What was left out</h2>
+    <ul id="omitted" class="sources"></ul>
+  </section>
+
+  <section class="deep" aria-labelledby="sources-title">
+    <h2 id="sources-title">Sources</h2>
+    <ol id="sources" class="sources"></ol>
+    <p class="quiet">Rebuild with <span class="mono">python3 analysis/build_expansion.py</span> after <span class="mono">python3 -m pip install openpyxl pyshp</span>. The script caches downloads in <span class="mono">analysis/cache/</span> and rewrites <span class="mono">data/expansion-map.json</span>.</p>
+  </section>
+</main>
+<footer class="site-bottom">Built by <a href="https://github.com/adamtpang">Adam Pangelinan</a>. Not affiliated with any battery company, utility, or market operator. No non-public information.<br><a href="/">Guide</a><a href="/notes">Notes</a><a href="/about">About</a><a href="/contact">Contact</a><a href="/privacy">Privacy</a></footer>
+</body>
+</html>

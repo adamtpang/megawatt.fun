@@ -25,7 +25,15 @@ class Handler(SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(body)
             return
-        if path in {"/ops", "/market", "/deploy", "/tools", "/kardashev", "/live", "/titans", "/roadmap", "/essay", "/why", "/sources", "/base", "/bench", "/about", "/contact", "/privacy"}:
+        if path == "/notes":
+            self.path = "/notes/index.html"
+        elif path == "/notes/expansion-map":
+            self.path = "/notes/expansion-map.html"
+        elif path == "/notes/where-batteries-earn-most":
+            self.path = "/notes/where-batteries-earn-most.html"
+        elif path == "/notes/kardashev-stack":
+            self.path = "/notes/kardashev-stack.html"
+        elif path in {"/ops", "/market", "/deploy", "/tools", "/kardashev", "/live", "/titans", "/roadmap", "/essay", "/why", "/sources", "/base", "/bench", "/about", "/contact", "/privacy"}:
             self.path = path + ".html"
         super().do_GET()
 

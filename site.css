@@ -1,5 +1,34 @@
-/* Shared Megawatt system. Base public tokens verified 2026-10-19.
+/* Shared Megawatt system. Instrument Sans (OFL, /fonts) is the shipped face; Base's PP Neue Montreal is not redistributed.
+    Base public tokens verified 2026-10-19.
    Source and deliberate differences: docs/design-system.md. */
+@font-face {
+  font-family: "Instrument Sans";
+  src: url("/fonts/instrument-sans-latin-400-normal.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Instrument Sans";
+  src: url("/fonts/instrument-sans-latin-500-normal.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Instrument Sans";
+  src: url("/fonts/instrument-sans-latin-600-normal.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Instrument Sans";
+  src: url("/fonts/instrument-sans-latin-700-normal.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
 :root {
   color-scheme: light;
   --surface: #f0eeeb;
@@ -16,7 +45,7 @@
   --good: #77a45a;
   --bad: #bf5249;
   --error: #c51808;
-  --body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --body: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --display: var(--body);
   --mono: "SF Mono", Monaco, Consolas, "Liberation Mono", monospace;
   --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
