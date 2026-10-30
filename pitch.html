@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Utility Pitch</title>
+<link rel="canonical" href="https://megawatt.fun/pitch">
+<meta name="description" content="Pick any US electric utility and build a sourced one-page case for a home-battery program, in the shape Base Power sells to utilities. Outside view from public EIA, FEMA and Census data. Not affiliated with Base Power.">
+<link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/site.css"><link rel="stylesheet" href="/pitch.css">
+<script src="/pitch-core.js" defer></script>
+<script src="/pitch.js" defer></script>
+</head>
+<body class="pitch-page">
+<header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/">Guide</a><a href="/roadmap">Roadmap</a><a href="/tools">Tools</a><details class="nav-more is-current"><summary>More</summary><div class="nav-more-menu"><a href="/market">Market map</a><a href="/pitch" aria-current="page">Utility pitch</a><a href="/launch">Launch planner</a><a href="/finance">Financing</a><a href="/base">Battery</a><a href="/bench">Battery backup test</a><a href="/live">Live</a><a href="/notes">Notes</a><a href="/sources">Sources</a></div></details></nav></header>
+
+<main class="pt" id="main">
+  <section class="pt-intro">
+    <p class="pt-eyebrow">Business to government</p>
+    <h1>Utility pitch</h1>
+    <p class="pt-lede">Many US utilities are owned by a city or by their members. Pick one. One button builds a one-page case for a home-battery program, in the shape Base Power sells to utilities, from that utility's own public numbers.</p>
+    <p class="pt-disclaim">Not affiliated with Base Power. This is an outside view from public data. Base's numbers are Base's claims, and are labeled that way.</p>
+  </section>
+
+  <form class="pt-controls" id="controls" autocomplete="off">
+    <div class="pt-field pt-field-wide">
+      <label for="utility">Utility</label>
+      <input id="utility" list="utility-list" type="text" inputmode="search" placeholder="Type a name or state, e.g. CoServ or GA" aria-describedby="utility-help">
+      <datalist id="utility-list"></datalist>
+      <p class="pt-help" id="utility-help">962 utilities with at least 10,000 residential customers on EIA-861 2025.</p>
+    </div>
+    <div class="pt-field">
+      <label for="mw">Program size (MW)</label>
+      <input id="mw" type="number" min="1" max="5000" step="1" value="100" inputmode="numeric">
+    </div>
+    <div class="pt-field pt-check">
+      <input id="largeloads" type="checkbox">
+      <label for="largeloads">Large loads are waiting to connect <span class="pt-tag pt-tag-assumed">your input</span></label>
+    </div>
+    <div class="pt-actions">
+      <button class="btn pt-btn" type="submit" id="build">Build the pitch</button>
+      <button class="pt-btn pt-btn-quiet" type="button" id="print" disabled>Print / save as PDF</button>
+    </div>
+    <p class="pt-status" id="status" role="status" aria-live="polite">Loading public data...</p>
+  </form>
+
+  <article class="pt-sheet" id="sheet" hidden aria-live="polite"></article>
+
+  <section class="pt-panel" id="ranking-panel" hidden aria-labelledby="ranking-title">
+    <h2 id="ranking-title">Who to call first</h2>
+    <p class="pt-help" id="ranking-help"></p>
+    <div class="pt-table-wrap"><table class="pt-table" id="ranking"></table></div>
+  </section>
+
+  <section class="pt-panel pt-rules" aria-labelledby="rules-title">
+    <h2 id="rules-title">How the rules work</h2>
+    <h3>Program size</h3>
+    <p>Batteries = MW x 1,000 / 20, rounded up. Storage MWh = batteries x 39.2 / 1,000. Share of homes = batteries / residential customers. The 20 kW and 39.2 kWh figures are Base's published spec for its home battery.</p>
+    <h3>Percentiles</h3>
+    <p>Each signal is compared with every utility in the file that publishes it. "Higher than 80% of US utilities" means 80% of those utilities report a lower value. Missing values are shown as "not published" and are never treated as zero.</p>
+    <h3>Headline</h3>
+    <p>The headline uses the utility's strongest public signal: whichever of outage minutes (SAIDI), outage count (SAIFI), storm risk, heat-wave risk, or demand-response enrollment has the highest national percentile. Ties go in that order.</p>
+    <h3>Offer</h3>
+    <ol>
+      <li>If you mark that large loads are waiting to connect: <strong>Speed to power</strong>. No public file says this, so it is your input.</li>
+      <li>Else, if outage minutes or outage count is higher than 75% of US utilities: <strong>Distribution grid support</strong>. The 75% cutoff is an assumption.</li>
+      <li>Else, if at least half of residential customers sit in an ISO or RTO balancing authority: <strong>Bulk peaking capacity</strong>. In ERCOT, which runs an energy-only market, the fit is peak shaving. Elsewhere it is accredited capacity.</li>
+      <li>Else: <strong>Bulk peaking capacity</strong>, as peak shaving to reduce the capacity the utility must plan for.</li>
+    </ol>
+    <h3>Who to call first</h3>
+    <p>Score = residential customers x SAIDI minutes. That is a residential stand-in for customer minutes interrupted, the total outage time a utility's homes sit through in a year. It favors big utilities with long outages. SAIDI covers all customers, so the product is an approximation. Utilities with no published SAIDI go last.</p>
+  </section>
+</main>
+
+<footer class="site-bottom"><div class="footer-links"><a href="/about">About</a><a href="/sources">Sources</a><a href="/contact">Contact</a><a href="/privacy">Privacy</a></div><p>Independent energy experiments. Not affiliated with Base Power.</p></footer>
+</body>
+</html>
