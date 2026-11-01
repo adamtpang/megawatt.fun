@@ -150,3 +150,10 @@ input[type=range] { accent-color: var(--brand-foreground); }
   .site-top nav > a, .nav-more > summary { padding: 8px 6px; }
   .site-top .nav-more-menu { right: 0; left: auto; max-width: calc(100vw - 24px); }
 }
+
+/* The five home-battery company tools link to each other. */
+.gift-set { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; max-width: 960px; margin: 32px auto 0; padding: 16px; border-radius: var(--radius-panel); background: var(--surface-raised); }
+.gift-set span { flex: 1 0 100%; font-size: 13px; color: var(--muted); }
+.gift-set a { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 14px; border: 1px solid var(--line); border-radius: var(--radius-control); color: var(--ink); text-decoration: none; font-weight: 500; font-size: 15px; }
+.gift-set a:hover { border-color: var(--brand-foreground); color: var(--brand-foreground); }
+.gift-set a[aria-current=page] { background: var(--brand-subtle); border-color: transparent; color: var(--brand-foreground); }

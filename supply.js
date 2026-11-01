@@ -50,7 +50,8 @@
       $('parts').innerHTML = d.parts.map(part).join('');
       $('base').innerHTML = d.base_public.map(b => '<li>' + esc(b.claim) + ' <span class="sp-src">' +
         (b.url ? '<a href="' + esc(b.url) + '" target="_blank" rel="noopener">' + esc(b.publisher) + '</a>' : esc(b.publisher || '')) +
-        (b.date ? ', ' + esc(b.date) : '') + (b.stale ? ' <span class="sp-badge is-stale">older than 18 months</span>' : '') + '</span></li>').join('');
+        (b.date ? ', ' + esc(b.date) : '') + (b.stale ? ' <span class="sp-badge is-stale">older than 18 months</span>' : '') +
+        (b.source_quality ? ' <span class="sp-badge is-weak">' + esc(b.source_quality) + '</span>' : '') + '</span></li>').join('');
       $('gaps').innerHTML = d.gaps.map(g => '<li>' + esc(g) + '</li>').join('');
       for (const id of ['order-wrap', 'base-wrap', 'gaps-wrap']) $(id).hidden = false;
       $('status').hidden = true;

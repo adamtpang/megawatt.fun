@@ -116,3 +116,5 @@
 .mm-bars span { font-family: var(--mono); font-size: 11px; }
 .mm-bars i { height: 10px; background: var(--brand-foreground); border-radius: 3px; }
 .mm-bars b { text-align: right; font-variant-numeric: tabular-nums; }
+.mm-panel .gift-set { margin: 16px 0 0; padding: 12px 0 0; background: none; border-radius: 0; border-top: 1px solid var(--line); }
+.mm-panel .gift-set a { font-size: 14px; padding: 6px 10px; }

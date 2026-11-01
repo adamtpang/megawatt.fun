@@ -139,7 +139,7 @@
         "url": "https://www.assured-systems.com/ai-is-driving-memory-prices-through-the-roof-and-industrial-computing-isnt-immune/",
         "publisher": "Assured Systems (industrial PC vendor blog)",
         "date": null,
-        "source_quality": "vendor blog, date not verified"
+        "source_quality": "vendor blog behind a bot check; quote not verified by us"
       },
       "price_trend": {
         "value": "Conventional DRAM contract prices +45-50% QoQ in 4Q25, forecast +90-95% QoQ in 1Q26, +13-18% in 3Q26, +10-15% in 4Q26. NAND +10-15% in 3Q26 and +15-20% in 4Q26.",
@@ -361,23 +361,21 @@
         "date": "2026-06-19"
       },
       "concentration": {
-        "value": "Quectel about 36% global share; top five (Quectel, China Mobile, Fibocom, SIMCom, Telit) 74% in Q3 2025; Chinese firms over 70% overall",
-        "quote": "Quectel continued to lead the market with a 36 per cent share",
+        "value": "Top five module makers (Quectel, Fibocom, Telit Cinterion, MeiG, China Mobile IoT) held 73% of revenue in 2025; China-based suppliers lead on volume",
+        "quote": "These held a collective market share of 73% in terms of revenues.",
         "url": "https://www.computerweekly.com/news/366645256/Cellular-IoT-gains-new-heights-in-2025",
-        "publisher": "Computer Weekly, citing Counterpoint",
-        "date": null,
-        "source_quality": "page returned 403; quote from search snippet, period and date not verified"
+        "publisher": "Computer Weekly, citing Counterpoint Research",
+        "date": null
       },
       "policy": [
         {
           "name": "FCC Covered List debate on Chinese cellular modules",
           "status": "under discussion (reported May 2026); no listing found",
-          "value": null,
-          "quote": null,
+          "value": "Reported debate on adding Chinese module makers to the FCC Covered List. Chinese firms control more than 70% of the global module market.",
+          "quote": "Chinese companies, including Quectel, Fibocom, China Mobile, Sunsea, and MeiG, collectively control more than 70% of the global cellular module market.",
           "url": "https://www.tomshardware.com/tech-industry/trump-administration-reportedly-debating-ban-on-chinese-cellular-modules-in-expansion-of-fcc-crackdown-potential-restrictions-could-impact-everything-from-smart-devices-and-routers-to-connected-cars-and-industrial-iot-systems",
-          "publisher": "Tom's Hardware, citing Financial Times",
-          "date": "2026-05",
-          "source_quality": "article body not retrievable"
+          "publisher": "Tom's Hardware, citing the Financial Times",
+          "date": "2026-05-12"
         }
       ],
       "alternatives": [
@@ -411,7 +409,6 @@
         "url": "https://eepower.com/market-insights/transformer-supply-chain-woes-persist-as-energy-demand-grows/",
         "publisher": "EE Power, citing Wood Mackenzie Q2 2025 survey",
         "date": null,
-        "source_quality": "page returned 403; quote from search snippet, date not verified",
         "more": [
           {
             "quote": "while switchgear edged down to an average of 44 weeks.",
@@ -490,12 +487,11 @@
       "lead_time_note": "not found",
       "price_trend": null,
       "concentration": {
-        "value": "about 81,000 electrician openings per year projected 2024-2034, 9% growth",
-        "quote": "About 81,000 openings for electricians are projected each year, on average, over the decade.",
+        "value": "About 72,700 electrician openings per year projected 2025 to 2035; employment to grow 9%, much faster than average",
+        "quote": "About 72,700 openings for electricians are projected each year, on average, over the decade.",
         "url": "https://www.bls.gov/ooh/Construction-and-Extraction/Electricians.htm",
         "publisher": "US Bureau of Labor Statistics, Occupational Outlook Handbook",
-        "date": "2025",
-        "source_quality": "quote from search summary; exact page update date not verified"
+        "date": "2025-2035 projections, checked 2026-11-01"
       },
       "policy": [],
       "alternatives": [
@@ -551,9 +547,9 @@
           "name": "Section 232 steel and aluminum (50% since 2025-06-04; 407 derivative lines added 2025-08-18)",
           "status": "in effect",
           "value": "50% on steel/aluminum content",
-          "quote": "the Section 232 rate has been set at 50 percent since June 4, 2025",
+          "quote": "these products will now be subject to the Section 232 tariff on steel and aluminum, currently set at 50%",
           "url": "https://www.thompsonhinesmartrade.com/2025/08/bis-adds-407-derivative-products-now-subject-to-the-section-232-tariff-on-steel-and-aluminum/",
-          "publisher": "Thompson Hine (quote attributed to a Baker Botts analysis in search results; verify)",
+          "publisher": "Thompson Hine SmarTrade",
           "date": "2025-08"
         }
       ],
