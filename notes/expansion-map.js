@@ -143,13 +143,13 @@
     var row = item.row;
     var mark = row.footprint ? " · " + row.footprint.label : "";
     return "<tr data-state=\"" + row.id + "\" tabindex=\"0\" aria-selected=\"" + (row.id === selected) + "\">" +
-      "<td>" + (index + 1) + "</td><td>" + escapeHtml(window.ExpansionScore.tierOf(item.score) || "—") +
+      "<td>" + (index + 1) + "</td><td>" + escapeHtml(window.ExpansionScore.tierOf(item.score) || "n/a") +
       "</td><td>" + escapeHtml(row.name) + mark + "</td>" +
       '<td class="num">' + points(item.score) + "</td>" +
       '<td class="num">' + fmt("homes", row.values.homes) + "</td>" +
       '<td class="num">' + fmt("saidi", row.values.saidi) + "</td>" +
       '<td class="num">' + fmt("retail", row.values.retail) + "</td>" +
-      "<td>" + escapeHtml(row.detail.rtos || "—") + "</td></tr>";
+      "<td>" + escapeHtml(row.detail.rtos || "n/a") + "</td></tr>";
   }
 
   function utilityRow(item, index) {
@@ -158,15 +158,15 @@
       '<td class="num">' + points(item.score) + "</td>" +
       '<td class="num">' + fmt("homes", row.values.homes) + "</td>" +
       '<td class="num">' + fmt("saidi", row.values.saidi) + "</td>" +
-      "<td>" + escapeHtml(row.detail.rtos || "—") + "</td></tr>";
+      "<td>" + escapeHtml(row.detail.rtos || "n/a") + "</td></tr>";
   }
 
   function points(score) {
-    return score === null ? "—" : String(Math.round(score * 100));
+    return score === null ? "n/a" : String(Math.round(score * 100));
   }
 
   function fmt(id, value) {
-    if (value === null || value === undefined || value !== value) return "—";
+    if (value === null || value === undefined || value !== value) return "n/a";
     if (id === "homes" || id === "saidi") return Math.round(value).toLocaleString("en-US");
     if (id === "saifi") return Number(value).toFixed(2);
     if (id === "retail" || id === "wholesale") return (value * 100).toFixed(1) + "%";
@@ -221,9 +221,9 @@
       path.setAttribute("fill", TIER_FILL[tier] || "#d8d7d5");
       path.classList.toggle("selected", id === selected);
       var state = data.states.find(function (row) { return row.id === id; });
-      var rank = item ? item.rank : "—";
-      var pts = item ? points(item.score) : "—";
-      path.setAttribute("aria-label", (state ? state.name : id) + ", tier " + (tier || "—") + ", score " + pts + ", rank " + rank);
+      var rank = item ? item.rank : "n/a";
+      var pts = item ? points(item.score) : "n/a";
+      path.setAttribute("aria-label", (state ? state.name : id) + ", tier " + (tier || "n/a") + ", score " + pts + ", rank " + rank);
     });
   }
 
@@ -307,7 +307,7 @@
       return "<dt>" + escapeHtml(factor.label) + "</dt><dd>" + fmt(factor.id, state.values[factor.id]) + "</dd>";
     }).join("");
     document.getElementById("detail").innerHTML =
-      "<p class=\"quiet\">Tier " + (scored && scored.tier ? scored.tier : "—") + " · score " + (scored ? points(scored.score) : "—") + " · rank " + (scored ? scored.rank : "—") + " of " + data.states.length + "</p>" +
+      "<p class=\"quiet\">Tier " + (scored && scored.tier ? scored.tier : "n/a") + " · score " + (scored ? points(scored.score) : "n/a") + " · rank " + (scored ? scored.rank : "n/a") + " of " + data.states.length + "</p>" +
       "<h2>" + escapeHtml(state.name) + "</h2>" + flag +
       "<dl>" + rows + "</dl>" +
       '<p class="quiet">' + escapeHtml(state.detail.note || "") + "</p>";
@@ -334,14 +334,14 @@
     }).join("");
     var nodes = (ercot.nodes || []).map(function (node) {
       return "<tr><td>" + escapeHtml(node.name) + "</td><td>" + escapeHtml(node.zone) +
-        "</td><td>" + escapeHtml(node.substation || "—") + "</td><td class=\"num\">" + node.hours +
+        "</td><td>" + escapeHtml(node.substation || "n/a") + "</td><td class=\"num\">" + node.hours +
         "</td><td class=\"num\">" + Number(node.p95_basis).toFixed(2) + "</td><td class=\"num\">" +
         Number(node.mean_basis).toFixed(2) + "</td><td class=\"num\">" + (node.share_ge_20 * 100).toFixed(1) +
         "%</td></tr>";
     }).join("");
     var constraints = (ercot.constraints || []).map(function (row) {
-      return "<tr><td>" + escapeHtml(row.name) + "</td><td>" + escapeHtml(row.from || "—") +
-        " → " + escapeHtml(row.to || "—") + "</td><td class=\"num\">" + row.hours +
+      return "<tr><td>" + escapeHtml(row.name) + "</td><td>" + escapeHtml(row.from || "n/a") +
+        " → " + escapeHtml(row.to || "n/a") + "</td><td class=\"num\">" + row.hours +
         "</td><td class=\"num\">" + Number(row.shadow_sum).toFixed(0) + "</td></tr>";
     }).join("");
     host.innerHTML = "<p>" + escapeHtml(ercot.summary) + "</p>" +

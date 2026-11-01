@@ -25,7 +25,7 @@
       $('candidate-error').hidden = true;
     } catch (error) {
       $('candidate-results').replaceChildren();
-      for (const key of Object.keys(weights)) $(`normalized-${key}`).textContent = '—';
+      for (const key of Object.keys(weights)) $(`normalized-${key}`).textContent = 'n/a';
       $('candidate-error').textContent = error.message; $('candidate-error').hidden = false;
     }
   }

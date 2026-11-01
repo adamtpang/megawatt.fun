@@ -27,7 +27,7 @@
     <p class="small">A worker restarts and receives the same instruction. Does it act twice?</p>
     <div class="table-scroll"><table><caption class="small">Saved local process tests. Counts are applications of one 2 kWh instruction.</caption><thead><tr><th>Crash point</th><th>No durable receipt</th><th>Durable receipt</th><th>Retry decision</th></tr></thead><tbody id="restart-cases"></tbody></table></div>
     <p class="small">An uncertain receipt pauses this command. That can miss delivery. This tests real process exits with a fake actuator, not hardware or power loss.</p>
-    <div class="actions"><a href="/demo/dispatch-bench/RESTARTS.md">Read the contract</a><a href="/demo/dispatch-bench/restart-results.json">Saved results</a><a href="/demo/dispatch-bench/source.zip">Source + tests</a></div>
+    <div class="actions"><a href="/demo/dispatch-bench/RESTARTS.md">Read the contract</a><a href="/demo/dispatch-bench/restart-results.json">Saved results</a><a href="https://github.com/adamtpang/megawatt.fun/tree/main/demo/dispatch-bench">Source + tests</a></div>
   </details>
   <details class="engineer-details"><summary>Engineer details</summary><p class="small">Dispatch means telling a battery when to charge or send power to the grid. This replay compares those instructions under simulated failures.</p><p id="source-line" class="small">Loading the recorded ERCOT day…</p>
   <noscript><p>This replay needs JavaScript. Read the <a href="/demo/dispatch-bench/README.md">method and five-minute demo</a> or download <a href="/demo/dispatch-bench/results.json">the saved results</a>.</p></noscript>
@@ -59,7 +59,7 @@
       <li>Idempotency is held in memory. This hourly replay has no real workers, networks, durable queues, authentication or batteries. The separate restart fixture uses actual local child processes and SQLite with a synthetic actuator. Neither is a production controller.</li>
       <li>One recorded day and identical devices do not establish annual performance. No home load, outages, market impact, tariffs, degradation, ancillary services, settlement rules, or Base control logic are modeled. Reserve breaches here mean scheduled grid dispatch consumed reserved energy.</li>
     </ul></details>
-    <div class="actions"><button id="share" type="button" disabled>Copy replay link</button><button id="download-run" type="button" disabled>Download replay JSON</button><a href="/demo/dispatch-bench/README.md">Five-minute engineer guide</a><a href="/demo/dispatch-bench/source.zip">Source + tests</a></div><p id="share-status" role="status"></p>
+    <div class="actions"><button id="share" type="button" disabled>Copy replay link</button><button id="download-run" type="button" disabled>Download replay JSON</button><a href="/demo/dispatch-bench/README.md">Five-minute engineer guide</a><a href="https://github.com/adamtpang/megawatt.fun/tree/main/demo/dispatch-bench">Source + tests</a></div><p id="share-status" role="status"></p>
     <p class="small">Independent work, not affiliated with Base Power. Inspired by the <a href="https://luma.com/aitx-94j6">September 2026 hackathon</a> and Base's <a href="https://inside.basepowercompany.com/p/building-a-telemetry-stack-for-the">public telemetry engineering post</a>. No claim of having entered or won.</p>
   </section>
 </details>

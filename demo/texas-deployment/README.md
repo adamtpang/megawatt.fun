@@ -43,7 +43,7 @@ python -m unittest discover -s tests -p test_ercot_prices.py
 node scripts/replay-deployment.cjs
 ```
 
-No Node dependencies, credentials or model calls required. [Source + cached data + tests](source.zip) · [Results](results.json) · [All 180 monthly rows](monthly.csv) · [Market diagnostics](market-summary.json) · [Method and AI setup](METHOD.md) · [Operator validation and missing-data contract](VALIDATION.md).
+No Node dependencies, credentials or model calls required. [Source + cached data + tests](https://github.com/adamtpang/megawatt.fun/tree/main/demo/texas-deployment) · [Results](results.json) · [All 180 monthly rows](monthly.csv) · [Market diagnostics](market-summary.json) · [Method and AI setup](METHOD.md) · [Operator validation and missing-data contract](VALIDATION.md).
 
 Install ingestion/test dependencies with `python -m pip install -r scripts/requirements-market.txt`. Refresh with `python scripts/ingest-deployment.py --fetch`: this re-downloads listings **and archives**, including ERCOT corrections under unchanged document IDs. Reproduce this snapshot with `python scripts/ingest-deployment.py --as-of 2026-10-19 --offline` when raw archives are already in `.cache/deployment/`. Without raw archives, use `--fetch --as-of 2026-10-19`; corrected upstream files may yield different results. The source archive includes normalized data for the offline Node replay, not the larger upstream workbooks. URLs, timestamps and SHA-256 hashes are recorded in the [manifest](../../data/deployment/manifest.json).
 

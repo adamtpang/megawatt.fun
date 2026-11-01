@@ -10,7 +10,7 @@
     runs = null; current = null;
     $('load-error').textContent = message; $('load-error').hidden = false;
     for (const prefix of ['without', 'with']) {
-      $(prefix+'-number').textContent = '—';
+      $(prefix+'-number').textContent = 'n/a';
       $(prefix+'-caption').textContent = 'No result';
       $(prefix+'-dots').textContent = '';
       $(prefix+'-delivery').textContent = '';

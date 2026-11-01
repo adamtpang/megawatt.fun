@@ -48,7 +48,7 @@
     $('monthly-results').innerHTML = result.months.map(m => `<tr><td>${m.month}</td><td>${money(m.energy, 2)}</td><td>${money(m.wear, 2)}</td><td class="${m.net < 0 ? 'negative' : ''}">${money(m.net, 2)}</td><td>$0.00</td></tr>`).join('');
     const counts = prices.zones[point].spikeIntervalsByHour, max = Math.max(1, ...counts);
     $('spike-summary').textContent = stack.spikeIntervals ? `${number(stack.spikeIntervals)} spike intervals. ${number(stack.topThreeHourShare * 100)}% occurred in hours starting ${stack.topHours.map(h => String(h).padStart(2, '0') + ':00').join(', ')}.` : 'No intervals met the spike threshold.';
-    $('spike-chart').innerHTML = counts.map((v, h) => `<span style="height:${v / max * 100}%" title="${String(h).padStart(2, '0')}:00 — ${v} intervals" role="img" aria-label="${h}:00: ${v} spike intervals"></span>`).join('');
+    $('spike-chart').innerHTML = counts.map((v, h) => `<span style="height:${v / max * 100}%" title="${String(h).padStart(2, '0')}:00 · ${v} intervals" role="img" aria-label="${h}:00: ${v} spike intervals"></span>`).join('');
     const latest = diag.last;
     $('latest-price').textContent = `Last cached hour: ${latest[0]}, HE ${latest[1]} · DAM ${money(latest[3], 2)} · RT ${money(latest[4], 2)}/MWh. Historical, not live.`;
     $('price-download').href = `/data/deployment/${point}.csv`;
@@ -66,7 +66,7 @@
     ranked = D.rank(sites.sites, results, weight, $('segment').value);
     const alternative = D.rank(sites.sites, results, .3, $('segment').value);
     $('weight-value').textContent = `${Math.round(weight * 100)}%`; $('scale-weight').textContent = `Market size ${Math.round(100 - weight * 100)}%`;
-    $('ranked-sites').innerHTML = ranked.map((s, i) => `<tr><td><a href="#value" class="rank-target" data-county="${s.county}">${i + 1}. ${safe(s.name)}</a><span class="rank-reason">${safe(s.reason)}</span></td><td>${money(s.annualEnergy)}<span class="rank-reason">${s.zone} · ${periodLabel}</span></td><td><a class="evidence-link" href="${s.source}" target="_blank" rel="noopener">${number(s.scale)} ${safe(s.scaleLabel)} ↗</a><span class="rank-reason">Census · ${safe(s.vintage)}<br>Reviewed ${sites.reviewedAt}</span></td><td>${s.score === null ? '—' : s.score.toFixed(1)}</td></tr>`).join('');
+    $('ranked-sites').innerHTML = ranked.map((s, i) => `<tr><td><a href="#value" class="rank-target" data-county="${s.county}">${i + 1}. ${safe(s.name)}</a><span class="rank-reason">${safe(s.reason)}</span></td><td>${money(s.annualEnergy)}<span class="rank-reason">${s.zone} · ${periodLabel}</span></td><td><a class="evidence-link" href="${s.source}" target="_blank" rel="noopener">${number(s.scale)} ${safe(s.scaleLabel)} ↗</a><span class="rank-reason">Census · ${safe(s.vintage)}<br>Reviewed ${sites.reviewedAt}</span></td><td>${s.score === null ? 'n/a' : s.score.toFixed(1)}</td></tr>`).join('');
     $('ranked-sites').querySelectorAll('[data-county]').forEach(a => a.addEventListener('click', () => select(a.dataset.county)));
     $('alternative-ranking').textContent = alternative.map((s, i) => `${i + 1}. ${s.name}`).join(' → ') + (alternative.every((s, i) => ranked[i]?.id === s.id) ? ' · Same order at the current weighting.' : ' · Order changes.');
     $('conclusion').textContent = `Investigate ${ranked.map(s => `${s.name} (${money(s.annualEnergy)}/battery/year in energy cashflow)`).join(', ')} in that order under these weights. These are regional screens, not approved installations. Meter eligibility, feeder headroom, customer tariffs and verified ancillary commitments could change the order; the evidence does not yet justify allocating 10,000 batteries.`;
@@ -116,7 +116,7 @@
     if (!prices) return 'The evidence has not loaded yet. Check the data status above.';
     if (question.includes('payback')) return 'Energy cashflow is only one part of payback. We still need installed cost, operator compensation, annual costs and explicit choices for other revenues. “Use energy-only scenario” sets the extra values to zero; it does not reveal Base’s economics.';
     if (question.includes('ranking')) return `The ranking mixes backtested energy value with county market size. Try the 30% energy weighting. ${ranked[0].name} currently leads, but actual meter eligibility, tariff and feeder constraints could overturn this county-level screen. No addresses are qualified yet.`;
-    return `We replay a simple clock rule against a year of real ERCOT prices. ${site().name} uses ${site().zone} as a price proxy and produces ${money(results[site().zone].net)}/battery/year under the displayed settings. This compares regions; it is not Base revenue or a customer offer. I’m in guide mode, using the page’s calculations—not a live AI model.`;
+    return `We replay a simple clock rule against a year of real ERCOT prices. ${site().name} uses ${site().zone} as a price proxy and produces ${money(results[site().zone].net)}/battery/year under the displayed settings. This compares regions; it is not Base revenue or a customer offer. I’m in guide mode, using the page’s calculations, not a live AI model.`;
   }
   async function ask(question) {
     if (!question.trim() || busy) return;
