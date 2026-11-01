@@ -10,7 +10,7 @@
 <script src="/launch.js" defer></script>
 </head>
 <body class="launch-page">
-<header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/">Guide</a><a href="/roadmap">Roadmap</a><a href="/tools">Tools</a><details class="nav-more is-current"><summary>More</summary><div class="nav-more-menu"><a href="/market">Market map</a><a href="/pitch">Utility pitch</a><a href="/launch" aria-current="page">Launch planner</a><a href="/finance">Financing</a><a href="/base">Battery</a><a href="/bench">Battery backup test</a><a href="/live">Live</a><a href="/notes">Notes</a><a href="/sources">Sources</a></div></details></nav></header>
+<header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/">Guide</a><a href="/roadmap">Roadmap</a><a href="/tools">Tools</a><details class="nav-more is-current"><summary>More</summary><div class="nav-more-menu"><a href="/market">Market map</a><a href="/pitch">Utility pitch</a><a href="/launch" aria-current="page">Launch planner</a><a href="/finance">Financing</a><a href="/supply">Supply risks</a><a href="/base">Battery</a><a href="/bench">Battery backup test</a><a href="/live">Live</a><a href="/notes">Notes</a><a href="/sources">Sources</a></div></details></nav></header>
 
 <main class="lp" id="main">
   <section class="lp-intro">
@@ -62,6 +62,19 @@
     <h2 id="snags-title">Known snags</h2>
     <p class="lp-small">Public problems that can stretch a step. Each one is tied to the step it hits.</p>
     <ul class="lp-snags" id="snags"></ul>
+  </section>
+
+  <section class="lp-card" aria-labelledby="tennis-title">
+    <h2 id="tennis-title">Email tennis</h2>
+    <p class="lp-small">A filing goes out, comes back with a question, goes out again. Each round restarts someone's review clock. Pick how many extra rounds each step takes.</p>
+    <fieldset class="lp-seg" id="tennis-seg">
+      <legend>Extra rounds per step</legend>
+      <button type="button" data-rounds="0" aria-pressed="false">None</button>
+      <button type="button" data-rounds="1" aria-pressed="true">One</button>
+      <button type="button" data-rounds="2" aria-pressed="false">Two</button>
+    </fieldset>
+    <div class="lp-tennis-out" id="tennis-out" aria-live="polite"></div>
+    <ul class="lp-snags" id="tennis"></ul>
   </section>
 
   <section class="lp-card lp-real" aria-labelledby="real-title">

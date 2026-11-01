@@ -93,6 +93,9 @@
 .lp-snag-top { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; justify-content: space-between; }
 .lp-snags p { margin: 6px 0 0; font-size: 14px; }
 .lp-snags .lp-meta { font-size: 12px; }
+.lp-tennis-out { margin-top: 12px; padding: 12px; border-radius: 12px; background: var(--brand-subtle); }
+.lp-tennis-out p { margin: 0; }
+.lp-tennis-out p + p { margin-top: 6px; }
 .lp-real { background: #fbfaf7; }
 .lp-real-grid { display: grid; gap: 16px; }
 .lp-real h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }

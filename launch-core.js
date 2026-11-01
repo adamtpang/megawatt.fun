@@ -145,9 +145,36 @@
     return { path: 'retail', retailAllowed: true, reason: pct + '% of residential customers in ' + state.name + ' buy from a competitive supplier' + (wholesale > 0.5 ? ', and ' + Math.round(wholesale * 100) + '% are inside an ISO/RTO' : '') + '. A licensed retail provider can sell a battery plan directly, the way Base does in Texas and Illinois.' };
   }
 
+  // Email tennis loops for the steps in a path, with state-specific round costs merged in.
+  function resolveTennis(data, steps, abbr) {
+    const ids = new Set(steps.map(s => s.id));
+    return (data.tennis || []).filter(t => ids.has(t.step)).map(t => {
+      const c = Object.assign({}, t, ((t.states || {})[abbr]) || {});
+      delete c.states;
+      return c;
+    });
+  }
+
+  // Add `rounds` extra back-and-forth rounds to every step that has a loop,
+  // then reschedule. Returns the new schedule and the weeks it added.
+  function tennisCost(steps, loops, rounds, key) {
+    key = key || 'low';
+    const base = schedule(steps, key);
+    const extra = Object.fromEntries(loops.map(t => [t.step, t.round_weeks * rounds]));
+    const trial = steps.map(s => extra[s.id] ? Object.assign({}, s, { [key]: durationOf(s, key) + extra[s.id] }) : s);
+    const after = schedule(trial, key);
+    const first = r => r.steps.first_installs ? r.steps.first_installs.ef : r.total;
+    // Which single loop, if it took one round, delays first install most?
+    const worst = loops.map(t => {
+      const one = steps.map(s => s.id === t.step ? Object.assign({}, s, { [key]: durationOf(s, key) + t.round_weeks }) : s);
+      return { step: t.step, delay: round1(first(schedule(one, key)) - first(base)) };
+    }).sort((a, b) => b.delay - a.delay)[0] || null;
+    return { schedule: after, addedFirst: round1(first(after) - first(base)), addedTotal: round1(after.total - base.total), worst };
+  }
+
   function weeksToMonths(w) { return round1(w * 7 / 30.4375); }
 
-  const api = { topoOrder, schedule, applyEdits, bestShortening, resolveSteps, suggestPath, weeksToMonths };
+  const api = { topoOrder, schedule, applyEdits, bestShortening, resolveSteps, suggestPath, weeksToMonths, resolveTennis, tennisCost };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (typeof window !== 'undefined') window.LaunchCore = api;
 })(typeof window !== 'undefined' ? window : globalThis);

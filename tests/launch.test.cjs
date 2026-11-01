@@ -117,3 +117,28 @@ test('path suggestion follows retail share from the expansion map', () => {
   const tx = L.resolveSteps(data, 'retail', 'TX');
   assert.equal(tx.find(s => s.id === 'edi').source, 'ercot-flights');
 });
+
+test('email tennis: rounds add weeks, state rules override round cost', () => {
+  const steps = [step('a', 2), step('b', 3, ['a']), step('c', 1, ['a']), step('first_installs', 1, ['b', 'c'])];
+  const loops = [{ step: 'b', round_weeks: 2 }, { step: 'c', round_weeks: 1 }];
+  const zero = L.tennisCost(steps, loops, 0, 'low');
+  assert.equal(zero.addedFirst, 0);
+  const one = L.tennisCost(steps, loops, 1, 'low');
+  assert.equal(one.addedFirst, 2); // b is critical: 3 + 2; c becomes 2 and still has slack
+  assert.equal(one.worst.step, 'b');
+  assert.equal(L.tennisCost(steps, loops, 2, 'low').addedFirst, 4);
+  // Every loop points at a real step, has a fix, and sourced loops name a known source.
+  const allIds = new Set(Object.values(data.paths).flatMap(p => p.steps.map(s => s.id)));
+  for (const t of data.tennis) {
+    assert.ok(allIds.has(t.step), t.step);
+    assert.ok(t.fix && t.round_weeks > 0, t.step);
+    for (const o of Object.values(t.states || {})) assert.ok(data.sources[o.source], t.step + ' source');
+  }
+  const tx = L.resolveTennis(data, L.resolveSteps(data, 'retail', 'TX'), 'TX');
+  assert.equal(tx.find(t => t.step === 'edi').round_weeks, 17);
+  assert.equal(tx.find(t => t.step === 'edi').basis, 'partly');
+  const oh = L.resolveTennis(data, L.resolveSteps(data, 'retail', 'OH'), 'OH');
+  assert.equal(oh.find(t => t.step === 'edi').basis, 'assumption');
+  const ga = L.resolveTennis(data, L.resolveSteps(data, 'utility', 'GA'), 'GA');
+  assert.ok(ga.some(t => t.step === 'approval') && !ga.some(t => t.step === 'edi'));
+});

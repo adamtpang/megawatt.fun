@@ -6,7 +6,7 @@
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const fmt = w => (Math.round(w * 10) / 10).toString();
 
-  const ui = { abbr: 'GA', path: 'utility', kase: 'low', edits: {} };
+  const ui = { abbr: 'GA', path: 'utility', kase: 'low', edits: {}, rounds: 1 };
   let DATA, MAP, STATES;
 
   function editKey() { return ui.abbr + ':' + ui.path; }
@@ -88,6 +88,7 @@
     renderGantt(list, cur);
     renderSteps(list, cur);
     renderSnags(list, cur);
+    renderTennis(list, cur);
     renderReal(list);
     $('gantt-note').textContent = (ui.kase === 'low' ? 'Fast' : 'Slow') + ' case. Critical path: ' + cur.criticalPath.map(name).join(' > ') + '. Bars start when every step they depend on has finished.';
   }
@@ -149,6 +150,31 @@
       return '<li><div class="lp-snag-top"><strong>' + esc(n.title) + '</strong><span class="lp-badge ' + (n.source ? 'is-sourced' : 'is-assumption') + '">' + esc(n.kind) + '</span></div>' +
         '<p>' + esc(n.note) + '</p>' +
         '<p class="lp-meta">Hits: ' + esc(byId[n.step].name) + (crit ? ' (on the critical path now)' : ' (has slack now)') + (n.source ? '. Source: ' + srcLink(n.source) : '. Not sourced; an open question.') + '</p></li>';
+    }).join('');
+  }
+
+  function renderTennis(list, sch) {
+    const byId = Object.fromEntries(list.map(s => [s.id, s]));
+    const loops = L.resolveTennis(DATA, list, ui.abbr);
+    const cost = L.tennisCost(list, loops, ui.rounds, ui.kase);
+    const caseName = ui.kase === 'low' ? 'fast' : 'slow';
+    let out;
+    if (!ui.rounds) {
+      out = '<p><b>Every step clean on the first try.</b> That is the timeline above. Pick one or two rounds to see what back and forth costs.</p>';
+    } else {
+      out = '<p><b>' + (ui.rounds === 1 ? 'One extra round' : 'Two extra rounds') + ' on every step adds ' + fmt(cost.addedFirst) + ' weeks</b> before the first install (' + caseName + ' case), about ' + months(cost.addedFirst) + ' months.</p>';
+    }
+    if (cost.worst && cost.worst.delay > 0) {
+      out += '<p class="lp-small">Most expensive single loop: <strong>' + esc(byId[cost.worst.step].name) + '</strong>. One round there delays the first install by ' + fmt(cost.worst.delay) + ' weeks. Get that packet right first.</p>';
+    }
+    $('tennis-out').innerHTML = out;
+    $('tennis').innerHTML = loops.map(t => {
+      const crit = sch.steps[t.step] && sch.steps[t.step].critical;
+      const badge = t.basis === 'partly' ? '<span class="lp-badge is-partly">partly sourced</span>' : '<span class="lp-badge is-assumption">assumption</span>';
+      return '<li><div class="lp-snag-top"><strong>' + esc(byId[t.step].name) + '</strong>' + badge + '</div>' +
+        '<p><b>' + fmt(t.round_weeks) + ' weeks a round</b> with ' + esc(t.with.charAt(0).toLowerCase() + t.with.slice(1)) + '. ' + esc(t.bounce) + '</p>' +
+        '<p><b>One-pass fix:</b> ' + esc(t.fix) + '</p>' +
+        '<p class="lp-meta">' + (t.note ? esc(t.note) + ' ' : '') + (t.source ? 'Source: ' + srcLink(t.source) + '.' : 'Round cost is an assumption, replace with your own data.') + (crit ? ' On the critical path now.' : '') + '</p></li>';
     }).join('');
   }
 
@@ -218,6 +244,10 @@
       if (again) again.focus({ preventScroll: true });
     });
     $('reset').addEventListener('click', () => { ui.edits[editKey()] = {}; render(); });
+    $('tennis-seg').addEventListener('click', e => {
+      const b = e.target.closest('button[data-rounds]'); if (!b) return;
+      ui.rounds = Number(b.dataset.rounds); setPressed('tennis-seg', 'rounds', b.dataset.rounds); render();
+    });
   }
 
   async function init() {

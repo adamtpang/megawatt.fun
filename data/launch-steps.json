@@ -300,6 +300,88 @@
       }
     }
   },
+  "tennis_about": "Email tennis: a filing or request goes out, comes back with a question or a gap, and goes out again. Each round costs weeks because the other side's review clock usually restarts. round_weeks is the cost of one extra round. Sourced where a rule sets the clock, otherwise an assumption.",
+  "tennis": [
+    {
+      "step": "license",
+      "with": "State commission staff",
+      "bounce": "Deficiency notice: the license filing is missing a document, a bond detail, or an answer.",
+      "round_weeks": 4,
+      "basis": "assumption",
+      "fix": "Book a pre-filing call with staff, then file against the rule's own list of required items, line by line. Answer any staff question within two business days.",
+      "states": {
+        "TX": { "round_weeks": 5, "basis": "partly", "source": "puct-25107", "note": "PUCT 25.107 gives staff 20 days and the presiding officer 10 more to rule on sufficiency. A deficient filing goes through that 30-day review again after the cure, so one round is about 4 to 5 weeks before the 90-day clock even starts." },
+        "IL": { "round_weeks": 6, "basis": "partly", "source": "il-ares", "note": "220 ILCS 5/16-115 counts its 45 days from a complete application. An incomplete one means curing it and starting the 45 days over, so one round is roughly 6 weeks." }
+      }
+    },
+    {
+      "step": "edi",
+      "with": "Each distribution utility and the market's testing desk",
+      "bounce": "A test transaction fails, gets fixed, and has to be retested with the utility.",
+      "round_weeks": 4,
+      "basis": "assumption",
+      "fix": "Run the published test scripts against your own system before the official window. Name one tester per utility and keep one shared defect list instead of separate threads.",
+      "states": {
+        "TX": { "round_weeks": 17, "basis": "partly", "source": "ercot-flights", "note": "ERCOT tests in fixed flights. If a retailer does not finish a flight, the next one ends about 16 to 19 weeks later (Mar 6 to Jun 22, Jun 22 to Oct 30 in 2026). One lost round here costs about four months." }
+      }
+    },
+    {
+      "step": "wholesale",
+      "with": "ISO/RTO registration desk",
+      "bounce": "Collateral, credit, or registration forms come back with questions.",
+      "round_weeks": 2,
+      "basis": "assumption",
+      "fix": "Post collateral and file credit documents together with the registration, not after the first question."
+    },
+    {
+      "step": "permitting",
+      "with": "Local permit offices (AHJs)",
+      "bounce": "Plan review corrections: a missing spec sheet, a placement question, a labeling note.",
+      "round_weeks": 2,
+      "basis": "assumption",
+      "fix": "One standard permit packet per jurisdiction (one-line diagram, listing certificates, spec sheets, placement drawing), built from that office's checklist. Use instant online permitting where the jurisdiction offers it."
+    },
+    {
+      "step": "utility_notice",
+      "with": "The distribution utility's interconnection team",
+      "bounce": "The notification or application comes back incomplete.",
+      "round_weeks": 2,
+      "basis": "assumption",
+      "fix": "Submit the utility's own form with every attachment in one go, and agree on a standard packet for all later homes."
+    },
+    {
+      "step": "deal",
+      "with": "The utility's program, planning and legal teams",
+      "bounce": "Redlines and data requests: what is the capacity worth, who pays, how is it measured.",
+      "round_weeks": 3,
+      "basis": "assumption",
+      "fix": "Lead with the numbers the utility will ask for: avoided cost, outage minutes, unit economics. The utility pitch and financing pages on this site build that packet."
+    },
+    {
+      "step": "approval",
+      "with": "Commission staff, intervenors, or a co-op board",
+      "bounce": "Data requests on cost-effectiveness, customer protection, and measurement.",
+      "round_weeks": 6,
+      "basis": "assumption",
+      "fix": "Pre-answer the standard data requests inside the filing, and brief staff before filing so the first questions come in a meeting, not a letter."
+    },
+    {
+      "step": "program",
+      "with": "The utility's program and measurement teams",
+      "bounce": "How capacity is counted and tested changes after design has started.",
+      "round_weeks": 3,
+      "basis": "assumption",
+      "fix": "Sign off the baseline and the test method in writing before designing anything else."
+    },
+    {
+      "step": "dispatch",
+      "with": "The utility's grid control and IT security teams",
+      "bounce": "Integration spec questions and security reviews go back and forth.",
+      "round_weeks": 2,
+      "basis": "assumption",
+      "fix": "Agree on one integration test plan and one security questionnaire at kickoff, with a named owner on each side."
+    }
+  ],
   "snags": [
     {
       "id": "permit-data",
