@@ -23,10 +23,22 @@
   };
 
   let E, M, states, weights = {}, scored = {}, layer = 'score', selected = null, svg, view, home, byName = {};
+  let yours = null, publicZ = null; // yours: { factors, values: { TX: { id: n } } } from a loaded file; never written into E
   const data = (name) => byName[name];
+  // Public factors, then the company's own ("Yours") factors from a loaded file.
+  const allFactors = () => (yours ? E.factors.concat(yours.factors) : E.factors);
+  const isYours = (id) => !!(yours && yours.factors.some((f) => f.id === id));
+  // A factor's raw value for a state or utility row. Your metrics are per state only.
+  function val(row, f) {
+    if (!f.yours) return row.values[f.id];
+    const v = row.abbr && !row.state && yours.values[row.abbr];
+    return v && v[f.id] != null ? v[f.id] : null;
+  }
+  const yoursTag = (f) => (f.yours ? ' <span class="mm-badge">Yours</span>' : '');
 
   function factorFmt(id, v) {
     if (v === null || v === undefined || v !== v) return 'n/a';
+    if (isYours(id)) return fmt(v, Number.isInteger(v) ? 0 : 2);
     if (id === 'homes' || id === 'saidi') return fmt(v);
     if (id === 'saifi') return fmt(v, 2);
     if (id === 'retail' || id === 'wholesale') return fmt(v * 100, 1) + '%';
@@ -35,10 +47,11 @@
   }
 
   // ---------- scoring (same math as Cursor's page, via notes/score.js) ----------
-  function rank(rows) {
+  function rank(rows, fs = allFactors()) {
     const table = {};
-    E.factors.forEach((f) => {
-      const r = S().percentileRanks(rows.map((row) => row.values[f.id]));
+    rows.forEach((row) => { table[row.id] = { id: row.id }; });
+    fs.forEach((f) => {
+      const r = S().percentileRanks(rows.map((row) => (window.MarketCore ? window.MarketCore.rankValue(f, val(row, f)) : val(row, f))));
       rows.forEach((row, i) => { (table[row.id] = table[row.id] || { id: row.id })[f.id] = r[i]; });
     });
     const rankRows = rows.map((row) => table[row.id]);
@@ -55,9 +68,9 @@
 
   function why(name) {
     const st = data(name), it = scored[name];
-    const parts = E.factors.filter((f) => weights[f.id] > 0 && it.factors[f.id] != null).map((f) => ({ f, r: it.factors[f.id] })).sort((a, b) => b.r - a.r);
+    const parts = allFactors().filter((f) => weights[f.id] > 0 && it.factors[f.id] != null).map((f) => ({ f, r: it.factors[f.id] })).sort((a, b) => b.r - a.r);
     if (!parts.length) return 'No weighted factor has a published value here.';
-    const ph = (f) => `${f.label.toLowerCase()} ${factorFmt(f.id, st.values[f.id])}`;
+    const ph = (f) => `${f.yours ? 'your ' + f.label : f.label.toLowerCase()} ${factorFmt(f.id, val(st, f))}`;
     let t = 'Leads on ' + parts.slice(0, 2).map((p) => ph(p.f)).join(' and ') + '.';
     const low = parts[parts.length - 1];
     if (parts.length > 2 && low.r < 0.5) t += ' Weakest: ' + ph(low.f) + '.';
@@ -90,8 +103,8 @@
       $('legend').innerHTML = labs.map((t, i) => `<li><i style="background:${WARM[3 - i]}"></i>${t}</li>`).join('');
       return;
     }
-    const f = E.factors.find((x) => x.id === layer);
-    $('lg-title').textContent = f.label + ' (rank among states)';
+    const f = allFactors().find((x) => x.id === layer);
+    $('lg-title').textContent = f.label + (f.yours ? ' (yours, ' + (f.higherIsBetter ? '' : 'lower is better, ') + 'rank among states)' : ' (rank among states)');
     $('legend').innerHTML = ['Top quarter', 'Second quarter', 'Third quarter', 'Bottom quarter'].map((t, i) => `<li><i style="background:${WARM[3 - i]}"></i>${t}</li>`).join('') + '<li><i style="background:#eceae6"></i>No data</li>';
   }
 
@@ -134,7 +147,7 @@
     svg.querySelectorAll('.st').forEach((p) => p.classList.toggle('sel', p.dataset.name === name));
     document.querySelectorAll('.mm-chip').forEach((b) => b.classList.toggle('on', b.dataset.state === name));
     const fp = st.footprint ? `<p class="mm-flag ${st.footprint.status}"><b>${esc(st.footprint.label)}.</b> ${esc(st.footprint.detail)}</p>` : '';
-    const rows = E.factors.map((f) => `<dt>${esc(f.label)}</dt><dd>${factorFmt(f.id, st.values[f.id])}</dd>`).join('');
+    const rows = allFactors().map((f) => `<dt>${esc(f.label)}${yoursTag(f)}</dt><dd>${factorFmt(f.id, val(st, f))}</dd>`).join('');
     const c = $('detail'); c.hidden = false;
     c.innerHTML = `<p class="mm-small">Tier ${it.tier || 'n/a'} · score ${pts(it.score)} · #${it.rank} of ${states.length}</p>
       <h2>${esc(name)}</h2>${fp}<p class="mm-why">${esc(why(name))}</p>
@@ -151,19 +164,24 @@
   function utilities(st) {
     const rows = E.utilities.filter((u) => u.state === st.abbr);
     if (!rows.length) { $('utilities').innerHTML = `<p class="mm-small">No utilities listed for ${esc(st.name)}.</p>`; return; }
-    const ranked = rank(rows).sort((a, b) => (b.score ?? -1) - (a.score ?? -1)).slice(0, 8);
+    const ranked = rank(rows, E.factors).sort((a, b) => (b.score ?? -1) - (a.score ?? -1)).slice(0, 8);
     $('utilities').innerHTML = `<p class="mm-small">${rows.length} utilities in ${esc(st.name)}, scored against each other with the same weights. Top ${ranked.length}:</p><table class="mm-table"><thead><tr><th>Utility</th><th class="num">Score</th><th class="num">Homes</th><th class="num">Outage min</th></tr></thead><tbody>` +
       ranked.map((it) => `<tr><td>${esc(it.row.name)}</td><td class="num">${pts(it.score)}</td><td class="num">${factorFmt('homes', it.row.values.homes)}</td><td class="num">${factorFmt('saidi', it.row.values.saidi)}</td></tr>`).join('') + '</tbody></table>';
   }
 
   // ---------- weights ----------
+  // Sliders for every factor. Public weights keep their current value when your factors come and go.
+  function renderWeights() {
+    let group = '';
+    $('weights').innerHTML = allFactors().map((f) => {
+      if (weights[f.id] === undefined) weights[f.id] = f.weight;
+      const h = f.group !== group ? `<p class="mm-h">${esc((group = f.group))}${f.yours ? ' <span class="mm-badge">from your file</span>' : ''}</p>` : '';
+      return h + `<label class="mm-w" title="${esc(f.help)}"><span>${esc(f.label)}</span><input type="range" min="0" max="3" step="0.5" value="${weights[f.id]}" data-w="${esc(f.id)}"><output id="o-${esc(f.id)}">${weights[f.id]}</output></label>`;
+    }).join('');
+  }
   function weightsUI() {
     E.factors.forEach((f) => { weights[f.id] = f.weight; });
-    let group = '';
-    $('weights').innerHTML = E.factors.map((f) => {
-      const h = f.group !== group ? `<p class="mm-h">${esc((group = f.group))}</p>` : '';
-      return h + `<label class="mm-w" title="${esc(f.help)}"><span>${esc(f.label)}</span><input type="range" min="0" max="3" step="0.5" value="${f.weight}" data-w="${f.id}"><output id="o-${f.id}">${f.weight}</output></label>`;
-    }).join('');
+    renderWeights();
     $('weights').addEventListener('input', (e) => {
       const id = e.target.dataset.w; if (!id) return;
       weights[id] = Number(e.target.value); $('o-' + id).textContent = e.target.value;
@@ -171,10 +189,10 @@
     });
     document.querySelectorAll('[data-preset]').forEach((b) => b.addEventListener('click', () => {
       const p = b.dataset.preset;
-      E.factors.forEach((f) => {
+      allFactors().forEach((f) => {
         const on = p === 'pull' ? f.group === 'Customer pull' : p === 'access' ? f.group === 'Market access' : p === 'nosize' ? f.id !== 'homes' : true;
         weights[f.id] = on ? f.weight : 0;
-        document.querySelector(`[data-w="${f.id}"]`).value = weights[f.id]; $('o-' + f.id).textContent = weights[f.id];
+        document.querySelector(`[data-w="${CSS.escape(f.id)}"]`).value = weights[f.id]; $('o-' + f.id).textContent = weights[f.id];
       });
       document.querySelectorAll('[data-preset]').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); paint();
     }));
@@ -192,8 +210,12 @@
       .map((s) => `<li>${s.url ? `<a href="${esc(s.url)}">${esc(s.title)}</a>` : esc(s.title)}${s.detail ? '. ' + esc(s.detail) : ''}</li>`).join('') +
       '<li>Data files: <a href="/data/expansion-map.json">expansion-map.json</a>, <a href="/data/market-states.json">market-states.json</a></li>';
     $('ov-updated').textContent = E.vintage;
-    const opts = [['score', 'Expansion score'], ['saidi_avg', 'Outage minutes (2-yr avg)'], ['cents_kwh', 'Power price'], ['bill_usd', 'Monthly bill'], ...E.factors.map((f) => [f.id, f.label + ' (rank)'])];
-    $('color-by').innerHTML = opts.map(([v, l]) => `<option value="${v}">${esc(l)}</option>`).join('');
+    colorByOptions();
+  }
+  function colorByOptions() {
+    const opts = [['score', 'Expansion score'], ['saidi_avg', 'Outage minutes (2-yr avg)'], ['cents_kwh', 'Power price'], ['bill_usd', 'Monthly bill'], ...allFactors().map((f) => [f.id, (f.yours ? 'Yours: ' : '') + f.label + ' (rank)'])];
+    $('color-by').innerHTML = opts.map(([v, l]) => `<option value="${esc(v)}">${esc(l)}</option>`).join('');
+    $('color-by').value = layer;
   }
 
   // ---------- map geometry, pan and zoom ----------
@@ -269,18 +291,59 @@
 
   function zoneValue(z) {
     if (!z) { $('zone-value').innerHTML = '<p class="mm-small">Zone values failed to load.</p>'; return; }
-    const max = Math.max(...z.zones.map((x) => x.usdPerYear));
-    $('zone-value').innerHTML = `<p class="mm-small">What one Base Core (20 kW / 39.2 kWh) would have earned from buying cheap power at night and selling it 5 to 9 PM, at each ERCOT settlement point, ${esc(z.period.start)} to ${esc(z.period.endExclusive)} (12 real months). Energy arbitrage only: no capacity, tolling, backup or retail revenue. Not Base revenue.</p>` +
-      '<ol class="mm-bars">' + z.zones.map((x) => `<li><span>${esc(x.id)}</span><i style="width:${Math.max(2, (x.usdPerYear / max) * 100)}%"></i><b>$${fmt(x.usdPerYear)}</b></li>`).join('') + '</ol>' +
+    const max = Math.max(...z.zones.map((x) => x.usdPerYear), 1e-9);
+    const mine = z.zones.filter((x) => x.yours).length;
+    const note = mine ? `<p class="mm-flag"><b>Yours.</b> Your file replaced ${mine} of ${z.zones.length} zone values. Zones marked Yours show your number; the rest are the public backtest below.</p>` : '';
+    $('zone-value').innerHTML = note + `<p class="mm-small">${mine ? 'Public method: what' : 'What'} one Base Core (20 kW / 39.2 kWh) would have earned from buying cheap power at night and selling it 5 to 9 PM, at each ERCOT settlement point, ${esc(z.period.start)} to ${esc(z.period.endExclusive)} (12 real months). Energy arbitrage only: no capacity, tolling, backup or retail revenue. Not Base revenue.</p>` +
+      '<ol class="mm-bars">' + z.zones.map((x) => `<li${x.yours ? ` class="is-yours" title="Your file. Public value was $${fmt(x.publicUsdPerYear)}."` : ''}><span>${esc(x.id)}${x.yours ? ' <em>Yours</em>' : ''}</span><i style="width:${Math.max(2, (x.usdPerYear / max) * 100)}%"></i><b>$${fmt(x.usdPerYear)}</b></li>`).join('') + '</ol>' +
       `<p class="mm-small">Load zones (LZ_) are where homes settle; hubs (HB_) are trading averages. Best: ${esc(z.zones[0].id)} ($${fmt(z.zones[0].usdPerYear)} a year). Worst: ${esc(z.zones[z.zones.length - 1].id)} ($${fmt(z.zones[z.zones.length - 1].usdPerYear)}). See <a href="/deploy">/deploy</a> for monthly detail and <a href="/finance">/finance</a> for what this means for debt.</p>`;
   }
 
+  // ---------- your own data (yourdata.js panel, validation in market-core.js) ----------
+  function useStates(r) {
+    yours = r ? { factors: r.factors.map((f) => ({ ...f, yours: true, group: 'Yours', weight: 1, help: 'From your file. ' + (f.higherIsBetter ? 'Higher is better.' : 'Lower is better.') })), values: r.values } : null;
+    Object.keys(weights).forEach((id) => { if (id.startsWith('yours_')) delete weights[id]; });
+    if (layer.startsWith('yours_') && !isYours(layer)) layer = 'score';
+    renderWeights(); colorByOptions(); setLayer(layer);
+  }
+  function useZones(zones) { zoneValue(zones && publicZ ? window.MarketCore.applyZones(publicZ, zones) : publicZ); }
+  function mountYourData() {
+    if (!window.YourData || !window.MarketCore || !$('yourdata')) return;
+    const MC = window.MarketCore, Y = window.YourData;
+    const templates = [{ name: 'market-state-metrics.csv', label: 'State metrics template', text: () => Y.toCSV(MC.stateTemplateRows(), MC.STATE_TEMPLATE_COLUMNS) }];
+    if (publicZ) templates.push({ name: 'market-zone-values.csv', label: 'Texas zone values template', text: () => Y.toCSV(MC.zoneTemplateRows(publicZ), ['zone', 'usd_per_year']) });
+    Y.mount({
+      el: $('yourdata'),
+      tool: 'market',
+      what: 'your own per-state metrics (install cost, CAC, permit days, pipeline) or your own Texas zone values',
+      docs: '/plug-and-play#market',
+      templates,
+      load(parsed) {
+        const r = MC.load(parsed, publicZ ? publicZ.zones.map((x) => x.id) : []);
+        if (r.kind === 'states') {
+          return {
+            errors: r.errors, warnings: r.warnings,
+            summary: `${r.factors.length} metric${r.factors.length === 1 ? '' : 's'} added to the score (${r.factors.map((f) => f.label).join(', ')}), weight 1 each, tagged Yours under Score weights and in Color the map by.`,
+            apply: () => { useZones(null); useStates(r); },
+          };
+        }
+        const n = Object.keys(r.zones || {}).length;
+        return {
+          errors: r.errors, warnings: r.warnings,
+          summary: `${n} Texas zone value${n === 1 ? '' : 's'} replaced in "Where one battery earns most".`,
+          apply: () => { if (yours) useStates(null); useZones(r.zones); $('sec-value').open = true; },
+        };
+      },
+      reset: () => { useStates(null); useZones(null); },
+    });
+  }
+
   Promise.all([fetch('/data/expansion-map.json').then((r) => r.json()), fetch('/data/market-states.json').then((r) => r.json()), fetch('/data/zone-value.json').then((r) => r.json()).catch(() => null)]).then(([e, m, z]) => {
-    E = e; M = m; zoneValue(z);
+    E = e; M = m; publicZ = z; zoneValue(z);
     const shape = Object.fromEntries(m.states.map((s) => [s.name, s]));
     states = e.states.filter((s) => shape[s.name]).map((s) => ({ ...shape[s.name], ...s, values: s.values, detail: s.detail || {} }));
     byName = Object.fromEntries(states.map((s) => [s.name, s]));
-    weightsUI(); staticSections(); build(); controls(); paint();
+    weightsUI(); staticSections(); build(); controls(); paint(); mountYourData();
     const q = new URLSearchParams(location.search).get('state');
     if (q && byName[q]) { detail(q); fitTo(q); }
   }).catch((err) => { $('ov-lede').textContent = 'The map data failed to load.'; console.error(err); });

@@ -6,6 +6,8 @@
   const SVG = 'http://www.w3.org/2000/svg';
 
   let defaults = null;
+  let publicDefaults = null;
+  let arbOverride = null;
   let zones = [];
   let zoneMeta = null;
 
@@ -31,6 +33,7 @@
   }
 
   function tag(kind) {
+    if (kind === 'yours') return el('span', { class: 'tag tag-yours', text: 'Yours' });
     return el('span', { class: `tag ${kind === 'sourced' ? 'tag-src' : 'tag-asm'}`, text: kind === 'sourced' ? 'Sourced' : 'Assumption' });
   }
 
@@ -91,7 +94,7 @@
       raw[f.key] = v === '' ? 0 : Number(v);
     }
     const z = zones.find((x) => x.id === $('zone').value);
-    raw.arbPerYear = z ? z.usdPerYear : 0;
+    raw.arbPerYear = arbOverride != null ? arbOverride : (z ? z.usdPerYear : 0);
     return F.normalize(raw);
   }
 
@@ -259,6 +262,39 @@
     renderSens(inp);
   }
 
+  // Plug in a company's own inputs (yourdata.js). The public defaults stay untouched.
+  function useDefaults(d, arb) {
+    defaults = d;
+    arbOverride = arb;
+    buildInputs();
+    setDefaults();
+    renderLedger();
+    buildZones();
+    if (arb != null) $('zone-note').textContent = `Using your arbitrage value, $${Math.round(arb)} per battery per year. The zone list is ignored.`;
+    update();
+  }
+
+  function mountYourData() {
+    if (!window.YourData) return;
+    window.YourData.mount({
+      el: $('yourdata'),
+      tool: 'finance',
+      what: 'your own costs, revenue and loan terms',
+      docs: '/plug-and-play#finance',
+      templates: [{ name: 'finance-inputs.csv', label: 'Download CSV template', text: () => window.YourData.toCSV(F.templateRows(publicDefaults)) }],
+      load(parsed) {
+        const r = F.applyOverrides(publicDefaults, parsed, zones.map((z) => z.id));
+        return {
+          errors: r.errors,
+          warnings: r.warnings,
+          summary: `${r.changed.length} input${r.changed.length === 1 ? '' : 's'} changed${r.arbPerYear != null ? ', plus your arbitrage value' : ''}. Changed inputs are tagged Yours.`,
+          apply: () => useDefaults(r.defaults, r.arbPerYear),
+        };
+      },
+      reset: () => useDefaults(publicDefaults, null),
+    });
+  }
+
   async function load() {
     try {
       const [d, z] = await Promise.all([
@@ -266,6 +302,7 @@
         fetch('/data/zone-value.json').then((x) => { if (!x.ok) throw new Error(x.status); return x.json(); }),
       ]);
       defaults = d;
+      publicDefaults = d;
       zoneMeta = z;
       zones = z.zones.slice().sort((a, b) => b.usdPerYear - a.usdPerYear);
       buildInputs();
@@ -278,6 +315,7 @@
       $('status').hidden = true;
       $('app').hidden = false;
       update();
+      mountYourData();
     } catch (e) {
       $('status').textContent = "We couldn't load the input data, so there is nothing to show. Try reloading.";
     }

@@ -14,6 +14,7 @@ body { margin: 0; overflow-x: hidden; }
 .tag { display: inline-block; padding: 1px 7px; border-radius: 999px; font-size: 11px; font-weight: 600; line-height: 1.6; vertical-align: 1px; white-space: nowrap; }
 .tag-src { background: var(--brand-subtle, #d6f0b4); color: var(--brand-foreground); }
 .tag-asm { background: #f6e7c8; color: #6b4e0e; }
+.tag-yours { background: var(--brand); color: var(--brand-foreground); }
 
 .fin-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; margin-top: 16px; }
 .fin-inputs, .fin-card { background: var(--surface-raised); border: 1px solid var(--line); border-radius: var(--radius-panel); padding: 16px; min-width: 0; }

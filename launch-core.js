@@ -146,13 +146,165 @@
   }
 
   // Email tennis loops for the steps in a path, with state-specific round costs merged in.
-  function resolveTennis(data, steps, abbr) {
+  // pathId is optional: when given, loops scoped to another path (t.path) or replaced
+  // for this path by a company's own file (t.except_paths) are left out.
+  function resolveTennis(data, steps, abbr, pathId) {
     const ids = new Set(steps.map(s => s.id));
-    return (data.tennis || []).filter(t => ids.has(t.step)).map(t => {
+    return (data.tennis || []).filter(t => ids.has(t.step) &&
+      (!pathId || ((!t.path || t.path === pathId) && !(t.except_paths || []).includes(pathId)))).map(t => {
       const c = Object.assign({}, t, ((t.states || {})[abbr]) || {});
       delete c.states;
+      delete c.except_paths;
       return c;
     });
+  }
+
+  const MAX_WEEKS = 260;
+  const STEP_COLUMNS = ['path', 'id', 'name', 'owner', 'low', 'high', 'depends_on', 'round_weeks', 'note'];
+
+  function cellText(v) { return v == null ? '' : String(v).trim(); }
+  function cellNum(v) {
+    if (typeof v === 'number') return v;
+    const t = cellText(v).replace(/\s/g, '');
+    return t === '' ? NaN : Number(t);
+  }
+  function depList(v) {
+    if (Array.isArray(v)) return v.map(cellText).filter(Boolean);
+    return cellText(v).split(';').map(x => x.trim()).filter(Boolean);
+  }
+
+  // A company's own launch steps on top of the public data. parsed is
+  // { kind: 'csv', data: [{ path, id, name, owner, low, high, depends_on: 'a;b', round_weeks, note }] }
+  // or { kind: 'json', data: { paths: { retail: { steps: [...] } }, tennis: [{ step, round_weeks, with, bounce, fix }] } }.
+  // A path in the file replaces that path's steps for every state; paths not in the file keep the public steps.
+  // Returns { data, errors, warnings, summary, paths }. The input data is never mutated.
+  function applyOverrides(data, parsed) {
+    const errors = [], warnings = [];
+    const d = JSON.parse(JSON.stringify(data));
+    const pathIds = Object.keys(data.paths || {});
+    const raw = parsed && parsed.data;
+    const entries = []; // { pid, where, r }
+    const tennisIn = []; // { where, t }
+    if (Array.isArray(raw)) {
+      raw.forEach((r, i) => entries.push({ pid: cellText(r && r.path), where: 'Row ' + (i + (parsed.kind === 'csv' ? 2 : 1)) + ': ', r: r || {} }));
+    } else if (raw && typeof raw === 'object') {
+      const ps = raw.paths;
+      if (ps != null && (typeof ps !== 'object' || Array.isArray(ps))) errors.push('"paths" must be an object like { "retail": { "steps": [...] } }.');
+      else {
+        for (const [pid, p] of Object.entries(ps || {})) {
+          const list = p && Array.isArray(p.steps) ? p.steps : null;
+          if (!list) { errors.push(pid + ': needs a "steps" list.'); continue; }
+          if (!list.length) { errors.push(pid + ': the "steps" list is empty.'); continue; }
+          list.forEach((r, i) => entries.push({ pid, where: pid + ' step ' + (i + 1) + ': ', r: r || {} }));
+        }
+      }
+      if (raw.tennis != null && !Array.isArray(raw.tennis)) errors.push('"tennis" must be a list of { step, round_weeks }.');
+      else (raw.tennis || []).forEach((t, i) => tennisIn.push({ where: 'tennis ' + (i + 1) + ': ', t: t || {} }));
+    }
+    if (!entries.length && !errors.length) errors.push('No steps found. Use the CSV columns ' + STEP_COLUMNS.join(', ') + ', or JSON { "paths": { "retail": { "steps": [...] } } }.');
+
+    // Validate each row and group it by path.
+    const byPath = {}; // pid -> [{ where, step, rw }]
+    for (const { pid, where, r } of entries) {
+      if (!pid) { errors.push(where + 'missing path. Use ' + pathIds.join(' or ') + '.'); continue; }
+      if (!pathIds.includes(pid)) { errors.push(where + 'unknown path "' + pid + '". Use ' + pathIds.join(' or ') + '.'); continue; }
+      const id = cellText(r.id), name = cellText(r.name);
+      let bad = false;
+      if (!id) { errors.push(where + 'missing id.'); bad = true; }
+      else if (!/^[A-Za-z0-9_.-]+$/.test(id)) { errors.push(where + 'id "' + id + '" may only use letters, digits, _ . and -.'); bad = true; }
+      if (!name) { errors.push(where + 'missing name' + (id ? ' for ' + id : '') + '.'); bad = true; }
+      const label = id || 'this step';
+      const dur = {};
+      for (const k of ['low', 'high']) {
+        const v = cellNum(r[k]);
+        if (!Number.isFinite(v)) { errors.push(where + k + ' for ' + label + ' is not a number: "' + cellText(r[k]) + '".'); bad = true; }
+        else if (v < 0) { errors.push(where + k + ' for ' + label + ' cannot be negative.'); bad = true; }
+        else if (v > MAX_WEEKS) { errors.push(where + k + ' for ' + label + ' is over ' + MAX_WEEKS + ' weeks (5 years).'); bad = true; }
+        else dur[k] = v;
+      }
+      if (dur.low != null && dur.high != null && dur.high < dur.low) { errors.push(where + 'high (' + dur.high + ') for ' + label + ' is less than low (' + dur.low + ').'); bad = true; }
+      let rw = null;
+      if (cellText(r.round_weeks) !== '') {
+        const v = cellNum(r.round_weeks);
+        if (!Number.isFinite(v) || v < 0 || v > MAX_WEEKS) { errors.push(where + 'round_weeks for ' + label + ' must be a number from 0 to ' + MAX_WEEKS + ', got "' + cellText(r.round_weeks) + '".'); bad = true; }
+        else rw = v;
+      }
+      let owner = cellText(r.owner);
+      if (!owner && !bad) { warnings.push(where + label + ' has no owner, shown as "Owner not set".'); owner = 'Owner not set'; }
+      if (bad) continue;
+      (byPath[pid] = byPath[pid] || []).push({ where, rw, step: { id, name, owner, low: dur.low, high: dur.high, depends_on: depList(r.depends_on), note: cellText(r.note), basis: 'yours' } });
+    }
+
+    // Per path: duplicates, unknown dependencies, then cycles via schedule().
+    const filePaths = Object.keys(byPath);
+    for (const pid of filePaths) {
+      const rows = byPath[pid];
+      const seen = new Map();
+      let ok = true;
+      for (const x of rows) {
+        if (seen.has(x.step.id)) { errors.push(x.where + 'duplicate id "' + x.step.id + '" in ' + pid + ' (also ' + seen.get(x.step.id).replace(/: $/, '') + ').'); ok = false; }
+        else seen.set(x.step.id, x.where);
+      }
+      for (const x of rows) {
+        for (const dep of x.step.depends_on) {
+          if (!seen.has(dep)) { errors.push(x.where + x.step.id + ' depends on unknown step "' + dep + '" in ' + pid + '.'); ok = false; }
+        }
+      }
+      if (ok) {
+        try { schedule(rows.map(x => x.step), 'low'); }
+        catch (e) { errors.push(pid + ': ' + e.message.replace(/^Cycle in launch steps/, 'cycle in depends_on') + '.'); }
+      }
+      if (!seen.has('first_installs')) warnings.push(pid + ': no step with id first_installs, so "First install" uses the end of the whole timeline.');
+    }
+
+    // JSON tennis entries: each must name a step from the file.
+    const extraTennis = {}; // pid -> step -> entry
+    for (const { where, t } of tennisIn) {
+      const sid = cellText(t.step);
+      const owners = filePaths.filter(pid => byPath[pid].some(x => x.step.id === sid));
+      if (!sid) { errors.push(where + 'missing step.'); continue; }
+      if (!owners.length) { errors.push(where + 'step "' + sid + '" is not one of the steps in your file.'); continue; }
+      const v = cellNum(t.round_weeks);
+      if (!Number.isFinite(v) || v < 0 || v > MAX_WEEKS) { errors.push(where + 'round_weeks for ' + sid + ' must be a number from 0 to ' + MAX_WEEKS + '.'); continue; }
+      const e = { round_weeks: v };
+      for (const k of ['with', 'bounce', 'fix']) if (cellText(t[k])) e[k] = cellText(t[k]);
+      for (const pid of owners) (extraTennis[pid] = extraTennis[pid] || {})[sid] = e;
+    }
+
+    if (errors.length) return { data: d, errors, warnings, summary: '', paths: [] };
+
+    // Apply: replace each file path's steps, drop its state overrides, scope its email tennis.
+    let loops = 0;
+    for (const pid of filePaths) {
+      d.paths[pid] = Object.assign({}, d.paths[pid], { steps: byPath[pid].map(x => x.step), yours: true });
+      for (const abbr of Object.keys(d.overrides || {})) delete d.overrides[abbr][pid];
+      const rounds = {};
+      for (const x of byPath[pid]) if (x.rw != null) rounds[x.step.id] = { round_weeks: x.rw };
+      for (const [sid, e] of Object.entries(extraTennis[pid] || {})) rounds[sid] = Object.assign(rounds[sid] || {}, e);
+      d.tennis = d.tennis || [];
+      for (const [sid, e] of Object.entries(rounds)) {
+        const pub = d.tennis.find(t => t.step === sid && !t.path);
+        if (pub) pub.except_paths = (pub.except_paths || []).concat(pid);
+        const base = pub ? { with: pub.with, bounce: pub.bounce, fix: pub.fix } : { with: 'The other side', bounce: '', fix: '' };
+        d.tennis.push(Object.assign(base, e, { step: sid, path: pid, basis: 'yours' }));
+        loops++;
+      }
+    }
+    const kept = pathIds.filter(p => !filePaths.includes(p));
+    const summary = 'Your steps for ' + filePaths.map(p => (d.paths[p].label || p) + ' (' + byPath[p].length + ' steps)').join(' and ') +
+      (loops ? ', with ' + loops + ' email-tennis round cost' + (loops === 1 ? '' : 's') : '') + '.' +
+      (kept.length ? ' ' + kept.map(p => d.paths[p].label || p).join(' and ') + ' keeps the public steps.' : '');
+    return { data: d, errors, warnings, summary, paths: filePaths };
+  }
+
+  // Template rows: the path's resolved steps for one state, with each step's email-tennis round cost.
+  function templateRows(data, pathId, abbr) {
+    const steps = resolveSteps(data, pathId, abbr);
+    const rw = Object.fromEntries(resolveTennis(data, steps, abbr, pathId).map(t => [t.step, t.round_weeks]));
+    return steps.map(s => ({
+      path: pathId, id: s.id, name: s.name, owner: s.owner, low: s.low, high: s.high,
+      depends_on: (s.depends_on || []).join(';'), round_weeks: rw[s.id] == null ? '' : rw[s.id], note: s.note || ''
+    }));
   }
 
   // Add `rounds` extra back-and-forth rounds to every step that has a loop,
@@ -174,7 +326,7 @@
 
   function weeksToMonths(w) { return round1(w * 7 / 30.4375); }
 
-  const api = { topoOrder, schedule, applyEdits, bestShortening, resolveSteps, suggestPath, weeksToMonths, resolveTennis, tennisCost };
+  const api = { topoOrder, schedule, applyEdits, bestShortening, resolveSteps, suggestPath, weeksToMonths, resolveTennis, tennisCost, applyOverrides, templateRows, STEP_COLUMNS, MAX_WEEKS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (typeof window !== 'undefined') window.LaunchCore = api;
 })(typeof window !== 'undefined' ? window : globalThis);

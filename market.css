@@ -118,3 +118,14 @@
 .mm-bars b { text-align: right; font-variant-numeric: tabular-nums; }
 .mm-panel .gift-set { margin: 16px 0 0; padding: 12px 0 0; background: none; border-radius: 0; border-top: 1px solid var(--line); }
 .mm-panel .gift-set a { font-size: 14px; padding: 6px 10px; }
+
+/* Use your own data inside the side panel: tighter than the full-page version. */
+.mm-panel .yd { margin: 12px 0 0; border-radius: 12px; }
+.mm-panel .yd > summary { min-height: 44px; padding: 10px 12px; font-size: 14px; }
+.mm-panel .yd-body { padding: 0 12px 12px; }
+.mm-panel .yd-lede { font-size: 13px; }
+.mm-panel .yd-btn { font-size: 13px; padding: 8px 12px; }
+.mm-panel .yd-status { font-size: 12px; overflow-wrap: anywhere; }
+.mm-bars li.is-yours i { background: #ed6c30; }
+.mm-bars em { font-style: normal; font-family: var(--body); font-size: 10px; font-weight: 600; background: var(--brand); color: var(--brand-foreground); border-radius: 99px; padding: 0 5px; }
+.mm-bars li { grid-template-columns: minmax(92px, auto) 1fr 52px; }

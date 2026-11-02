@@ -169,7 +169,67 @@
   function pct(x) { return Number.isFinite(x) ? `${Math.round(x * 100)}%` : 'n/a'; }
   function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
-  const api = { PERCENT_FIELDS, CASES, annuityFactor, annuityPayment, normalize, cashFlows, sizeDebt, fleet, batteriesForMw, sensitivity, explain };
+  // A company's own inputs on top of the public defaults. parsed is
+  // { kind: 'csv', data: [{ key, value }] } or { kind: 'json', data: { key: value } | { inputs: {...} } | [{ key, value }] }.
+  // Special keys: revenueCase, zone, arbPerYear (own arbitrage $/battery/yr, replaces the zone).
+  function applyOverrides(defaults, parsed, zoneIds) {
+    const errors = [], warnings = [], changed = [];
+    const d = JSON.parse(JSON.stringify(defaults));
+    const byKey = Object.fromEntries(d.groups.flatMap((g) => g.fields).map((f) => [f.key, f]));
+    const publicValue = Object.fromEntries(defaults.groups.flatMap((g) => g.fields).map((f) => [f.key, f.value]));
+    const cases = Object.keys(CASES);
+    let pairs;
+    const data = parsed.data;
+    if (Array.isArray(data)) pairs = data.map((r, i) => ({ key: r && r.key, value: r && r.value, line: i + 2 }));
+    else if (data && typeof data === 'object') pairs = Object.entries(data.inputs || data).map(([key, value]) => ({ key, value }));
+    else pairs = [];
+    if (!pairs.length) errors.push('No rows found. The file needs key and value columns (CSV) or a key: value object (JSON).');
+    const toNum = (v) => typeof v === 'number' ? v : Number(String(v == null ? '' : v).replace(/[$,%\s]/g, ''));
+    let revenueCase = null, zone = null, arbPerYear = null;
+    for (const p of pairs) {
+      const where = p.line ? 'Row ' + p.line + ': ' : '';
+      const key = String(p.key == null ? '' : p.key).trim();
+      if (!key) { errors.push(where + 'missing key.'); continue; }
+      if (String(p.value == null ? '' : p.value).trim() === '') { warnings.push(where + key + ' is blank, so the public value stays.'); continue; }
+      if (key === 'revenueCase') {
+        if (!cases.includes(String(p.value).trim())) errors.push(where + 'revenueCase must be one of ' + cases.join(', ') + '.');
+        else revenueCase = String(p.value).trim();
+        continue;
+      }
+      if (key === 'zone') {
+        if (!zoneIds.includes(String(p.value).trim())) errors.push(where + 'zone must be one of ' + zoneIds.join(', ') + '.');
+        else zone = String(p.value).trim();
+        continue;
+      }
+      const v = toNum(p.value);
+      if (!Number.isFinite(v)) { errors.push(where + key + ' is not a number: "' + p.value + '".'); continue; }
+      if (key === 'arbPerYear') {
+        if (v < 0) errors.push(where + 'arbPerYear cannot be negative.'); else arbPerYear = v;
+        continue;
+      }
+      const f = byKey[key];
+      if (!f) { errors.push(where + 'unknown key "' + key + '". Download the template for the full list.'); continue; }
+      if (f.min != null && v < f.min) { errors.push(where + key + ' must be at least ' + f.min + '.'); continue; }
+      if (f.max != null && v > f.max) { errors.push(where + key + ' must be at most ' + f.max + '.'); continue; }
+      if (v !== f.value) changed.push(key);
+      f.value = v; f.kind = 'yours'; f.note = 'Your file. Public default was ' + publicValue[key] + ' ' + f.unit + '.';
+      delete f.source;
+    }
+    if (revenueCase) d.revenueCaseDefault = revenueCase;
+    if (zone) d.zoneDefault = zone;
+    return { defaults: d, errors, warnings, changed, arbPerYear };
+  }
+
+  // Template rows: every field with its public value, plus the special keys.
+  function templateRows(defaults) {
+    const rows = defaults.groups.flatMap((g) => g.fields).map((f) => ({ key: f.key, value: f.value, unit: f.unit, label: f.label, public_basis: f.kind }));
+    rows.push({ key: 'revenueCase', value: defaults.revenueCaseDefault, unit: Object.keys(CASES).join(' | '), label: 'Revenue case', public_basis: 'assumption' });
+    rows.push({ key: 'zone', value: defaults.zoneDefault, unit: 'ERCOT load zone', label: 'Arbitrage zone', public_basis: 'sourced' });
+    rows.push({ key: 'arbPerYear', value: '', unit: '$/battery/yr', label: 'Your own arbitrage value (leave blank to use the zone)', public_basis: '' });
+    return rows;
+  }
+
+  const api = { applyOverrides, templateRows, PERCENT_FIELDS, CASES, annuityFactor, annuityPayment, normalize, cashFlows, sizeDebt, fleet, batteriesForMw, sensitivity, explain };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   root.FinanceCore = api;
 })(typeof window !== 'undefined' ? window : globalThis);

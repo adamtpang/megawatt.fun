@@ -122,3 +122,7 @@
   .lp-real-grid { grid-template-columns: 1.3fr 1fr; gap: 28px; }
 }
 @media (prefers-reduced-motion: reduce) { .lp * { transition: none !important; } }
+
+/* bring your own steps (yourdata.js) */
+.lp-badge.is-yours { background: #dbe9f7; color: #12456d; border: 1px solid #9fc0e0; }
+.lp-intro .yd { margin-bottom: 0; }

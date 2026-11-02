@@ -7,6 +7,8 @@
 <meta name="description" content="Where a home-battery program could go next: every US state scored on public Census, EIA-861, FEMA and ERCOT data, with outages, prices and bills as map layers. Weights you can change. Independent, not affiliated with Base Power.">
 <link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/site.css"><link rel="stylesheet" href="/market.css">
 <script src="/notes/score.js" defer></script>
+<script src="/market-core.js" defer></script>
+<script src="/yourdata.js" defer></script>
 <script src="/market.js" defer></script>
 </head>
 <body class="market-page">
@@ -30,6 +32,7 @@
       <p class="mm-lede" id="ov-lede">…</p>
       <div class="mm-stats" id="ov-stats"></div>
       <label class="mm-colorby">Color the map by <select id="color-by"></select></label>
+      <div id="yourdata"></div>
       <p class="mm-updated" id="ov-updated">…</p>
       <div class="mm-card" id="detail" aria-live="polite" hidden></div>
 

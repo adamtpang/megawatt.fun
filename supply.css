@@ -28,3 +28,27 @@
   .sp-card { padding: 22px; }
   .sp-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
+/* Your bill of materials (user's own file, never uploaded) */
+.sp-yd { border: 2px solid var(--brand); }
+.sp-yours { background: var(--brand); color: var(--brand-foreground); }
+.sp-yd-sum { margin: 10px 0 0; font-size: 15px; }
+.sp-yd-scroll { margin-top: 12px; overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
+.sp-yd-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.sp-yd-table th, .sp-yd-table td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+.sp-yd-table th { font-size: 13px; color: var(--muted); font-weight: 600; white-space: nowrap; }
+.sp-yd-table .num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.sp-yd-table tr.is-short td:first-child { box-shadow: inset 3px 0 0 #b3261e; }
+.sp-flagb { margin: 0 0 2px; }
+.sp-flagb.is-short { background: #f9dedc; color: #8c1d18; }
+.sp-flagb.is-single { background: #f6e7c1; color: #6b4d00; }
+.sp-flagb.is-tariff { background: #ececea; color: var(--ink); }
+@media (max-width: 640px) {
+  .sp-yd-table thead { display: none; }
+  .sp-yd-table, .sp-yd-table tbody, .sp-yd-table tr, .sp-yd-table td { display: block; width: 100%; }
+  .sp-yd-table tr { padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .sp-yd-table td { border: 0; padding: 3px 0; overflow-wrap: anywhere; }
+  .sp-yd-table td.num { text-align: left; white-space: normal; }
+  .sp-yd-table td[data-label]:not(:first-child)::before { content: attr(data-label) ": "; font-weight: 600; color: var(--muted); font-size: 13px; }
+  .sp-yd-table tr.is-short td:first-child { box-shadow: none; }
+  .sp-yd-table tr.is-short { box-shadow: inset 3px 0 0 #b3261e; padding-left: 10px; }
+}

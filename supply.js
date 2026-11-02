@@ -41,6 +41,76 @@
       '</article>';
   }
 
+  // Your bill of materials (yourdata.js + supply-core.js). Rendered above the public
+  // watch list; the public research below is never changed.
+  const usd = n => '$' + (Math.round(n * 100) / 100).toLocaleString('en-US', { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 });
+  const wk = n => n == null ? '' : (Math.round(n * 10) / 10) + ' wk';
+
+  function bomCard(res, partNames) {
+    const t = res.totals;
+    const flagClass = { 'Will run short': 'is-short', 'Single source': 'is-single', 'Tariff 25%+': 'is-tariff' };
+    const rows = res.rows.map(r => {
+      const pub = partNames[r.category];
+      return '<tr' + (r.gap > 0 ? ' class="is-short"' : '') + '>' +
+        '<td data-label="Part"><strong>' + esc(r.part) + '</strong>' +
+        (pub ? '<br><a class="sp-small" href="#part-' + esc(r.category) + '">Public research: ' + esc(pub) + '</a>' : '<br><span class="sp-small">' + esc(r.category) + '</span>') +
+        (r.note ? '<br><span class="sp-small">' + esc(r.note) + '</span>' : '') + '</td>' +
+        '<td data-label="Supplier">' + esc(r.supplier || 'Not given') + (r.country ? '<br><span class="sp-small">' + esc(r.country) + '</span>' : '') + '</td>' +
+        '<td data-label="Lead time" class="num">' + wk(r.lead_time_weeks) + '</td>' +
+        '<td data-label="Cover" class="num">' + (r.on_hand_weeks == null ? '<span class="sp-small">none given</span>' : wk(r.on_hand_weeks)) + '</td>' +
+        '<td data-label="Gap" class="num"><strong>' + (r.gap > 0 ? '+' : '') + wk(r.gap) + '</strong></td>' +
+        '<td data-label="Flags">' + (r.flags.length ? r.flags.map(f => '<span class="sp-badge sp-flagb ' + flagClass[f] + '">' + esc(f) + '</span>').join(' ') : '<span class="sp-small">None</span>') + '</td></tr>';
+    }).join('');
+    const longest = t.longest && t.longest.gap > 0 ? ' Longest gap: ' + esc(t.longest.part) + ', ' + wk(t.longest.gap) + '.' : '';
+    const tariff = t.tariffParts ? ' Tariff cost per battery: ' + usd(t.tariffPerBattery) + ' across ' + t.tariffParts + ' part' + (t.tariffParts === 1 ? '' : 's') + ' with cost, quantity and tariff.' : ' Add unit_cost_usd, qty_per_unit and tariff_pct to see tariff cost per battery.';
+    const sec = document.createElement('section');
+    sec.className = 'sp-card sp-yd';
+    sec.id = 'bom-wrap';
+    sec.setAttribute('aria-labelledby', 'bom-title');
+    sec.innerHTML = '<div class="sp-part-head"><h2 id="bom-title">Your bill of materials</h2><span class="sp-badge sp-yours">Your data</span></div>' +
+      '<p class="sp-small">From your file, read in this browser only. Not public research. Gap is lead time minus weeks of cover (inventory plus open orders); a missing cover counts as zero.</p>' +
+      '<p class="sp-yd-sum"><strong>' + t.atRisk + ' of ' + t.parts + ' part' + (t.parts === 1 ? '' : 's') + ' will run short.</strong>' +
+      (t.singleSource ? ' ' + t.singleSource + ' single sourced.' : '') + longest + tariff + '</p>' +
+      '<div class="sp-yd-scroll"><table class="sp-yd-table"><thead><tr><th>Part</th><th>Supplier</th><th class="num">Lead time</th><th class="num">Cover</th><th class="num">Gap</th><th>Flags</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+    return sec;
+  }
+
+  function showBom(res, partNames) {
+    hideBom();
+    const at = $('status');
+    at.parentNode.insertBefore(bomCard(res, partNames), at);
+  }
+
+  function hideBom() {
+    const old = $('bom-wrap');
+    if (old) old.remove();
+  }
+
+  function mountYourData(d) {
+    const S = window.SupplyCore, Y = window.YourData;
+    if (!S || !Y || !$('yourdata')) return;
+    const ids = d.parts.map(p => p.id);
+    const partNames = Object.fromEntries(d.parts.map(p => [p.id, p.name]));
+    Y.mount({
+      el: $('yourdata'),
+      tool: 'supply',
+      what: 'your own bill of materials: parts, suppliers, lead times and stock',
+      docs: '/plug-and-play#supply',
+      templates: [{ name: 'supply-bom.csv', label: 'Download CSV template', text: () => Y.toCSV(S.templateRows(ids), S.COLUMNS) }],
+      load(parsed) {
+        const v = S.validate(parsed, ids);
+        const res = v.errors.length ? null : S.analyze(v.rows);
+        return {
+          errors: v.errors,
+          warnings: v.warnings,
+          summary: res ? res.totals.parts + ' part' + (res.totals.parts === 1 ? '' : 's') + ', ' + res.totals.atRisk + ' will run short. See "Your bill of materials" below.' : '',
+          apply: () => showBom(res, partNames),
+        };
+      },
+      reset: hideBom,
+    });
+  }
+
   async function init() {
     try {
       const r = await fetch('/data/supply.json');
@@ -55,6 +125,7 @@
       $('gaps').innerHTML = d.gaps.map(g => '<li>' + esc(g) + '</li>').join('');
       for (const id of ['order-wrap', 'base-wrap', 'gaps-wrap']) $(id).hidden = false;
       $('status').hidden = true;
+      mountYourData(d);
     } catch (e) {
       $('status').textContent = 'Could not load supply data: ' + e.message;
     }

@@ -119,3 +119,20 @@
   .pt-sheet a { color: inherit; }
   .pt-sources a::after { content: " (" attr(href) ")"; font-size: 9px; }
 }
+
+/* Bring your own data (yourdata.js): Yours tags, target status, your offer. */
+.pt-tag-yours { background: var(--brand); color: var(--brand-foreground); }
+.pt-target { margin: 8px 0 0; padding: 10px 12px; border: 1px solid var(--brand); border-radius: 8px; font-size: 14px; overflow-wrap: anywhere; }
+.pt-yours-offer { margin: 12px 0 8px; padding: 10px 12px; background: var(--surface); border-left: 4px solid var(--brand); border-radius: 0 8px 8px 0; }
+.pt-status-chip { display: inline-block; font: 600 12px/1.6 var(--body); padding: 0 8px; border-radius: 10px; background: var(--brand); color: var(--brand-foreground); overflow-wrap: anywhere; }
+.pt-owner { font-size: 12px; color: var(--muted); }
+.pt-statuscell { min-width: 0; text-align: right; }
+@media (min-width: 700px) { .pt-statuscell { text-align: left; } }
+.pt-table tr.is-target td:first-child { box-shadow: inset 4px 0 0 var(--brand); padding-left: 10px; }
+.pt-elsewhere ul { margin: 6px 0 0; padding-left: 18px; }
+.pt-elsewhere li { margin-bottom: 4px; }
+@media (max-width: 699px) { .pt-table tr.is-target { box-shadow: inset 4px 0 0 var(--brand); padding-left: 10px; } .pt-table tr.is-target td:first-child { box-shadow: none; padding-left: 0; } }
+@media print {
+  #yourdata { display: none !important; }
+  .pt-tag-yours, .pt-status-chip { border: 1px solid #000; background: #fff; color: #000; }
+}

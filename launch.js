@@ -7,7 +7,7 @@
   const fmt = w => (Math.round(w * 10) / 10).toString();
 
   const ui = { abbr: 'GA', path: 'utility', kase: 'low', edits: {}, rounds: 1 };
-  let DATA, MAP, STATES;
+  let DATA, PUBLIC, MAP, STATES;
 
   function editKey() { return ui.abbr + ':' + ui.path; }
   function currentEdits() { return ui.edits[editKey()] || (ui.edits[editKey()] = {}); }
@@ -19,6 +19,7 @@
 
   function basisBadge(s) {
     if (s.edited) return '<span class="lp-badge is-edited">yours</span>';
+    if (s.basis === 'yours') return '<span class="lp-badge is-yours">Yours</span>';
     if (s.basis === 'sourced') return '<span class="lp-badge is-sourced">sourced</span>';
     if (s.basis === 'partly') return '<span class="lp-badge is-partly">partly sourced</span>';
     return '<span class="lp-badge is-assumption">assumption</span>';
@@ -50,6 +51,7 @@
     } else if (ui.path !== sug.path) {
       html += '<p class="lp-small">You picked ' + esc(DATA.paths[ui.path].label.toLowerCase()) + ', which differs from the suggestion. That is fine; the suggestion is only about retail share.</p>';
     }
+    if (DATA.paths[ui.path].yours) html += '<p class="lp-small"><span class="lp-badge is-yours">Yours</span> The ' + esc(DATA.paths[ui.path].label.toLowerCase()) + ' steps come from your file. State rules from the public data do not apply to them.</p>';
     html += '<p class="lp-small">' + esc(DATA.paths[ui.path].summary) + ' Data: <a href="/data/expansion-map.json">expansion-map.json</a> (EIA-861 2025).</p>';
     $('why').innerHTML = html;
   }
@@ -70,15 +72,18 @@
     const byId = Object.fromEntries(list.map(s => [s.id, s]));
     const name = id => byId[id] ? byId[id].name : id;
     const lever = L.bestShortening(list, ui.kase);
-    const firstFast = fast.steps.first_installs ? fast.steps.first_installs.ef : null;
-    const firstSlow = slow.steps.first_installs ? slow.steps.first_installs.ef : null;
-    const sourcedCount = list.filter(s => s.basis !== 'assumption' && !s.edited).length;
+    const firstFast = fast.steps.first_installs ? fast.steps.first_installs.ef : fast.total;
+    const firstSlow = slow.steps.first_installs ? slow.steps.first_installs.ef : slow.total;
+    const sourcedCount = list.filter(s => (s.basis === 'sourced' || s.basis === 'partly') && !s.edited).length;
     const editedCount = list.filter(s => s.edited).length;
+    const yoursCount = list.filter(s => s.basis === 'yours' && !s.edited).length;
 
     $('stats').innerHTML =
       stat('First install', fmt(firstFast) + ' to ' + fmt(firstSlow) + ' weeks', months(firstFast) + ' to ' + months(firstSlow) + ' months') +
       stat('At target volume', fmt(fast.total) + ' to ' + fmt(slow.total) + ' weeks', months(fast.total) + ' to ' + months(slow.total) + ' months') +
-      stat('Durations sourced', sourcedCount + ' of ' + list.length, editedCount ? editedCount + ' edited by you' : 'the rest are assumptions') +
+      (yoursCount
+        ? stat('Durations from your file', yoursCount + ' of ' + list.length, editedCount ? editedCount + ' edited on this page' : 'none edited on this page')
+        : stat('Durations sourced', sourcedCount + ' of ' + list.length, editedCount ? editedCount + ' edited by you' : 'the rest are assumptions')) +
       '<div class="lp-stat lp-lever"><span>What shortens launch most (' + (ui.kase === 'low' ? 'fast' : 'slow') + ' case)</span>' +
       (lever.best && lever.best.saved > 0
         ? '<b>' + esc(name(lever.best.id)) + '</b><small>Cutting it in half (' + fmt(lever.best.cutWeeks) + ' weeks) saves ' + fmt(lever.best.saved) + ' weeks overall.' + leverRunnerUp(lever, name) + '</small>'
@@ -130,7 +135,7 @@
     const byId = Object.fromEntries(list.map(s => [s.id, s]));
     $('steps').innerHTML = sch.order.map(id => {
       const s = byId[id], r = sch.steps[id];
-      const deps = (s.depends_on || []).map(d => byId[d].name).join(', ') || 'Nothing, can start on day one';
+      const deps = (s.depends_on || []).map(d => byId[d] ? byId[d].name : d).join(', ') || 'Nothing, can start on day one';
       return '<article class="lp-step' + (r.critical ? ' is-crit' : '') + '">' +
         '<div class="lp-step-main"><h3>' + esc(s.name) + ' ' + basisBadge(s) + (r.critical ? ' <span class="lp-badge is-crit">critical</span>' : '') + '</h3>' +
         '<p class="lp-meta">' + esc(s.owner) + '. After: ' + esc(deps) + '.</p>' +
@@ -155,7 +160,7 @@
 
   function renderTennis(list, sch) {
     const byId = Object.fromEntries(list.map(s => [s.id, s]));
-    const loops = L.resolveTennis(DATA, list, ui.abbr);
+    const loops = L.resolveTennis(DATA, list, ui.abbr, ui.path);
     const cost = L.tennisCost(list, loops, ui.rounds, ui.kase);
     const caseName = ui.kase === 'low' ? 'fast' : 'slow';
     let out;
@@ -170,11 +175,11 @@
     $('tennis-out').innerHTML = out;
     $('tennis').innerHTML = loops.map(t => {
       const crit = sch.steps[t.step] && sch.steps[t.step].critical;
-      const badge = t.basis === 'partly' ? '<span class="lp-badge is-partly">partly sourced</span>' : '<span class="lp-badge is-assumption">assumption</span>';
+      const badge = t.basis === 'yours' ? '<span class="lp-badge is-yours">Yours</span>' : t.basis === 'partly' ? '<span class="lp-badge is-partly">partly sourced</span>' : '<span class="lp-badge is-assumption">assumption</span>';
       return '<li><div class="lp-snag-top"><strong>' + esc(byId[t.step].name) + '</strong>' + badge + '</div>' +
-        '<p><b>' + fmt(t.round_weeks) + ' weeks a round</b> with ' + esc(t.with.charAt(0).toLowerCase() + t.with.slice(1)) + '. ' + esc(t.bounce) + '</p>' +
-        '<p><b>One-pass fix:</b> ' + esc(t.fix) + '</p>' +
-        '<p class="lp-meta">' + (t.note ? esc(t.note) + ' ' : '') + (t.source ? 'Source: ' + srcLink(t.source) + '.' : 'Round cost is an assumption, replace with your own data.') + (crit ? ' On the critical path now.' : '') + '</p></li>';
+        '<p><b>' + fmt(t.round_weeks) + ' weeks a round</b> with ' + esc(t.with.charAt(0).toLowerCase() + t.with.slice(1)) + '.' + (t.bounce ? ' ' + esc(t.bounce) : '') + '</p>' +
+        (t.fix ? '<p><b>One-pass fix:</b> ' + esc(t.fix) + '</p>' : '') +
+        '<p class="lp-meta">' + (t.note ? esc(t.note) + ' ' : '') + (t.basis === 'yours' ? 'Round cost from your file.' : t.source ? 'Source: ' + srcLink(t.source) + '.' : 'Round cost is an assumption, replace with your own data.') + (crit ? ' On the critical path now.' : '') + '</p></li>';
     }).join('');
   }
 
@@ -186,13 +191,14 @@
       'Field connectivity can fall back to unreliable 4G; commands persist until they expire: ' + srcLink('base-telemetry') + '.',
       'Footprint: Texas operating, Illinois operating in ComEd, Georgia announced (Central Georgia EMC, installs planned for 2027), Connecticut hiring: ' + srcLink('expansion-map') + '.'
     ];
-    for (const s of list) if (s.basis !== 'assumption' && !s.edited) real.push(esc(s.name) + ' (' + esc(ui.abbr) + '): ' + fmt(s.low) + ' to ' + fmt(s.high) + ' weeks. ' + srcLink(s.source) + '.');
+    for (const s of list) if ((s.basis === 'sourced' || s.basis === 'partly') && !s.edited) real.push(esc(s.name) + ' (' + esc(ui.abbr) + '): ' + fmt(s.low) + ' to ' + fmt(s.high) + ' weeks. ' + srcLink(s.source) + '.');
     const assumed = list.filter(s => s.basis === 'assumption' && !s.edited).map(s => esc(s.name) + ': ' + fmt(s.low) + ' to ' + fmt(s.high) + ' weeks');
     const partly = list.filter(s => s.basis === 'partly' && !s.edited).map(s => esc(s.name) + ': the fast case');
     $('real-list').innerHTML = real.map(x => '<li>' + x + '</li>').join('');
     $('assumed-list').innerHTML = assumed.concat(partly).map(x => '<li>' + x + '</li>').join('') +
       '<li>The step list and dependencies themselves. They are a reasonable outline, not Base\'s actual process.</li>' +
       '<li>Permit speed and home-battery interconnection time: no public data was found.</li>' +
+      (list.some(s => s.basis === 'yours') ? '<li>Your file: ' + list.filter(s => s.basis === 'yours').length + ' steps for this path, as you entered them.</li>' : '') +
       (list.some(s => s.edited) ? '<li>Your edits: ' + list.filter(s => s.edited).map(s => esc(s.name)).join(', ') + '.</li>' : '');
   }
 
@@ -250,13 +256,45 @@
     });
   }
 
+  // Bring your own steps: a CSV or JSON file read in this browser (yourdata.js).
+  function useData(d, paths) {
+    DATA = d;
+    ui.edits = {};
+    if (paths && paths.length && !paths.includes(ui.path)) { ui.path = paths[0]; setPressed('path-seg', 'path', ui.path); writeHash(); }
+    renderWhy(); render();
+  }
+
+  function mountYourData() {
+    if (!window.YourData) return;
+    window.YourData.mount({
+      el: $('yourdata'),
+      tool: 'launch',
+      what: 'your own launch steps, durations and email-tennis costs',
+      docs: '/plug-and-play#launch',
+      templates: [{
+        name: 'launch-steps.csv', label: 'Download CSV template',
+        text: () => window.YourData.toCSV(L.templateRows(DATA, ui.path, ui.abbr), L.STEP_COLUMNS)
+      }],
+      load(parsed) {
+        const r = L.applyOverrides(PUBLIC, parsed);
+        return {
+          errors: r.errors,
+          warnings: r.warnings,
+          summary: r.summary + ' Steps from the file are tagged Yours.',
+          apply: () => useData(r.data, r.paths),
+        };
+      },
+      reset: () => useData(PUBLIC, null),
+    });
+  }
+
   async function init() {
     try {
       const [d, m] = await Promise.all([
         fetch('/data/launch-steps.json').then(r => { if (!r.ok) throw new Error('launch-steps.json ' + r.status); return r.json(); }),
         fetch('/data/expansion-map.json').then(r => { if (!r.ok) throw new Error('expansion-map.json ' + r.status); return r.json(); })
       ]);
-      DATA = d; MAP = m;
+      DATA = d; PUBLIC = d; MAP = m;
       STATES = Object.fromEntries(MAP.states.map(s => [s.abbr, s]));
       $('state').innerHTML = MAP.states.slice().sort((a, b) => a.name.localeCompare(b.name))
         .map(s => '<option value="' + esc(s.abbr) + '">' + esc(s.name) + (s.footprint ? ' (' + esc(s.footprint.label) + ')' : '') + '</option>').join('');
@@ -270,6 +308,7 @@
       } else {
         selectState('GA', false);
       }
+      mountYourData();
     } catch (e) {
       $('err').hidden = false;
       $('err').textContent = 'Could not load planner data: ' + e.message;
