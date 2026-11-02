@@ -82,10 +82,10 @@ def main():
     for name in ORDER:
         f = ROOT / "docs" / "plug-and-play" / f"{name}.md"
         if f.exists():
-            parts.append(f'<section class="pp-card">\n{md(f.read_text(encoding="utf-8"))}\n</section>')
+            parts.append(f'<section class="pp-card card">\n{md(f.read_text(encoding="utf-8"))}\n</section>')
     tpl = (ROOT / "scripts" / "plug-and-play.template.html").read_text(encoding="utf-8")
     page = tpl.replace("<!-- SECTIONS -->", "\n".join(parts))
-    assert "—" not in page, "em dash in docs"
+    assert chr(0x2014) not in page, "em dash in docs"
     (ROOT / "plug-and-play.html").write_text(page, encoding="utf-8", newline="\n")
     print(f"plug-and-play.html: {len(parts)} tools")
 

@@ -211,7 +211,9 @@
       if (!f) { errors.push(where + 'unknown key "' + key + '". Download the template for the full list.'); continue; }
       if (f.min != null && v < f.min) { errors.push(where + key + ' must be at least ' + f.min + '.'); continue; }
       if (f.max != null && v > f.max) { errors.push(where + key + ' must be at most ' + f.max + '.'); continue; }
-      if (v !== f.value) changed.push(key);
+      // A value equal to the public one keeps its source and tag.
+      if (v === publicValue[key]) continue;
+      changed.push(key);
       f.value = v; f.kind = 'yours'; f.note = 'Your file. Public default was ' + publicValue[key] + ' ' + f.unit + '.';
       delete f.source;
     }

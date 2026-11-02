@@ -34,7 +34,7 @@
     const v = row.abbr && !row.state && yours.values[row.abbr];
     return v && v[f.id] != null ? v[f.id] : null;
   }
-  const yoursTag = (f) => (f.yours ? ' <span class="mm-badge">Yours</span>' : '');
+  const yoursTag = (f) => (f.yours ? ' <span class="badge badge-solid">Yours</span>' : '');
 
   function factorFmt(id, v) {
     if (v === null || v === undefined || v !== v) return 'n/a';
@@ -122,11 +122,12 @@
   }
 
   function tiers(ranked) {
+    if (!ranked.some((it) => scored[it.row.name].tier)) { $('tiers').innerHTML = '<p class="mm-small">No state has a score. Every weight is 0, or no weighted factor has data. Raise a weight under Score weights.</p>'; return; }
     $('tiers').innerHTML = TIERS.map((t) => {
       const list = ranked.filter((it) => scored[it.row.name].tier === t.id);
       if (!list.length) return '';
       return `<div class="mm-tier"><span class="mm-tier-id" style="background:${t.fill};color:${['S', 'A'].includes(t.id) ? '#fff' : '#1e4d2b'}" title="${esc(t.label)}">${t.id}</span><div>` +
-        list.map((it) => `<button type="button" class="mm-chip${it.row.name === selected ? ' on' : ''}" data-state="${esc(it.row.name)}">${esc(it.row.abbr)} <b>${pts(it.score)}</b></button>`).join('') + '</div></div>';
+        list.map((it) => `<button type="button" class="mm-chip" aria-pressed="${it.row.name === selected}" data-state="${esc(it.row.name)}">${esc(it.row.abbr)} <b>${pts(it.score)}</b></button>`).join('') + '</div></div>';
     }).join('');
   }
 
@@ -145,8 +146,8 @@
   function detail(name, scroll = true) {
     const st = data(name), it = scored[name]; selected = name;
     svg.querySelectorAll('.st').forEach((p) => p.classList.toggle('sel', p.dataset.name === name));
-    document.querySelectorAll('.mm-chip').forEach((b) => b.classList.toggle('on', b.dataset.state === name));
-    const fp = st.footprint ? `<p class="mm-flag ${st.footprint.status}"><b>${esc(st.footprint.label)}.</b> ${esc(st.footprint.detail)}</p>` : '';
+    document.querySelectorAll('.mm-chip').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.state === name)));
+    const fp = st.footprint ? `<p class="notice mm-flag ${st.footprint.status === 'operating' ? 'notice-green' : 'mm-flag-planned'}"><b>${esc(st.footprint.label)}.</b> ${esc(st.footprint.detail)}</p>` : '';
     const rows = allFactors().map((f) => `<dt>${esc(f.label)}${yoursTag(f)}</dt><dd>${factorFmt(f.id, val(st, f))}</dd>`).join('');
     const c = $('detail'); c.hidden = false;
     c.innerHTML = `<p class="mm-small">Tier ${it.tier || 'n/a'} · score ${pts(it.score)} · #${it.rank} of ${states.length}</p>
@@ -165,8 +166,8 @@
     const rows = E.utilities.filter((u) => u.state === st.abbr);
     if (!rows.length) { $('utilities').innerHTML = `<p class="mm-small">No utilities listed for ${esc(st.name)}.</p>`; return; }
     const ranked = rank(rows, E.factors).sort((a, b) => (b.score ?? -1) - (a.score ?? -1)).slice(0, 8);
-    $('utilities').innerHTML = `<p class="mm-small">${rows.length} utilities in ${esc(st.name)}, scored against each other with the same weights. Top ${ranked.length}:</p><table class="mm-table"><thead><tr><th>Utility</th><th class="num">Score</th><th class="num">Homes</th><th class="num">Outage min</th></tr></thead><tbody>` +
-      ranked.map((it) => `<tr><td>${esc(it.row.name)}</td><td class="num">${pts(it.score)}</td><td class="num">${factorFmt('homes', it.row.values.homes)}</td><td class="num">${factorFmt('saidi', it.row.values.saidi)}</td></tr>`).join('') + '</tbody></table>';
+    $('utilities').innerHTML = `<p class="mm-small">${rows.length} utilities in ${esc(st.name)}, scored against each other with the same weights. Top ${ranked.length}:</p><div class="mm-scroll"><table class="ds-table"><thead><tr><th>Utility</th><th class="num">Score</th><th class="num">Homes</th><th class="num">Outage min</th></tr></thead><tbody>` +
+      ranked.map((it) => `<tr><td>${esc(it.row.name)}</td><td class="num">${pts(it.score)}</td><td class="num">${factorFmt('homes', it.row.values.homes)}</td><td class="num">${factorFmt('saidi', it.row.values.saidi)}</td></tr>`).join('') + '</tbody></table></div>';
   }
 
   // ---------- weights ----------
@@ -175,7 +176,7 @@
     let group = '';
     $('weights').innerHTML = allFactors().map((f) => {
       if (weights[f.id] === undefined) weights[f.id] = f.weight;
-      const h = f.group !== group ? `<p class="mm-h">${esc((group = f.group))}${f.yours ? ' <span class="mm-badge">from your file</span>' : ''}</p>` : '';
+      const h = f.group !== group ? `<p class="mm-h">${esc((group = f.group))}${f.yours ? ' <span class="badge badge-solid">From your file</span>' : ''}</p>` : '';
       return h + `<label class="mm-w" title="${esc(f.help)}"><span>${esc(f.label)}</span><input type="range" min="0" max="3" step="0.5" value="${weights[f.id]}" data-w="${esc(f.id)}"><output id="o-${esc(f.id)}">${weights[f.id]}</output></label>`;
     }).join('');
   }
@@ -202,8 +203,8 @@
   function staticSections() {
     const er = E.ercot;
     $('ercot').innerHTML = !er || !er.available ? `<p class="mm-small">${esc((er && er.summary) || 'Not available in this build.')}</p>`
-      : `<p class="mm-small">${esc(er.summary)}</p><table class="mm-table"><thead><tr><th>Node</th><th>Zone</th><th class="num">p95 $/MWh above zone</th></tr></thead><tbody>` +
-        er.nodes.slice(0, 10).map((n) => `<tr><td>${esc(n.name)}</td><td>${esc(n.zone)}</td><td class="num">${fmt(n.p95_basis, 2)}</td></tr>`).join('') + '</tbody></table>';
+      : `<p class="mm-small">${esc(er.summary)}</p><div class="mm-scroll"><table class="ds-table"><thead><tr><th>Node</th><th>Zone</th><th class="num">p95 $/MWh above zone</th></tr></thead><tbody>` +
+        er.nodes.slice(0, 10).map((n) => `<tr><td>${esc(n.name)}</td><td>${esc(n.zone)}</td><td class="num">${fmt(n.p95_basis, 2)}</td></tr>`).join('') + '</tbody></table></div>';
     $('omitted').innerHTML = E.omitted.map((o) => `<li><b>${esc(o.title)}.</b> ${esc(o.reason)}</li>`).join('');
     const mine = [M.sources.reliability, M.sources.price].map((s) => ({ title: s.title, url: s.url, detail: '' }));
     $('sources').innerHTML = [...E.sources, ...mine, { title: 'us-atlas state shapes (Census boundaries)', url: M.geometry.source, detail: '' }]
@@ -293,9 +294,9 @@
     if (!z) { $('zone-value').innerHTML = '<p class="mm-small">Zone values failed to load.</p>'; return; }
     const max = Math.max(...z.zones.map((x) => x.usdPerYear), 1e-9);
     const mine = z.zones.filter((x) => x.yours).length;
-    const note = mine ? `<p class="mm-flag"><b>Yours.</b> Your file replaced ${mine} of ${z.zones.length} zone values. Zones marked Yours show your number; the rest are the public backtest below.</p>` : '';
+    const note = mine ? `<p class="notice notice-green mm-flag"><span class="badge badge-solid">Yours</span> Your file replaced ${mine} of ${z.zones.length} zone values. Zones marked Yours show your number; the rest are the public backtest below.</p>` : '';
     $('zone-value').innerHTML = note + `<p class="mm-small">${mine ? 'Public method: what' : 'What'} one Base Core (20 kW / 39.2 kWh) would have earned from buying cheap power at night and selling it 5 to 9 PM, at each ERCOT settlement point, ${esc(z.period.start)} to ${esc(z.period.endExclusive)} (12 real months). Energy arbitrage only: no capacity, tolling, backup or retail revenue. Not Base revenue.</p>` +
-      '<ol class="mm-bars">' + z.zones.map((x) => `<li${x.yours ? ` class="is-yours" title="Your file. Public value was $${fmt(x.publicUsdPerYear)}."` : ''}><span>${esc(x.id)}${x.yours ? ' <em>Yours</em>' : ''}</span><i style="width:${Math.max(2, (x.usdPerYear / max) * 100)}%"></i><b>$${fmt(x.usdPerYear)}</b></li>`).join('') + '</ol>' +
+      '<ol class="mm-bars">' + z.zones.map((x) => `<li${x.yours ? ` class="is-yours" title="Your file. Public value was $${fmt(x.publicUsdPerYear)}."` : ''}><span>${esc(x.id)}${x.yours ? ' <em class="badge badge-solid">Yours</em>' : ''}</span><i style="width:${Math.max(2, (x.usdPerYear / max) * 100)}%"></i><b>$${fmt(x.usdPerYear)}</b></li>`).join('') + '</ol>' +
       `<p class="mm-small">Load zones (LZ_) are where homes settle; hubs (HB_) are trading averages. Best: ${esc(z.zones[0].id)} ($${fmt(z.zones[0].usdPerYear)} a year). Worst: ${esc(z.zones[z.zones.length - 1].id)} ($${fmt(z.zones[z.zones.length - 1].usdPerYear)}). See <a href="/deploy">/deploy</a> for monthly detail and <a href="/finance">/finance</a> for what this means for debt.</p>`;
   }
 
@@ -338,7 +339,19 @@
     });
   }
 
-  Promise.all([fetch('/data/expansion-map.json').then((r) => r.json()), fetch('/data/market-states.json').then((r) => r.json()), fetch('/data/zone-value.json').then((r) => r.json()).catch(() => null)]).then(([e, m, z]) => {
+  const getJSON = (url) => fetch(url).then((r) => { if (!r.ok) throw new Error(url + ' returned ' + r.status); return r.json(); });
+  function failed(err) {
+    $('ov-lede').textContent = '';
+    $('ov-error').innerHTML = '<div class="notice notice-red"><p>The map data failed to load. Check your connection, then try again.</p><button type="button" class="btn btn-outline btn-sm" id="ov-retry">Try again</button></div>';
+    $('ov-retry').addEventListener('click', load);
+    ['tiers', 'zone-value', 'ercot'].forEach((id) => { $(id).innerHTML = '<p class="mm-small">Not loaded.</p>'; });
+    console.warn('Market map data failed to load:', err);
+  }
+  function load() {
+    $('ov-error').innerHTML = ''; $('ov-lede').textContent = 'Loading the map data…';
+    Promise.all([getJSON('/data/expansion-map.json'), getJSON('/data/market-states.json'), getJSON('/data/zone-value.json').catch(() => null)]).then(started, failed);
+  }
+  function started([e, m, z]) {
     E = e; M = m; publicZ = z; zoneValue(z);
     const shape = Object.fromEntries(m.states.map((s) => [s.name, s]));
     states = e.states.filter((s) => shape[s.name]).map((s) => ({ ...shape[s.name], ...s, values: s.values, detail: s.detail || {} }));
@@ -346,5 +359,6 @@
     weightsUI(); staticSections(); build(); controls(); paint(); mountYourData();
     const q = new URLSearchParams(location.search).get('state');
     if (q && byName[q]) { detail(q); fitTo(q); }
-  }).catch((err) => { $('ov-lede').textContent = 'The map data failed to load.'; console.error(err); });
+  }
+  load();
 })();

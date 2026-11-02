@@ -1,0 +1,119 @@
+// POST /api/v1/market: rank the 50 states and DC for home batteries, and Texas zones by $/battery/year,
+// the same way /market does. Scoring: market-score.js (market.js's scoring, made pure) on notes/score.js.
+// Your-own-data validation: market-core.js. Data: data/expansion-map.json, data/market-states.json, data/zone-value.json.
+'use strict';
+
+const MC = require('../../market-core.js');
+const MS = require('../../market-score.js');
+const E = require('../../data/expansion-map.json');
+const M = require('../../data/market-states.json');
+const Z = require('../../data/zone-value.json');
+const L = require('../_lib.js');
+
+const ZONE_IDS = Z.zones.map((x) => x.id);
+const KNOWN = ['weights', 'metrics', 'zones'];
+
+function usage() {
+  return {
+    tool: 'market',
+    what: 'Scores every state as a stack of percentile ranks (customer pull and market access), with your own weights and your own per-state metrics, and ranks Texas ERCOT zones by what one battery earned from energy arbitrage.',
+    post: {
+      content_types: ['application/json', 'text/csv'],
+      json_body: {
+        weights: '{ factorId: weight } (optional; weight 0 or more, the page slider runs 0 to 3; omitted factors keep their default, 1)',
+        metrics: 'your per-state file (optional): { factors?: [{ key, label, higherIsBetter }], states: { "TX": { key: value } } }, or the same CSV text as a string',
+        zones: 'your Texas zone file (optional): [{ zone, usd_per_year }], { "LZ_NORTH": 150 }, or CSV text "zone,usd_per_year"',
+      },
+      csv_body: 'The page\'s "Use your own data" file: either a state metrics file (a state column plus number columns; a header ending in " (lower is better)" ranks low values best) or a zone file (zone,usd_per_year). Weights cannot be sent with a CSV body; use JSON for that.',
+      factors: E.factors.map((f) => ({ id: f.id, label: f.label, group: f.group, default_weight: f.weight })),
+      your_factor_ids: 'Your metrics become factors with id "yours_" + the column name in snake case, for example "yours_install_cost_usd". You can weight them in the same request.',
+      zones: ZONE_IDS,
+    },
+    example: { weights: { homes: 0 }, metrics: { factors: [{ key: 'install_cost_usd', higherIsBetter: false }], states: { TX: { install_cost_usd: 11500 }, FL: { install_cost_usd: 13200 }, GA: { install_cost_usd: 12800 } } } },
+    returns: 'states ranked best first with score (0 to 100), tier (S, A, B, C, Later), a plain-English reason and every factor\'s value and rank; Texas zones ranked by $/battery/year.',
+    docs: L.docsUrl('market'),
+    page: L.SITE + '/market',
+  };
+}
+
+function asParsed(v, what) {
+  if (v == null) return null;
+  if (typeof v === 'string') {
+    const rows = L.parseCSV(v);
+    if (!rows.length) throw L.invalid([what + ': the CSV text has no rows under its header.']);
+    return { kind: 'csv', data: rows };
+  }
+  if (typeof v === 'object') return { kind: 'json', data: v };
+  throw L.invalid([what + ' must be an object or CSV text.']);
+}
+
+async function post(parsed) {
+  let statesFile = null, zonesFile = null, weightsIn = {}, warnings = [], mp = 'metrics: ', zp = 'zones: ';
+  if (parsed && parsed.kind === 'csv') {
+    mp = zp = ''; // one CSV file: its messages need no field name
+    const k = MC.detect(parsed);
+    if (!k.kind) throw L.invalid([k.error]);
+    if (k.kind === 'states') statesFile = parsed; else zonesFile = parsed;
+  } else {
+    const b = L.objectBody(parsed);
+    warnings = L.unknownKeys(b, KNOWN);
+    if (b.weights != null && (typeof b.weights !== 'object' || Array.isArray(b.weights))) throw L.invalid(['weights must be an object of { factorId: weight }.']);
+    weightsIn = b.weights || {};
+    statesFile = asParsed(b.metrics, 'metrics');
+    let z = b.zones;
+    if (z != null && typeof z === 'object' && !('zones' in z)) z = { zones: z };
+    zonesFile = asParsed(z, 'zones');
+  }
+
+  const errors = [];
+  let yours = null, zones = null;
+  if (statesFile) {
+    if (statesFile.kind === 'json' && (Array.isArray(statesFile.data) || !statesFile.data.states)) errors.push('metrics needs a "states" object, like { "states": { "TX": { "install_cost_usd": 11500 } } }, or CSV text.');
+    else {
+      const r = MC.loadStates(statesFile);
+      if (r.errors.length) errors.push(...r.errors.map((e) => mp + e));
+      else { yours = r; warnings = warnings.concat(r.warnings.map((w) => mp + w)); }
+    }
+  }
+  if (zonesFile) {
+    const r = MC.loadZones(zonesFile, ZONE_IDS);
+    if (r.errors.length) errors.push(...r.errors.map((e) => zp + e));
+    else { zones = r.zones; warnings = warnings.concat(r.warnings.map((w) => zp + w)); }
+  }
+
+  const factorIds = MS.allFactors(E, yours).map((f) => f.id);
+  const weights = {};
+  for (const [id, w] of Object.entries(weightsIn)) {
+    const v = typeof w === 'number' ? w : Number(String(w).trim());
+    if (!factorIds.includes(id)) errors.push('weights: unknown factor "' + id + '". Use one of ' + factorIds.join(', ') + '.');
+    else if (!Number.isFinite(v) || v < 0) errors.push('weights: ' + id + ' must be a number 0 or more, got "' + w + '".');
+    else weights[id] = v;
+  }
+  if (errors.length) throw L.invalid(errors);
+
+  const out = MS.scoreStates(E, M, { weights, yours });
+  if (!out.states.some((s) => s.tier)) warnings.push('No state has a score. Every weight is 0, or no weighted factor has data.');
+  const z = zones ? MC.applyZones(Z, zones) : MC.applyZones(Z, {});
+
+  const tiers = MS.TIERS.map((t) => ({ tier: t.id, label: t.label, states: out.states.filter((s) => s.tier === t.id).map((s) => s.abbr) })).filter((t) => t.states.length);
+
+  return {
+    inputs_used: { weights: out.weights, your_factors: yours ? yours.factors.map((f) => f.id) : [], your_zones: zones ? Object.keys(zones) : [] },
+    result: {
+      method: 'Each factor is a percentile rank among the states that have a value (0 worst, 1 best; lower-is-better factors are flipped). The score is the weighted average of those ranks over the factors a state has, shown as points out of 100. Tiers: S 68+, A 58+, B 48+, C 38+, Later below.',
+      factors: out.factors,
+      tiers,
+      states: out.states,
+      texas_zones: {
+        about: 'What one Base Core (20 kW / 39.2 kWh) would have earned from buying cheap power at night and selling it 5 to 9 PM at each ERCOT settlement point, ' + Z.period.start + ' to ' + Z.period.endExclusive + ' (end not included). Energy arbitrage only. Not Base revenue.',
+        zones: z.zones.map((x, i) => ({ rank: i + 1, id: x.id, kind: x.kind, usd_per_battery_year: x.usdPerYear, yours: x.yours, public_usd_per_battery_year: x.yours ? x.publicUsdPerYear : x.usdPerYear })),
+      },
+    },
+    warnings,
+    sources: E.sources.map((s) => ({ title: s.title, url: s.url || null }))
+      .concat([M.sources.reliability, M.sources.price].map((s) => ({ title: s.title, url: s.url })))
+      .concat([{ title: 'Data files', url: L.SITE + '/data/expansion-map.json' }, { title: 'Texas zone values and method', url: L.SITE + '/data/zone-value.json' }]),
+  };
+}
+
+module.exports = L.endpoint({ usage, post });

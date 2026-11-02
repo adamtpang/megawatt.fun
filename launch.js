@@ -18,11 +18,11 @@
   }
 
   function basisBadge(s) {
-    if (s.edited) return '<span class="lp-badge is-edited">yours</span>';
-    if (s.basis === 'yours') return '<span class="lp-badge is-yours">Yours</span>';
-    if (s.basis === 'sourced') return '<span class="lp-badge is-sourced">sourced</span>';
-    if (s.basis === 'partly') return '<span class="lp-badge is-partly">partly sourced</span>';
-    return '<span class="lp-badge is-assumption">assumption</span>';
+    if (s.edited) return '<span class="badge badge-solid">yours</span>';
+    if (s.basis === 'yours') return '<span class="badge badge-solid">Yours</span>';
+    if (s.basis === 'sourced') return '<span class="badge badge-green">sourced</span>';
+    if (s.basis === 'partly') return '<span class="badge badge-white">partly sourced</span>';
+    return '<span class="badge badge-yellow">assumption</span>';
   }
 
   function srcLink(id) {
@@ -47,13 +47,14 @@
     if (fp) html += '<p class="lp-small"><strong>Public footprint note:</strong> ' + esc(fp.detail) + '</p>';
     if (fp && fp.status === 'operating') html += '<p class="lp-small">Base already operates here. The timeline shows a fresh start, which is what a new state would look like.</p>';
     if (ui.path === 'retail' && !sug.retailAllowed) {
-      html += '<p class="lp-warn">Retail provider is not available here: there is no residential retail choice in EIA-861 2025. Showing the steps anyway so you can compare, but a license would have nothing to sell into.</p>';
+      html += '<p class="notice notice-red lp-warn">Retail provider is not available here: there is no residential retail choice in EIA-861 2025. Showing the steps anyway so you can compare, but a license would have nothing to sell into.</p>';
     } else if (ui.path !== sug.path) {
       html += '<p class="lp-small">You picked ' + esc(DATA.paths[ui.path].label.toLowerCase()) + ', which differs from the suggestion. That is fine; the suggestion is only about retail share.</p>';
     }
-    if (DATA.paths[ui.path].yours) html += '<p class="lp-small"><span class="lp-badge is-yours">Yours</span> The ' + esc(DATA.paths[ui.path].label.toLowerCase()) + ' steps come from your file. State rules from the public data do not apply to them.</p>';
+    if (DATA.paths[ui.path].yours) html += '<p class="lp-small"><span class="badge badge-solid">Yours</span> The ' + esc(DATA.paths[ui.path].label.toLowerCase()) + ' steps come from your file. State rules from the public data do not apply to them.</p>';
     html += '<p class="lp-small">' + esc(DATA.paths[ui.path].summary) + ' Data: <a href="/data/expansion-map.json">expansion-map.json</a> (EIA-861 2025).</p>';
     $('why').innerHTML = html;
+    $('why').removeAttribute('aria-busy');
   }
 
   function months(w) { return L.weeksToMonths(w); }
@@ -65,7 +66,7 @@
       fast = L.schedule(list, 'low');
       slow = L.schedule(list, 'high');
     } catch (e) {
-      $('err').hidden = false; $('err').textContent = e.message; return;
+      $('err').hidden = false; $('err').textContent = e.message + ' Check the step durations and dependencies, or reset to defaults.'; return;
     }
     $('err').hidden = true;
     cur = ui.kase === 'low' ? fast : slow;
@@ -84,7 +85,7 @@
       (yoursCount
         ? stat('Durations from your file', yoursCount + ' of ' + list.length, editedCount ? editedCount + ' edited on this page' : 'none edited on this page')
         : stat('Durations sourced', sourcedCount + ' of ' + list.length, editedCount ? editedCount + ' edited by you' : 'the rest are assumptions')) +
-      '<div class="lp-stat lp-lever"><span>What shortens launch most (' + (ui.kase === 'low' ? 'fast' : 'slow') + ' case)</span>' +
+      '<div class="card lp-stat lp-lever"><span>What shortens launch most (' + (ui.kase === 'low' ? 'fast' : 'slow') + ' case)</span>' +
       (lever.best && lever.best.saved > 0
         ? '<b>' + esc(name(lever.best.id)) + '</b><small>Cutting it in half (' + fmt(lever.best.cutWeeks) + ' weeks) saves ' + fmt(lever.best.saved) + ' weeks overall.' + leverRunnerUp(lever, name) + '</small>'
         : '<b>No single step</b><small>Halving any one critical step saves nothing; parallel branches tie.</small>') +
@@ -104,7 +105,7 @@
   }
 
   function stat(label, big, small) {
-    return '<div class="lp-stat"><span>' + esc(label) + '</span><b>' + esc(big) + '</b><small>' + esc(small) + '</small></div>';
+    return '<div class="card lp-stat"><span>' + esc(label) + '</span><b>' + esc(big) + '</b><small>' + esc(small) + '</small></div>';
   }
 
   function renderGantt(list, sch) {
@@ -137,11 +138,11 @@
       const s = byId[id], r = sch.steps[id];
       const deps = (s.depends_on || []).map(d => byId[d] ? byId[d].name : d).join(', ') || 'Nothing, can start on day one';
       return '<article class="lp-step' + (r.critical ? ' is-crit' : '') + '">' +
-        '<div class="lp-step-main"><h3>' + esc(s.name) + ' ' + basisBadge(s) + (r.critical ? ' <span class="lp-badge is-crit">critical</span>' : '') + '</h3>' +
+        '<div class="lp-step-main"><h3>' + esc(s.name) + ' ' + basisBadge(s) + (r.critical ? ' <span class="badge badge-red">critical</span>' : '') + '</h3>' +
         '<p class="lp-meta">' + esc(s.owner) + '. After: ' + esc(deps) + '.</p>' +
         '<p class="lp-note">' + esc(s.note) + (s.source && !s.edited ? ' Source: ' + srcLink(s.source) + '.' : '') + (s.basis === 'assumption' && !s.edited ? ' <em>Assumption, replace with your own data.</em>' : '') + '</p></div>' +
-        '<div class="lp-inputs"><label>Fast<input type="number" inputmode="decimal" min="0" max="260" step="0.5" data-id="' + esc(id) + '" data-k="low" value="' + s.low + '"></label>' +
-        '<label>Slow<input type="number" inputmode="decimal" min="0" max="260" step="0.5" data-id="' + esc(id) + '" data-k="high" value="' + s.high + '"></label><span>weeks</span></div>' +
+        '<div class="lp-inputs"><label>Fast<input type="number" inputmode="decimal" min="0" max="260" step="0.5" data-id="' + esc(id) + '" data-k="low" value="' + s.low + '" aria-label="' + esc(s.name) + ', fast case, weeks"></label>' +
+        '<label>Slow<input type="number" inputmode="decimal" min="0" max="260" step="0.5" data-id="' + esc(id) + '" data-k="high" value="' + s.high + '" aria-label="' + esc(s.name) + ', slow case, weeks"></label><span aria-hidden="true">weeks</span></div>' +
         '</article>';
     }).join('');
   }
@@ -150,9 +151,10 @@
     const ids = new Set(list.map(s => s.id));
     const byId = Object.fromEntries(list.map(s => [s.id, s]));
     const items = DATA.snags.filter(n => ids.has(n.step));
+    if (!items.length) { $('snags').innerHTML = '<li class="lp-empty">No known snags are tied to the steps on this path.</li>'; return; }
     $('snags').innerHTML = items.map(n => {
       const crit = sch.steps[n.step].critical;
-      return '<li><div class="lp-snag-top"><strong>' + esc(n.title) + '</strong><span class="lp-badge ' + (n.source ? 'is-sourced' : 'is-assumption') + '">' + esc(n.kind) + '</span></div>' +
+      return '<li><div class="lp-snag-top"><strong>' + esc(n.title) + '</strong><span class="badge ' + (n.source ? 'badge-green' : 'badge-yellow') + '">' + esc(n.kind) + '</span></div>' +
         '<p>' + esc(n.note) + '</p>' +
         '<p class="lp-meta">Hits: ' + esc(byId[n.step].name) + (crit ? ' (on the critical path now)' : ' (has slack now)') + (n.source ? '. Source: ' + srcLink(n.source) : '. Not sourced; an open question.') + '</p></li>';
     }).join('');
@@ -173,9 +175,10 @@
       out += '<p class="lp-small">Most expensive single loop: <strong>' + esc(byId[cost.worst.step].name) + '</strong>. One round there delays the first install by ' + fmt(cost.worst.delay) + ' weeks. Get that packet right first.</p>';
     }
     $('tennis-out').innerHTML = out;
+    if (!loops.length) { $('tennis').innerHTML = '<li class="lp-empty">No email-tennis loops are listed for the steps on this path.</li>'; return; }
     $('tennis').innerHTML = loops.map(t => {
       const crit = sch.steps[t.step] && sch.steps[t.step].critical;
-      const badge = t.basis === 'yours' ? '<span class="lp-badge is-yours">Yours</span>' : t.basis === 'partly' ? '<span class="lp-badge is-partly">partly sourced</span>' : '<span class="lp-badge is-assumption">assumption</span>';
+      const badge = t.basis === 'yours' ? '<span class="badge badge-solid">Yours</span>' : t.basis === 'partly' ? '<span class="badge badge-white">partly sourced</span>' : '<span class="badge badge-yellow">assumption</span>';
       return '<li><div class="lp-snag-top"><strong>' + esc(byId[t.step].name) + '</strong>' + badge + '</div>' +
         '<p><b>' + fmt(t.round_weeks) + ' weeks a round</b> with ' + esc(t.with.charAt(0).toLowerCase() + t.with.slice(1)) + '.' + (t.bounce ? ' ' + esc(t.bounce) : '') + '</p>' +
         (t.fix ? '<p><b>One-pass fix:</b> ' + esc(t.fix) + '</p>' : '') +
@@ -288,7 +291,10 @@
     });
   }
 
+  let wired = false;
+
   async function init() {
+    $('err').hidden = true;
     try {
       const [d, m] = await Promise.all([
         fetch('/data/launch-steps.json').then(r => { if (!r.ok) throw new Error('launch-steps.json ' + r.status); return r.json(); }),
@@ -299,7 +305,7 @@
       $('state').innerHTML = MAP.states.slice().sort((a, b) => a.name.localeCompare(b.name))
         .map(s => '<option value="' + esc(s.abbr) + '">' + esc(s.name) + (s.footprint ? ' (' + esc(s.footprint.label) + ')' : '') + '</option>').join('');
       renderSources();
-      wire();
+      if (!wired) { wire(); wired = true; }
       const m2 = (location.hash || '').match(/^#([A-Z]{2})(?:\/(retail|utility))?$/);
       if (m2 && STATES[m2[1]]) {
         ui.abbr = m2[1];
@@ -310,8 +316,16 @@
       }
       mountYourData();
     } catch (e) {
+      $('why').removeAttribute('aria-busy');
+      $('why').innerHTML = '<p class="lp-small">The planner could not load its data.</p>';
       $('err').hidden = false;
-      $('err').textContent = 'Could not load planner data: ' + e.message;
+      $('err').innerHTML = '<p>Could not load planner data: ' + esc(e.message) + '. Check your connection, then try again.</p>' +
+        '<button type="button" class="btn btn-outline btn-sm" id="retry">Try again</button>';
+      $('retry').addEventListener('click', () => {
+        $('why').setAttribute('aria-busy', 'true');
+        $('why').innerHTML = '<p class="lp-loading">Loading planner data...</p>';
+        init();
+      });
     }
   }
 

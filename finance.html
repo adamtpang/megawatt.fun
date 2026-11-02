@@ -7,12 +7,16 @@
 <meta name="description" content="How much debt one home battery, and a fleet, can carry from its unit economics. Every number is sourced or labeled as an assumption. Independent, not affiliated with Base Power.">
 <meta name="theme-color" content="#1e4d2b">
 <link rel="canonical" href="https://megawatt.fun/finance">
+<meta property="og:title" content="Battery Debt Financing">
+<meta property="og:description" content="How much debt one home battery, and a fleet, can carry from its unit economics. Every number is sourced or labeled as an assumption. Independent, not affiliated with Base Power.">
+<meta property="og:url" content="https://megawatt.fun/finance">
+<meta property="og:type" content="website">
 <link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/site.css"><link rel="stylesheet" href="/finance.css">
 <script src="/finance-core.js" defer></script>
 <script src="/yourdata.js" defer></script>
 <script src="/finance.js" defer></script>
 </head>
-<body>
+<body class="tool-page">
 <header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/">Guide</a><a href="/roadmap">Roadmap</a><a href="/tools">Tools</a><details class="nav-more is-current"><summary>More</summary><div class="nav-more-menu"><a href="/market">Market map</a><a href="/pitch">Utility pitch</a><a href="/launch">Launch planner</a><a href="/finance" aria-current="page">Financing</a><a href="/supply">Supply risks</a><a href="/base">Battery</a><a href="/bench">Battery backup test</a><a href="/live">Live</a><a href="/kardashev">Kardashev</a><a href="/titans">Energy companies</a><a href="/notes">Notes</a><a href="/sources">Sources</a></div></details></nav></header>
 
 <main class="fin" id="main">
@@ -20,26 +24,26 @@
     <p class="eyebrow">Unit economics to capital stack</p>
     <h1>Battery debt financing</h1>
     <p class="lede">How much a lender could lend against one home battery, and against a fleet, from the cash the battery earns. Change any input. The page redoes the math as you type.</p>
-    <div class="fin-warn" role="note">
+    <div class="notice fin-warn" role="note">
       <p><strong>Not Base's numbers.</strong> This site is not affiliated with Base Power. Base's real financing terms are unknown. We found no public debt terms in a search on 2026-10-30. Base's August 2026 raise was <a href="https://www.businesswire.com/news/home/20260803203117/en/Base-Power-Announces-$1B-Series-D-and-Launches-Base-Core-First-of-its-Kind-Home-Battery-Built-in-the-United-States">a $1B Series D (equity)</a> at a $13B valuation, with over $2.5B raised to date.</p>
-      <p>Each input says <span class="tag tag-src">Sourced</span> (public number with a link) or <span class="tag tag-asm">Assumption</span> (our placeholder).</p>
+      <p>Each input says <span class="badge badge-green">Sourced</span> (public number with a link) or <span class="badge badge-yellow">Assumption</span> (our placeholder).</p>
     </div>
     <div id="yourdata"></div>
   </section>
 
-  <p class="fin-status" id="status" role="status">Loading inputs...</p>
+  <p class="notice fin-status" id="status" role="status" aria-live="polite">Loading inputs...</p>
 
   <div class="fin-grid" id="app" hidden>
-    <form class="fin-inputs" id="inputs" aria-labelledby="inputs-title" novalidate>
+    <form class="card fin-inputs" id="inputs" aria-labelledby="inputs-title" novalidate>
       <div class="fin-inputs-head">
         <h2 id="inputs-title">Inputs, per battery</h2>
-        <button type="button" class="fin-reset" id="reset">Reset</button>
+        <button type="button" class="btn btn-outline btn-sm" id="reset">Reset</button>
       </div>
 
       <fieldset class="fin-group">
         <legend>What earns the cash</legend>
         <div class="fin-field">
-          <label for="revenueCase">Revenue case <span class="tag tag-asm">Assumption</span></label>
+          <label for="revenueCase">Revenue case <span class="badge badge-yellow">Assumption</span></label>
           <select id="revenueCase" name="revenueCase">
             <option value="toll">Tolled to a utility (toll counts, arbitrage goes to the utility)</option>
             <option value="merchant">Merchant in ERCOT (arbitrage counts, no toll)</option>
@@ -48,7 +52,7 @@
           <p class="fin-note">Base says it can "toll Base-owned batteries to the utility on a pay-for-performance basis, or transfer ownership of the fleet to the utility once deployed (build-transfer model)" (<a href="https://www.basepowercompany.com/utilities">Base, utilities page</a>, retrieved 2026-10-29). Whoever holds the toll usually controls dispatch, so toll and arbitrage rarely both go to the owner.</p>
         </div>
         <div class="fin-field">
-          <label for="zone">Energy arbitrage zone <span class="tag tag-src">Sourced data</span></label>
+          <label for="zone">Energy arbitrage zone <span class="badge badge-green">Sourced data</span></label>
           <select id="zone" name="zone"></select>
           <p class="fin-note" id="zone-note">Energy arbitrage only, 12 real ERCOT months, from <a href="/data/zone-value.json">our zone value file</a>.</p>
         </div>
@@ -57,56 +61,56 @@
     </form>
 
     <div class="fin-results">
-      <section class="fin-card" aria-labelledby="kpi-title">
+      <section class="card fin-card" aria-labelledby="kpi-title">
         <h2 id="kpi-title">Per battery</h2>
-        <div class="kpis" id="kpis"></div>
-        <p class="fin-binding" id="binding"></p>
+        <div class="kpis" id="kpis" aria-live="polite"></div>
+        <p class="notice notice-green fin-binding" id="binding" aria-live="polite"></p>
       </section>
 
-      <section class="fin-card fin-meaning" aria-labelledby="meaning-title">
+      <section class="card fin-card fin-meaning" aria-labelledby="meaning-title">
         <h2 id="meaning-title">What this means</h2>
         <ul id="meaning" aria-live="polite"></ul>
       </section>
 
-      <section class="fin-card" aria-labelledby="cf-title">
+      <section class="card fin-card" aria-labelledby="cf-title">
         <h2 id="cf-title">Cash flow available for debt service</h2>
         <p class="fin-sub">CFADS = revenue minus operating cost, before the loan. Year 1, per battery.</p>
-        <table class="fin-table" id="cf-table"></table>
+        <table class="ds-table fin-table" id="cf-table"></table>
         <figure class="fin-chart">
           <div id="cf-chart"></div>
           <figcaption>Bars: CFADS each year of life. Line: yearly loan payment. Gap between them is the cushion.</figcaption>
         </figure>
       </section>
 
-      <section class="fin-card" aria-labelledby="sizing-title">
+      <section class="card fin-card" aria-labelledby="sizing-title">
         <h2 id="sizing-title">How the loan is sized</h2>
         <p class="fin-sub">Lenders take the lower of two limits: what cash flow can repay, and a share of what the asset cost.</p>
         <ol class="fin-steps" id="sizing"></ol>
       </section>
 
-      <section class="fin-card" aria-labelledby="fleet-title">
+      <section class="card fin-card" aria-labelledby="fleet-title">
         <h2 id="fleet-title">Fleet scale</h2>
         <p class="fin-sub">Same unit math, multiplied. Assumes every battery looks like the average one.</p>
-        <div class="fin-scroll"><table class="fin-table fin-fleet" id="fleet"></table></div>
+        <div class="fin-scroll"><table class="ds-table fin-table fin-fleet" id="fleet"></table></div>
         <p class="fin-note">100 MW view: 100,000 kW divided by the power input per battery. Nameplate power, before availability.</p>
       </section>
 
-      <section class="fin-card" aria-labelledby="sens-title">
+      <section class="card fin-card" aria-labelledby="sens-title">
         <h2 id="sens-title">Sensitivity: debt per battery</h2>
         <p class="fin-sub" id="sens-sub">Rows: utility toll. Columns: interest rate. All other inputs as set.</p>
-        <div class="fin-scroll"><table class="fin-table fin-sens" id="sens"></table></div>
+        <div class="fin-scroll"><table class="ds-table fin-table fin-sens" id="sens"></table></div>
         <p class="fin-note"><span class="key key-dscr"></span> cash flow limits the loan <span class="key key-cap"></span> advance cap limits it <span class="key key-none"></span> no debt</p>
       </section>
     </div>
   </div>
 
-  <section class="fin-card fin-wide" aria-labelledby="ledger-title">
+  <section class="card fin-card fin-wide" aria-labelledby="ledger-title">
     <h2 id="ledger-title">Real vs assumed</h2>
     <p class="fin-sub">Every default on this page, and where it comes from.</p>
-    <div class="fin-scroll"><table class="fin-table fin-ledger" id="ledger"></table></div>
+    <div class="fin-scroll"><table class="ds-table fin-table fin-ledger" id="ledger"></table></div>
   </section>
 
-  <section class="fin-card fin-wide" aria-labelledby="method-title">
+  <section class="card fin-card fin-wide" aria-labelledby="method-title">
     <h2 id="method-title">Method and what is left out</h2>
     <ul class="fin-list">
       <li><strong>Debt sizing.</strong> Level yearly payment over the loan term. The payment is the weakest year's CFADS inside the term, divided by the target DSCR. Debt is the present value of that payment at the interest rate. Then the loan is capped at the advance rate times installed cost, and never above cost minus the member's upfront payment.</li>
@@ -119,7 +123,7 @@
     <p class="fin-note">Math lives in <a href="/finance-core.js">finance-core.js</a>, tested in Node. Defaults live in <a href="/data/finance-defaults.json">finance-defaults.json</a>.</p>
   </section>
 
-  <section class="fin-card fin-wide" aria-labelledby="sources-title">
+  <section class="card fin-card fin-wide" aria-labelledby="sources-title">
     <h2 id="sources-title">Sources</h2>
     <ul class="fin-list fin-sources">
       <li><a href="https://www.basepowercompany.com/utilities">Base Power, utilities page</a> (retrieved 2026-10-29). Base Core 20 kW / 39.2 kWh. "Landed cost of storage": Base about $300 to $400 per kWh, utility-scale about $200 to $400 per kWh, traditional battery VPPs about $1,100 per kWh (Base cites EnergySage, Lazard, Wood Mac). "24/7 dispatchable up to 500 cycles a year", "96% fleet availability", "Field-demonstrated &lt;5% forced outage rate". Tolling and build-transfer structures.</li>

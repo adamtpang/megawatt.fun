@@ -1,0 +1,47 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Node tests (tools, data contracts, plug-in validation)
+        run: node --test tests/*.test.cjs
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Python tests
+        run: |
+          python -m pip install --quiet pytest
+          python -m pytest -q tests
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - name: Go tests
+        run: go test ./...
+
+      - name: File-format docs are up to date
+        run: |
+          python scripts/build-plug-docs.py
+          git diff --exit-code plug-and-play.html
+
+      - name: No em dashes in shipped files
+        run: |
+          if grep -rlP '\x{2014}' --include='*.html' --include='*.js' --include='*.css' --include='*.json' --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=docs --exclude-dir=.vercel --exclude-dir=.cache . ; then
+            echo "Em dash found in the files above"; exit 1
+          fi

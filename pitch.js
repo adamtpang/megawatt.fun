@@ -25,15 +25,33 @@
   function ratio(a, b) { return P.isNum(a) && P.isNum(b) && b > 0 ? (a / b).toFixed(1) + 'x' : null; }
   function label(u) { return P.displayName(u) + ', ' + u.state; }
   // "Yours" tag for a number that came from the company's own file (yourdata.js).
-  function yours(key) { return state.changed[key] ? ' <span class="pt-tag pt-tag-yours">Yours</span>' : ''; }
+  var YOURS = '<span class="badge badge-solid">Yours</span>';
+  function yours(key) { return state.changed[key] ? ' ' + YOURS : ''; }
   function dec(v) { return v % 1 ? 1 : 0; }
   function months(lo, hi) { return lo === hi ? num(lo, dec(lo)) + ' months' : num(lo, dec(lo)) + ' to ' + num(hi, dec(hi)) + ' months'; }
   function link(src, text) { return '<a href="' + esc(src.url) + '" rel="noopener">' + esc(text || src.title) + '</a>'; }
 
-  function init() {
+  // Status line under the controls. kind: '' (plain) or 'error' (red notice).
+  function setStatus(text, kind) {
+    var el = $('status');
+    el.className = 'pt-status' + (kind === 'error' ? ' notice notice-red' : '');
+    el.textContent = text;
+  }
+
+  function getJSON(url) {
+    return fetch(url).then(function (r) {
+      if (!r.ok) throw new Error(url + ' returned ' + r.status);
+      return r.json();
+    });
+  }
+
+  function load() {
+    $('controls').setAttribute('aria-busy', 'true');
+    $('build').disabled = true;
+    setStatus('Loading public data...');
     Promise.all([
-      fetch('/data/expansion-map.json').then(function (r) { return r.json(); }),
-      fetch('/data/market-states.json').then(function (r) { return r.json(); })
+      getJSON('/data/expansion-map.json'),
+      getJSON('/data/market-states.json')
     ]).then(function (res) {
       state.data = res[0];
       state.market = res[1];
@@ -47,19 +65,38 @@
         o.value = l;
         frag.appendChild(o);
       });
+      list.textContent = '';
       list.appendChild(frag);
       var start = state.byId[DEFAULT_ID] || state.data.utilities[0];
       select(start);
-      $('status').textContent = 'Ready. Data: ' + state.data.vintage.split('.')[0] + '.';
-      mountYourData();
+      $('controls').removeAttribute('aria-busy');
+      $('build').disabled = false;
+      setStatus('Ready. Data: ' + state.data.vintage.split('.')[0] + '.');
+      if (!yourDataMounted) { yourDataMounted = true; mountYourData(); }
     }).catch(function () {
-      $('status').textContent = 'Could not load the public data files. Reload to try again.';
+      state.data = null;
+      $('controls').removeAttribute('aria-busy');
+      setStatus('Could not load the public data files. Check your connection, then ', 'error');
+      var retry = document.createElement('button');
+      retry.type = 'button';
+      retry.className = 'btn btn-outline btn-sm pt-retry';
+      retry.textContent = 'Try again';
+      retry.addEventListener('click', load);
+      $('status').appendChild(retry);
     });
+  }
+
+  var yourDataMounted = false;
+
+  function init() {
+    load();
 
     $('controls').addEventListener('submit', function (e) {
       e.preventDefault();
+      if (!state.data) return;
       var u = matchInput();
-      if (!u) { $('status').textContent = 'Pick a utility from the list.'; return; }
+      if (!u) { setStatus('Pick a utility from the list.', 'error'); return; }
+      setStatus('Ready. Data: ' + state.data.vintage.split('.')[0] + '.');
       state.selected = u;
       state.built = true;
       $('print').disabled = false;
@@ -143,9 +180,9 @@
       (nYours ? ' ' + nYours + ' number' + (nYours === 1 ? '' : 's') + ' from your own file, tagged Yours.' : '') + '</p>');
     h.push('<h2 class="pt-headline">' + esc(P.headline(u, sig)) + '</h2>');
     h.push('<p class="pt-sub">' + esc(P.displayName(u)) + ', ' + esc(st.name) + '. ' + num(u.values.homes) + ' residential customers' + r('eia') + '. Balancing authority: ' + esc(u.detail.rtos) + r('eia') + '.</p>');
-    if (target) h.push('<p class="pt-target"><span class="pt-tag pt-tag-yours">Yours</span> <strong>Your target list:</strong> ' + esc(target.status) +
+    if (target) h.push('<p class="pt-target">' + YOURS + ' <strong>Your target list:</strong> ' + esc(target.status) +
       (target.owner ? '. Owner: ' + esc(target.owner) : '') + (target.note ? '. ' + esc(target.note) : '') + '</p>');
-    if (known) h.push('<p class="pt-known"><strong>Public link to Base:</strong> ' + esc(known.note) + ' ' + (known.source.url === P.BASE_SOURCE.url ? r('base') : r('known')) + (known.aliasSource ? ' EIA lists CoServ under its legal name, Denton County Electric Cooperative.' + r('alias') : '') + '</p>');
+    if (known) h.push('<p class="notice notice-green pt-known"><strong>Public link to Base:</strong> ' + esc(known.note) + ' ' + (known.source.url === P.BASE_SOURCE.url ? r('base') : r('known')) + (known.aliasSource ? ' EIA lists CoServ under its legal name, Denton County Electric Cooperative.' + r('alias') : '') + '</p>');
 
     // Program
     if (prog) {
@@ -173,11 +210,11 @@
       ['Residential customers in an ISO or RTO', pctText(u.values.wholesale), pctText(st.values.wholesale), 'n/a', null, 'eia'],
       ['Residential customers on a retail provider', pctText(u.values.retail), pctText(st.values.retail), 'n/a', null, 'eia']
     ];
-    var t = '<div class="pt-table-wrap"><table class="pt-table pt-problem"><thead><tr><th scope="col">Signal</th><th scope="col">' + esc(name) + '</th><th scope="col">' + esc(st.name) + '</th><th scope="col">US</th><th scope="col">Rank among US utilities</th></tr></thead><tbody>';
+    var t = '<div class="pt-table-wrap"><table class="ds-table pt-table pt-problem"><thead><tr><th scope="col">Signal</th><th scope="col" class="num">' + esc(name) + '</th><th scope="col" class="num">' + esc(st.name) + '</th><th scope="col" class="num">US</th><th scope="col">Rank among US utilities</th></tr></thead><tbody>';
     rows.forEach(function (row) {
       var p = row[4];
       var rank = p && P.isNum(p.pct) ? 'higher than ' + Math.round(p.pct * 100) + '% of ' + num(p.n) : (p ? 'not published' : '');
-      t += '<tr><th scope="row">' + esc(row[0]) + r(row[5]) + '</th><td data-label="' + esc(name) + '">' + row[1] + '</td><td data-label="' + esc(st.name) + '">' + row[2] + '</td><td data-label="US">' + row[3] + '</td><td data-label="Rank">' + rank + '</td></tr>';
+      t += '<tr><th scope="row">' + esc(row[0]) + r(row[5]) + '</th><td class="num" data-label="' + esc(name) + '">' + row[1] + '</td><td class="num" data-label="' + esc(st.name) + '">' + row[2] + '</td><td class="num" data-label="US">' + row[3] + '</td><td data-label="Rank">' + rank + '</td></tr>';
     });
     t += '</tbody></table></div>';
     var said = [];
@@ -196,7 +233,7 @@
       '<p class="pt-note">Also on Base\'s menu: ' + others.map(function (o) { return esc(o.name); }).join(' and ') + '. Speed to power is picked only when you mark a large-load queue, because no public file here shows one.</p></section>');
 
     // Speed and cost
-    var ct = '<div class="pt-table-wrap"><table class="pt-table pt-claims"><thead><tr><th scope="col">Option</th><th scope="col">Time to deploy 100 MW</th><th scope="col">Landed cost of storage</th><th scope="col">This program at that cost</th></tr></thead><tbody>';
+    var ct = '<div class="pt-table-wrap"><table class="ds-table pt-table pt-claims"><thead><tr><th scope="col">Option</th><th scope="col">Time to deploy 100 MW</th><th scope="col">Landed cost of storage</th><th scope="col">This program at that cost</th></tr></thead><tbody>';
     P.CLAIMS_TABLE.forEach(function (row, i) {
       var time = esc(row.time), cost = esc(row.cost), tag = '';
       if (i === 0 && (costYours || timeYours)) {
@@ -212,7 +249,7 @@
     });
     ct += '</tbody></table></div>';
     h.push('<section class="pt-block"><h3>Speed and cost, as Base states them</h3>' +
-      '<p><span class="pt-tag pt-tag-claimed">Base\'s claim</span> The first three columns are Base\'s own comparison table, which Base attributes to EnergySage, Lazard and Wood Mackenzie' + r('base') + '. The last column multiplies those $/kWh figures by this program\'s ' + (prog ? num(prog.mwh, 1) : 'n/a') + ' MWh. It is arithmetic on a claim, not a quote.</p>' + ct +
+      '<p><span class="badge badge-white">Base\'s claim</span> The first three columns are Base\'s own comparison table, which Base attributes to EnergySage, Lazard and Wood Mackenzie' + r('base') + '. The last column multiplies those $/kWh figures by this program\'s ' + (prog ? num(prog.mwh, 1) : 'n/a') + ' MWh. It is arithmetic on a claim, not a quote.</p>' + ct +
       (costYours || timeYours ? '<p class="pt-note">The Base row uses your own ' + (costYours && timeYours ? 'time and cost' : costYours ? 'cost' : 'time') + ' from your file. Base\'s public claim is 3 to 6 months and ~$300 to $400/kWh' + r('base') + '.</p>' : '') +
       '<p class="pt-note">Base also claims: deployment across 3 metros and 6 utilities in the last 12 months, an in-house deployment factory, dispatch up to 500 cycles a year, 96% fleet availability, and a field-demonstrated forced outage rate under 5%' + r('base') + '.' +
       (state.changed.cyclesPerYear || state.changed.availabilityPct || state.changed.forcedOutagePct ? ' Your file says: up to ' + num(T.cyclesPerYear) + ' cycles a year' + yours('cyclesPerYear') + ', ' + num(T.availabilityPct, dec(T.availabilityPct)) + '% fleet availability' + yours('availabilityPct') + ', forced outage rate under ' + num(T.forcedOutagePct, dec(T.forcedOutagePct)) + '%' + yours('forcedOutagePct') + '.' : '') + '</p></section>');
@@ -229,20 +266,20 @@
 
     // Real vs claimed vs assumed
     h.push('<section class="pt-block pt-rca"><h3>Real vs claimed vs assumed</h3><div class="pt-rca-grid">' +
-      '<div class="pt-rca-real"><h4><span class="pt-tag pt-tag-real">Real</span> Public data</h4><ul>' +
+      '<div class="pt-rca-real"><h4><span class="badge badge-green">Real</span> Public data</h4><ul>' +
         '<li>Customers, SAIDI, SAIFI, ISO share, retail share, batteries, demand response and dynamic pricing: EIA-861 2025' + r('eia') + '.</li>' +
         '<li>Storm and heat-wave risk: FEMA National Risk Index' + r('fema') + '.</li>' +
         '<li>US SAIDI and state prices and bills: EIA' + r('epa') + r('price') + '.</li>' +
         (known ? '<li>' + esc(known.note) + '</li>' : '') +
       '</ul></div>' +
-      '<div class="pt-rca-claimed"><h4><span class="pt-tag pt-tag-claimed">Claimed</span> Base\'s marketing</h4><ul>' +
+      '<div class="pt-rca-claimed"><h4><span class="badge badge-white">Claimed</span> Base\'s marketing</h4><ul>' +
         '<li>20 kW / 39.2 kWh per home battery.' + (state.changed.kwPerHome || state.changed.kwhPerHome ? ' This pitch uses yours: ' + num(T.kwPerHome, dec(T.kwPerHome)) + ' kW / ' + num(T.kwhPerHome, dec(T.kwhPerHome)) + ' kWh.' + (yours('kwPerHome') || yours('kwhPerHome')) : '') + '</li>' +
-        '<li>3 to 6 months to deploy 100 MW; ~$300 to $400/kWh landed.' + (costYours || timeYours ? ' This pitch uses yours. <span class="pt-tag pt-tag-yours">Yours</span>' : '') + '</li>' +
+        '<li>3 to 6 months to deploy 100 MW; ~$300 to $400/kWh landed.' + (costYours || timeYours ? ' This pitch uses yours. ' + YOURS : '') + '</li>' +
         '<li>Up to 500 cycles a year, 96% fleet availability, under 5% forced outage rate.</li>' +
         '<li>No new interconnection agreements or substation upgrades "in most cases".</li>' +
         '<li>Utility keeps full dispatch rights; members keep a backup reserve.' + r('base') + '</li>' +
       '</ul></div>' +
-      '<div class="pt-rca-assumed"><h4><span class="pt-tag pt-tag-assumed">Assumed</span> Choices made here</h4><ul>' +
+      '<div class="pt-rca-assumed"><h4><span class="badge badge-yellow">Assumed</span> Choices made here</h4><ul>' +
         '<li>Program size: ' + (prog ? num(prog.mw) : 'n/a') + ' MW nameplate, every battery a full ' + num(T.kwPerHome, dec(T.kwPerHome)) + ' kW unit.</li>' +
         '<li>Offer cutoffs: outages higher than ' + num(T.reliabilityCutoffPct) + '% of US utilities' + yours('reliabilityCutoffPct') + '; ' + num(T.wholesaleCutoffPct) + '% of customers in an ISO or RTO' + yours('wholesaleCutoffPct') + '.</li>' +
         '<li>Large-load queue: ' + ($('largeloads').checked ? 'marked by you' : 'not marked') + '.</li>' +
@@ -284,14 +321,15 @@
     $('ranking-title').textContent = 'Who to call first in ' + st.name;
     $('ranking-help').textContent = all.length + ' utilities in ' + st.name + ' in this file. Ranked by residential customers x SAIDI minutes (EIA-861 2025).' +
       (nMine ? ' Your ' + nMine + ' target' + (nMine === 1 ? '' : 's') + ' in ' + st.name + ' come first, still in public rank order.' : '') + ' Pick one to rebuild the pitch.';
-    var t = '<thead><tr><th scope="col">#</th><th scope="col">Utility</th>' + (hasTargets ? '<th scope="col">Your status</th>' : '') + '<th scope="col">Residential customers</th><th scope="col">SAIDI min</th><th scope="col">Customer-minutes (millions)</th></tr></thead><tbody>';
+    var t = '<thead><tr><th scope="col">#</th><th scope="col">Utility</th>' + (hasTargets ? '<th scope="col">Your status</th>' : '') + '<th scope="col" class="num">Residential customers</th><th scope="col" class="num">SAIDI min</th><th scope="col" class="num">Customer-minutes (millions)</th></tr></thead><tbody>';
+    if (!top.length) t += '<tr><td colspan="' + (hasTargets ? 6 : 5) + '">No utilities in ' + esc(st.name) + ' publish enough data to rank.</td></tr>';
     top.forEach(function (row) {
       var cur = row.id === u.id;
       var mt = tg[row.id];
       var cls = [cur ? 'is-current' : '', mt ? 'is-target' : ''].join(' ').trim();
       t += '<tr' + (cls ? ' class="' + cls + '"' : '') + (cur ? ' aria-current="true"' : '') + '><td data-label="#">' + row.rank + '</td><td data-label="Utility"><button type="button" class="pt-link" data-id="' + esc(row.id) + '">' + esc(row.name) + '</button></td>' +
-        (hasTargets ? '<td data-label="Your status">' + (mt ? '<span class="pt-statuscell"><span class="pt-status-chip">' + esc(mt.status) + '</span>' + (mt.owner ? ' <span class="pt-owner">' + esc(mt.owner) + '</span>' : '') + '</span>' : '') + '</td>' : '') +
-        '<td data-label="Customers">' + num(row.customers) + '</td><td data-label="SAIDI">' + num(row.saidi, 0) + '</td><td data-label="Cust-min (M)">' + (P.isNum(row.score) ? num(row.score / 1e6, 1) : 'not published') + '</td></tr>';
+        (hasTargets ? '<td data-label="Your status">' + (mt ? '<span class="pt-statuscell"><span class="badge badge-solid pt-status-chip">' + esc(mt.status) + '</span>' + (mt.owner ? ' <span class="pt-owner">' + esc(mt.owner) + '</span>' : '') + '</span>' : '') + '</td>' : '') +
+        '<td class="num" data-label="Customers">' + num(row.customers) + '</td><td class="num" data-label="SAIDI">' + num(row.saidi, 0) + '</td><td class="num" data-label="Cust-min (M)">' + (P.isNum(row.score) ? num(row.score / 1e6, 1) : 'not published') + '</td></tr>';
     });
     $('ranking').innerHTML = t + '</tbody>';
     // Targets in other states, so a national list is one tap away.
@@ -305,7 +343,7 @@
       $('ranking-panel').appendChild(box);
     }
     box.innerHTML = elsewhere.length ? '<p class="pt-help">Your targets in other states:</p><ul>' + elsewhere.map(function (x) {
-      return '<li><button type="button" class="pt-link" data-id="' + esc(x.id) + '">' + esc(label(x)) + '</button> <span class="pt-status-chip">' + esc(tg[x.id].status) + '</span></li>';
+      return '<li><button type="button" class="pt-link" data-id="' + esc(x.id) + '">' + esc(label(x)) + '</button> <span class="badge badge-solid pt-status-chip">' + esc(tg[x.id].status) + '</span></li>';
     }).join('') + '</ul>' : '';
     box.hidden = !elsewhere.length;
     $('ranking-panel').hidden = false;

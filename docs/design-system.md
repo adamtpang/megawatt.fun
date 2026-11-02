@@ -39,6 +39,22 @@ The deployment tool presents map, shortlist and economics in order. Unknown site
 
 The map and evidence share a single white bordered card with an internal divider. This follows the public calculator's enclosing form surface. Button padding (12px/16px), weights (600), radii (8px controls / 16px cards), charcoal (#292826), canvas (#f0eeeb) and green action (#b2dd79) are directly measured. The layout, county map, section navigation and Franklin are Megawatt adaptations; no claim is made about Base's private internal-tool UI.
 
+## Component classes (Base system, 2026-11-02)
+
+The block "Base design system components" at the end of `site.css` mirrors Base's public `--bpc` tokens and component rules. Tool pages opt in with `<body class="tool-page">`. Use these instead of page-local copies:
+
+| Class | Base source | Use |
+| --- | --- | --- |
+| `.eyebrow` | `.bpc-eyebrow`: 600, 12px, 0.12em tracking, uppercase | Label above a page heading |
+| `.tool-page h1/h2/h3` | display-sm/md, heading-md/sm | Page type scale |
+| `.badge` + `-green -solid -white -yellow -orange -red -blue` | `.bpc-badge`: 4px corners, 12px, 500, uppercase | Sourced green, assumption yellow, partly white, yours solid green, risk red, stale orange |
+| `.btn`, `.btn-outline`, `.btn-sm` | `.bpc-button-filled`, `.bpc-button-outline` | Actions |
+| `.card` | `.bpc-card`: white, 1px grey-20, 16px corners | Panels |
+| `.ds-table` | (Megawatt) uppercase header, charcoal rule | Data tables |
+| `.notice`, `-green`, `-red` | (Megawatt) tinted note | Disclaimers and status |
+
+Deliberate differences: Instrument Sans stands in for the licensed PP Neue Montreal and Clarendon Wide; muted text is grey-80, not grey-60, for WCAG AA on the canvas; no Base logo or imagery. The site stays independent and says so on every tool.
+
 ## Review
 
 Check Guide, Roadmap, Tools, Battery and Bench on desktop and a 390px phone. Verify no horizontal overflow, readable plots and controls, keyboard operation, closed details by default, and the duplicate-command result (32/100 unguarded, 0/100 guarded for the saved default fixture).

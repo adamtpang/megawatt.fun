@@ -2,15 +2,16 @@
 (function () {
   'use strict';
   const $ = id => document.getElementById(id);
+  const SRC = '/data/supply.json';
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
   // One sourced fact: value, then publisher, date and link, with quality flags.
   function fact(f) {
     if (!f || !f.value) return '<p class="sp-none">Not found in public sources.</p>';
     const flags = [];
-    if (f.stale) flags.push('<span class="sp-badge is-stale">older than 18 months</span>');
-    if (f.source_quality) flags.push('<span class="sp-badge is-weak">' + esc(f.source_quality) + '</span>');
-    if (f.basis === 'inference') flags.push('<span class="sp-badge is-read">inference</span>');
+    if (f.stale) flags.push('<span class="badge badge-orange">older than 18 months</span>');
+    if (f.source_quality) flags.push('<span class="badge badge-white">' + esc(f.source_quality) + '</span>');
+    if (f.basis === 'inference') flags.push('<span class="badge badge-yellow">inference</span>');
     return '<p>' + esc(f.value) + '</p>' +
       (f.quote ? '<p class="sp-quote">"' + esc(f.quote) + '"</p>' : '') +
       '<p class="sp-src">' + (f.url ? '<a href="' + esc(f.url) + '" target="_blank" rel="noopener">' + esc(f.publisher || 'Source') + '</a>' : esc(f.publisher || '')) +
@@ -25,14 +26,14 @@
     return '<li><strong>' + esc(q.name) + '</strong>' + (q.value ? ': ' + esc(q.value) : '') +
       (q.status ? '<br><span class="sp-small">Status: ' + esc(q.status) + '</span>' : '') +
       '<br><span class="sp-src">' + (q.url ? '<a href="' + esc(q.url) + '" target="_blank" rel="noopener">' + esc(q.publisher || 'Source') + '</a>' : '') +
-      (q.date ? ', ' + esc(q.date) : '') + (q.source_quality ? ' <span class="sp-badge is-weak">' + esc(q.source_quality) + '</span>' : '') + '</span></li>';
+      (q.date ? ', ' + esc(q.date) : '') + (q.source_quality ? ' <span class="badge badge-white">' + esc(q.source_quality) + '</span>' : '') + '</span></li>';
   }
 
   function part(p) {
     const alts = (p.alternatives || []).map(a => '<li><strong>' + esc(a.name) + '</strong>: ' + esc(a.note) +
       (a.url ? ' <a href="' + esc(a.url) + '" target="_blank" rel="noopener">Source</a>' : '') + '</li>').join('');
-    return '<article class="sp-card sp-part" id="part-' + esc(p.id) + '">' +
-      '<div class="sp-part-head"><h2>' + esc(p.name) + '</h2><span class="sp-badge is-read">Our read: ' + esc(p.our_read.label) + '</span></div>' +
+    return '<article class="card sp-card sp-part" id="part-' + esc(p.id) + '">' +
+      '<div class="sp-part-head"><h2>' + esc(p.name) + '</h2><span class="badge badge-yellow">Our read: ' + esc(p.our_read.label) + '</span></div>' +
       '<p class="sp-what">' + esc(p.what_it_does) + '</p>' +
       '<p class="sp-risk">' + esc(p.risk_note) + '</p>' +
       '<div class="sp-grid">' + row('Lead time', p.lead_time) + row('Price trend', p.price_trend) + row('Where it comes from', p.concentration) + '</div>' +
@@ -48,7 +49,8 @@
 
   function bomCard(res, partNames) {
     const t = res.totals;
-    const flagClass = { 'Will run short': 'is-short', 'Single source': 'is-single', 'Tariff 25%+': 'is-tariff' };
+    // Risk flags use the shared badge mapping: shortage and single source are risks (red), tariff is neutral.
+    const flagClass = { 'Will run short': 'badge-red', 'Single source': 'badge-red', 'Tariff 25%+': '' };
     const rows = res.rows.map(r => {
       const pub = partNames[r.category];
       return '<tr' + (r.gap > 0 ? ' class="is-short"' : '') + '>' +
@@ -59,26 +61,25 @@
         '<td data-label="Lead time" class="num">' + wk(r.lead_time_weeks) + '</td>' +
         '<td data-label="Cover" class="num">' + (r.on_hand_weeks == null ? '<span class="sp-small">none given</span>' : wk(r.on_hand_weeks)) + '</td>' +
         '<td data-label="Gap" class="num"><strong>' + (r.gap > 0 ? '+' : '') + wk(r.gap) + '</strong></td>' +
-        '<td data-label="Flags">' + (r.flags.length ? r.flags.map(f => '<span class="sp-badge sp-flagb ' + flagClass[f] + '">' + esc(f) + '</span>').join(' ') : '<span class="sp-small">None</span>') + '</td></tr>';
+        '<td data-label="Flags">' + (r.flags.length ? r.flags.map(f => '<span class="badge sp-flagb' + (flagClass[f] ? ' ' + flagClass[f] : '') + '">' + esc(f) + '</span>').join(' ') : '<span class="sp-small">None</span>') + '</td></tr>';
     }).join('');
     const longest = t.longest && t.longest.gap > 0 ? ' Longest gap: ' + esc(t.longest.part) + ', ' + wk(t.longest.gap) + '.' : '';
     const tariff = t.tariffParts ? ' Tariff cost per battery: ' + usd(t.tariffPerBattery) + ' across ' + t.tariffParts + ' part' + (t.tariffParts === 1 ? '' : 's') + ' with cost, quantity and tariff.' : ' Add unit_cost_usd, qty_per_unit and tariff_pct to see tariff cost per battery.';
     const sec = document.createElement('section');
-    sec.className = 'sp-card sp-yd';
+    sec.className = 'card sp-card sp-yd';
     sec.id = 'bom-wrap';
     sec.setAttribute('aria-labelledby', 'bom-title');
-    sec.innerHTML = '<div class="sp-part-head"><h2 id="bom-title">Your bill of materials</h2><span class="sp-badge sp-yours">Your data</span></div>' +
+    sec.innerHTML = '<div class="sp-part-head"><h2 id="bom-title">Your bill of materials</h2><span class="badge badge-solid">Your data</span></div>' +
       '<p class="sp-small">From your file, read in this browser only. Not public research. Gap is lead time minus weeks of cover (inventory plus open orders); a missing cover counts as zero.</p>' +
       '<p class="sp-yd-sum"><strong>' + t.atRisk + ' of ' + t.parts + ' part' + (t.parts === 1 ? '' : 's') + ' will run short.</strong>' +
       (t.singleSource ? ' ' + t.singleSource + ' single sourced.' : '') + longest + tariff + '</p>' +
-      '<div class="sp-yd-scroll"><table class="sp-yd-table"><thead><tr><th>Part</th><th>Supplier</th><th class="num">Lead time</th><th class="num">Cover</th><th class="num">Gap</th><th>Flags</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+      '<div class="sp-yd-scroll"><table class="ds-table sp-yd-table"><thead><tr><th>Part</th><th>Supplier</th><th class="num">Lead time</th><th class="num">Cover</th><th class="num">Gap</th><th>Flags</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
     return sec;
   }
 
   function showBom(res, partNames) {
     hideBom();
-    const at = $('status');
-    at.parentNode.insertBefore(bomCard(res, partNames), at);
+    $('bom-slot').appendChild(bomCard(res, partNames));
   }
 
   function hideBom() {
@@ -111,23 +112,34 @@
     });
   }
 
+  const empty = msg => '<li class="sp-none">' + esc(msg) + '</li>';
+  const list = (a, fn, msg) => Array.isArray(a) && a.length ? a.map(fn).join('') : empty(msg);
+
   async function init() {
+    const st = $('status');
+    st.className = 'sp-status';
+    st.hidden = false;
+    st.textContent = 'Loading supply data...';
     try {
-      const r = await fetch('/data/supply.json');
+      const r = await fetch(SRC);
       if (!r.ok) throw new Error('supply.json ' + r.status);
       const d = await r.json();
-      $('order').innerHTML = d.parts.map(p => '<li><a href="#part-' + esc(p.id) + '">' + esc(p.name) + '</a> <span class="sp-badge is-read">' + esc(p.our_read.label) + '</span><br><span class="sp-small">' + esc(p.our_read.why) + '</span></li>').join('');
+      if (!d || !Array.isArray(d.parts)) throw new Error('supply.json has no parts list');
+      $('order').innerHTML = list(d.parts, p => '<li><a href="#part-' + esc(p.id) + '">' + esc(p.name) + '</a> <span class="badge badge-yellow">' + esc(p.our_read.label) + '</span><br><span class="sp-small">' + esc(p.our_read.why) + '</span></li>', 'No parts in the data yet.');
       $('parts').innerHTML = d.parts.map(part).join('');
-      $('base').innerHTML = d.base_public.map(b => '<li>' + esc(b.claim) + ' <span class="sp-src">' +
+      $('base').innerHTML = list(d.base_public, b => '<li>' + esc(b.claim) + ' <span class="sp-src">' +
         (b.url ? '<a href="' + esc(b.url) + '" target="_blank" rel="noopener">' + esc(b.publisher) + '</a>' : esc(b.publisher || '')) +
-        (b.date ? ', ' + esc(b.date) : '') + (b.stale ? ' <span class="sp-badge is-stale">older than 18 months</span>' : '') +
-        (b.source_quality ? ' <span class="sp-badge is-weak">' + esc(b.source_quality) + '</span>' : '') + '</span></li>').join('');
-      $('gaps').innerHTML = d.gaps.map(g => '<li>' + esc(g) + '</li>').join('');
+        (b.date ? ', ' + esc(b.date) : '') + (b.stale ? ' <span class="badge badge-orange">older than 18 months</span>' : '') +
+        (b.source_quality ? ' <span class="badge badge-white">' + esc(b.source_quality) + '</span>' : '') + '</span></li>', 'No public statements from Base found yet.');
+      $('gaps').innerHTML = list(d.gaps, g => '<li>' + esc(g) + '</li>', 'No known gaps listed.');
       for (const id of ['order-wrap', 'base-wrap', 'gaps-wrap']) $(id).hidden = false;
-      $('status').hidden = true;
+      st.hidden = true;
       mountYourData(d);
     } catch (e) {
-      $('status').textContent = 'Could not load supply data: ' + e.message;
+      st.className = 'notice notice-red sp-status';
+      st.innerHTML = 'Could not load supply data (' + esc(e.message) + '). Check your connection, then ' +
+        '<button type="button" class="btn btn-outline btn-sm" id="retry">Try again</button>';
+      $('retry').addEventListener('click', init);
     }
   }
 

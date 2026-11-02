@@ -10,21 +10,20 @@
 <style>
 .pp { max-width: 880px; margin: 0 auto; padding: 8px 16px 0; }
 .pp-intro { margin: 24px 0 16px; }
-.pp-intro .lede { font-size: 18px; color: var(--muted); max-width: 62ch; }
-.pp-card { background: var(--surface-raised); border: 1px solid var(--line); border-radius: var(--radius-panel); padding: 16px; margin: 0 0 16px; }
-.pp-card h2 { font-size: 26px; margin: 0 0 8px; scroll-margin-top: 80px; }
+.pp-card { padding: 16px; margin: 0 0 16px; }
+.pp-card h2 { margin: 0 0 8px; scroll-margin-top: 80px; }
 .pp-card p, .pp-card li { font-size: 15px; }
 .pp-table { overflow-x: auto; margin: 12px 0; }
 .pp-table table { border-collapse: collapse; width: 100%; min-width: 480px; font-size: 14px; }
 .pp-table th, .pp-table td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--line); }
-.pp-table th { font-weight: 600; }
+.pp-table th { font: 600 var(--text-body-sm)/1.5 var(--body); letter-spacing: .04em; text-transform: uppercase; color: var(--grey-80); border-bottom-color: var(--grey-100); }
 .pp-card pre { overflow-x: auto; background: var(--surface); border-radius: var(--radius-control); padding: 12px; font-size: 13px; }
 .pp-card code { font-family: var(--mono); font-size: .92em; }
 .pp-rules { padding-left: 20px; }
 @media (min-width: 760px) { .pp-card { padding: 24px; } }
 </style>
 </head>
-<body>
+<body class="tool-page">
 <header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/">Guide</a><a href="/roadmap">Roadmap</a><a href="/tools">Tools</a><details class="nav-more"><summary>More</summary><div class="nav-more-menu"><a href="/market">Market map</a><a href="/pitch">Utility pitch</a><a href="/launch">Launch planner</a><a href="/finance">Financing</a><a href="/supply">Supply risks</a><a href="/base">Battery</a><a href="/bench">Battery backup test</a><a href="/live">Live</a><a href="/kardashev">Kardashev</a><a href="/titans">Energy companies</a><a href="/notes">Notes</a><a href="/sources">Sources</a></div></details></nav></header>
 
 <main class="pp" id="main">
@@ -41,7 +40,7 @@
     <p class="sp-small">Independent. Not affiliated with Base Power.</p>
   </section>
 
-<section class="pp-card">
+<section class="pp-card card">
 <h2 id="market">Market</h2>
 <p>Page: <code>/market</code>. Adds your own per-state metrics to the expansion score, or swaps the public Texas zone values for your own. One file holds one kind; the page tells them apart by their columns.</p>
 <p><strong>State metrics file:</strong> CSV with a <code>state</code> column (two-letter code such as <code>TX</code>, or the full name such as <code>Texas</code>) plus any number of number columns, one per metric. A header ending in <code> (lower is better)</code> ranks low values best; every other column ranks high values best. JSON: <code>{ "factors": [{ "key", "label", "higherIsBetter" }], "states": { "TX": { "key": value } } }</code>; <code>factors</code> is optional and sets labels and direction. Download the template from the page: it lists all 51 states with two example columns left blank.</p>
@@ -55,7 +54,7 @@ TX,11500,9,4200
 FL,13200,21,800
 Georgia,12800,14,350</code></pre>
 </section>
-<section class="pp-card">
+<section class="pp-card card">
 <h2 id="pitch">Pitch</h2>
 <p>Page: <code>/pitch</code>. Swaps Base's public claims and this page's assumptions for your own offer terms, and marks the utilities on your own target list.</p>
 <p><strong>File:</strong> one CSV or JSON file holds either part, or both. In a CSV, a row with a <code>key</code> is an offer term and a row with a <code>utility</code> is a target; a row with both, or neither, is an error. Extra columns such as <code>unit</code>, <code>label</code> and <code>public_basis</code> are ignored. Each file you load replaces the last one, so keep terms and targets in the same file to use both. Download the templates from the page: the offer terms template lists every key with its public value and already has the target columns, and the target list template starts with the public top 5 to call in the selected state.</p>
@@ -72,7 +71,7 @@ termYears,10,,,,
 ,,5078-TX,signed,Ana,Pilot live
 ,,Austin Energy,in talks,Ben,</code></pre>
 </section>
-<section class="pp-card">
+<section class="pp-card card">
 <h2 id="supply">Supply</h2>
 <p>Page: <code>/supply</code>. Loads your own bill of materials and shows which parts will run short. The public research stays on the page below your card.</p>
 <p><strong>File:</strong> CSV with one row per part, or JSON <code>{ "parts": [ { ... } ] }</code> with the same fields (a bare array of parts also works). Download the template from the page: it has one fictional example row per category.</p>
@@ -83,7 +82,7 @@ termYears,10,,,,
 Inverter module,power_electronics,Example Supplier A,Germany,30,12,no,25,900,1,
 LFP cell,cells,Example Supplier C,China,16,8,yes,55,40,12,</code></pre>
 </section>
-<section class="pp-card">
+<section class="pp-card card">
 <h2 id="finance">Finance</h2>
 <p>Page: <code>/finance</code>. Swaps the public cost, revenue and loan inputs for your own.</p>
 <p><strong>File:</strong> CSV with <code>key,value</code> columns, or JSON <code>{ "key": value }</code> (also accepted: <code>{ "inputs": { ... } }</code> or <code>[{ "key", "value" }]</code>). Extra columns such as <code>unit</code> and <code>label</code> are ignored. Download the template from the page: it lists every key with its public value.</p>
@@ -96,7 +95,7 @@ tollPerKwYear,90
 rate,8.5
 revenueCase,toll</code></pre>
 </section>
-<section class="pp-card">
+<section class="pp-card card">
 <h2 id="launch">Launch</h2>
 <p>Page: <code>/launch</code>. Swaps the public launch steps for your own steps, durations and email-tennis costs.</p>
 <p><strong>File:</strong> CSV with one row per step, or JSON <code>{ "paths": { "retail": { "steps": [ ... ] } }, "tennis": [ ... ] }</code> (a partial copy of <code>/data/launch-steps.json</code>). Download the template from the page: it lists the selected path's steps for the selected state, with each step's round cost.</p>

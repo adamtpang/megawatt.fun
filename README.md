@@ -1,6 +1,72 @@
 # Megawatt
 
-A working plan for humanity to climb the Kardashev scale: measured energy, physical milestones, infrastructure workstreams, and concrete contributions. The homepage is the roadmap; battery dispatch is one supporting experiment.
+Five tools for a home-battery company, plus a guide to the Kardashev scale. Each tool runs on public data out of the box, takes the company's own numbers as a CSV or JSON file, and has a JSON API that runs the same code.
+
+[Live site](https://megawatt.fun) · [The five tools](https://megawatt.fun/tools) · [File formats](https://megawatt.fun/plug-and-play) · [API](docs/api.md)
+
+Independent. Not affiliated with Base Power.
+
+## The five tools
+
+| Question | Page | API |
+| --- | --- | --- |
+| Which states should we roll out to, and where does one battery earn most? | [/market](https://megawatt.fun/market) | `POST /api/v1/market` |
+| How do we pitch a utility or co-op on a home-battery program? | [/pitch](https://megawatt.fun/pitch) | `POST /api/v1/pitch` |
+| Which parts could stop the next install (cells, power chips, memory, modems)? | [/supply](https://megawatt.fun/supply) | `POST /api/v1/supply` |
+| How much debt can one battery, and a fleet, carry? | [/finance](https://megawatt.fun/finance) | `POST /api/v1/finance` |
+| How long until the first install in a new state, and what does email tennis cost? | [/launch](https://megawatt.fun/launch) | `POST /api/v1/launch` |
+
+## Try it out
+
+The API is already running. Ask it how it's doing:
+
+```bash
+curl -s https://megawatt.fun/api/v1/health
+```
+
+It replies with `"status":"ok"`, the build, and the date of every data file. Then ask a real question, here the debt one battery can carry at your own cost and toll price:
+
+```bash
+curl -s -X POST https://megawatt.fun/api/v1/finance \
+  -H 'Content-Type: application/json' \
+  -d '{"inputs": {"capexPerKwh": 280, "tollPerKwYear": 90}}'
+```
+
+Nothing you send is stored. [docs/api.md](docs/api.md) has one example per tool, the response shapes and the error format.
+
+On the site, every tool has a **Use your own data** panel: download the template, fill it in, load it. The file is read in the browser and never uploaded.
+
+## How it works
+
+Each tool is three layers, and the page and the API share the bottom two:
+
+1. **Public data with sources**, one file per tool in `data/`. Every number is tagged sourced (with a link and a date), partly sourced, or assumption. Changing a number never needs a code change.
+2. **A pure core**, `*-core.js`, with no DOM. It validates a company's file and does the math. The same file runs in the browser, in the API (`api/v1/*.js`) and in the tests.
+3. **The page**, which renders the core's result on Base's public design system (tokens and components in `site.css`, see [docs/design-system.md](docs/design-system.md)).
+
+The rule that matters most: a company's file is checked strictly before anything uses it. A file with any problem is not used, and every problem is listed by row ("Row 4: high is below low"), so it can be fixed in one pass. Numbers from the file are tagged **Yours**; public numbers keep their sources.
+
+| Tool | Public data | Core | File format |
+| --- | --- | --- | --- |
+| Market | `data/expansion-map.json`, `data/zone-value.json` | `market-core.js`, `market-score.js`, `notes/score.js` | [market](https://megawatt.fun/plug-and-play#market) |
+| Pitch | `data/expansion-map.json`, `data/market-states.json` | `pitch-core.js` | [pitch](https://megawatt.fun/plug-and-play#pitch) |
+| Supply | `data/supply.json` | `supply-core.js` | [supply](https://megawatt.fun/plug-and-play#supply) |
+| Finance | `data/finance-defaults.json`, `data/zone-value.json` | `finance-core.js` | [finance](https://megawatt.fun/plug-and-play#finance) |
+| Launch | `data/launch-steps.json` | `launch-core.js` | [launch](https://megawatt.fun/plug-and-play#launch) |
+
+## Run the tests
+
+```bash
+node --test tests/*.test.cjs
+python -m pytest -q tests
+go test ./...
+```
+
+CI runs all three on every push (`.github/workflows/test.yml`), and also checks that `plug-and-play.html` matches `docs/plug-and-play/*.md` (rebuild with `python scripts/build-plug-docs.py`).
+
+## The Kardashev guide
+
+A working plan for humanity to climb the Kardashev scale: measured energy, physical milestones, infrastructure workstreams, and concrete contributions. Battery dispatch is one supporting experiment.
 
 ## Run the website locally
 

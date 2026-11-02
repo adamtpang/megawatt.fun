@@ -33,8 +33,8 @@
   }
 
   function tag(kind) {
-    if (kind === 'yours') return el('span', { class: 'tag tag-yours', text: 'Yours' });
-    return el('span', { class: `tag ${kind === 'sourced' ? 'tag-src' : 'tag-asm'}`, text: kind === 'sourced' ? 'Sourced' : 'Assumption' });
+    if (kind === 'yours') return el('span', { class: 'badge badge-solid', text: 'Yours' });
+    return el('span', { class: `badge ${kind === 'sourced' ? 'badge-green' : 'badge-yellow'}`, text: kind === 'sourced' ? 'Sourced' : 'Assumption' });
   }
 
   function sourceLink(f) {
@@ -70,6 +70,12 @@
   function buildZones() {
     const sel = $('zone');
     sel.textContent = '';
+    if (!zones.length) {
+      sel.append(el('option', { value: '', text: 'No zone data available' }));
+      sel.disabled = true;
+      $('zone-note').textContent = 'The zone value file has no zones, so energy arbitrage counts as $0.';
+      return;
+    }
     for (const z of zones) {
       sel.append(el('option', { value: z.id, text: `${z.id} (${z.kind}): $${Math.round(z.usdPerYear)}/yr` }));
     }
@@ -84,7 +90,7 @@
   function setDefaults() {
     for (const f of fields()) $(`in-${f.key}`).value = String(f.value);
     $('revenueCase').value = defaults.revenueCaseDefault;
-    $('zone').value = zones.some((z) => z.id === defaults.zoneDefault) ? defaults.zoneDefault : zones[0].id;
+    if (zones.length) $('zone').value = zones.some((z) => z.id === defaults.zoneDefault) ? defaults.zoneDefault : zones[0].id;
   }
 
   function readInputs() {
@@ -99,7 +105,7 @@
   }
 
   function kpi(label, value, sub) {
-    return el('div', { class: 'kpi' }, el('p', { class: 'kpi-label', text: label }), el('p', { class: 'kpi-value mono', text: value }), sub ? el('p', { class: 'kpi-sub', text: sub }) : null);
+    return el('div', { class: 'card kpi' }, el('p', { class: 'kpi-label', text: label }), el('p', { class: 'kpi-value mono', text: value }), sub ? el('p', { class: 'kpi-sub', text: sub }) : null);
   }
 
   const BIND_TEXT = {
@@ -121,6 +127,8 @@
     const b = $('binding');
     b.textContent = BIND_TEXT[r.binding];
     b.dataset.binding = r.binding;
+    b.classList.toggle('notice-green', r.binding !== 'none');
+    b.classList.toggle('notice-red', r.binding === 'none');
   }
 
   function renderMeaning(r) {
@@ -133,7 +141,7 @@
   function renderCf(r) {
     const t = $('cf-table');
     t.textContent = '';
-    const row = (name, val, note, cls) => el('tr', cls ? { class: cls } : {}, el('th', { scope: 'row' }, name, note ? el('span', { class: 'fin-row-note', text: note }) : null), el('td', { class: 'mono', text: usd(val) }));
+    const row = (name, val, note, cls) => el('tr', cls ? { class: cls } : {}, el('th', { scope: 'row' }, name, note ? el('span', { class: 'fin-row-note', text: note }) : null), el('td', { class: 'num mono', text: usd(val) }));
     const off = (k) => (r.counted[k] === 0 && r.full[k] > 0 ? `${usd(r.full[k])} not counted in this case` : null);
     t.append(el('tbody', {},
       row('Member fees', r.counted.member, null),
@@ -193,9 +201,9 @@
     const a = F.fleet(r, n), b = F.fleet(r, mwCount);
     const t = $('fleet');
     t.textContent = '';
-    const row = (name, x, y, fmt = big) => el('tr', {}, el('th', { scope: 'row', text: name }), el('td', { class: 'mono', text: fmt(x) }), el('td', { class: 'mono', text: fmt(y) }));
+    const row = (name, x, y, fmt = big) => el('tr', {}, el('th', { scope: 'row', text: name }), el('td', { class: 'num mono', text: fmt(x) }), el('td', { class: 'num mono', text: fmt(y) }));
     t.append(
-      el('thead', {}, el('tr', {}, el('th', { scope: 'col', text: '' }), el('th', { scope: 'col', text: 'Fleet input' }), el('th', { scope: 'col', text: '100 MW' }))),
+      el('thead', {}, el('tr', {}, el('th', { scope: 'col', text: '' }), el('th', { scope: 'col', class: 'num', text: 'Fleet input' }), el('th', { scope: 'col', class: 'num', text: '100 MW' }))),
       el('tbody', {},
         row('Batteries', a.count, b.count, count),
         row('Power', a.count * inp.kw / 1000, b.count * inp.kw / 1000, (x) => `${Math.round(x).toLocaleString('en-US')} MW`),
@@ -216,13 +224,13 @@
     const maxDebt = Math.max(1, ...g.flatMap((r) => r.cells.map((c) => c.debt)));
     const t = $('sens');
     t.textContent = '';
-    t.append(el('thead', {}, el('tr', {}, el('th', { scope: 'col', text: 'Toll $/kW-yr' }), ...rates.map((x) => el('th', { scope: 'col', text: `${Math.round(x * 100)}%` })))));
+    t.append(el('thead', {}, el('tr', {}, el('th', { scope: 'col', text: 'Toll $/kW-yr' }), ...rates.map((x) => el('th', { scope: 'col', class: 'num', text: `${Math.round(x * 100)}%` })))));
     const body = el('tbody');
     for (const row of g) {
       const cur = Math.abs(row.toll - inp.tollPerKwYear) < 1e-9;
       body.append(el('tr', cur ? { class: 'cur' } : {}, el('th', { scope: 'row', text: `$${row.toll}${cur ? ' (now)' : ''}` }),
         ...row.cells.map((c) => {
-          const td = el('td', { class: `mono b-${c.binding === 'cost' ? 'advance' : c.binding}`, text: usd(c.debt) });
+          const td = el('td', { class: `num mono b-${c.binding === 'cost' ? 'advance' : c.binding}`, text: usd(c.debt) });
           td.style.setProperty('--fill', `${Math.round(c.debt / maxDebt * 100)}%`);
           if (Math.abs(c.rate - inp.rate) < 1e-9 && cur) td.classList.add('here');
           return td;
@@ -304,7 +312,7 @@
       defaults = d;
       publicDefaults = d;
       zoneMeta = z;
-      zones = z.zones.slice().sort((a, b) => b.usdPerYear - a.usdPerYear);
+      zones = (z.zones || []).slice().sort((a, b) => b.usdPerYear - a.usdPerYear);
       buildInputs();
       buildZones();
       setDefaults();
@@ -317,7 +325,10 @@
       update();
       mountYourData();
     } catch (e) {
-      $('status').textContent = "We couldn't load the input data, so there is nothing to show. Try reloading.";
+      const s = $('status');
+      s.classList.add('notice-red');
+      s.textContent = "We couldn't load the input data, so there is nothing to show. Check your connection and reload the page to try again.";
+      $('app').hidden = true;
     }
   }
 
