@@ -30,7 +30,7 @@ function usage() {
       zones: ZONE_IDS,
     },
     example: { weights: { homes: 0 }, metrics: { factors: [{ key: 'install_cost_usd', higherIsBetter: false }], states: { TX: { install_cost_usd: 11500 }, FL: { install_cost_usd: 13200 }, GA: { install_cost_usd: 12800 } } } },
-    returns: 'states ranked best first with score (0 to 100), tier (S, A, B, C, Later), a plain-English reason and every factor\'s value and rank; Texas zones ranked by $/battery/year.',
+    returns: 'states ranked best first with score (0 to 1), points (0 to 100, the number the page shows), tier (S, A, B, C, Later), a plain-English reason and every factor\'s value and rank; Texas zones ranked by $/battery/year.',
     docs: L.docsUrl('market'),
     page: L.SITE + '/market',
   };
