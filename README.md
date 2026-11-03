@@ -1,5 +1,7 @@
 # Megawatt
 
+[![test](https://github.com/adamtpang/megawatt.fun/actions/workflows/test.yml/badge.svg)](https://github.com/adamtpang/megawatt.fun/actions/workflows/test.yml)
+
 Five tools for a home-battery company, plus a guide to the Kardashev scale. Each tool runs on public data out of the box, takes the company's own numbers as a CSV or JSON file, and has a JSON API that runs the same code.
 
 [Live site](https://megawatt.fun) · [The five tools](https://megawatt.fun/tools) · [File formats](https://megawatt.fun/plug-and-play) · [API](docs/api.md)
