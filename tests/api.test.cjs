@@ -332,23 +332,23 @@ test('supply bad input is 422 with row-named errors', async () => {
 
 // ---------- market ----------
 
-// Expected values are from the narrative that analysis/build_expansion.py (an independent Python
-// implementation of the same score) wrote into data/expansion-map.json.
-test('market default weights match the published score: Michigan 76, Texas 71, Maryland 69', async () => {
+// Expected values are the equal-weight score with the retail-choice path included,
+// the same ranking the expansion-map narrative publishes in data/expansion-map.json.
+test('market default weights match the published score: Texas 74, Michigan 73, California 71', async () => {
   const j = (await post('market', {})).json().result;
   assert.equal(j.states.length, 51);
-  assert.deepEqual(j.states.slice(0, 3).map((s) => [s.name, s.points, s.tier]), [['Michigan', 76, 'S'], ['Texas', 71, 'S'], ['Maryland', 69, 'S']]);
+  assert.deepEqual(j.states.slice(0, 3).map((s) => [s.name, s.points, s.tier]), [['Texas', 74, 'S'], ['Michigan', 73, 'S'], ['California', 71, 'S']]);
   const at = (n) => j.states.find((s) => s.name === n);
-  assert.deepEqual([at('Illinois').rank, at('Illinois').points], [8, 60]);
+  assert.deepEqual([at('Illinois').rank, at('Illinois').points], [9, 58]);
   assert.deepEqual([at('Georgia').rank, at('Georgia').points], [30, 47]);
-  assert.deepEqual([at('Connecticut').rank, at('Connecticut').points], [19, 54]);
+  assert.deepEqual([at('Connecticut').rank, at('Connecticut').points], [21, 53]);
   assert.match(at('Michigan').why, /^Leads on outage duration/);
   assert.equal(j.texas_zones.zones[0].id, 'LZ_LCRA');
 });
 
-test('market with homes weighted 0 matches the published re-ranking: Michigan 75, Maryland 70, Texas 68', async () => {
+test('market with homes weighted 0 matches the published re-ranking: Michigan 72, Texas 71, California 68', async () => {
   const j = (await post('market', { weights: { homes: 0 } })).json().result;
-  assert.deepEqual(j.states.slice(0, 3).map((s) => [s.name, s.points]), [['Michigan', 75], ['Maryland', 70], ['Texas', 68]]);
+  assert.deepEqual(j.states.slice(0, 3).map((s) => [s.name, s.points]), [['Michigan', 72], ['Texas', 71], ['California', 68]]);
 });
 
 test('market adds your own metrics and zones', async () => {

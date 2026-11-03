@@ -49,6 +49,15 @@ NRI_FIELDS = (
 )
 STORM_FIELDS = ["HRCN_RISKS", "TRND_RISKS", "HAIL_RISKS", "ISTM_RISKS", "SWND_RISKS", "WNTW_RISKS", "LTNG_RISKS"]
 SKIP_STATES = {"PR", "VI", "GU", "AS", "MP"}
+# A label for this page, not a statutory definition of retail choice.
+# At least 30% of residential customers on delivery service.
+LAUNCH_RETAIL_SHARE = 0.30
+
+
+def launch_path(retail):
+    if retail is None:
+        return None
+    return 1.0 if retail >= LAUNCH_RETAIL_SHARE else 0.0
 
 FACTORS = [
     {
@@ -119,6 +128,13 @@ FACTORS = [
         "group": "Market access",
         "label": "Dynamic pricing per 1,000 customers",
         "help": "Residential dynamic-pricing enrollments reported on EIA-861 2025, per 1,000 residential customers. Blank cells are left out of the sum.",
+        "weight": 1,
+    },
+    {
+        "id": "launch_path",
+        "group": "Time to launch",
+        "label": "Retail-choice path",
+        "help": "Proxy, not a permit clock. 1 when EIA-861 2025 residential delivery share is at least 30%, otherwise 0. A 1 means a large share of homes can be served without a new utility contract. A 0 means the public path is a utility or co-op partnership. The 30% cut is a label for this page, not a legal definition of retail choice. DSIRE, SolarAPP+, and a full state interconnection-time table are not in this factor.",
         "weight": 1,
     },
 ]
@@ -644,6 +660,7 @@ def build_states(shapes, homes, nri_version, counties, reliability, customers, b
             "batteries": per_thousand(battery_count, residential, abbr in programs["battery_seen"]),
             "demand_response": per_thousand(demand_count, residential, abbr in programs["demand_seen"]),
             "dynamic_pricing": per_thousand(dynamic_count, residential, abbr in programs["dynamic_seen"]),
+            "launch_path": launch_path((delivery / residential) if residential else None),
         }
         note = (
             f"SAIDI and SAIFI use EIA's 2025 state total ({rel.get('method', 'not published')}"
@@ -748,6 +765,7 @@ def build_utilities(customers, utility_ba, iso_names, names, utility_reliability
                 "batteries": clean(per_thousand(draft["battery_count"], residential, draft["battery_count"] is not None)),
                 "demand_response": clean(per_thousand(draft["demand_count"], residential, draft["demand_count"] is not None)),
                 "dynamic_pricing": clean(per_thousand(draft["dynamic_count"], residential, draft["dynamic_count"] is not None)),
+                "launch_path": launch_path(clean(draft["retail"])),
             },
             "detail": {
                 "rtos": draft["rtos"],

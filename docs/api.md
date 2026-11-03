@@ -135,7 +135,7 @@ Result: `summary` (one sentence), `totals` (`parts`, `at_risk`, `single_source`,
 
 ### Market
 
-States ranked for home batteries, and Texas zones ranked by what one battery earned. Same scoring as [/market](https://megawatt.fun/market): at the default weights the top three are Michigan 76, Texas 71 and Maryland 69.
+States ranked for home batteries, and Texas zones ranked by what one battery earned. Same scoring as [/market](https://megawatt.fun/market): at the default weights, which include the retail-choice path, the top three are Texas 74, Michigan 73 and California 71.
 
 ```json
 {
