@@ -80,7 +80,12 @@ test('real-data shortlist changes under the stated alternative; source artifacts
   assert.equal(D.rank(sites.sites, results, .3)[0].id, 'harris-home');
   const manifest = require('../data/deployment/manifest.json');
   for (const [file, hash] of Object.entries(manifest.outputs)) {
+    // Hashes were taken from CRLF files; git checks them out with LF on Linux.
+    // Accept either line ending so the check still pins the data, not the platform.
     const content = fs.readFileSync(path.join(__dirname, '../data/deployment', file));
-    assert.equal(crypto.createHash('sha256').update(content).digest('hex'), hash, file);
+    const sha = (b) => crypto.createHash('sha256').update(b).digest('hex');
+    const lf = Buffer.from(content.toString('latin1').replace(/\r\n/g, '\n'), 'latin1');
+    const crlf = Buffer.from(lf.toString('latin1').replace(/\n/g, '\r\n'), 'latin1');
+    assert.ok([sha(content), sha(crlf)].includes(hash), file + ' does not match its manifest hash');
   }
 });
