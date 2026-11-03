@@ -7,7 +7,7 @@ const DATA = require('../../data/supply.json');
 const L = require('../_lib.js');
 
 const IDS = DATA.parts.map((p) => p.id);
-const PART = Object.fromEntries(DATA.parts.map((p) => [p.id, p]));
+const PART = L.byKey(DATA.parts, (p) => p.id); // a Map: categories from a request never reach Object.prototype
 const KNOWN = ['parts'];
 
 const wk = (n) => (n == null ? '' : (Math.round(n * 10) / 10) + ' wk');
@@ -38,6 +38,7 @@ function usage() {
 
 async function post(parsed) {
   if (!parsed) throw L.invalid(['No parts found. Send { "parts": [ ... ] } or CSV with part, category and lead_time_weeks columns.']);
+  if (L.looksLikeJsonCsv(parsed)) throw L.jsonAsCsvError();
   let warnings = [];
   if (parsed.kind === 'json' && parsed.data && typeof parsed.data === 'object' && !Array.isArray(parsed.data)) warnings = L.unknownKeys(parsed.data, KNOWN);
   const v = S.validate(parsed, IDS);
@@ -52,7 +53,7 @@ async function post(parsed) {
   const summary = t.atRisk + ' of ' + t.parts + ' part' + (t.parts === 1 ? '' : 's') + ' will run short.' + (t.singleSource ? ' ' + t.singleSource + ' single sourced.' : '') + longest + tariff;
 
   const rows = res.rows.map((r) => {
-    const pub = PART[r.category];
+    const pub = PART.get(r.category);
     return {
       part: r.part, category: r.category, supplier: r.supplier, country: r.country,
       lead_time_weeks: r.lead_time_weeks, on_hand_weeks: r.on_hand_weeks, cover_weeks: r.cover, gap_weeks: r.gap,
@@ -62,9 +63,9 @@ async function post(parsed) {
     };
   });
 
-  const cats = Array.from(new Set(res.rows.map((r) => r.category))).filter((c) => PART[c]);
+  const cats = Array.from(new Set(res.rows.map((r) => r.category))).filter((c) => PART.has(c));
   const sources = cats.map((c) => {
-    const p = PART[c];
+    const p = PART.get(c);
     return { category: c, title: 'Public research: ' + p.name, url: L.SITE + '/supply#part-' + c, lead_time: p.lead_time && p.lead_time.value ? { value: p.lead_time.value, url: p.lead_time.url || null, date: p.lead_time.date || null } : null };
   });
 

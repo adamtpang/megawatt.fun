@@ -1,52 +1,61 @@
 {
-  "built": "2026-10-30",
-  "note": "Defaults for /finance. kind is 'sourced' (public number, link and date given) or 'assumption' (our placeholder, edit it). Base Power's real financing terms are not public.",
+  "built": "2026-11-03",
+  "note": "Defaults for /finance. A generic model of one leased home battery, not any company's books. kind is 'sourced' (public number, link and date given) or 'assumption' (our placeholder, edit it). Every field has min and max; integer fields must be whole numbers.",
   "zoneDefault": "LZ_NORTH",
-  "revenueCaseDefault": "toll",
+  "revenueCaseDefault": "merchant",
   "groups": [
     {
       "id": "battery",
       "title": "The battery",
       "fields": [
-        { "key": "capexPerKwh", "label": "Installed cost", "unit": "$/kWh", "value": 350, "min": 0, "step": 10, "kind": "sourced",
-          "note": "Midpoint of Base's own \"landed cost of storage\" range, about $300 to $400 per kWh.",
+        { "key": "capexPerKwh", "label": "Installed cost", "unit": "$/kWh", "value": 350, "min": 0, "max": 5000, "step": 10, "kind": "sourced",
+          "note": "Midpoint of the \"landed cost of storage\" range one home-battery company publishes, about $300 to $400 per kWh.",
           "source": "https://www.basepowercompany.com/utilities", "retrieved": "2026-10-29" },
-        { "key": "kwh", "label": "Energy", "unit": "kWh", "value": 39.2, "min": 0, "step": 0.1, "kind": "sourced",
-          "note": "Base Core: 20 kW / 39.2 kWh.",
+        { "key": "kwh", "label": "Energy", "unit": "kWh", "value": 39.2, "min": 0, "max": 1000, "step": 0.1, "kind": "sourced",
+          "note": "A published whole-home battery spec: 20 kW / 39.2 kWh.",
           "source": "https://www.basepowercompany.com/utilities", "retrieved": "2026-10-29" },
-        { "key": "kw", "label": "Power", "unit": "kW", "value": 20, "min": 0, "step": 1, "kind": "sourced",
-          "note": "Base Core: 20 kW / 39.2 kWh.",
+        { "key": "kw", "label": "Power", "unit": "kW", "value": 20, "min": 0, "max": 1000, "step": 1, "kind": "sourced",
+          "note": "Same published spec: 20 kW / 39.2 kWh.",
           "source": "https://www.basepowercompany.com/utilities", "retrieved": "2026-10-29" }
+      ]
+    },
+    {
+      "id": "tax",
+      "title": "Tax credit",
+      "fields": [
+        { "key": "itcPct", "label": "Investment tax credit", "unit": "% of cost", "value": 30, "min": 0, "max": 70, "step": 1, "kind": "sourced",
+          "note": "IRC 48E credit for energy storage technology owned by a third party (the leasing company), 30% for a battery under 1 MW without the wage and apprenticeship tests (48E(a)(2)(B)). Modeled as sold for cash at face value when the battery goes into service (transfer under IRC 6418), lowering what debt and equity fund. Eligibility: the homeowner credit (25D) ended for spending after 2025, but the 2025 budget law (P.L. 119-21) kept 48E for storage: full credit for construction starting through 2033, then 75%, 50%, 0. The 48E(i) lease ban covers solar water heating and small wind, not batteries. Storage that starts construction after 2025 gets no credit if it includes material assistance from a prohibited foreign entity: the non-PFE share of component cost must be at least 55% for 2026 starts, rising to 75% for 2030 (IRC 7701(a)(52), IRS Notice 2026-15, 2026-02-12). Battery cells and parts often come from China, so a project can fail this test and get 0. Bonus adders (+10 domestic content, +10 energy community) are left out; set this to 0 to test a failed claim.",
+          "source": "https://www.law.cornell.edu/uscode/text/26/48E", "retrieved": "2026-11-03" }
       ]
     },
     {
       "id": "revenue",
       "title": "Money in",
       "fields": [
-        { "key": "upfront", "label": "Member pays up front", "unit": "$", "value": 695, "min": 0, "step": 5, "kind": "sourced",
-          "note": "\"Whole home backup for only $695 and then $19/mo.\" Treated as cash that lowers what must be financed.",
+        { "key": "upfront", "label": "Member pays up front", "unit": "$", "value": 695, "min": 0, "max": 100000, "step": 5, "kind": "sourced",
+          "note": "A published home-battery offer: \"$695 and then $19/mo.\" Treated as cash that lowers what must be financed.",
           "source": "https://www.basepowercompany.com/core", "retrieved": "2026-10-29" },
-        { "key": "memberFeeMonthly", "label": "Member fee", "unit": "$/month", "value": 19, "min": 0, "step": 1, "kind": "sourced",
-          "note": "Same page. We assume every member pays every month (no churn).",
+        { "key": "memberFeeMonthly", "label": "Member fee", "unit": "$/month", "value": 19, "min": 0, "max": 1000, "step": 1, "kind": "sourced",
+          "note": "Same published offer. We assume every member pays every month (no churn).",
           "source": "https://www.basepowercompany.com/core", "retrieved": "2026-10-29" },
-        { "key": "tollPerKwYear", "label": "Utility toll or capacity payment", "unit": "$/kW-year", "value": 60, "min": 0, "step": 5, "kind": "assumption",
-          "note": "Placeholder: $60/kW-year is $5 per kW-month. Base says it can toll batteries to a utility, but no price is public. ERCOT has no capacity market, so this would be a private contract." },
+        { "key": "tollPerKwYear", "label": "Utility toll or capacity payment", "unit": "$/kW-year", "value": 60, "min": 0, "max": 1000, "step": 5, "kind": "assumption",
+          "note": "Placeholder with no public source: $60/kW-year is $5 per kW-month. It counts only in the toll and stacked revenue cases. The default (merchant) case ignores it, so the default answer does not depend on it. ERCOT has no capacity market, so a toll would be a private contract." },
         { "key": "availabilityPct", "label": "Availability", "unit": "%", "value": 96, "min": 0, "max": 100, "step": 1, "kind": "sourced",
-          "note": "Base reports \"96% fleet availability\". Applied to the toll and to arbitrage (pay for performance).",
+          "note": "One fleet operator reports \"96% fleet availability\". Applied to the toll and to arbitrage (pay for performance).",
           "source": "https://www.basepowercompany.com/utilities", "retrieved": "2026-10-29" },
-        { "key": "retailMarginMonthly", "label": "Retail energy margin", "unit": "$/month", "value": 0, "step": 1, "kind": "assumption",
-          "note": "Any margin on selling electricity to members is not public. Default $0, so the model does not lean on it. Raise it to test." }
+        { "key": "retailMarginMonthly", "label": "Retail energy margin", "unit": "$/month", "value": 0, "min": -1000, "max": 1000, "step": 1, "kind": "assumption",
+          "note": "Left at $0 on purpose. Margin = (retail energy rate minus wholesale and other supply cost) x kWh used. Retail rates in Texas are published per plan and zone, but a provider's supply cost is not, so any default would be invented. Example: 1 cent/kWh x 1,200 kWh a month = $12/month. Enter your own." }
       ]
     },
     {
       "id": "costs",
       "title": "Costs and life",
       "fields": [
-        { "key": "opexPerYear", "label": "Operating cost", "unit": "$/battery/year", "value": 150, "min": 0, "step": 10, "kind": "assumption",
+        { "key": "opexPerYear", "label": "Operating cost", "unit": "$/battery/year", "value": 150, "min": 0, "max": 100000, "step": 10, "kind": "assumption",
           "note": "Placeholder for monitoring, insurance, service visits, software and support. Not public." },
         { "key": "degradationPct", "label": "Capacity fade", "unit": "%/year", "value": 2, "min": 0, "max": 20, "step": 0.5, "kind": "assumption",
           "note": "Cuts toll and arbitrage value each year. Member fees do not fade." },
-        { "key": "lifeYears", "label": "Useful life", "unit": "years", "value": 12, "min": 1, "max": 30, "step": 1, "kind": "assumption",
+        { "key": "lifeYears", "label": "Useful life", "unit": "years", "value": 12, "min": 1, "max": 30, "step": 1, "integer": true, "kind": "assumption",
           "note": "Typical range 10 to 15 years. The loan cannot run longer than this." }
       ]
     },
@@ -55,8 +64,8 @@
       "title": "The loan",
       "fields": [
         { "key": "ratePct", "label": "Interest rate", "unit": "%/year", "value": 8, "min": 0, "max": 30, "step": 0.25, "kind": "assumption",
-          "note": "Placeholder all-in cost of debt. No public Base debt terms were found (search on 2026-10-30)." },
-        { "key": "tenorYears", "label": "Loan term", "unit": "years", "value": 10, "min": 1, "max": 30, "step": 1, "kind": "assumption",
+          "note": "Placeholder all-in cost of debt." },
+        { "key": "tenorYears", "label": "Loan term", "unit": "years", "value": 10, "min": 1, "max": 30, "step": 1, "integer": true, "kind": "assumption",
           "note": "Level payments, paid off in full by the end of the term." },
         { "key": "dscr", "label": "Target DSCR", "unit": "x", "value": 1.3, "min": 1, "max": 3, "step": 0.05, "kind": "assumption",
           "note": "Debt service coverage ratio. Cash flow must be at least this many times the loan payment in the weakest year." },
@@ -68,9 +77,8 @@
       "id": "fleet",
       "title": "Fleet",
       "fields": [
-        { "key": "fleetCount", "label": "Number of batteries", "unit": "batteries", "value": 30000, "min": 0, "step": 1000, "kind": "sourced",
-          "note": "Stand-in: Base's public \"Loved by 30,000+ Texans\" member count. Base has not said how many batteries are installed.",
-          "source": "https://www.basepowercompany.com/energy", "retrieved": "2026-10-29" }
+        { "key": "fleetCount", "label": "Number of batteries", "unit": "batteries", "value": 1000, "min": 1, "max": 10000000, "step": 100, "integer": true, "kind": "assumption",
+          "note": "A round, generic fleet size for the roll-up. It is not any company's installed base." }
       ]
     }
   ]

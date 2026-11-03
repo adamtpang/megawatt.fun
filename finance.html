@@ -23,9 +23,10 @@
   <section class="fin-intro">
     <p class="eyebrow">Unit economics to capital stack</p>
     <h1>Battery debt financing</h1>
-    <p class="lede">How much a lender could lend against one home battery, and against a fleet, from the cash the battery earns. Change any input. The page redoes the math as you type.</p>
+    <p class="lede">How much a lender could lend against one leased home battery, and against a fleet, from the cash the battery earns, after the member's payment and the federal storage tax credit. Change any input. The page redoes the math as you type.</p>
     <div class="notice fin-warn" role="note">
-      <p><strong>Not Base's numbers.</strong> This site is not affiliated with Base Power. Base's real financing terms are unknown. We found no public debt terms in a search on 2026-10-30. Base's August 2026 raise was <a href="https://www.businesswire.com/news/home/20260803203117/en/Base-Power-Announces-$1B-Series-D-and-Launches-Base-Core-First-of-its-Kind-Home-Battery-Built-in-the-United-States">a $1B Series D (equity)</a> at a $13B valuation, with over $2.5B raised to date.</p>
+      <p><strong>A generic model, not any company's books.</strong> This site is not affiliated with Base Power or any battery company. Public prices and specs are used as example inputs only. Lender terms, the toll and operating cost are placeholders.</p>
+      <p><strong>What drives the default answer:</strong> member fees and ERCOT energy arbitrage (both public numbers) carry the loan, and the 30% tax credit cuts what must be funded. The default case is merchant, so the utility toll placeholder does not count. The first line under "What this means" names the biggest input for whatever you set.</p>
       <p>Each input says <span class="badge badge-green">Sourced</span> (public number with a link) or <span class="badge badge-yellow">Assumption</span> (our placeholder).</p>
     </div>
     <div id="yourdata"></div>
@@ -60,7 +61,8 @@
       <div id="groups"></div>
     </form>
 
-    <div class="fin-results">
+    <div class="fin-results" id="results">
+      <p class="notice notice-red fin-invalid" id="invalid" role="alert" hidden></p>
       <section class="card fin-card" aria-labelledby="kpi-title">
         <h2 id="kpi-title">Per battery</h2>
         <div class="kpis" id="kpis" aria-live="polite"></div>
@@ -114,10 +116,12 @@
     <h2 id="method-title">Method and what is left out</h2>
     <ul class="fin-list">
       <li><strong>Debt sizing.</strong> Level yearly payment over the loan term. The payment is the weakest year's CFADS inside the term, divided by the target DSCR. Debt is the present value of that payment at the interest rate. Then the loan is capped at the advance rate times installed cost, and never above cost minus the member's upfront payment.</li>
-      <li><strong>Equity per battery</strong> = installed cost minus member upfront payment minus debt.</li>
+      <li><strong>Tax credit.</strong> The federal investment tax credit for energy storage (IRC 48E) goes to the owner of a leased battery. The model treats it the simplest standard way: the owner sells the credit for cash at face value when the battery goes into service (a transfer under IRC 6418), and that cash lowers the net cost that debt and equity must fund. Left out: the discount buyers pay for credits (often several cents per dollar; lower the percent to test it), the months between paying for the battery and getting paid for the credit (usually a bridge loan), five-year recapture risk, the depreciation basis cut, bonus adders, and tax equity partnerships.</li>
+      <li><strong>Equity per battery</strong> = installed cost minus member upfront payment minus tax credit minus debt.</li>
       <li><strong>Fade</strong> cuts toll and arbitrage each year. Member fees stay flat. No inflation on anything.</li>
-      <li><strong>Energy arbitrage</strong> uses a fixed daily clock (charge 1 to 5 AM, discharge 5 to 9 PM) at the zone price. No ancillary services, no capacity value, no retail revenue. It is not Base's revenue.</li>
-      <li><strong>Not modeled:</strong> taxes, tax credits and tax equity, member churn and defaults, reserve accounts, fees on the loan, sculpted payments, refinancing, and the value of the battery after the loan ends. Each of these can move the answer a lot.</li>
+      <li><strong>Energy arbitrage</strong> uses a fixed daily clock: charge 10 AM to 2 PM, discharge 7 to 9 PM, Central time, every day, settled at the load zone real-time price. The value comes from the zone value file, which shows the schedule and method. No ancillary services, no capacity value, no retail revenue. It is not any company's revenue.</li>
+      <li><strong>Inputs</strong> are checked the same way on this page and in the API: plain decimal numbers within each field's limits. A blank field keeps its default. An invalid field shows an error and the results wait until it is fixed.</li>
+      <li><strong>Not modeled:</strong> income taxes and depreciation, tax equity, member churn and defaults, reserve accounts, fees on the loan, sculpted payments, refinancing, and the value of the battery after the loan ends. Each of these can move the answer a lot.</li>
       <li><strong>Fleet</strong> is the unit result times a count. Real lenders look at the whole pool, with concentration limits and performance history.</li>
     </ul>
     <p class="fin-note">Math lives in <a href="/finance-core.js">finance-core.js</a>, tested in Node. Defaults live in <a href="/data/finance-defaults.json">finance-defaults.json</a>.</p>
@@ -128,8 +132,10 @@
     <ul class="fin-list fin-sources">
       <li><a href="https://www.basepowercompany.com/utilities">Base Power, utilities page</a> (retrieved 2026-10-29). Base Core 20 kW / 39.2 kWh. "Landed cost of storage": Base about $300 to $400 per kWh, utility-scale about $200 to $400 per kWh, traditional battery VPPs about $1,100 per kWh (Base cites EnergySage, Lazard, Wood Mac). "24/7 dispatchable up to 500 cycles a year", "96% fleet availability", "Field-demonstrated &lt;5% forced outage rate". Tolling and build-transfer structures.</li>
       <li><a href="https://www.basepowercompany.com/core">Base Power, Base Core page</a> (retrieved 2026-10-29). "Whole home backup for only $695 and then $19/mo."</li>
-      <li><a href="https://www.basepowercompany.com/energy">Base Power, energy page</a> (retrieved 2026-10-29). "Loved by 30,000+ Texans".</li>
-      <li><a href="https://www.businesswire.com/news/home/20260803203117/en/Base-Power-Announces-$1B-Series-D-and-Launches-Base-Core-First-of-its-Kind-Home-Battery-Built-in-the-United-States">Business Wire, Base Power $1B Series D</a> (August 2026). Equity at a $13B valuation; over $2.5B raised to date. No public debt facility found (search on 2026-10-30).</li>
+      <li><a href="https://www.law.cornell.edu/uscode/text/26/48E">26 U.S.C. 48E, clean electricity investment credit</a>, as amended by P.L. 119-21 (July 4, 2025) (retrieved 2026-11-03). 48E(a)(2)(B): 6% base, 30% for storage under 1 MW or meeting wage and apprenticeship rules. 48E(e): phase-down by construction start year, with the applicable year set to 2032 in <a href="https://www.law.cornell.edu/uscode/text/26/45Y">26 U.S.C. 45Y(d)(3)</a>. 48E(c)(3): no credit for storage starting construction after 2025 with material assistance from a prohibited foreign entity. 48E(i): no credit for leased property described in 25D(d)(1) or (4) (solar water heating, small wind).</li>
+      <li><a href="https://www.law.cornell.edu/uscode/text/26/25D">26 U.S.C. 25D(h)</a> (retrieved 2026-11-03). The homeowner credit ends for expenditures after December 31, 2025.</li>
+      <li><a href="https://www.irs.gov/pub/irs-drop/n-26-15.pdf">IRS Notice 2026-15</a> and <a href="https://www.irs.gov/newsroom/treasury-irs-provide-guidance-for-certain-energy-tax-credits-regarding-material-assistance-provided-by-prohibited-foreign-entities-under-the-one-big-beautiful-bill">IR-2026-23</a> (February 12, 2026). Interim rules for the material assistance cost ratio for energy storage starting construction after December 31, 2025; the storage threshold is 55% for 2026, rising to 75% for 2030 and later (IRC 7701(a)(52)).</li>
+      <li><a href="https://www.irs.gov/credits-deductions/clean-electricity-investment-credit">IRS, Clean Electricity Investment Credit</a> (page updated 2026-01-05, retrieved 2026-11-03). Applies to storage placed in service after 2024; 6% base, up to 30%, plus 10-point domestic content and energy community bonuses.</li>
       <li><a href="/data/zone-value.json">megawatt.fun zone value file</a>, built from <a href="https://www.ercot.com/mktinfo/prices">ERCOT market prices</a>. Energy arbitrage per battery per zone, <span id="zone-period">12 months</span>.</li>
     </ul>
   </section>

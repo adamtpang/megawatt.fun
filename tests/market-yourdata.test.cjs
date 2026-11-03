@@ -71,11 +71,11 @@ test('zone file: replaces values, marks Yours, re-sorts, keeps the rest public',
   assert.equal(r.kind, 'zones');
   assert.deepEqual(r.errors, []);
   assert.deepEqual(r.zones, { LZ_WEST: 500, LZ_NORTH: 120 });
-  assert.match(r.warnings[0], /13 zones not in your file keep the public value/);
+  assert.match(r.warnings[0], /6 zones not in your file keep the public value/);
   const z = MC.applyZones(Z, r.zones);
   assert.equal(z.zones[0].id, 'LZ_WEST');
   assert.equal(z.zones[0].yours, true);
-  assert.equal(z.zones[0].publicUsdPerYear, 27.02);
+  assert.equal(z.zones[0].publicUsdPerYear, Z.zones.find((x) => x.id === 'LZ_WEST').usdPerYear);
   assert.equal(z.zones.filter((x) => x.yours).length, 2);
   assert.equal(JSON.stringify(Z), before);
   const j = MC.load(Y.parseText('{"zones":{"LZ_AEN":250}}', 'z.json'), zoneIds);
@@ -83,12 +83,14 @@ test('zone file: replaces values, marks Yours, re-sorts, keeps the rest public',
 });
 
 test('zone errors: unknown zone, negative value, non-numeric, duplicate, missing column', () => {
-  const bad = MC.load(csv('zone,usd_per_year\nLZ_MARS,10\nLZ_WEST,-5\nLZ_AEN,lots\nHB_PAN,1\nHB_PAN,2\n'), zoneIds);
-  assert.equal(bad.errors.length, 4);
+  const bad = MC.load(csv('zone,usd_per_year\nLZ_MARS,10\nLZ_WEST,-5\nLZ_AEN,lots\nLZ_CPS,1\nLZ_CPS,2\nHB_PAN,3\n'), zoneIds);
+  assert.equal(bad.errors.length, 5);
   assert.match(bad.errors[0], /^Row 2: unknown zone "LZ_MARS"/);
   assert.match(bad.errors[1], /^Row 3: LZ_WEST cannot be negative/);
   assert.match(bad.errors[2], /^Row 4, column "usd_per_year": "lots" is not a number/);
-  assert.match(bad.errors[3], /^Row 6: HB_PAN appears again/);
+  assert.match(bad.errors[3], /^Row 6: LZ_CPS appears again/);
+  // Hubs are not places a home battery earns, so they are not accepted zone ids.
+  assert.match(bad.errors[4], /^Row 7: unknown zone "HB_PAN"/);
   assert.match(MC.load(csv('zone,value\nLZ_WEST,1\n'), zoneIds).errors[0], /usd_per_year/);
 });
 
@@ -123,4 +125,35 @@ test('public data untouched by any load', () => {
   assert.equal(JSON.stringify(E), e);
   assert.equal(JSON.stringify(Z), z);
   assert.equal(MC.STATES.length, 51);
+});
+
+// ---------- input hardening (2026-11-03) ----------
+
+test('reserved names never resolve as states, zones or cells', () => {
+  for (const s of ['constructor', '__proto__', 'toString', 'hasOwnProperty']) assert.equal(MC.stateOf(s), null, s);
+  const r = MC.load(csv('state,cac\nconstructor,1\n__proto__,2\nTX,3\n'), zoneIds);
+  assert.deepEqual(r.errors, [
+    'Row 2: unknown state "constructor". Use a two-letter code such as TX, or the full name.',
+    'Row 3: unknown state "__proto__". Use a two-letter code such as TX, or the full name.',
+  ]);
+  // A metric called "constructor" that one state leaves out is missing there, not a function.
+  const j = MC.load({ kind: 'json', data: { states: { TX: { constructor: 5 }, FL: { other: 1 } } } }, zoneIds);
+  assert.deepEqual(j.errors, []);
+  assert.deepEqual(j.values.FL, { yours_other: 1 });
+  assert.deepEqual(j.values.TX, { yours_constructor: 5 });
+  const z = MC.load(csv('zone,usd_per_year\nconstructor,1\n'), zoneIds);
+  assert.match(z.errors[0], /^Row 2: unknown zone "constructor"/);
+});
+
+test('metric values are plain decimals: hex, true and lists are not numbers', () => {
+  const r = MC.load(csv('state,cac\nTX,0x10\nFL,Infinity\n'), zoneIds);
+  assert.deepEqual(r.errors, ['Row 2, column "cac": "0x10" is not a number.', 'Row 3, column "cac": "Infinity" is not a number.']);
+  const j = MC.load({ kind: 'json', data: { states: { TX: { cac: true }, FL: { cac: [5] }, GA: 7 } } }, zoneIds);
+  assert.deepEqual(j.errors, [
+    'states.TX, column "cac": "true" is not a number.',
+    'states.FL, column "cac": "a list" is not a number.',
+    'states.GA: must be an object of { metric: number }.',
+  ]);
+  const zz = MC.load({ kind: 'json', data: { zones: { LZ_WEST: '0x10' } } }, zoneIds);
+  assert.deepEqual(zz.errors, ['zones.LZ_WEST, column "usd_per_year": "0x10" is not a number.']);
 });

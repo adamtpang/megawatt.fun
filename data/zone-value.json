@@ -1,5 +1,5 @@
 {
- "built": "2026-10-30",
+ "built": "2026-11-03",
  "period": {
   "start": "2025-10-01",
   "endExclusive": "2026-10-01",
@@ -16,7 +16,19 @@
   "wear": 0,
   "label": "Base Core: 20 kW / 39.2 kWh (Base utilities page); 88% round trip and 20% backup reserve are assumptions"
  },
- "method": "Fixed daily clock from deployment-core.js: charge 1 to 5 AM, discharge 5 to 9 PM, settled at the zone price. Energy arbitrage only: no capacity, ancillary, tolling or retail revenue. Not Base revenue.",
+ "schedule": {
+  "name": "solarEvening",
+  "charge": [
+   10,
+   14
+  ],
+  "discharge": [
+   19,
+   21
+  ],
+  "label": "Charge 10 AM to 2 PM, discharge 7 to 9 PM, Central time, every day"
+ },
+ "method": "Fixed daily clock from deployment-core.js (solarEvening): charge at up to 20 kW from 10 AM to 2 PM (hours ending 11 to 14) until full, then discharge at up to 20 kW from 7 PM to 9 PM (hours ending 20 and 21) until the 20% reserve, settled at the load zone real-time price. About 31 kWh is usable, so each day it buys about 33 kWh from 10 AM to noon (losses included) and sells 20 kWh from 7 to 8 PM and about 9 kWh from 8 to 9 PM. The clock was chosen from public ERCOT reasoning (solar holds midday prices down; the net-load peak now falls after sunset) and the battery's duration, not by searching these prices. Only load zones are ranked: homes settle at load zone prices. Hubs are trading points, listed under \"hubs\" for reference only. Energy arbitrage only: no capacity, ancillary, tolling or retail revenue. Not Base revenue.",
  "sources": [
   "https://www.ercot.com/mktinfo/prices",
   "https://www.basepowercompany.com/utilities",
@@ -24,94 +36,99 @@
  ],
  "zones": [
   {
-   "id": "LZ_LCRA",
+   "id": "LZ_WEST",
    "kind": "load zone",
-   "usdPerYear": 199.83,
-   "mwhSold": 10.74
-  },
-  {
-   "id": "LZ_AEN",
-   "kind": "load zone",
-   "usdPerYear": 182.9,
-   "mwhSold": 10.74
-  },
-  {
-   "id": "LZ_NORTH",
-   "kind": "load zone",
-   "usdPerYear": 169.15,
+   "usdPerYear": 493.72,
    "mwhSold": 10.74
   },
   {
    "id": "LZ_RAYBN",
    "kind": "load zone",
-   "usdPerYear": 163.44,
+   "usdPerYear": 462.8,
+   "mwhSold": 10.74
+  },
+  {
+   "id": "LZ_NORTH",
+   "kind": "load zone",
+   "usdPerYear": 460.26,
    "mwhSold": 10.74
   },
   {
    "id": "LZ_CPS",
    "kind": "load zone",
-   "usdPerYear": 161.09,
+   "usdPerYear": 409.5,
+   "mwhSold": 10.74
+  },
+  {
+   "id": "LZ_LCRA",
+   "kind": "load zone",
+   "usdPerYear": 409.43,
+   "mwhSold": 10.74
+  },
+  {
+   "id": "LZ_AEN",
+   "kind": "load zone",
+   "usdPerYear": 388.69,
    "mwhSold": 10.74
   },
   {
    "id": "LZ_SOUTH",
    "kind": "load zone",
-   "usdPerYear": 160.22,
+   "usdPerYear": 344.6,
    "mwhSold": 10.74
   },
   {
    "id": "LZ_HOUSTON",
    "kind": "load zone",
-   "usdPerYear": 136.33,
-   "mwhSold": 10.74
-  },
-  {
-   "id": "HB_HOUSTON",
-   "kind": "hub",
-   "usdPerYear": 132.27,
-   "mwhSold": 10.74
-  },
-  {
-   "id": "HB_NORTH",
-   "kind": "hub",
-   "usdPerYear": 126.87,
-   "mwhSold": 10.74
-  },
-  {
-   "id": "HB_BUSAVG",
-   "kind": "hub",
-   "usdPerYear": 117.48,
-   "mwhSold": 10.74
-  },
-  {
-   "id": "HB_SOUTH",
-   "kind": "hub",
-   "usdPerYear": 114.39,
-   "mwhSold": 10.74
-  },
-  {
-   "id": "HB_HUBAVG",
-   "kind": "hub",
-   "usdPerYear": 109.85,
-   "mwhSold": 10.74
-  },
-  {
-   "id": "HB_PAN",
-   "kind": "hub",
-   "usdPerYear": 82.58,
-   "mwhSold": 10.74
-  },
-  {
-   "id": "HB_WEST",
-   "kind": "hub",
-   "usdPerYear": 65.88,
-   "mwhSold": 10.74
-  },
-  {
-   "id": "LZ_WEST",
-   "kind": "load zone",
-   "usdPerYear": 27.02,
+   "usdPerYear": 322.57,
    "mwhSold": 10.74
   }
- ]
+ ],
+ "hubs": {
+  "about": "ERCOT trading hubs and hub averages. A home battery does not settle here, so these are not ranked and are not a place one battery earns. Same clock, for reference only.",
+  "points": [
+   {
+    "id": "HB_WEST",
+    "kind": "hub",
+    "usdPerYear": 447.16,
+    "mwhSold": 10.74
+   },
+   {
+    "id": "HB_NORTH",
+    "kind": "hub",
+    "usdPerYear": 428.73,
+    "mwhSold": 10.74
+   },
+   {
+    "id": "HB_PAN",
+    "kind": "hub",
+    "usdPerYear": 404.2,
+    "mwhSold": 10.74
+   },
+   {
+    "id": "HB_BUSAVG",
+    "kind": "hub",
+    "usdPerYear": 401.26,
+    "mwhSold": 10.74
+   },
+   {
+    "id": "HB_HUBAVG",
+    "kind": "hub",
+    "usdPerYear": 390.27,
+    "mwhSold": 10.74
+   },
+   {
+    "id": "HB_SOUTH",
+    "kind": "hub",
+    "usdPerYear": 357.59,
+    "mwhSold": 10.74
+   },
+   {
+    "id": "HB_HOUSTON",
+    "kind": "hub",
+    "usdPerYear": 327.6,
+    "mwhSold": 10.74
+   }
+  ]
+ }
 }

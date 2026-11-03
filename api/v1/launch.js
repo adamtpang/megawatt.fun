@@ -8,7 +8,7 @@ const PUBLIC = require('../../data/launch-steps.json');
 const MAP = require('../../data/expansion-map.json');
 const L = require('../_lib.js');
 
-const STATES = Object.fromEntries(MAP.states.map((s) => [s.abbr, s]));
+const STATES = L.byKey(MAP.states, (s) => s.abbr); // a Map: request values never reach Object.prototype
 const KNOWN = ['state', 'path', 'case', 'rounds', 'steps'];
 const MAX_ROUNDS = 3;
 
@@ -26,7 +26,7 @@ function usage() {
         steps: 'your own steps (optional): a list of rows in the CSV shape { path, id, name, owner, low, high, depends_on: "a;b" or ["a","b"], round_weeks, note }, or { paths: { retail: { steps: [...] } }, tennis: [...] }',
       },
       csv_body: 'The page\'s "Use your own data" file: columns ' + LC.STEP_COLUMNS.join(', ') + '. Put state, path, case and rounds in the query string, for example ?state=TX&path=retail.',
-      states: Object.keys(STATES).sort(),
+      states: Array.from(STATES.keys()).sort(),
       paths: Object.keys(PUBLIC.paths),
     },
     example: { state: 'TX', case: 'low', rounds: 1 },
@@ -44,26 +44,59 @@ function stepsParsed(steps) {
   throw L.invalid(['steps must be a list of step rows, an object { paths: {...} }, or CSV text.']);
 }
 
+const OPTIONS = ['state', 'path', 'case', 'rounds'];
+const describe = (v) => (Array.isArray(v) ? 'a list' : v === null ? 'null' : typeof v === 'object' ? 'an object' : JSON.stringify(v));
+
+/* state, path, case and rounds from the query string and a JSON body. Types are checked: in JSON,
+   state, path and case are text and rounds is a number (the query string is always text). An
+   option sent in both places must agree, or the request is refused rather than silently resolved. */
+function readOptions(q, b) {
+  const errors = [], out = {};
+  for (const k of OPTIONS) {
+    let qv = L.getOwn(q, k), bv = L.getOwn(b, k);
+    if (Array.isArray(qv)) { errors.push(k + ' appears more than once in the query string. Send it once.'); continue; }
+    if (qv != null && String(qv).trim() === '') qv = null;
+    if (bv != null) {
+      const typeOk = k === 'rounds' ? typeof bv === 'number' : typeof bv === 'string';
+      if (!typeOk) { errors.push(k + ' must be ' + (k === 'rounds' ? 'a number, for example 1' : 'text, for example "' + { state: 'TX', path: 'retail', case: 'low' }[k] + '"') + ', got ' + describe(bv) + '.'); continue; }
+      if (typeof bv === 'string' && bv.trim() === '') bv = null;
+    }
+    if (qv != null && bv != null && String(qv).trim().toLowerCase() !== String(bv).trim().toLowerCase()) {
+      errors.push(k + ' is ' + describe(bv) + ' in the body but "' + qv + '" in the query string. Send it in one place.');
+      continue;
+    }
+    out[k] = bv != null ? bv : (qv != null ? String(qv) : null);
+  }
+  if (errors.length) throw L.invalid(errors);
+  return out;
+}
+
 async function post(parsed, req) {
   const q = L.query(req);
   let opts, own, warnings = [];
-  if (parsed && parsed.kind === 'csv') { opts = q; own = parsed; }
+  if (L.looksLikeJsonCsv(parsed)) throw L.jsonAsCsvError();
+  let b = {};
+  if (parsed && parsed.kind === 'csv') own = parsed;
   else {
-    const b = L.objectBody(parsed);
+    b = L.objectBody(parsed);
     warnings = L.unknownKeys(b, KNOWN);
-    opts = Object.assign({}, q, b);
     own = stepsParsed(b.steps);
   }
+  opts = readOptions(q, b);
 
   const errors = [];
-  const abbr = String(opts.state == null || opts.state === '' ? 'GA' : opts.state).trim().toUpperCase();
-  if (!STATES[abbr]) errors.push('state "' + opts.state + '" is not a two-letter US state code in the data (50 states and DC).');
-  const kase = String(opts.case == null || opts.case === '' ? 'low' : opts.case).trim().toLowerCase();
+  const abbr = opts.state == null ? 'GA' : opts.state.trim().toUpperCase();
+  if (!STATES.has(abbr)) errors.push('state "' + opts.state + '" is not a two-letter US state code in the data (50 states and DC).');
+  const kase = opts.case == null ? 'low' : opts.case.trim().toLowerCase();
   if (!['low', 'high'].includes(kase)) errors.push('case must be "low" (fast) or "high" (slow).');
-  const rounds = opts.rounds == null || opts.rounds === '' ? 1 : Number(opts.rounds);
-  if (!Number.isInteger(rounds) || rounds < 0 || rounds > MAX_ROUNDS) errors.push('rounds must be a whole number from 0 to ' + MAX_ROUNDS + '.');
-  let pathId = opts.path == null || opts.path === '' ? null : String(opts.path).trim().toLowerCase();
-  if (pathId && !PUBLIC.paths[pathId]) errors.push('path must be one of ' + Object.keys(PUBLIC.paths).join(', ') + '.');
+  let rounds = 1;
+  if (opts.rounds != null) {
+    const n = L.parseNumber(opts.rounds, { integer: true, min: 0, max: MAX_ROUNDS });
+    if (n.ok) rounds = n.value;
+    else errors.push('rounds must be a whole number from 0 to ' + MAX_ROUNDS + ', got ' + JSON.stringify(opts.rounds) + '.');
+  }
+  let pathId = opts.path == null ? null : opts.path.trim().toLowerCase();
+  if (pathId && !L.hasOwn(PUBLIC.paths, pathId)) errors.push('path must be one of ' + Object.keys(PUBLIC.paths).join(', ') + '.');
   if (errors.length) throw L.invalid(errors);
 
   // A company's own steps on top of the public data (launch.js useData()).
@@ -74,7 +107,7 @@ async function post(parsed, req) {
     DATA = r.data; filePaths = r.paths; warnings = warnings.concat(r.warnings);
   }
 
-  const st = STATES[abbr];
+  const st = STATES.get(abbr);
   const sug = LC.suggestPath(st);
   if (!pathId) pathId = filePaths.length && !filePaths.includes(sug.path) ? filePaths[0] : sug.path;
   if (pathId === 'retail' && !sug.retailAllowed) warnings.push('Retail provider is not available here: there is no residential retail choice in EIA-861 2025. The steps are shown anyway so you can compare, but a license would have nothing to sell into.');
@@ -84,8 +117,8 @@ async function post(parsed, req) {
   try { fast = LC.schedule(list, 'low'); slow = LC.schedule(list, 'high'); }
   catch (e) { throw L.invalid([e.message + '. Check the step durations and dependencies.']); }
   const cur = kase === 'low' ? fast : slow;
-  const byId = Object.fromEntries(list.map((s) => [s.id, s]));
-  const name = (id) => (byId[id] ? byId[id].name : id);
+  const byId = new Map(list.map((s) => [s.id, s]));
+  const name = (id) => (byId.has(id) ? byId.get(id).name : id);
   const first = (r) => (r.steps.first_installs ? r.steps.first_installs.ef : r.total);
   const firstFast = first(fast), firstSlow = first(slow);
 
@@ -131,7 +164,7 @@ async function post(parsed, req) {
       loops: loops.map((t) => ({ step: t.step, name: name(t.step), round_weeks: t.round_weeks, with: t.with, bounce: t.bounce || null, fix: t.fix || null, basis: t.basis || 'assumption', critical: !!(cur.steps[t.step] && cur.steps[t.step].critical) })),
     },
     steps: cur.order.map((id) => {
-      const s = byId[id], r = cur.steps[id];
+      const s = byId.get(id), r = cur.steps[id];
       return { id, name: s.name, owner: s.owner, low: s.low, high: s.high, depends_on: s.depends_on || [], start_week: r.es, finish_week: r.ef, slack_weeks: r.slack, critical: r.critical, basis: s.basis, state_override: !!s.override, note: s.note || '' };
     }),
     snags: (DATA.snags || []).filter((n) => ids.has(n.step)).map((n) => ({ step: n.step, title: n.title, note: n.note, kind: n.kind, on_critical_path: !!cur.steps[n.step].critical, source: n.source ? (DATA.sources[n.source] || {}).url || null : null })),

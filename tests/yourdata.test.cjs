@@ -43,3 +43,39 @@ test('finance: overrides apply, bad rows are named, public defaults untouched', 
   assert.deepEqual(round.errors, []);
   assert.deepEqual(round.changed, []);
 });
+
+test('finance: __proto__ and other inherited names are unknown keys, and nothing is polluted', () => {
+  const zones = ['LZ_NORTH'];
+  const names = ['__proto__', 'constructor', 'toString', 'hasOwnProperty', 'valueOf', '__defineGetter__'];
+  const csv = 'key,value\n' + names.map((n) => n + ',5').join('\n');
+  const r = F.applyOverrides(defaults, Y.parseText(csv, 'evil.csv'), zones);
+  assert.equal(r.errors.length, names.length);
+  names.forEach((n, i) => assert.ok(r.errors[i].startsWith('Row ' + (i + 2) + ': unknown key "' + n + '"'), r.errors[i]));
+  assert.deepEqual(r.changed, []);
+  assert.equal(({}).value, undefined);
+  assert.equal(({}).kind, undefined);
+  assert.equal(Object.prototype.hasOwnProperty.call(Object.prototype, 'value'), false);
+  // JSON: an own "__proto__" key from JSON.parse, at the top level and inside inputs.
+  for (const text of ['{"__proto__": {"value": 1, "kind": "yours"}}', '{"inputs": {"__proto__": 5, "constructor": 1}}']) {
+    const j = F.applyOverrides(defaults, Y.parseText(text, 'evil.json'), zones);
+    assert.ok(j.errors.some((e) => /unknown key "__proto__"/.test(e)), text + ' ' + j.errors.join(' | '));
+    assert.equal(({}).value, undefined);
+    assert.equal(({}).kind, undefined);
+  }
+});
+
+test('finance file: hex, Infinity, huge and fractional counts are rejected like on the page', () => {
+  const r = F.applyOverrides(defaults, Y.parseText('key,value\ntollPerKwYear,0x10\nkwh,1e308\ncapexPerKwh,Infinity\nfleetCount,2.5\narbPerYear,1e9\nfleetCount,0\nitcPct,80', 'b.csv'), ['LZ_NORTH']);
+  assert.deepEqual(r.errors, [
+    'Row 2: tollPerKwYear is not a number: "0x10". Use plain decimal digits.',
+    'Row 3: kwh must be at most 1000.',
+    'Row 4: capexPerKwh is not a number: "Infinity". Use plain decimal digits.',
+    'Row 5: fleetCount must be a whole number.',
+    'Row 6: arbPerYear must be at most ' + F.ARB_MAX + '.',
+    'Row 7: fleetCount must be at least 1.',
+    'Row 8: itcPct must be at most 70.',
+  ]);
+  const ok = F.applyOverrides(defaults, Y.parseText('key,value\nitcPct,40\nfleetCount,"2,500"', 'c.csv'), ['LZ_NORTH']);
+  assert.deepEqual(ok.errors, []);
+  assert.deepEqual(ok.changed, ['itcPct', 'fleetCount']);
+});

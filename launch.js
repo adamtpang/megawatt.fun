@@ -10,8 +10,11 @@
   let DATA, PUBLIC, MAP, STATES;
 
   function editKey() { return ui.abbr + ':' + ui.path; }
-  function currentEdits() { return ui.edits[editKey()] || (ui.edits[editKey()] = {}); }
-  function state() { return STATES[ui.abbr]; }
+  // Keyed by step id, so no prototype: an id like "constructor" is just a key.
+  function currentEdits() { return ui.edits[editKey()] || (ui.edits[editKey()] = Object.create(null)); }
+  function state() { return STATES.get(ui.abbr); }
+  // Step lookups by id go through a Map, never a plain object.
+  function stepMap(list) { return new Map(list.map(s => [s.id, s])); }
 
   function steps() {
     return L.applyEdits(L.resolveSteps(DATA, ui.path, ui.abbr), currentEdits());
@@ -70,8 +73,8 @@
     }
     $('err').hidden = true;
     cur = ui.kase === 'low' ? fast : slow;
-    const byId = Object.fromEntries(list.map(s => [s.id, s]));
-    const name = id => byId[id] ? byId[id].name : id;
+    const byId = stepMap(list);
+    const name = id => byId.has(id) ? byId.get(id).name : id;
     const lever = L.bestShortening(list, ui.kase);
     const firstFast = fast.steps.first_installs ? fast.steps.first_installs.ef : fast.total;
     const firstSlow = slow.steps.first_installs ? slow.steps.first_installs.ef : slow.total;
@@ -133,10 +136,10 @@
   }
 
   function renderSteps(list, sch) {
-    const byId = Object.fromEntries(list.map(s => [s.id, s]));
+    const byId = stepMap(list);
     $('steps').innerHTML = sch.order.map(id => {
-      const s = byId[id], r = sch.steps[id];
-      const deps = (s.depends_on || []).map(d => byId[d] ? byId[d].name : d).join(', ') || 'Nothing, can start on day one';
+      const s = byId.get(id), r = sch.steps[id];
+      const deps = (s.depends_on || []).map(d => byId.has(d) ? byId.get(d).name : d).join(', ') || 'Nothing, can start on day one';
       return '<article class="lp-step' + (r.critical ? ' is-crit' : '') + '">' +
         '<div class="lp-step-main"><h3>' + esc(s.name) + ' ' + basisBadge(s) + (r.critical ? ' <span class="badge badge-red">critical</span>' : '') + '</h3>' +
         '<p class="lp-meta">' + esc(s.owner) + '. After: ' + esc(deps) + '.</p>' +
@@ -149,19 +152,19 @@
 
   function renderSnags(list, sch) {
     const ids = new Set(list.map(s => s.id));
-    const byId = Object.fromEntries(list.map(s => [s.id, s]));
+    const byId = stepMap(list);
     const items = DATA.snags.filter(n => ids.has(n.step));
     if (!items.length) { $('snags').innerHTML = '<li class="lp-empty">No known snags are tied to the steps on this path.</li>'; return; }
     $('snags').innerHTML = items.map(n => {
       const crit = sch.steps[n.step].critical;
       return '<li><div class="lp-snag-top"><strong>' + esc(n.title) + '</strong><span class="badge ' + (n.source ? 'badge-green' : 'badge-yellow') + '">' + esc(n.kind) + '</span></div>' +
         '<p>' + esc(n.note) + '</p>' +
-        '<p class="lp-meta">Hits: ' + esc(byId[n.step].name) + (crit ? ' (on the critical path now)' : ' (has slack now)') + (n.source ? '. Source: ' + srcLink(n.source) : '. Not sourced; an open question.') + '</p></li>';
+        '<p class="lp-meta">Hits: ' + esc(byId.get(n.step).name) + (crit ? ' (on the critical path now)' : ' (has slack now)') + (n.source ? '. Source: ' + srcLink(n.source) : '. Not sourced; an open question.') + '</p></li>';
     }).join('');
   }
 
   function renderTennis(list, sch) {
-    const byId = Object.fromEntries(list.map(s => [s.id, s]));
+    const byId = stepMap(list);
     const loops = L.resolveTennis(DATA, list, ui.abbr, ui.path);
     const cost = L.tennisCost(list, loops, ui.rounds, ui.kase);
     const caseName = ui.kase === 'low' ? 'fast' : 'slow';
@@ -172,14 +175,14 @@
       out = '<p><b>' + (ui.rounds === 1 ? 'One extra round' : 'Two extra rounds') + ' on every step adds ' + fmt(cost.addedFirst) + ' weeks</b> before the first install (' + caseName + ' case), about ' + months(cost.addedFirst) + ' months.</p>';
     }
     if (cost.worst && cost.worst.delay > 0) {
-      out += '<p class="lp-small">Most expensive single loop: <strong>' + esc(byId[cost.worst.step].name) + '</strong>. One round there delays the first install by ' + fmt(cost.worst.delay) + ' weeks. Get that packet right first.</p>';
+      out += '<p class="lp-small">Most expensive single loop: <strong>' + esc(byId.get(cost.worst.step).name) + '</strong>. One round there delays the first install by ' + fmt(cost.worst.delay) + ' weeks. Get that packet right first.</p>';
     }
     $('tennis-out').innerHTML = out;
     if (!loops.length) { $('tennis').innerHTML = '<li class="lp-empty">No email-tennis loops are listed for the steps on this path.</li>'; return; }
     $('tennis').innerHTML = loops.map(t => {
       const crit = sch.steps[t.step] && sch.steps[t.step].critical;
       const badge = t.basis === 'yours' ? '<span class="badge badge-solid">Yours</span>' : t.basis === 'partly' ? '<span class="badge badge-white">partly sourced</span>' : '<span class="badge badge-yellow">assumption</span>';
-      return '<li><div class="lp-snag-top"><strong>' + esc(byId[t.step].name) + '</strong>' + badge + '</div>' +
+      return '<li><div class="lp-snag-top"><strong>' + esc(byId.get(t.step).name) + '</strong>' + badge + '</div>' +
         '<p><b>' + fmt(t.round_weeks) + ' weeks a round</b> with ' + esc(t.with.charAt(0).toLowerCase() + t.with.slice(1)) + '.' + (t.bounce ? ' ' + esc(t.bounce) : '') + '</p>' +
         (t.fix ? '<p><b>One-pass fix:</b> ' + esc(t.fix) + '</p>' : '') +
         '<p class="lp-meta">' + (t.note ? esc(t.note) + ' ' : '') + (t.basis === 'yours' ? 'Round cost from your file.' : t.source ? 'Source: ' + srcLink(t.source) + '.' : 'Round cost is an assumption, replace with your own data.') + (crit ? ' On the critical path now.' : '') + '</p></li>';
@@ -192,7 +195,7 @@
       'Base pitches utility partnerships: "deploy capacity in months, not years", 3 metros and 6 utilities in 12 months, 100 MW in 3 to 6 months vs 2 to 4 years for utility-scale storage. These are Base\'s own claims: ' + srcLink('base-utilities') + '.',
       'Install scheduling queue went from about 4 weeks to a few days: ' + srcLink('base-scheduling') + '.',
       'Field connectivity can fall back to unreliable 4G; commands persist until they expire: ' + srcLink('base-telemetry') + '.',
-      'Footprint: Texas operating, Illinois operating in ComEd, Georgia announced (Central Georgia EMC, installs planned for 2027), Connecticut hiring: ' + srcLink('expansion-map') + '.'
+      'Footprint: Texas operating, Illinois operating in ComEd, Georgia announced (Central Georgia EMC, installs planned for 2027): ' + srcLink('expansion-map') + '.'
     ];
     for (const s of list) if ((s.basis === 'sourced' || s.basis === 'partly') && !s.edited) real.push(esc(s.name) + ' (' + esc(ui.abbr) + '): ' + fmt(s.low) + ' to ' + fmt(s.high) + ' weeks. ' + srcLink(s.source) + '.');
     const assumed = list.filter(s => s.basis === 'assumption' && !s.edited).map(s => esc(s.name) + ': ' + fmt(s.low) + ' to ' + fmt(s.high) + ' weeks');
@@ -226,7 +229,29 @@
     renderWhy(); render(); writeHash();
   }
 
+  /* A deep link: #TX, #TX/retail, also #tx/RETAIL. Case does not matter. An unknown path falls back
+     to the state's suggested path; an unknown state returns null (the page then opens on GA).
+     writeHash() rewrites the hash in its canonical form with replaceState, so the page never adds
+     history entries of its own: Back leaves the page, or returns to a hash the visitor typed. */
+  function routeFromHash(hash) {
+    const m = String(hash || '').match(/^#([A-Za-z]{2})(?:\/([A-Za-z_-]*))?\/?$/);
+    if (!m) return null;
+    const abbr = m[1].toUpperCase();
+    if (!STATES.has(abbr)) return null;
+    const p = (m[2] || '').toLowerCase();
+    const path = p && Object.prototype.hasOwnProperty.call(DATA.paths, p) ? p : L.suggestPath(STATES.get(abbr)).path;
+    return { abbr, path };
+  }
+
   function wire() {
+    // A hash typed into the address bar, or reached with Back or Forward, selects that state.
+    window.addEventListener('hashchange', () => {
+      const r = routeFromHash(location.hash);
+      if (!r) return;
+      if (r.abbr === ui.abbr && r.path === ui.path) { writeHash(); return; }
+      ui.path = r.path;
+      selectState(r.abbr, true);
+    });
     $('state').addEventListener('change', e => selectState(e.target.value, false));
     $('path-seg').addEventListener('click', e => {
       const b = e.target.closest('button[data-path]'); if (!b) return;
@@ -252,7 +277,7 @@
       const again = $('steps').querySelector('input[data-id="' + focusId + '"][data-k="' + focusK + '"]');
       if (again) again.focus({ preventScroll: true });
     });
-    $('reset').addEventListener('click', () => { ui.edits[editKey()] = {}; render(); });
+    $('reset').addEventListener('click', () => { ui.edits[editKey()] = Object.create(null); render(); });
     $('tennis-seg').addEventListener('click', e => {
       const b = e.target.closest('button[data-rounds]'); if (!b) return;
       ui.rounds = Number(b.dataset.rounds); setPressed('tennis-seg', 'rounds', b.dataset.rounds); render();
@@ -301,19 +326,14 @@
         fetch('/data/expansion-map.json').then(r => { if (!r.ok) throw new Error('expansion-map.json ' + r.status); return r.json(); })
       ]);
       DATA = d; PUBLIC = d; MAP = m;
-      STATES = Object.fromEntries(MAP.states.map(s => [s.abbr, s]));
+      STATES = new Map(MAP.states.map(s => [s.abbr, s]));
       $('state').innerHTML = MAP.states.slice().sort((a, b) => a.name.localeCompare(b.name))
         .map(s => '<option value="' + esc(s.abbr) + '">' + esc(s.name) + (s.footprint ? ' (' + esc(s.footprint.label) + ')' : '') + '</option>').join('');
       renderSources();
       if (!wired) { wire(); wired = true; }
-      const m2 = (location.hash || '').match(/^#([A-Z]{2})(?:\/(retail|utility))?$/);
-      if (m2 && STATES[m2[1]]) {
-        ui.abbr = m2[1];
-        ui.path = m2[2] || L.suggestPath(STATES[m2[1]]).path;
-        selectState(ui.abbr, true);
-      } else {
-        selectState('GA', false);
-      }
+      const route = routeFromHash(location.hash);
+      if (route) { ui.path = route.path; selectState(route.abbr, true); }
+      else selectState('GA', false);
       mountYourData();
     } catch (e) {
       $('why').removeAttribute('aria-busy');

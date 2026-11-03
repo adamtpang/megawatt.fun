@@ -70,6 +70,113 @@
   ],
   "parts": [
     {
+      "id": "cells",
+      "name": "LFP battery cells",
+      "what_it_does": "Stores the energy. About 39 kWh of LFP cells per Base Core, the largest single cost item.",
+      "lead_time": {
+        "value": "order backlogs past Q3 2026 at most tier-1 and tier-2 Chinese ESS cell makers",
+        "unit": "qualitative",
+        "quote": "Order backlogs for most first- and second-tier enterprises have now extended beyond Q3 this year.",
+        "url": "https://news.metal.com/newscontent/103999667-smm-analysis-riding-the-winds-in-and-outside-china-breaking-the-iron-law-of-old-cycles-2026-energy-storage-battery-cell-semi-annual-review-and-outlook",
+        "publisher": "SMM (Shanghai Metals Market)",
+        "date": "2026-07-10"
+      },
+      "price_trend": {
+        "value": "314Ah LFP storage cell up from 0.32 to about 0.365 yuan/Wh in H1 2026 (about +14%), reversing the 2025 decline",
+        "quote": "314Ah cell prices have climbed steadily from 0.32 Yuan/Wh at the start of the year to around 0.365 Yuan/Wh.",
+        "url": "https://news.metal.com/newscontent/103999667-smm-analysis-riding-the-winds-in-and-outside-china-breaking-the-iron-law-of-old-cycles-2026-energy-storage-battery-cell-semi-annual-review-and-outlook",
+        "publisher": "SMM (Shanghai Metals Market)",
+        "date": "2026-07-10",
+        "context": [
+          {
+            "value": "2025 baseline: stationary storage pack price fell 45% to $70/kWh",
+            "quote": "Battery pack costs for stationary storage fell 45% year-on-year to $70/kWh in 2025",
+            "url": "https://about.bnef.com/insights/clean-energy/lithium-ion-battery-pack-prices-fall-to-108-per-kilowatt-hour-despite-rising-metal-prices-bloombergnef/",
+            "publisher": "BloombergNEF (quote as returned by search summary; verify on page)",
+            "date": "2025-12"
+          },
+          {
+            "value": "China cut the battery export VAT rebate from 9% to 6% on 2026-04-01 and ends it 2027-01-01",
+            "quote": "The export VAT rebate rate for battery products will be reduced from 9% to 6% from April 1, 2026",
+            "url": "https://newsletter.en.creamermedia.com/article/lithium-soars-as-china-to-revoke-battery-export-tax-rebates-2026-01-12",
+            "publisher": "Creamer Media (Reuters/Bloomberg syndication)",
+            "date": "2026-01-12"
+          }
+        ]
+      },
+      "concentration": {
+        "value": "China made well over 80% of all batteries in 2025 (IEA via Mercom); grid-scale batteries depend on China for at least one step",
+        "quote": "China leads by a wide margin, manufacturing well over 80% of all batteries in 2025.",
+        "url": "https://www.mercomindia.com/global-lithium-ion-battery-market-surpassed-150-billion-in-2025-iea",
+        "publisher": "Mercom India, citing IEA",
+        "date": "2026-02-20"
+      },
+      "policy": [
+        {
+          "name": "Section 301 on Chinese non-EV lithium-ion batteries",
+          "status": "in effect since 2026-01-01 (scheduled in 2024)",
+          "value": "7.5% raised to 25%",
+          "quote": "Increase rate to 25% in 2026",
+          "url": "https://www.mcguirewoods.com/client-resources/alerts/2024/10/final-increased-tariffs-announced-in-response-to-u-s-trade-representative-review-of-chinese-imports/",
+          "publisher": "McGuireWoods (summarizing USTR final action)",
+          "date": "2024-10-22",
+          "stale": true,
+          "stale_note": "Source is old but describes the 2026 step that is now in force."
+        },
+        {
+          "name": "New Section 301 regime replacing Section 122 (after the Supreme Court struck down IEEPA tariffs on 2026-02-20)",
+          "status": "in effect since 2026-07-24",
+          "value": "10% or 12.5% depending on country; China's tier and stacking with older China 301 duties not confirmed",
+          "quote": "Effective July 24, USTR is imposing new Section 301 tariffs on 60 economies.",
+          "url": "https://uhy-us.com/insights/news/2026/july/tariff-reset-section-122-expires-as-section-301-duties-expand",
+          "publisher": "UHY",
+          "date": "2026-07-24"
+        },
+        {
+          "name": "IRS Notice 2026-15 (primary)",
+          "status": "issued",
+          "value": "interim PFE material assistance rules",
+          "quote": "any Section 45Y or 48E qualified facility or energy storage technology the construction of which begins after Dec. 31, 2025",
+          "url": "https://www.irs.gov/newsroom/treasury-irs-provide-guidance-for-certain-energy-tax-credits-regarding-material-assistance-provided-by-prohibited-foreign-entities-under-the-one-big-beautiful-bill",
+          "publisher": "IRS (IR-2026-23)",
+          "date": "2026-02-12"
+        },
+        {
+          "name": "AD/CVD on Chinese active anode material (graphite)",
+          "status": "NOT imposed. Commerce found rates near 160-170% but the ITC voted negative on 2026-03-12.",
+          "value": "0% (case ended)",
+          "quote": "Therefore, neither the anti-dumping duties (AD) nor the countervailing duties (CVD) took effect.",
+          "url": "https://news.metal.com/newscontent/103806000-smm-analysis-itc-rejects-tariffs-on-chinese-graphite-anodes-final-duties-not-imposed",
+          "publisher": "SMM",
+          "date": "2026-03-13"
+        }
+      ],
+      "alternatives": [
+        {
+          "name": "LG Energy Solution (Holland and Lansing, Michigan)",
+          "note": "LFP ESS cells in Michigan; LGES targets more than 50 GWh of North American LFP capacity by end of 2026 (company target, via energy-storage.news; page returned 403 so not quoted).",
+          "url": "https://energy-storage.news/lg-energy-solution-begins-lfp-and-nmc-bess-and-ev-cell-production-at-michigan-factory"
+        },
+        {
+          "name": "AESC (Smyrna, Tennessee)",
+          "note": "Reported LFP production launch in mid-2025; no 2026 update found.",
+          "url": "https://www.energy-storage.news/ev-slowdown-creates-potential-lifeline-for-us-energy-storage-amid-feoc-tariffs"
+        },
+        {
+          "name": "Non-China Asian cell makers (Samsung SDI, SK On, LGES Korea)",
+          "note": "Avoid FEOC issues but carry ocean freight and new Section 301 country tariffs; not individually sourced here.",
+          "url": null,
+          "basis": "inference"
+        }
+      ],
+      "risk_note": "Cells are the biggest cost and most China-concentrated part, prices turned up in 2026, and tax credit eligibility now depends on how much of the cell content traces to China.",
+      "our_read": {
+        "label": "Price and rules",
+        "rank": 1,
+        "why": "Most of the battery's cost and the most concentrated in China. Where the cells come from now decides whether the storage tax credit applies."
+      }
+    },
+    {
       "id": "power_electronics",
       "name": "Inverter and power electronics (IGBT, Si MOSFET, SiC MOSFET)",
       "what_it_does": "Converts battery DC to home AC and back, and does the grid-forming switching. Base describes its Austin plant as a power electronics hub.",
@@ -124,7 +231,7 @@
       "risk_note": "Power semiconductors are on 30 to 52 week lead times with three rounds of 2026 price hikes, so inverter builds need parts ordered most of a year ahead.",
       "our_read": {
         "label": "Long wait",
-        "rank": 1,
+        "rank": 2,
         "why": "Order most of a year ahead. Power chips are the longest lead item inside the box."
       }
     },
@@ -235,115 +342,8 @@
       "risk_note": "The memory in a battery controller is cheap in dollars but sits at the back of the allocation line behind AI servers, so the risk is a missing part, not a big cost hit.",
       "our_read": {
         "label": "Allocation",
-        "rank": 2,
-        "why": "Cheap per unit, but last in line behind AI servers. A missing memory chip stops the whole controller."
-      }
-    },
-    {
-      "id": "cells",
-      "name": "LFP battery cells",
-      "what_it_does": "Stores the energy. About 39 kWh of LFP cells per Base Core, the largest single cost item.",
-      "lead_time": {
-        "value": "order backlogs past Q3 2026 at most tier-1 and tier-2 Chinese ESS cell makers",
-        "unit": "qualitative",
-        "quote": "Order backlogs for most first- and second-tier enterprises have now extended beyond Q3 this year.",
-        "url": "https://news.metal.com/newscontent/103999667-smm-analysis-riding-the-winds-in-and-outside-china-breaking-the-iron-law-of-old-cycles-2026-energy-storage-battery-cell-semi-annual-review-and-outlook",
-        "publisher": "SMM (Shanghai Metals Market)",
-        "date": "2026-07-10"
-      },
-      "price_trend": {
-        "value": "314Ah LFP storage cell up from 0.32 to about 0.365 yuan/Wh in H1 2026 (about +14%), reversing the 2025 decline",
-        "quote": "314Ah cell prices have climbed steadily from 0.32 Yuan/Wh at the start of the year to around 0.365 Yuan/Wh.",
-        "url": "https://news.metal.com/newscontent/103999667-smm-analysis-riding-the-winds-in-and-outside-china-breaking-the-iron-law-of-old-cycles-2026-energy-storage-battery-cell-semi-annual-review-and-outlook",
-        "publisher": "SMM (Shanghai Metals Market)",
-        "date": "2026-07-10",
-        "context": [
-          {
-            "value": "2025 baseline: stationary storage pack price fell 45% to $70/kWh",
-            "quote": "Battery pack costs for stationary storage fell 45% year-on-year to $70/kWh in 2025",
-            "url": "https://about.bnef.com/insights/clean-energy/lithium-ion-battery-pack-prices-fall-to-108-per-kilowatt-hour-despite-rising-metal-prices-bloombergnef/",
-            "publisher": "BloombergNEF (quote as returned by search summary; verify on page)",
-            "date": "2025-12"
-          },
-          {
-            "value": "China cut the battery export VAT rebate from 9% to 6% on 2026-04-01 and ends it 2027-01-01",
-            "quote": "The export VAT rebate rate for battery products will be reduced from 9% to 6% from April 1, 2026",
-            "url": "https://newsletter.en.creamermedia.com/article/lithium-soars-as-china-to-revoke-battery-export-tax-rebates-2026-01-12",
-            "publisher": "Creamer Media (Reuters/Bloomberg syndication)",
-            "date": "2026-01-12"
-          }
-        ]
-      },
-      "concentration": {
-        "value": "China made well over 80% of all batteries in 2025 (IEA via Mercom); grid-scale batteries depend on China for at least one step",
-        "quote": "China leads by a wide margin, manufacturing well over 80% of all batteries in 2025.",
-        "url": "https://www.mercomindia.com/global-lithium-ion-battery-market-surpassed-150-billion-in-2025-iea",
-        "publisher": "Mercom India, citing IEA",
-        "date": "2026-02-20"
-      },
-      "policy": [
-        {
-          "name": "Section 301 on Chinese non-EV lithium-ion batteries",
-          "status": "in effect since 2026-01-01 (scheduled in 2024)",
-          "value": "7.5% raised to 25%",
-          "quote": "Increase rate to 25% in 2026",
-          "url": "https://www.mcguirewoods.com/client-resources/alerts/2024/10/final-increased-tariffs-announced-in-response-to-u-s-trade-representative-review-of-chinese-imports/",
-          "publisher": "McGuireWoods (summarizing USTR final action)",
-          "date": "2024-10-22",
-          "stale": true,
-          "stale_note": "Source is old but describes the 2026 step that is now in force."
-        },
-        {
-          "name": "New Section 301 regime replacing Section 122 (after the Supreme Court struck down IEEPA tariffs on 2026-02-20)",
-          "status": "in effect since 2026-07-24",
-          "value": "10% or 12.5% depending on country; China's tier and stacking with older China 301 duties not confirmed",
-          "quote": "Effective July 24, USTR is imposing new Section 301 tariffs on 60 economies.",
-          "url": "https://uhy-us.com/insights/news/2026/july/tariff-reset-section-122-expires-as-section-301-duties-expand",
-          "publisher": "UHY",
-          "date": "2026-07-24"
-        },
-        {
-          "name": "IRS Notice 2026-15 (primary)",
-          "status": "issued",
-          "value": "interim PFE material assistance rules",
-          "quote": "any Section 45Y or 48E qualified facility or energy storage technology the construction of which begins after Dec. 31, 2025",
-          "url": "https://www.irs.gov/newsroom/treasury-irs-provide-guidance-for-certain-energy-tax-credits-regarding-material-assistance-provided-by-prohibited-foreign-entities-under-the-one-big-beautiful-bill",
-          "publisher": "IRS (IR-2026-23)",
-          "date": "2026-02-12"
-        },
-        {
-          "name": "AD/CVD on Chinese active anode material (graphite)",
-          "status": "NOT imposed. Commerce found rates near 160-170% but the ITC voted negative on 2026-03-12.",
-          "value": "0% (case ended)",
-          "quote": "Therefore, neither the anti-dumping duties (AD) nor the countervailing duties (CVD) took effect.",
-          "url": "https://news.metal.com/newscontent/103806000-smm-analysis-itc-rejects-tariffs-on-chinese-graphite-anodes-final-duties-not-imposed",
-          "publisher": "SMM",
-          "date": "2026-03-13"
-        }
-      ],
-      "alternatives": [
-        {
-          "name": "LG Energy Solution (Holland and Lansing, Michigan)",
-          "note": "LFP ESS cells in Michigan; LGES targets more than 50 GWh of North American LFP capacity by end of 2026 (company target, via energy-storage.news; page returned 403 so not quoted).",
-          "url": "https://energy-storage.news/lg-energy-solution-begins-lfp-and-nmc-bess-and-ev-cell-production-at-michigan-factory"
-        },
-        {
-          "name": "AESC (Smyrna, Tennessee)",
-          "note": "Reported LFP production launch in mid-2025; no 2026 update found.",
-          "url": "https://www.energy-storage.news/ev-slowdown-creates-potential-lifeline-for-us-energy-storage-amid-feoc-tariffs"
-        },
-        {
-          "name": "Non-China Asian cell makers (Samsung SDI, SK On, LGES Korea)",
-          "note": "Avoid FEOC issues but carry ocean freight and new Section 301 country tariffs; not individually sourced here.",
-          "url": null,
-          "basis": "inference"
-        }
-      ],
-      "risk_note": "Cells are the biggest cost and most China-concentrated part, prices turned up in 2026, and tax credit eligibility now depends on how much of the cell content traces to China.",
-      "our_read": {
-        "label": "Price and rules",
         "rank": 3,
-        "why": "Biggest cost and most concentrated in China. Tax credits now depend on where cell content comes from."
+        "why": "Small and cheap, and many battery controllers use microcontrollers with memory built in. Where a design does need separate memory chips, they are last in line behind AI servers."
       }
     },
     {

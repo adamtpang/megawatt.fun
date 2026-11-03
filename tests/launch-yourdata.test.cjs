@@ -117,3 +117,52 @@ test('the template for each path and state loads back with zero errors and the s
   }
   assert.ok(!JSON.stringify(L.templateRows(data, 'retail', 'TX')).includes(String.fromCharCode(0x2014)));
 });
+
+// ---------- input hardening (2026-11-03) ----------
+
+test('reserved step ids are row errors, and nothing reaches Object.prototype', () => {
+  for (const id of ['__proto__', 'constructor', 'prototype', 'toString', 'hasOwnProperty']) {
+    const r = load(HEAD + 'retail,' + id + ',X,O,1,2,,1,\nretail,first_installs,Y,O,1,2,' + id + ',,\n');
+    assert.match(r.errors[0], new RegExp('^Row 2: id "' + id + '" is a reserved name'), id);
+    assert.deepEqual(r.paths, []);
+  }
+  assert.equal({}.polluted, undefined);
+  assert.equal(L.isReserved('first_installs'), false);
+});
+
+test('core lookups use own keys: a step id "constructor" is not found on an empty object', () => {
+  // The core functions are also called with page edits, so they must not trust ids either.
+  const steps = [{ id: 'constructor', low: 1, high: 2, depends_on: [] }, { id: 'toString', low: 2, high: 3, depends_on: ['constructor'] }];
+  const edited = L.applyEdits(steps, {});
+  assert.deepEqual(edited.map(s => !!s.edited), [false, false]);
+  const s = L.schedule(steps, 'low');
+  assert.equal(Object.getPrototypeOf(s.steps), null);
+  assert.equal(s.total, 3);
+  // Before the fix this threw "invalid duration for low: 1function Object()...".
+  assert.equal(L.tennisCost(steps, [], 1, 'low').addedFirst, 0);
+  assert.equal(L.bestShortening(steps, 'low').best.saved, 1);
+  assert.deepEqual(L.resolveSteps({ paths: { p: { steps } } }, 'p', 'TX').map(x => !!x.override), [false, false]);
+});
+
+test('JSON rows need text for text fields and numbers for durations', () => {
+  const r = L.applyOverrides(data, { kind: 'json', data: [
+    { path: 'retail', id: 'a', name: { x: 1 }, owner: 'O', low: true, high: [2] },
+    { path: ['retail'], id: 'b', name: 'B', low: 1, high: 2 },
+    { path: 'retail', id: 'c', name: 'C', owner: 'O', low: 1, high: 2, depends_on: { a: 1 } },
+    5,
+  ] });
+  assert.ok(r.errors.includes('Row 1: name must be text, got an object.'), r.errors.join(' | '));
+  assert.ok(r.errors.includes('Row 1: low for a must be a number, got boolean.'));
+  assert.ok(r.errors.includes('Row 1: high for a must be a number, got a list.'));
+  assert.ok(r.errors.some(e => e.startsWith('Row 2: path must be text, got a list.')));
+  assert.ok(r.errors.some(e => e.startsWith('Row 3: depends_on must be text')));
+  assert.ok(r.errors.some(e => e.startsWith('Row 4: each step must be an object')));
+  assert.ok(!r.errors.join(' ').includes('[object Object]'));
+});
+
+test('durations are plain decimals: hex and Infinity are not numbers', () => {
+  const r = load(HEAD + 'retail,a,A,O,0x10,2,,,\nretail,b,B,O,1,Infinity,,,\nretail,c,C,O,1,2,,0b11,\n');
+  assert.ok(r.errors.includes('Row 2: low for a is not a number: "0x10".'), r.errors.join(' | '));
+  assert.ok(r.errors.includes('Row 3: high for b is not a number: "Infinity".'));
+  assert.ok(r.errors.some(e => e.startsWith('Row 4: round_weeks for c must be a number from 0 to 260')));
+});

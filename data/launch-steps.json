@@ -8,6 +8,12 @@
       "retrieved": "2026-10-30",
       "quote": "Base Texas REP, LLC, PUCT License #10338. Serving Texas and Illinois."
     },
+    "bls-electricians": {
+      "title": "US Bureau of Labor Statistics, Occupational Outlook Handbook: Electricians",
+      "url": "https://www.bls.gov/ooh/Construction-and-Extraction/Electricians.htm",
+      "retrieved": "2026-11-01",
+      "quote": "About 72,700 openings for electricians are projected each year, on average, over the decade."
+    },
     "base-utilities": {
       "title": "Base Power, Utility partnerships page",
       "url": "https://www.basepowercompany.com/utilities",
@@ -427,8 +433,8 @@
       "id": "crew-ramp",
       "step": "hiring",
       "title": "Crews take time to hire and license",
-      "note": "Base's public Connecticut job posts (an operations manager and an electrical supervisor in North Haven) show hiring can come before any customer offer. Electrician licensing is a state matter.",
-      "source": "expansion-map",
+      "note": "Field crews usually have to be hired and licensed before the first customer offer, so this step starts early. Electrician licensing is set by each state, and the US Bureau of Labor Statistics projects about 72,700 electrician openings a year from 2025 to 2035.",
+      "source": "bls-electricians",
       "kind": "public signal"
     },
     {

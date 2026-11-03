@@ -46,6 +46,81 @@
 
   var ERCOT_SOURCE = { title: 'ERCOT Grid Insights: Energy-Only Wholesale Market', url: 'https://www.ercot.com/files/docs/2025/10/16/ERCOT-Grid-Insights-Energy-Only-Wholesale-Market.pdf', retrieved: '2026-10-30' };
 
+  // Own-key lookup. Text from a request ("constructor", "__proto__") must never reach Object.prototype.
+  function own(obj, key) { return obj != null && Object.prototype.hasOwnProperty.call(obj, key) ? obj[key] : undefined; }
+  function dict() { return Object.create(null); }
+
+  /* Wires-only (delivery-only) utilities. They deliver power but do not buy it for their homes, so they
+     are not a buyer for a capacity program. Detected from the data first, then a named fallback list. */
+  var WIRES_SOURCES = {
+    pura: { title: 'Texas Utilities Code, chapter 39 (PURA): unbundling of generation, retail and delivery, sec. 39.051', url: 'https://statutes.capitol.texas.gov/Docs/UT/htm/UT.39.htm', retrieved: '2026-11-03' },
+    agents: { title: 'Base Power, agents.md: service areas, and Base Texas REP, LLC (PUCT license 10338)', url: 'https://www.basepowercompany.com/agents.md', retrieved: '2026-11-03' },
+    il: { title: 'Illinois Power Agency, petition for approval of the 2026 Electricity Procurement Plan (20 ILCS 3855/1-75)', url: 'https://ipa.illinois.gov/content/dam/soi/en/web/ipa/documents/20250929-petition-for-approval-2026-electricity-procurement-plan-29-sept-2025.pdf', retrieved: '2026-11-03' },
+    pa: { title: '52 Pa. Code sec. 54.186, default service procurement plans (66 Pa.C.S. sec. 2807(e))', url: 'https://www.law.cornell.edu/regulations/pennsylvania/52-Pa-Code-SS-54-186', retrieved: '2026-11-03' }
+  };
+  // ERCOT transmission cost allocation, for co-ops and city utilities that buy their own power.
+  var TCOS_SOURCES = {
+    rule: { title: 'PUCT 16 TAC sec. 25.192, Transmission Service Rates (4CP)', url: 'https://www.puc.texas.gov/agency/rulesnlaws/subrules/electric/25.192/25.192.pdf', retrieved: '2026-11-03' },
+    proposal: { title: 'Texas Register, 24 July 2026, proposed rules in PUCT Project 58000 (4CP to 12CP)', url: 'https://www.sos.texas.gov/texreg/archive/July242026/Proposed%20Rules/16.ECONOMIC%20REGULATION.html', retrieved: '2026-11-03' }
+  };
+  // Fallback: the ERCOT transmission and distribution utilities in the competitive area, by EIA id.
+  // Base's agents.md names these four areas as power-to-choose areas.
+  var KNOWN_TDSP = { '44372-TX': 'Oncor', '8901-TX': 'CenterPoint', '3278-TX': 'AEP Texas', '20404-TX': 'AEP Texas', '40051-TX': 'TNMP' };
+  // States where an investor-owned utility with any retail-choice homes owns no plants and its default supply is
+  // bought under a state-approved procurement plan. Only states checked here are listed.
+  var DEFAULT_SUPPLY_STATES = {
+    IL: { who: 'the Illinois Power Agency, under a plan the Illinois Commerce Commission approves', source: 'il' },
+    PA: { who: 'competitive procurement under a plan the Pennsylvania PUC approves', source: 'pa' }
+  };
+  var RETAIL_ALL = 0.99; // EIA-861 delivery share at or above this: every home buys energy from a retail provider
+
+  // Returns null for a utility that buys power, or { basis, reason, sources, baseRetail } for a wires-only one.
+  function wiresOnly(u) {
+    if (!u || !u.values) return null;
+    var r = u.values.retail, id = u.id, name = shortName(u);
+    var pct = isNum(r) ? Math.round(r * 100) + '%' : null;
+    if ((isNum(r) && r >= RETAIL_ALL) || own(KNOWN_TDSP, id)) {
+      var tx = u.state === 'TX';
+      return {
+        basis: isNum(r) && r >= RETAIL_ALL ? 'eia-retail-share' : 'named-tdsp',
+        what: name + ' delivers power but does not buy it.',
+        reason: (isNum(r) && r >= RETAIL_ALL
+          ? 'EIA-861 2025 counts ' + pct + ' of its residential customers as buying energy from a retail provider.'
+          : name + ' is a transmission and distribution utility in the ERCOT competitive area.') +
+          (tx ? ' Texas law unbundled generation, retail sales and delivery in these areas (PURA chapter 39), so the wires company does not buy energy or capacity for homes.' : ''),
+        sources: tx ? ['eia', 'pura'] : ['eia'],
+        baseRetail: own(KNOWN_TDSP, id) ? 'Base sells to homes here as a retail electric provider: its agents.md lists the ' + own(KNOWN_TDSP, id) + ' area and Base Texas REP, LLC (PUCT license 10338).' : null,
+        baseSource: own(KNOWN_TDSP, id) ? 'agents' : null
+      };
+    }
+    var ds = own(DEFAULT_SUPPLY_STATES, u.state);
+    if (ds && isNum(r) && r > 0) {
+      var k = own(KNOWN, id);
+      return {
+        basis: 'state-default-supply',
+        what: name + ' delivers power but does not own plants or choose what it buys.',
+        reason: pct + ' of its residential customers already buy energy from a retail supplier (EIA-861 2025). The rest get default supply bought by ' + ds.who + '.',
+        sources: ['eia', ds.source],
+        baseRetail: k && /retail/i.test(k.note) ? k.note : null,
+        baseSource: k && /retail/i.test(k.note) ? 'known' : null
+      };
+    }
+    return null;
+  }
+
+  // Source objects by key, for the wires-only notice and the ERCOT transmission note.
+  function extraSources(u, pick) {
+    var out = [];
+    if (pick && pick.wires) {
+      pick.wires.sources.forEach(function (k) { var s = own(WIRES_SOURCES, k); if (s) out.push({ key: k, title: s.title, url: s.url, retrieved: s.retrieved }); });
+      if (pick.wires.baseSource === 'agents') out.push({ key: 'agents', title: WIRES_SOURCES.agents.title, url: WIRES_SOURCES.agents.url, retrieved: WIRES_SOURCES.agents.retrieved });
+    } else if (u && u.detail && isErcotOnly(u.detail.rtos)) {
+      out.push({ key: 'tcos', title: TCOS_SOURCES.rule.title, url: TCOS_SOURCES.rule.url, retrieved: TCOS_SOURCES.rule.retrieved });
+      out.push({ key: 'tcos12', title: TCOS_SOURCES.proposal.title, url: TCOS_SOURCES.proposal.url, retrieved: TCOS_SOURCES.proposal.retrieved });
+    }
+    return out;
+  }
+
   var SIGNALS = ['saidi', 'saifi', 'storm', 'heat', 'demand_response'];
   var RELIABILITY_CUTOFF = 0.75; // assumption: top quartile of US utilities counts as a reliability problem
   var WHOLESALE_CUTOFF = 0.5;    // majority of residential customers in an ISO or RTO balancing authority
@@ -55,26 +130,28 @@
 
   function displayName(u) {
     if (!u) return '';
-    var k = KNOWN[u.id];
+    var k = own(KNOWN, u.id);
     return k && k.alias ? k.alias + ' (' + u.name + ')' : u.name;
   }
 
   function shortName(u) {
     if (!u) return '';
-    var k = KNOWN[u.id];
+    var k = own(KNOWN, u.id);
     return k && k.alias ? k.alias : u.name;
   }
 
   // Program sizing from Base's claimed 20 kW / 39.2 kWh unit, or a company's own terms.
+  // Null when the size or a battery term is outside its TERMS range, so no huge input can reach the output as Infinity.
   function sizeProgram(mw, customers, terms) {
-    if (!isNum(mw) || mw <= 0) return null;
+    if (!isNum(mw) || mw <= 0 || mw > TERMS_BY_KEY.programMw.max) return null;
     var kw = terms && isNum(terms.kwPerHome) ? terms.kwPerHome : SPEC.kw;
     var kwh = terms && isNum(terms.kwhPerHome) ? terms.kwhPerHome : SPEC.kwh;
+    if (!inRange('kwPerHome', kw) || !inRange('kwhPerHome', kwh)) return null;
     var batteries = Math.ceil(mw * 1000 / kw - 1e-9);
     var mwh = batteries * kwh / 1000;
     var share = isNum(customers) && customers > 0 ? batteries / customers : null;
     var out = { mw: mw, batteries: batteries, mwh: mwh, hours: kwh / kw, share: share, kw: kw, kwh: kwh };
-    if (terms && isNum(terms.memberReservePct)) out.dispatchMwh = mwh * (1 - terms.memberReservePct / 100);
+    if (terms && inRange('memberReservePct', terms.memberReservePct)) out.dispatchMwh = mwh * (1 - terms.memberReservePct / 100);
     return out;
   }
 
@@ -114,12 +191,22 @@
 
   function isErcotOnly(rtos) { return typeof rtos === 'string' && rtos.trim() === 'ERCOT'; }
 
+  // What a peak kW is worth to an ERCOT utility that buys its own power. Sourced in TCOS_SOURCES; no number is claimed.
+  var ERCOT_PEAK_VALUE = 'For a co-op or city utility that buys its own power, peak value here is mostly two things: transmission cost, which Texas allocates to each distribution utility by its share of the four summer coincident peaks (4CP, PUCT rule 25.192; PUCT Project 58000 proposes moving to 12CP), and the wholesale energy it buys in peak hours.';
+
   // Offer rule, in order. First match wins.
   function pickOffer(u, pcts, opts) {
     opts = opts || {};
     var RELIABILITY_CUTOFF = opts.terms && isNum(opts.terms.reliabilityCutoffPct) ? opts.terms.reliabilityCutoffPct / 100 : PUBLIC_RELIABILITY_CUTOFF;
     var WHOLESALE_CUTOFF = opts.terms && isNum(opts.terms.wholesaleCutoffPct) ? opts.terms.wholesaleCutoffPct / 100 : PUBLIC_WHOLESALE_CUTOFF;
     var steps = [];
+    // Rule 0: a wires-only utility does not buy energy or capacity, so no capacity offer, whatever the other signals say.
+    var w = wiresOnly(u);
+    if (w) {
+      var name = shortName(u);
+      return { offer: opts.largeLoads ? OFFERS.speed : OFFERS.distribution, variant: 'wires', rule: 0, wires: w,
+        reason: w.what + ' ' + w.reason + ' In its area a home-battery company reaches homes as a retail provider, so the useful conversation with ' + name + ' is about interconnection and distribution-level value' + (opts.largeLoads ? ', including how batteries can help large loads connect' : '') + ', not a capacity purchase.' };
+    }
     if (opts.largeLoads) {
       return { offer: OFFERS.speed, variant: null, rule: 1, reason: 'You marked that large loads are waiting to connect. That is your input, not public data.' };
     }
@@ -135,14 +222,14 @@
     } else {
       steps.push('Rule 2 skipped: outage duration and frequency are not published for this utility.');
     }
-    var w = u.values.wholesale;
+    var ws = u.values.wholesale;
     var rtos = (u.detail && u.detail.rtos) || '';
-    if (isNum(w) && w >= WHOLESALE_CUTOFF) {
+    if (isNum(ws) && ws >= WHOLESALE_CUTOFF) {
       var wsNote = WHOLESALE_CUTOFF === PUBLIC_WHOLESALE_CUTOFF ? '' : ' Your cutoff is ' + Math.round(WHOLESALE_CUTOFF * 100) + '%.';
       if (isErcotOnly(rtos)) {
-        return { offer: OFFERS.bulk, variant: 'peak', rule: 3, reason: 'Most residential customers sit in ERCOT, which runs an energy-only wholesale market (ERCOT, Oct 2025). With no capacity auction to accredit into, the fit is the second half of the offer: peak shaving.' + wsNote, source: ERCOT_SOURCE };
+        return { offer: OFFERS.bulk, variant: 'peak', rule: 3, reason: 'Most residential customers sit in ERCOT, which runs an energy-only wholesale market (ERCOT, Oct 2025). With no capacity auction to accredit into, the fit is the second half of the offer: peak shaving. ' + ERCOT_PEAK_VALUE + wsNote, source: ERCOT_SOURCE };
       }
-      return { offer: OFFERS.bulk, variant: 'accredited', rule: 3, reason: Math.round(w * 100) + '% of residential customers sit in an ISO or RTO (' + rtos + '). The fit is accredited capacity for resource adequacy.' + wsNote };
+      return { offer: OFFERS.bulk, variant: 'accredited', rule: 3, reason: Math.round(ws * 100) + '% of residential customers sit in an ISO or RTO (' + rtos + '). The fit is accredited capacity for resource adequacy.' + wsNote };
     }
     return { offer: OFFERS.bulk, variant: 'peak', rule: 4, reason: 'No ISO or RTO majority and no top-quartile outage signal. The default fit is peak shaving to reduce the capacity the utility must plan for.' };
   }
@@ -174,9 +261,12 @@
     return isNum(c) && isNum(s) ? c * s : null;
   }
 
+  /* Who to call first. Utilities that buy power are ranked 1, 2, 3...; wires-only utilities (wiresOnly) follow,
+     unranked (rank null, wires true), because they are not a buyer for a program. */
   function rankState(all, state, limit) {
-    var rows = all.filter(function (u) { return u.state === state; }).map(function (u) { return { u: u, score: callScore(u) }; });
+    var rows = all.filter(function (u) { return u.state === state; }).map(function (u) { return { u: u, score: callScore(u), wires: !!wiresOnly(u) }; });
     rows.sort(function (a, b) {
+      if (a.wires !== b.wires) return a.wires ? 1 : -1;
       if (a.score === null && b.score !== null) return 1;
       if (b.score === null && a.score !== null) return -1;
       if (a.score !== b.score) return b.score - a.score;
@@ -184,7 +274,8 @@
       if (ca !== cb) return cb - ca;
       return a.u.name < b.u.name ? -1 : a.u.name > b.u.name ? 1 : 0;
     });
-    return rows.slice(0, limit || 10).map(function (r, i) { return { rank: i + 1, id: r.u.id, name: displayName(r.u), customers: r.u.values.homes, saidi: r.u.values.saidi, score: r.score }; });
+    var n = 0;
+    return rows.slice(0, limit || 10).map(function (r) { return { rank: r.wires ? null : ++n, wires: r.wires, id: r.u.id, name: displayName(r.u), customers: r.u.values.homes, saidi: r.u.values.saidi, score: r.score }; });
   }
 
   // Landed cost range for a program, using Base's claimed $/kWh. Result in US dollars.
@@ -197,8 +288,20 @@
     var t = terms || publicTerms();
     var q = [];
     var rtos = (u.detail && u.detail.rtos) || '';
+    if (pick.wires) {
+      // A wires-only utility: no capacity, dispatch or enrollment questions, because it does not buy power or enroll homes.
+      var nm = shortName(u);
+      q.push('Interconnection: what does ' + nm + ' need before home batteries behind its meters can charge and discharge (notice, export limits, telemetry), and how long does that take?');
+      q.push('Distribution value: which feeders or substations are near their limits, and can ' + nm + ' pay for relief from batteries under its tariff, or does that need its regulator?');
+      if (pick.offer.id === 'speed') q.push('Large loads: which waiting connections are held up by local wires limits that batteries could ease?');
+      q.push('Data access: interval meter data, feeder and circuit outage history, and hosting capacity, so targeting is not a guess.');
+      q.push('Outages: which circuits drive the outage minutes, and would ' + nm + ' share restoration data so backup value can be shown to homes?');
+      q.push('Retail side: homes here buy energy from a retail provider. Which retail providers already offer a battery plan in this area, and how does ' + nm + ' work with them?');
+      q.push('Approval path: what does ' + nm + "'s regulator need to see before it treats batteries as a distribution resource, and on what timeline?");
+      return q;
+    }
     if (pick.offer.id === 'bulk' && pick.variant === 'accredited') q.push('Accreditation: how does ' + rtos + ' count a fleet of roughly 2-hour home batteries toward resource adequacy, and at what share of nameplate?');
-    if (isErcotOnly(rtos)) q.push('Value stack in ERCOT: which value counts most here, peak shaving against transmission cost allocation, energy prices, or ancillary services?');
+    if (isErcotOnly(rtos)) q.push('Value stack in ERCOT: what is a kW off the four summer coincident peaks (4CP transmission allocation) worth to ' + shortName(u) + ', against peak wholesale energy cost and ancillary services, and how would a move to 12CP change that?');
     if (rtos === 'No ISO balancing authority') q.push('Capacity planning: what peak does the utility or its power supplier plan to, and what is a kW of peak reduction worth in its next resource plan?');
     q.push('Dispatch windows: which hours and seasons matter, and how many of the ' + fmtNum(t.cyclesPerYear) + ' cycles a year ' + (t.cyclesPerYear === TERMS_BY_KEY.cyclesPerYear.value ? 'Base offers' : 'you offer') + ' would the utility actually call?');
     q.push(isNum(t.memberReservePct)
@@ -235,8 +338,9 @@
     { key: 'termYears', label: 'Your contract term', unit: 'years', value: null, min: 1, max: 40, basis: 'none' },
     { key: 'memberReservePct', label: 'Share of each battery held back for the home', unit: '%', value: null, min: 0, max: 99, basis: 'none' }
   ];
-  var TERMS_BY_KEY = {};
+  var TERMS_BY_KEY = dict();
   TERMS.forEach(function (t) { TERMS_BY_KEY[t.key] = t; });
+  function inRange(key, v) { var t = own(TERMS_BY_KEY, key); return !!t && isNum(v) && v >= t.min && v <= t.max; }
   var TARGET_COLUMNS = ['utility', 'state', 'status', 'owner', 'note'];
 
   function publicTerms() {
@@ -245,10 +349,13 @@
     return o;
   }
 
+  // A number cell: a finite number, or a plain decimal string after dropping $ , % and spaces. Hex, arrays and booleans are NaN.
+  var DECIMAL = /^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$/;
   function cellNum(v) {
     if (typeof v === 'number') return v;
-    var t = String(v == null ? '' : v).replace(/[$,%\s]/g, '');
-    return t === '' ? NaN : Number(t);
+    if (typeof v !== 'string') return NaN;
+    var t = v.replace(/[$,%\s]/g, '');
+    return DECIMAL.test(t) ? Number(t) : NaN;
   }
   function blank(v) { return String(v == null ? '' : v).trim() === ''; }
   function norm(s) { return String(s == null ? '' : s).toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, ' ').trim(); }
@@ -267,7 +374,7 @@
 
   // Lookup for target rows: EIA id ("5078-TX"), "Name, ST", plain name, or a public alias (CoServ Electric).
   function utilityIndex(utilities) {
-    var byId = {}, byName = {};
+    var byId = dict(), byName = dict();
     function add(k, u) {
       if (!k) return;
       byName[k] = byName[k] || [];
@@ -277,7 +384,7 @@
       byId[u.id.toLowerCase()] = u;
       add(norm(u.name), u);
       add(norm(u.name.replace(/\s*-\s*\([A-Z]{2}\)\s*$/, '')), u);
-      var k = KNOWN[u.id];
+      var k = own(KNOWN, u.id);
       if (k && k.alias) add(norm(k.alias), u);
     });
     return { byId: byId, byName: byName, names: Object.keys(byName) };
@@ -285,12 +392,12 @@
 
   function matchUtility(idx, text, st) {
     var raw = String(text).trim();
-    var hit = idx.byId[raw.toLowerCase()];
-    if (hit) return { u: hit };
-    var state = String(st || '').trim().toUpperCase();
+    var state = String(st == null ? '' : st).trim().toUpperCase();
+    var hit = own(idx.byId, raw.toLowerCase());
+    if (hit) return state && hit.state !== state ? { stateMismatch: hit, state: state } : { u: hit };
     var m = /^(.*),\s*([A-Za-z]{2})$/.exec(raw);
     if (m && !state) { raw = m[1]; state = m[2].toUpperCase(); }
-    var list = idx.byName[norm(raw)] || [];
+    var list = own(idx.byName, norm(raw)) || [];
     if (state) list = list.filter(function (u) { return u.state === state; });
     if (list.length === 1) return { u: list[0] };
     if (list.length > 1) return { ambiguous: list };
@@ -351,10 +458,10 @@
     if (!termRows.length && !targetRows.length && !errors.length) errors.push('No rows found. Offer terms need key and value columns; a target list needs a utility column. Download a template for the shape.');
 
     // Offer terms
-    var terms = publicTerms(), changed = [], seen = {};
+    var terms = publicTerms(), changed = [], seen = dict();
     termRows.forEach(function (p) {
       var key = String(p.key).trim();
-      var t = TERMS_BY_KEY[key];
+      var t = own(TERMS_BY_KEY, key);
       if (!t) { errors.push(p.where + 'unknown key "' + key + '". Download the template for the full list.'); return; }
       if (blank(p.value)) {
         if (t.value != null) warnings.push(p.where + key + ' is blank, so the public value stays.');
@@ -373,13 +480,18 @@
     TERMS.forEach(function (t) { if (terms[t.key] !== t.value) changed.push(t.key); });
 
     // Target list. Unmatched names are warnings, never a failed file.
-    var targets = {}, unmatched = 0;
+    var targets = dict(), unmatched = 0;
     if (targetRows.length) {
       var idx = utilityIndex(utilities || []);
       targetRows.forEach(function (p) {
         var r = p.r;
         var asked = String(r.utility).trim();
         var res = matchUtility(idx, asked, r.state);
+        if (res.stateMismatch) {
+          unmatched++;
+          warnings.push(p.where + '"' + asked + '" is ' + displayName(res.stateMismatch) + ' in ' + res.stateMismatch.state + ', not ' + res.state + '. Fix the state or leave it blank. Skipped.');
+          return;
+        }
         if (res.ambiguous) {
           unmatched++;
           warnings.push(p.where + '"' + asked + '" matches ' + res.ambiguous.length + ' utilities (' + res.ambiguous.map(function (u) { return u.id; }).join(', ') + '). Use the id or add a state. Skipped.');
@@ -394,7 +506,7 @@
         var status = String(r.status == null ? '' : r.status).trim();
         if (status.length > 60) { errors.push(p.where + 'status is longer than 60 characters.'); return; }
         if (!status) { status = 'target'; warnings.push(p.where + 'no status for ' + displayName(res.u) + ', so it shows as "target".'); }
-        if (targets[res.u.id]) warnings.push(p.where + displayName(res.u) + ' is listed twice. The later row wins.');
+        if (own(targets, res.u.id)) warnings.push(p.where + displayName(res.u) + ' is listed twice. The later row wins.');
         targets[res.u.id] = { id: res.u.id, status: status, owner: String(r.owner == null ? '' : r.owner).trim(), note: String(r.note == null ? '' : r.note).trim(), input: asked };
       });
     }
@@ -408,7 +520,7 @@
   // "Who to call first": your targets first, then everyone else. Public rank order kept inside each group.
   function orderWithTargets(rows, targets) {
     var t = targets || {};
-    return rows.filter(function (r) { return t[r.id]; }).concat(rows.filter(function (r) { return !t[r.id]; }));
+    return rows.filter(function (r) { return own(t, r.id); }).concat(rows.filter(function (r) { return !own(t, r.id); }));
   }
 
   // Template rows: every offer term with its public value, plus empty target columns so one file can hold both.
@@ -433,6 +545,8 @@
     RELIABILITY_CUTOFF: RELIABILITY_CUTOFF, WHOLESALE_CUTOFF: WHOLESALE_CUTOFF,
     isNum: isNum, displayName: displayName, shortName: shortName, sizeProgram: sizeProgram, percentile: percentile,
     signalPercentiles: signalPercentiles, strongestSignal: strongestSignal, pickOffer: pickOffer, headline: headline,
+    WIRES_SOURCES: WIRES_SOURCES, TCOS_SOURCES: TCOS_SOURCES, KNOWN_TDSP: KNOWN_TDSP, DEFAULT_SUPPLY_STATES: DEFAULT_SUPPLY_STATES, ERCOT_PEAK_VALUE: ERCOT_PEAK_VALUE,
+    wiresOnly: wiresOnly, extraSources: extraSources, known: function (id) { return own(KNOWN, id); }, own: own, inRange: inRange,
     callScore: callScore, rankState: rankState, landedCost: landedCost, questions: questions, fmtNum: fmtNum,
     TERMS: TERMS, TERMS_BY_KEY: TERMS_BY_KEY, TARGET_COLUMNS: TARGET_COLUMNS, TEMPLATE_COLUMNS: TEMPLATE_COLUMNS, publicTerms: publicTerms,
     loadYourData: loadYourData, orderWithTargets: orderWithTargets, templateRows: templateRows, tollValue: tollValue, utilityIndex: utilityIndex, matchUtility: matchUtility

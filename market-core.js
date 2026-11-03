@@ -17,8 +17,13 @@
     ['TN', 'Tennessee'], ['TX', 'Texas'], ['UT', 'Utah'], ['VT', 'Vermont'], ['VA', 'Virginia'], ['WA', 'Washington'],
     ['WV', 'West Virginia'], ['WI', 'Wisconsin'], ['WY', 'Wyoming'],
   ];
-  const ABBR = Object.fromEntries(STATES.flatMap(([a, n]) => [[a.toLowerCase(), a], [n.toLowerCase(), a]]).concat([['washington dc', 'DC'], ['washington, dc', 'DC'], ['d.c.', 'DC']]));
-  const NAME = Object.fromEntries(STATES);
+  // Maps, not plain objects: a state written as "constructor" or "__proto__" must not find Object.prototype.
+  const ABBR = new Map(STATES.flatMap(([a, n]) => [[a.toLowerCase(), a], [n.toLowerCase(), a]]).concat([['washington dc', 'DC'], ['washington, dc', 'DC'], ['d.c.', 'DC']]));
+  const NAME = new Map(STATES);
+  const hasOwn = (o, k) => o != null && typeof o === 'object' && Object.prototype.hasOwnProperty.call(o, k);
+  const isText = (v) => typeof v === 'string' || (typeof v === 'number' && Number.isFinite(v));
+  // Plain decimal numbers only, after dropping $ , % and spaces: no hex (0x10), Infinity, true/false or lists.
+  const DECIMAL = /^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$/;
   const LOWER = /\s*\((lower|higher) is better\)\s*$/i;
   const STATE_COLS = ['state', 'abbr', 'state_abbr'];
   const ZONE_COL = 'zone', VALUE_COL = 'usd_per_year';
@@ -26,11 +31,15 @@
   // "$1,200" and "12%" are numbers; blank is null; anything else is NaN.
   function toNum(v) {
     if (typeof v === 'number') return v;
-    const t = String(v == null ? '' : v).replace(/[$,%\s]/g, '');
-    return t === '' ? null : Number(t);
+    if (v == null) return null;
+    if (typeof v !== 'string') return NaN;
+    const t = v.replace(/[$,%\s]/g, '');
+    return t === '' ? null : DECIMAL.test(t) ? Number(t) : NaN;
   }
-  const blank = (v) => v == null || String(v).trim() === '';
-  const stateOf = (v) => ABBR[String(v == null ? '' : v).trim().toLowerCase().replace(/\s+/g, ' ')] || null;
+  const blank = (v) => v == null || (typeof v === 'string' && v.trim() === '');
+  const stateOf = (v) => (isText(v) ? ABBR.get(String(v).trim().toLowerCase().replace(/\s+/g, ' ')) || null : null);
+  // A cell as shown in an error message.
+  const shown = (v) => (isText(v) ? String(v) : Array.isArray(v) ? 'a list' : v === null ? 'null' : typeof v === 'object' ? 'an object' : String(v));
   const keyOf = (s) => String(s).trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
 
   // Factor from a CSV header: "install_cost_usd (lower is better)" -> lower is better.
@@ -66,15 +75,16 @@
       const declared = Array.isArray(d.factors) ? d.factors : [];
       const factors = [];
       declared.forEach((f, i) => {
-        if (!f || blank(f.key)) { errors.push('factors[' + i + ']: missing key.'); return; }
+        if (!f || typeof f !== 'object' || blank(f.key)) { errors.push('factors[' + i + ']: missing key.'); return; }
+        if (!isText(f.key) || (f.label != null && !isText(f.label))) { errors.push('factors[' + i + ']: key and label must be text.'); return; }
         factors.push({ key: keyOf(f.key), label: blank(f.label) ? String(f.key) : String(f.label), higherIsBetter: f.higherIsBetter !== false, header: String(f.key) });
       });
-      const states = d.states && typeof d.states === 'object' ? d.states : {};
+      const states = d.states && typeof d.states === 'object' && !Array.isArray(d.states) ? d.states : {};
       const seen = new Set(factors.map((f) => f.header));
       Object.values(states).forEach((v) => {
-        if (v && typeof v === 'object') Object.keys(v).forEach((k) => { if (!seen.has(k)) { seen.add(k); factors.push(factorFromHeader(k)); } });
+        if (v && typeof v === 'object' && !Array.isArray(v)) Object.keys(v).forEach((k) => { if (!seen.has(k)) { seen.add(k); factors.push(factorFromHeader(k)); } });
       });
-      return { factors, rows: Object.entries(states).map(([s, v]) => ({ where: 'states.' + s, raw: s, cells: v && typeof v === 'object' ? v : {} })) };
+      return { factors, rows: Object.entries(states).map(([s, v]) => ({ where: 'states.' + s, raw: s, cells: v && typeof v === 'object' && !Array.isArray(v) ? v : {}, notObject: !(v && typeof v === 'object' && !Array.isArray(v)) })) };
     }
     const rows = d;
     const head = Object.keys(rows[0] || {});
@@ -95,19 +105,20 @@
       if (ids.has(f.id)) errors.push('Two metric columns are both named "' + f.label + '".');
       ids.add(f.id);
     });
-    const values = {}, firstRow = {};
+    const values = {}, firstRow = new Map();
     rows.forEach((r) => {
       const abbr = stateOf(r.raw);
       if (blank(r.raw)) { errors.push(r.where + ': missing state.'); return; }
-      if (!abbr) { errors.push(r.where + ': unknown state "' + r.raw + '". Use a two-letter code such as TX, or the full name.'); return; }
-      if (firstRow[abbr]) { errors.push(r.where + ': ' + NAME[abbr] + ' appears again (first at ' + firstRow[abbr] + ').'); return; }
-      firstRow[abbr] = r.where;
+      if (!abbr) { errors.push(r.where + ': unknown state "' + shown(r.raw) + '". Use a two-letter code such as TX, or the full name.'); return; }
+      if (firstRow.has(abbr)) { errors.push(r.where + ': ' + NAME.get(abbr) + ' appears again (first at ' + firstRow.get(abbr) + ').'); return; }
+      firstRow.set(abbr, r.where);
+      if (r.notObject) { errors.push(r.where + ': must be an object of { metric: number }.'); return; }
       const out = {};
       factors.forEach((f) => {
-        const raw = r.cells[f.header];
+        const raw = hasOwn(r.cells, f.header) ? r.cells[f.header] : null; // own keys only
         if (blank(raw)) return;
         const v = toNum(raw);
-        if (!Number.isFinite(v)) { errors.push(r.where + ', column "' + f.header + '": "' + raw + '" is not a number.'); return; }
+        if (!Number.isFinite(v)) { errors.push(r.where + ', column "' + f.header + '": "' + shown(raw) + '" is not a number.'); return; }
         out[f.id] = v;
       });
       values[abbr] = out;
@@ -137,16 +148,16 @@
       if (!vc) errors.push('Zone files need a "usd_per_year" column next to "zone".');
       rows = d.map((r, i) => ({ where: 'Row ' + (i + 2), zone: r[zc], value: vc ? r[vc] : '' }));
     }
-    const zones = {}, first = {};
+    const zones = {}, first = new Map();
     if (!errors.length) rows.forEach((r) => {
-      const id = String(r.zone == null ? '' : r.zone).trim().toUpperCase();
+      const id = isText(r.zone) ? String(r.zone).trim().toUpperCase() : '';
       if (!id) { errors.push(r.where + ': missing zone.'); return; }
       if (!zoneIds.includes(id)) { errors.push(r.where + ': unknown zone "' + r.zone + '". Use one of ' + zoneIds.join(', ') + '.'); return; }
-      if (first[id]) { errors.push(r.where + ': ' + id + ' appears again (first at ' + first[id] + ').'); return; }
-      first[id] = r.where;
+      if (first.has(id)) { errors.push(r.where + ': ' + id + ' appears again (first at ' + first.get(id) + ').'); return; }
+      first.set(id, r.where);
       if (blank(r.value)) { warnings.push(r.where + ': ' + id + ' is blank, so the public value stays.'); return; }
       const v = toNum(r.value);
-      if (!Number.isFinite(v)) { errors.push(r.where + ', column "usd_per_year": "' + r.value + '" is not a number.'); return; }
+      if (!Number.isFinite(v)) { errors.push(r.where + ', column "usd_per_year": "' + shown(r.value) + '" is not a number.'); return; }
       if (v < 0) { errors.push(r.where + ': ' + id + ' cannot be negative.'); return; }
       zones[id] = v;
     });

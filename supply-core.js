@@ -9,14 +9,44 @@
   const COLUMNS = ['part', 'category', 'supplier', 'country', 'lead_time_weeks', 'on_hand_weeks', 'second_source', 'tariff_pct', 'unit_cost_usd', 'qty_per_unit', 'note'];
   const REQUIRED = ['part', 'category', 'lead_time_weeks'];
   const NUMBERS = ['lead_time_weeks', 'on_hand_weeks', 'tariff_pct', 'unit_cost_usd', 'qty_per_unit'];
+  const TEXTS = ['part', 'category', 'supplier', 'country', 'note'];
   const TARIFF_MAX = 500;
+  // Upper bounds, so a typo like 1e308 is a row error instead of "Infinity wk" or "$∞".
+  const MAX = { lead_time_weeks: 520, on_hand_weeks: 520, tariff_pct: TARIFF_MAX, unit_cost_usd: 1000000, qty_per_unit: 10000 };
+  const MAX_NOTE = { lead_time_weeks: ' (10 years)', on_hand_weeks: ' (10 years)', tariff_pct: '', unit_cost_usd: ' dollars', qty_per_unit: ' per battery' };
   const TARIFF_FLAG = 25;
   const YES = ['yes', 'y', 'true', '1'];
   const NO = ['no', 'n', 'false', '0'];
 
-  const blank = (v) => String(v == null ? '' : v).trim() === '';
-  const text = (v) => String(v == null ? '' : v).trim();
-  const toNum = (v) => typeof v === 'number' ? v : Number(String(v == null ? '' : v).replace(/[$,%\s]/g, ''));
+  // Text cells are strings, or numbers written as text (a part number). Objects, lists and true/false are not.
+  const isText = (v) => v == null || typeof v === 'string' || (typeof v === 'number' && Number.isFinite(v));
+  const kindOf = (v) => (v === null ? 'null' : Array.isArray(v) ? 'a list' : typeof v === 'object' ? 'an object' : typeof v);
+  const blank = (v) => v == null || (isText(v) && String(v).trim() === '');
+  const text = (v) => (v != null && isText(v) ? String(v).trim() : '');
+  // Plain decimal numbers only, after dropping $ , % and spaces: no hex (0x10), Infinity, true/false or lists.
+  const DECIMAL = /^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$/;
+  const toNum = (v) => {
+    if (typeof v === 'number') return v;
+    if (typeof v !== 'string') return NaN;
+    const t = v.replace(/[$,%\s]/g, '');
+    return DECIMAL.test(t) ? Number(t) : NaN;
+  };
+  // Header names match case-insensitively, trimmed, with spaces or hyphens read as underscores.
+  const colKey = (h) => String(h).trim().toLowerCase().replace(/[\s-]+/g, '_');
+
+  /* One row with its keys mapped onto COLUMNS. Unknown and repeated columns are noted in
+     `unknown` and `dupes` (Maps keyed by the name as written), so each is warned once. */
+  function normalizeRow(r, unknown, dupes) {
+    const out = Object.create(null), from = Object.create(null);
+    for (const k of Object.keys(r)) {
+      const c = colKey(k);
+      if (!COLUMNS.includes(c)) { if (k.trim() !== '' && !unknown.has(k)) unknown.set(k, true); continue; }
+      if (c in from) { if (blank(out[c])) out[c] = r[k]; dupes.set(from[c] + '|' + k, [from[c], k]); continue; }
+      from[c] = k;
+      out[c] = r[k];
+    }
+    return out;
+  }
 
   // parsed is { kind: 'csv', data: [row] } or { kind: 'json', data: { parts: [row] } | [row] }.
   // Returns { rows, errors, warnings }. rows are normalized: numbers as numbers (null when blank),
@@ -34,12 +64,16 @@
       errors.push(isCsv ? 'No rows found. The file needs a header row with part, category and lead_time_weeks, then one row per part.' : 'No parts found. The file needs { "parts": [ ... ] } with one object per part.');
       return { rows, errors, warnings };
     }
-    const seen = new Map();
-    list.forEach((r, i) => {
+    const seen = new Map(), unknown = new Map(), dupes = new Map();
+    list.forEach((raw, i) => {
       const where = isCsv ? 'Row ' + (i + 2) + ': ' : 'Part ' + (i + 1) + ': ';
-      if (!r || typeof r !== 'object') { errors.push(where + 'not an object.'); return; }
+      if (!raw || typeof raw !== 'object' || Array.isArray(raw)) { errors.push(where + 'not an object.'); return; }
+      const r = normalizeRow(raw, unknown, dupes);
       let bad = false;
-      for (const k of REQUIRED) if (blank(r[k])) { errors.push(where + 'missing ' + k + '.'); bad = true; }
+      for (const k of TEXTS) {
+        if (!isText(r[k])) { errors.push(where + k + ' must be text, got ' + kindOf(r[k]) + '.'); bad = true; }
+      }
+      for (const k of REQUIRED) if (isText(r[k]) && blank(r[k])) { errors.push(where + 'missing ' + k + '.'); bad = true; }
       const out = { line: where.slice(0, -2) };
       for (const k of ['part', 'supplier', 'country', 'note']) out[k] = text(r[k]);
       out.category = text(r.category).toLowerCase();
@@ -49,14 +83,16 @@
       }
       for (const k of NUMBERS) {
         if (blank(r[k])) { out[k] = null; continue; }
+        if (typeof r[k] !== 'number' && typeof r[k] !== 'string') { errors.push(where + k + ' must be a number, got ' + kindOf(r[k]) + '.'); bad = true; continue; }
         const v = toNum(r[k]);
         if (!Number.isFinite(v)) { errors.push(where + k + ' is not a number: "' + text(r[k]) + '".'); bad = true; continue; }
         if (v < 0) { errors.push(where + k + ' cannot be negative.'); bad = true; continue; }
-        if (k === 'tariff_pct' && v > TARIFF_MAX) { errors.push(where + 'tariff_pct must be at most ' + TARIFF_MAX + '.'); bad = true; continue; }
+        if (v > MAX[k]) { errors.push(where + k + ' must be at most ' + MAX[k] + MAX_NOTE[k] + ', got ' + text(r[k]) + '.'); bad = true; continue; }
         out[k] = v;
       }
       const ss = text(r.second_source).toLowerCase();
       if (typeof r.second_source === 'boolean') out.second_source = r.second_source;
+      else if (!isText(r.second_source)) { errors.push(where + 'second_source must be yes or no, got ' + kindOf(r.second_source) + '.'); bad = true; }
       else if (!ss) out.second_source = null;
       else if (YES.includes(ss)) out.second_source = true;
       else if (NO.includes(ss)) out.second_source = false;
@@ -68,7 +104,10 @@
       }
       if (!bad) rows.push(out);
     });
-    return { rows, errors, warnings };
+    const head = [];
+    for (const [a, b] of dupes.values()) head.push('Columns "' + a + '" and "' + b + '" are the same column; the first value that is not blank is used.');
+    for (const k of unknown.keys()) head.push('Ignored unknown column "' + k + '". Known columns: ' + COLUMNS.join(', ') + '.');
+    return { rows, errors, warnings: head.concat(warnings) };
   }
 
   // Rows sorted by gap (lead time minus weeks of cover, biggest first), with flags and totals.

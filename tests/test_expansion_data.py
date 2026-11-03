@@ -43,7 +43,7 @@ class ExpansionDataTests(unittest.TestCase):
         self.assertEqual(state("TX")["footprint"]["status"], "operating")
         self.assertEqual(state("IL")["footprint"]["status"], "operating")
         self.assertEqual(state("GA")["footprint"]["status"], "announced")
-        self.assertEqual(state("CT")["footprint"]["status"], "hiring")
+        self.assertFalse(state("CT").get("footprint"))  # job posts are not published as a footprint
 
 
 if __name__ == "__main__":

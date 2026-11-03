@@ -18,7 +18,7 @@ Page: `/launch`. Swaps the public launch steps for your own steps, durations and
 
 In JSON, `depends_on` is a list, and `tennis` entries are `{ "step", "round_weeks", "with", "bounce", "fix" }`.
 
-**Rules:** a path in your file replaces that path's steps in every state, and public state rules do not apply to it. A path not in your file keeps the public steps. A step's `round_weeks` replaces its email-tennis cost; a step without one keeps the public cost for the same id, if there is one. Unknown paths, missing ids or names, non-numbers, negative or over-260 durations, `high` below `low`, duplicate ids, unknown `depends_on` ids, cycles and bad `round_weeks` stop the load and are listed by row. A missing owner, or no `first_installs` step, gives a warning. Steps from your file are tagged **Yours**.
+**Rules:** a path in your file replaces that path's steps in every state, and public state rules do not apply to it. A path not in your file keeps the public steps. A step's `round_weeks` replaces its email-tennis cost; a step without one keeps the public cost for the same id, if there is one. Unknown paths, missing ids or names, ids reserved on every JavaScript object (`__proto__`, `constructor`, `prototype`, `toString` and the like), text fields that are not text (in JSON, an object or a list), non-numbers (durations are plain decimals: `0x10` and `Infinity` are not numbers), negative or over-260 durations, `high` below `low`, duplicate ids, unknown `depends_on` ids, cycles and bad `round_weeks` stop the load and are listed by row. A missing owner, or no `first_installs` step, gives a warning. Steps from your file are tagged **Yours**.
 
 **Example:**
 

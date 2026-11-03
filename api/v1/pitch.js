@@ -9,7 +9,7 @@ const M = require('../../data/market-states.json');
 const L = require('../_lib.js');
 
 const IDX = P.utilityIndex(D.utilities);
-const BY_ID = Object.fromEntries(D.utilities.map((u) => [u.id, u]));
+const BY_ID = new Map(D.utilities.map((u) => [u.id, u]));
 const KNOWN = ['utility', 'state', 'mw', 'largeLoads', 'terms', 'targets'];
 
 function usage() {
@@ -20,9 +20,9 @@ function usage() {
       content_types: ['application/json', 'text/csv'],
       json_body: {
         utility: 'required: EIA id as in the data (for example "5078-TX"), the name, "Name, ST", or a public alias such as "CoServ Electric"',
-        state: 'two-letter state to narrow a name match (optional)',
+        state: 'two-letter state to narrow a name match (optional). If it disagrees with the utility, the request is a 422.',
         mw: 'program size in MW (optional, default terms.programMw, public 100)',
-        largeLoads: 'true if large loads are waiting to connect; picks Speed to power (optional, default false)',
+        largeLoads: 'true or false: large loads are waiting to connect; picks Speed to power (optional, default false). Anything else is a 422.',
         terms: '{ key: value } offer terms (optional): ' + P.TERMS.map((t) => t.key).join(', '),
         targets: 'your target list (optional): [{ utility, state, status, owner, note }]',
       },
@@ -36,7 +36,21 @@ function usage() {
   };
 }
 
-function truthy(v) { return v === true || ['1', 'true', 'yes', 'on'].includes(String(v == null ? '' : v).trim().toLowerCase()); }
+// largeLoads: a real yes or no. Anything else ("maybe", 2, an object) is an error, never a silent false.
+const YES = ['1', 'true', 'yes', 'on'], NO = ['0', 'false', 'no', 'off', ''];
+function yesNo(v) {
+  if (v === true || v === false) return v;
+  if (v == null) return false;
+  if (typeof v !== 'string' && typeof v !== 'number') return null;
+  const t = String(v).trim().toLowerCase();
+  return YES.includes(t) ? true : NO.includes(t) ? false : null;
+}
+const DECIMAL = /^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$/;
+function numberIn(v) {
+  if (typeof v === 'number') return v;
+  if (typeof v === 'string' && DECIMAL.test(v.trim())) return Number(v.trim());
+  return NaN;
+}
 
 // pitch.js sourcesFor(), numbered the same way.
 function sourcesFor(u, pick) {
@@ -50,7 +64,8 @@ function sourcesFor(u, pick) {
     { key: 'base', title: P.BASE_SOURCE.title, url: P.BASE_SOURCE.url, date: 'retrieved ' + P.BASE_SOURCE.retrieved },
   ];
   if (pick.source) list.push({ key: 'ercot', title: pick.source.title, url: pick.source.url, date: 'retrieved ' + pick.source.retrieved });
-  const k = P.KNOWN[u.id];
+  P.extraSources(u, pick).forEach((s) => list.push({ key: s.key, title: s.title, url: s.url, date: 'retrieved ' + s.retrieved }));
+  const k = P.known(u.id);
   if (k && k.aliasSource) list.push({ key: 'alias', title: k.aliasSource.title, url: k.aliasSource.url, date: 'retrieved ' + k.aliasSource.retrieved });
   if (k && k.source && k.source.url !== P.BASE_SOURCE.url) list.push({ key: 'known', title: k.source.title, url: k.source.url, date: k.source.retrieved });
   list.forEach((s, i) => { s.n = i + 1; });
@@ -60,13 +75,15 @@ function sourcesFor(u, pick) {
 async function post(parsed, req) {
   const q = L.query(req);
   let opts, own = null, warnings = [];
-  if (parsed && parsed.kind === 'csv') { opts = q; own = parsed; }
+  // Only the known fields, read as own keys, into a null-prototype object: no "__proto__" or "constructor" can leak in.
+  const knownOnly = (src) => { const o = Object.create(null); KNOWN.forEach((k) => { if (P.own(src, k) !== undefined) o[k] = src[k]; }); return o; };
+  if (parsed && parsed.kind === 'csv') { opts = knownOnly(q); own = parsed; }
   else {
-    const b = L.objectBody(parsed);
+    const b = L.objectBody(parsed) || {};
     warnings = L.unknownKeys(b, KNOWN);
-    opts = Object.assign({}, q, b);
+    opts = Object.assign(knownOnly(q), knownOnly(b));
     if (b.terms != null || b.targets != null) {
-      if (b.terms != null && (typeof b.terms !== 'object')) throw L.invalid(['terms must be an object of { key: value }.']);
+      if (b.terms != null && (typeof b.terms !== 'object' || Array.isArray(b.terms))) throw L.invalid(['terms must be an object of { key: value }, for example { "tollPerKwYear": 85 }. Got ' + (Array.isArray(b.terms) ? 'a list' : typeof b.terms) + '.']);
       own = { kind: 'json', data: { terms: b.terms || {}, targets: b.targets == null ? undefined : b.targets } };
     }
   }
@@ -82,15 +99,19 @@ async function post(parsed, req) {
   }
 
   // The utility.
+  if (opts.state != null && opts.state !== '' && !/^[A-Za-z]{2}$/.test(String(opts.state).trim())) throw L.invalid(['state must be a two-letter code such as "TX". Got "' + String(opts.state) + '".']);
+  if (opts.utility != null && typeof opts.utility !== 'string') throw L.invalid(['utility must be text: an EIA id such as "5078-TX", a name, "Name, ST", or an alias.']);
   if (opts.utility == null || String(opts.utility).trim() === '') throw L.invalid(['utility is required: an EIA id such as "5078-TX", a name, "Name, ST", or an alias such as "CoServ Electric".']);
   const m = P.matchUtility(IDX, String(opts.utility), opts.state);
+  if (m.stateMismatch) throw L.invalid(['utility "' + opts.utility + '" is ' + P.displayName(m.stateMismatch) + ' in ' + m.stateMismatch.state + ', not ' + m.state + '. Fix state or leave it out.']);
   if (m.ambiguous) throw L.invalid(['utility "' + opts.utility + '" matches ' + m.ambiguous.length + ' utilities (' + m.ambiguous.map((u) => u.id + ' ' + u.name).join('; ') + '). Use the id or add a state.']);
   if (!m.u) throw L.invalid(['No utility called "' + opts.utility + '"' + (opts.state ? ' in ' + opts.state : '') + (m.suggestion ? '. Did you mean ' + P.displayName(m.suggestion) + ', ' + m.suggestion.state + ' (id ' + m.suggestion.id + ')?' : '.')]);
   const u = m.u;
 
-  const mwIn = opts.mw == null || opts.mw === '' ? T.programMw : Number(opts.mw);
+  const mwIn = opts.mw == null || opts.mw === '' ? T.programMw : numberIn(opts.mw);
   if (!Number.isFinite(mwIn) || mwIn <= 0 || mwIn > 5000) throw L.invalid(['mw must be a number above 0 and at most 5000.']);
-  const largeLoads = truthy(opts.largeLoads);
+  const largeLoads = yesNo(opts.largeLoads);
+  if (largeLoads === null) throw L.invalid(['largeLoads must be true or false. Got ' + JSON.stringify(opts.largeLoads) + '.']);
 
   // pitch.js render(), without the HTML.
   const st = D.states.filter((s) => s.abbr === u.state)[0] || { name: u.state, values: {} };
@@ -100,7 +121,7 @@ async function post(parsed, req) {
   const sig = P.strongestSignal(pcts);
   const pick = P.pickOffer(u, pcts, { largeLoads, terms: T });
   const src = sourcesFor(u, pick);
-  const known = P.KNOWN[u.id];
+  const known = P.known(u.id);
   const costYours = changed.includes('costLowPerKwh') || changed.includes('costHighPerKwh');
   const timeYours = changed.includes('deployMonthsLow') || changed.includes('deployMonthsHigh');
 
@@ -126,8 +147,9 @@ async function post(parsed, req) {
 
   const all = P.rankState(D.utilities, u.state, Infinity);
   const ordered = P.orderWithTargets(all, targets);
-  const nMine = all.filter((x) => targets[x.id]).length;
-  const top = ordered.slice(0, nMine).concat(ordered.slice(nMine).filter((x) => x.rank <= 10));
+  const nMine = all.filter((x) => P.own(targets, x.id)).length;
+  const top = ordered.slice(0, nMine).concat(ordered.slice(nMine).filter((x) => !x.wires && x.rank <= 10));
+  const wiresInState = all.filter((x) => x.wires);
   const mine = all.filter((x) => x.id === u.id)[0];
   if (mine && top.indexOf(mine) < 0) top.push(mine);
 
@@ -139,8 +161,15 @@ async function post(parsed, req) {
     headline: P.headline(u, sig),
     headline_signal: sig ? { id: sig.id, label: SIGNAL_LABELS[sig.id], value: sig.value, percentile: sig.pct, of_utilities: sig.n, text: 'higher than ' + Math.round(sig.pct * 100) + '% of US utilities' } : null,
     public_link_to_base: known ? { note: known.note, source: known.source.url } : null,
-    your_target: targets[u.id] || null,
-    offer: { id: pick.offer.id, name: pick.offer.name, variant: pick.variant, quote: pick.offer.quote, rule: pick.rule, reason: pick.reason, also_on_menu: others },
+    your_target: P.own(targets, u.id) || null,
+    offer: { id: pick.offer.id, name: pick.offer.name, variant: pick.variant, quote: pick.offer.quote, rule: pick.rule, reason: pick.reason, also_on_menu: others, capacity_offer: pick.offer.id === 'bulk' },
+    wires_only: pick.wires ? {
+      what: pick.wires.what + ' It is not a buyer for a capacity program.',
+      why: pick.wires.reason, detected_by: pick.wires.basis,
+      route_to_homes: 'In its area a home-battery company reaches homes as a retail provider.' + (pick.wires.baseRetail ? ' ' + pick.wires.baseRetail : ''),
+      talk_about: 'interconnection and distribution-level value, not a capacity purchase',
+      sources: src.filter((s) => pick.wires.sources.includes(s.key) || s.key === pick.wires.baseSource).map((s) => s.n),
+    } : null,
     program: prog ? {
       mw: prog.mw, batteries: prog.batteries, kw_per_battery: prog.kw, kwh_per_battery: prog.kwh, mwh: prog.mwh, hours_at_full_output: prog.hours,
       share_of_residential_customers: prog.share, dispatchable_mwh: P.isNum(prog.dispatchMwh) ? prog.dispatchMwh : null,
@@ -156,10 +185,12 @@ async function post(parsed, req) {
     questions: P.questions(u, pick, T),
     who_to_call_first: {
       state: u.state,
-      method: 'Ranked by residential customers x SAIDI minutes (EIA-861 2025), a stand-in for customer minutes interrupted.' + (nMine ? ' Your ' + nMine + ' target' + (nMine === 1 ? '' : 's') + ' in this state come first, still in public rank order.' : ''),
+      method: 'Ranked by residential customers x SAIDI minutes (EIA-861 2025), a stand-in for customer minutes interrupted. Wires-only utilities, which deliver power but do not buy it, are not ranked.' + (nMine ? ' Your ' + nMine + ' target' + (nMine === 1 ? '' : 's') + ' in this state come first, still in public rank order.' : ''),
       utilities_in_state: all.length,
-      rows: top.map((x) => ({ rank: x.rank, id: x.id, name: x.name, residential_customers: x.customers, saidi_minutes: x.saidi, customer_minutes: x.score, your_target: targets[x.id] || null, current: x.id === u.id })),
-      your_targets_elsewhere: Object.keys(targets).map((id) => BY_ID[id]).filter((x) => x && x.state !== u.state).map((x) => ({ id: x.id, name: P.displayName(x), state: x.state, status: targets[x.id].status })),
+      ranked_in_state: all.length - wiresInState.length,
+      rows: top.map((x) => ({ rank: x.rank, id: x.id, name: x.name, wires_only: x.wires, residential_customers: x.customers, saidi_minutes: x.saidi, customer_minutes: x.score, your_target: P.own(targets, x.id) || null, current: x.id === u.id })),
+      wires_only_in_state: wiresInState.map((x) => ({ id: x.id, name: x.name, residential_customers: x.customers })),
+      your_targets_elsewhere: Object.keys(targets).map((id) => BY_ID.get(id)).filter((x) => x && x.state !== u.state).map((x) => ({ id: x.id, name: P.displayName(x), state: x.state, status: targets[x.id].status })),
     },
   };
 

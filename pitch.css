@@ -26,6 +26,9 @@
 .pt-headline { margin: 0 0 8px; }
 .pt-sub { margin: 0 0 8px; color: var(--grey-80); font-size: 15px; }
 .pt-known { margin: 8px 0 0; }
+.pt-wires { margin: 10px 0 0; border-left: 4px solid var(--yellow-60); }
+.pt-wires p { margin: 0 0 6px; line-height: 1.5; }
+.pt-wires p:last-child { margin-bottom: 0; }
 .pt-block { border-top: 1px solid var(--grey-20); margin-top: 18px; padding-top: 14px; }
 .pt-block h3 { margin: 0 0 8px; }
 .pt-block h4 { font-size: 15px; margin: 0 0 6px; font-weight: 600; }
@@ -132,7 +135,7 @@
   /* Tints do not print by default, so boxes and badges become outlines. */
   .pt-stats > div, .pt-deals > div, .pt-offer blockquote, .pt-yours-offer, .pt-rca-grid > div { background: #fff; border: 0.75pt solid #000; }
   .pt-offer blockquote { border-left-width: 3pt; }
-  .pt-known, .pt-target { background: #fff; color: #000; border: 0.75pt solid #000; padding: 6pt 8pt; }
+  .pt-known, .pt-target, .pt-wires { background: #fff; color: #000; border: 0.75pt solid #000; padding: 6pt 8pt; }
   .badge { background: #fff !important; color: #000 !important; box-shadow: none; border: 0.75pt solid #000; padding: 0 4pt; font-size: 7pt; }
   .pt-stats { grid-template-columns: repeat(4, 1fr); }
   .pt-stats dd { font-size: 14pt; }

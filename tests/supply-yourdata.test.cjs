@@ -98,3 +98,52 @@ test('supply bom: no em dashes in the new files', () => {
     assert.ok(!fs.readFileSync(path.join(__dirname, '..', f), 'utf8').includes(String.fromCharCode(0x2014)), f);
   }
 });
+
+// ---------- input hardening (2026-11-03) ----------
+
+test('supply bom: upper bounds on weeks, cost and quantity are row errors', () => {
+  const v = load(head + '\n' +
+    'A,cells,,,1e308,,,,,,\n' +
+    'B,cells,,,4,521,,,,,\n' +
+    'C,cells,,,4,,,501,1000001,10001,\n' +
+    'D,cells,,,520,520,,500,1000000,10000,\n');
+  assert.deepEqual(v.errors, [
+    'Row 2: lead_time_weeks must be at most 520 (10 years), got 1e308.',
+    'Row 3: on_hand_weeks must be at most 520 (10 years), got 521.',
+    'Row 4: tariff_pct must be at most 500, got 501.',
+    'Row 4: unit_cost_usd must be at most 1000000 dollars, got 1000001.',
+    'Row 4: qty_per_unit must be at most 10000 per battery, got 10001.',
+  ]);
+  assert.equal(v.rows.length, 1);
+  const a = S.analyze(v.rows);
+  assert.ok(Number.isFinite(a.totals.tariffPerBattery));
+});
+
+test('supply bom: headers are case-insensitive and trimmed; unknown columns warn by name', () => {
+  const v = load(' Part , CATEGORY ,Lead_Time_Weeks,Lead time weeks,Colour,Weight kg\nA,cells,4,,red,2\n');
+  assert.deepEqual(v.errors, []);
+  assert.equal(v.rows[0].lead_time_weeks, 4);
+  assert.deepEqual(v.warnings, [
+    'Columns "Lead_Time_Weeks" and "Lead time weeks" are the same column; the first value that is not blank is used.',
+    'Ignored unknown column "Colour". Known columns: ' + S.COLUMNS.join(', ') + '.',
+    'Ignored unknown column "Weight kg". Known columns: ' + S.COLUMNS.join(', ') + '.',
+  ]);
+});
+
+test('supply bom: text fields need text, numbers need plain decimals', () => {
+  const v = S.validate({ kind: 'json', data: { parts: [
+    { part: { x: 1 }, category: 'cells', lead_time_weeks: 4 },
+    { part: 'B', category: 'cells', lead_time_weeks: '0x10', on_hand_weeks: [3], second_source: { a: 1 } },
+    { part: 4471, category: 'cells', lead_time_weeks: '$4', tariff_pct: '25%' },
+    ['not', 'an', 'object'],
+  ] } }, ids);
+  assert.deepEqual(v.errors, [
+    'Part 1: part must be text, got an object.',
+    'Part 2: lead_time_weeks is not a number: "0x10".',
+    'Part 2: on_hand_weeks must be a number, got a list.',
+    'Part 2: second_source must be yes or no, got an object.',
+    'Part 4: not an object.',
+  ]);
+  // A part number is fine as text; $ and % are still read.
+  assert.deepEqual([v.rows[0].part, v.rows[0].lead_time_weeks, v.rows[0].tariff_pct], ['4471', 4, 25]);
+});

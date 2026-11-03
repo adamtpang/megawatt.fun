@@ -59,7 +59,8 @@ test('target list: matches by id, name, Name, ST and alias; targets go first in 
   assert.deepEqual(ids.slice().sort(), ['1015-TX', '5078-TX']);
   assert.ok(ordered[0].rank < ordered[1].rank, 'targets keep public rank order');
   const rest = ordered.slice(2).map((x) => x.rank);
-  assert.deepEqual(rest, rest.slice().sort((a, b) => a - b), 'non-targets keep public rank order');
+  assert.deepEqual(rest.filter((x) => x !== null), rest.filter((x) => x !== null).sort((a, b) => a - b), 'non-targets keep public rank order');
+  assert.ok(rest.slice(rest.findIndex((x) => x === null)).every((x) => x === null), 'wires-only rows come last, unranked');
   assert.equal(ordered.length, all.length);
 });
 
@@ -123,4 +124,153 @@ test('no em dashes in the new files', () => {
     const p = path.join(__dirname, '..', f);
     if (fs.existsSync(p)) assert.ok(!fs.readFileSync(p, 'utf8').includes(String.fromCharCode(0x2014)), f);
   }
+});
+
+// ---------- Wires-only utilities and user-keyed lookups ----------
+
+const byId = (id) => data.utilities.find((u) => u.id === id);
+const pickFor = (u, opts) => P.pickOffer(u, P.signalPercentiles(u, data.utilities), opts);
+
+test('wires-only detection: Texas TDSPs, ComEd, PECO, PPL; co-ops and city utilities stay pitchable', () => {
+  const wires = {
+    '44372-TX': 'eia-retail-share', // Oncor
+    '8901-TX': 'eia-retail-share', // CenterPoint
+    '3278-TX': 'eia-retail-share', // AEP Texas Central
+    '20404-TX': 'eia-retail-share', // AEP Texas North
+    '40051-TX': 'eia-retail-share', // TNMP
+    '4110-IL': 'state-default-supply', // ComEd
+    '14940-PA': 'state-default-supply', // PECO
+    '14715-PA': 'state-default-supply', // PPL
+  };
+  for (const id of Object.keys(wires)) {
+    const u = byId(id);
+    assert.ok(u, id);
+    const w = P.wiresOnly(u);
+    assert.ok(w, id + ' is wires-only');
+    assert.equal(w.basis, wires[id], id);
+    assert.match(w.what, /delivers power but does not/);
+    const pick = pickFor(u);
+    assert.equal(pick.rule, 0, id);
+    assert.notEqual(pick.offer.id, 'bulk', id + ' gets no capacity offer');
+    assert.match(pick.reason, /not a capacity purchase/);
+    assert.equal(pickFor(u, { largeLoads: true }).offer.id, 'speed');
+    assert.ok(!P.questions(u, pick).some((q) => /Accreditation|resource adequacy|Dispatch windows|Enrollment/.test(q)), id + ' questions skip capacity');
+  }
+  // Texas: PURA chapter 39 and Base's agents.md are cited; Base sells there as a retail provider.
+  const cnp = P.wiresOnly(byId('8901-TX'));
+  assert.deepEqual(cnp.sources, ['eia', 'pura']);
+  assert.match(cnp.reason, /PURA chapter 39/);
+  assert.match(cnp.baseRetail, /retail electric provider.*CenterPoint area.*10338/);
+  assert.deepEqual(P.extraSources(byId('8901-TX'), pickFor(byId('8901-TX'))).map((s) => s.key), ['pura', 'agents']);
+  // Illinois: the IPA source and Base's own supplier license for ComEd homes.
+  const comed = P.wiresOnly(byId('4110-IL'));
+  assert.deepEqual(comed.sources, ['eia', 'il']);
+  assert.match(comed.reason, /Illinois Power Agency/);
+  assert.match(comed.baseRetail, /supplier license/);
+  assert.match(P.wiresOnly(byId('14940-PA')).reason, /Pennsylvania PUC/);
+  assert.equal(P.wiresOnly(byId('14715-PA')).baseRetail, null, 'Base does not sell in Pennsylvania');
+
+  for (const id of ['5078-TX', '1015-TX', '7752-TX', '14626-TX', '3248-GA']) { // CoServ, Austin Energy, GVEC, Pedernales, Central Georgia EMC
+    const u = byId(id);
+    assert.equal(P.wiresOnly(u), null, id + ' stays pitchable');
+    assert.notEqual(pickFor(u).rule, 0, id);
+  }
+  // Every wires-only row in the file, so a data change that adds or drops one is seen here.
+  assert.deepEqual(data.utilities.filter(P.wiresOnly).map((u) => u.id).sort(),
+    ['11292-TX', '14715-PA', '14940-PA', '19390-PA', '20404-TX', '3278-TX', '40051-TX', '44372-TX', '4110-IL', '5487-PA', '56697-IL', '66101-PA', '8901-TX'].sort());
+});
+
+test('wires-only fallback list holds when the EIA retail share is missing', () => {
+  for (const id of Object.keys(P.KNOWN_TDSP)) {
+    const u = byId(id);
+    const blanked = Object.assign({}, u, { values: Object.assign({}, u.values, { retail: null }) });
+    const w = P.wiresOnly(blanked);
+    assert.ok(w, id);
+    assert.equal(w.basis, 'named-tdsp');
+  }
+  // A Pennsylvania co-op with no retail-choice homes is not caught by the state rule.
+  assert.equal(P.wiresOnly({ id: 'x-PA', name: 'Some Coop', state: 'PA', values: { retail: 0 }, detail: { rtos: 'PJM' } }), null);
+});
+
+test('ERCOT co-ops and city utilities: the offer and questions name 4CP transmission and wholesale cost, with sources', () => {
+  for (const id of ['5078-TX', '1015-TX', '7752-TX', '14626-TX']) {
+    const u = byId(id);
+    const pick = pickFor(u);
+    if (pick.rule === 3) {
+      assert.equal(pick.offer.id, 'bulk');
+      assert.equal(pick.variant, 'peak');
+      assert.match(pick.reason, /4CP/);
+      assert.match(pick.reason, /wholesale energy/);
+    }
+    assert.ok(P.questions(u, pick).some((q) => /4CP transmission allocation/.test(q) && /wholesale energy/.test(q)), id);
+    assert.deepEqual(P.extraSources(u, pick).map((s) => s.key), ['tcos', 'tcos12'], id);
+  }
+  assert.match(P.TCOS_SOURCES.rule.url, /puc\.texas\.gov/);
+  // No made-up value: the ERCOT text carries no dollar figure.
+  assert.ok(!/\$/.test(P.ERCOT_PEAK_VALUE));
+});
+
+test('who to call first: wires-only utilities are labeled and not ranked', () => {
+  const tx = P.rankState(data.utilities, 'TX', Infinity);
+  const wiresRows = tx.filter((x) => x.wires);
+  assert.deepEqual(wiresRows.map((x) => x.id).sort(), ['11292-TX', '20404-TX', '3278-TX', '40051-TX', '44372-TX', '8901-TX'].sort());
+  assert.ok(wiresRows.every((x) => x.rank === null));
+  const ranked = tx.filter((x) => !x.wires);
+  assert.deepEqual(ranked.map((x) => x.rank), ranked.map((_, i) => i + 1));
+  assert.ok(P.rankState(data.utilities, 'TX', 10).every((x) => !x.wires), 'top 10 is pitchable utilities only');
+  assert.ok(!P.rankState(data.utilities, 'IL', 10).some((x) => x.id === '4110-IL'));
+});
+
+test('user text never resolves built-in object properties', () => {
+  const idx = P.utilityIndex(data.utilities);
+  for (const t of ['constructor', '__proto__', 'toString', 'hasOwnProperty', 'valueOf, TX', 'prototype']) {
+    const m = P.matchUtility(idx, t);
+    assert.equal(m.u, undefined, t);
+    assert.equal(m.ambiguous, undefined, t);
+  }
+  // terms keys: unknown, never "appears twice".
+  const j = P.loadYourData(Y.parseText('{"constructor": 1, "__proto__": 2, "toString": 3}', 'x.json'), data.utilities);
+  assert.deepEqual(j.errors.map((e) => /unknown key "(.*?)"/.exec(e)[1]).sort(), ['__proto__', 'constructor', 'toString']);
+  assert.ok(!j.warnings.some((w) => /appears twice/.test(w)), j.warnings.join(' | '));
+  const c = P.loadYourData(csv('key,value\nconstructor,1\n__proto__,2'), data.utilities);
+  assert.ok(c.errors.some((e) => /^Row 2: unknown key "constructor"/.test(e)), c.errors.join(' | '));
+  assert.ok(c.errors.some((e) => /^Row 3: unknown key "__proto__"/.test(e)), c.errors.join(' | '));
+  assert.equal(Object.getPrototypeOf(P.publicTerms()), Object.prototype, 'public terms object is untouched');
+  // A target called "constructor" is unmatched, not a crash.
+  const t = P.loadYourData(csv('utility,status\nconstructor,in talks'), data.utilities);
+  assert.equal(t.targetCount, 0);
+  assert.equal(t.unmatched, 1);
+});
+
+test('target with a state that disagrees with its id is skipped with a warning', () => {
+  const r = P.loadYourData(csv('utility,state,status\n5078-TX,IL,in talks'), data.utilities);
+  assert.deepEqual(r.errors, []);
+  assert.equal(r.targetCount, 0);
+  assert.match(r.warnings[0], /^Row 2: "5078-TX" is CoServ Electric .* in TX, not IL/);
+  assert.ok(P.matchUtility(P.utilityIndex(data.utilities), '5078-TX', 'tx').u, 'same state in lower case still matches');
+});
+
+test('numeric terms: bounds on every key, plain decimals only, nothing reaches Infinity', () => {
+  for (const t of P.TERMS) {
+    assert.ok(Number.isFinite(t.min) && Number.isFinite(t.max), t.key + ' has bounds');
+    const big = P.loadYourData(json({ [t.key]: 1e308 }), data.utilities);
+    assert.ok(big.errors.some((e) => e.startsWith(t.key + ' must be between')), t.key);
+    const low = P.loadYourData(json({ [t.key]: t.min - 1 }), data.utilities);
+    assert.ok(low.errors.some((e) => e.startsWith(t.key + ' must be between')), t.key + ' below min');
+  }
+  for (const bad of ['0x10', '1e999', 'Infinity', 'NaN', '1.2.3']) {
+    const r = P.loadYourData(csv('key,value\nprogramMw,' + bad), data.utilities);
+    assert.ok(r.errors.some((e) => /programMw is not a number/.test(e)), bad + ': ' + r.errors.join(' | '));
+  }
+  assert.ok(P.loadYourData(json({ programMw: [50] }), data.utilities).errors.some((e) => /not a number/.test(e)), 'a list is not a number');
+  assert.ok(P.loadYourData(json({ programMw: true }), data.utilities).errors.some((e) => /not a number/.test(e)), 'a boolean is not a number');
+  assert.deepEqual(P.loadYourData(csv('key,value\nprogramMw,"1,000"\ntollPerKwYear,$85'), data.utilities).errors, []);
+  // sizeProgram refuses out-of-range input rather than returning Infinity.
+  assert.equal(P.sizeProgram(1e308, 1000), null);
+  assert.equal(P.sizeProgram(Infinity, 1000), null);
+  assert.equal(P.sizeProgram(5001, 1000), null);
+  assert.equal(P.sizeProgram(100, 1000, { kwPerHome: 1e-300, kwhPerHome: 39.2 }), null);
+  const max = P.sizeProgram(5000, 1, { kwPerHome: 1, kwhPerHome: 500, memberReservePct: 99 });
+  for (const v of Object.values(max)) assert.ok(v === null || Number.isFinite(v), JSON.stringify(max));
+  assert.equal(P.sizeProgram(100, 1000, { kwPerHome: 20, kwhPerHome: 39.2, memberReservePct: 1e308 }).dispatchMwh, undefined);
 });

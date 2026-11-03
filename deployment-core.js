@@ -29,12 +29,46 @@
       previous = key;
     }
   }
-  // Fixed clock, selected before looking at prices. Charge 01:00–05:00;
-  // discharge 17:00–21:00 Central. Uniform AC power within each physical hour.
-  // Equal sqrt(RTE) charge/discharge losses. Reserve is a hard SOC floor.
+  // Fixed daily clocks, chosen without looking at the prices they are scored on.
+  // Each window is [start, end) in clock hours, Central time: hour h runs h:00 to
+  // h+1:00, which is ERCOT hour ending h+1. Inside a window the battery charges or
+  // discharges at full power until it is full or at its reserve, so a short battery
+  // can empty before its discharge window ends.
+  //  overnight: charge 01:00 to 05:00 (HE2 to HE5), discharge 17:00 to 21:00 (HE18
+  //    to HE21). The original clock, and still the backtest default so /deploy and
+  //    its 4-hour (25 kWh / 5 kW) battery keep their numbers. A 2-hour battery at
+  //    full power empties around 18:30 on this clock and misses HE20 and HE21.
+  //  solarEvening: charge 10:00 to 14:00 (HE11 to HE14), discharge 19:00 to 21:00
+  //    (HE20 to HE21). For a battery of about 2 hours, such as a Base Core (20 kW /
+  //    39.2 kWh). Chosen from public ERCOT reasoning, not fitted to the test year:
+  //    solar output holds midday prices down, and the net-load peak (load minus wind
+  //    and solar) now comes after sunset, so the battery buys at midday and waits
+  //    until 19:00 to sell, so it is not empty before the latest high-price hours.
+  // Pass options.schedule as a name above or { charge: [start, end], discharge: [start, end] }.
+  const SCHEDULES = Object.freeze({
+    overnight: Object.freeze({ charge: Object.freeze([1, 5]), discharge: Object.freeze([17, 21]) }),
+    solarEvening: Object.freeze({ charge: Object.freeze([10, 14]), discharge: Object.freeze([19, 21]) }),
+  });
+  const DEFAULT_SCHEDULE = 'overnight';
+  function schedule(input = DEFAULT_SCHEDULE) {
+    const s = typeof input === 'string' ? SCHEDULES[input] : input;
+    if (!s || typeof s !== 'object') throw new Error(`Unknown schedule: ${input}.`);
+    const window = (w, name) => {
+      if (!Array.isArray(w) || w.length !== 2 || !w.every(Number.isInteger) || w[0] < 0 || w[1] > 24 || w[0] >= w[1])
+        throw new Error(`${name} window must be [start, end] hours with 0 <= start < end <= 24.`);
+      return [w[0], w[1]];
+    };
+    const charge = window(s.charge, 'Charge'), discharge = window(s.discharge, 'Discharge');
+    if (charge[0] < discharge[1] && discharge[0] < charge[1]) throw new Error('Charge and discharge windows overlap.');
+    return { charge, discharge };
+  }
+  // Uniform AC power within each physical hour. Equal sqrt(RTE) charge/discharge
+  // losses. Reserve is a hard SOC floor.
   function backtest(rows, input = {}, options = {}) {
     validateRows(rows);
     const p = parameters(input), eta = Math.sqrt(p.efficiency);
+    const clock = schedule(options.schedule);
+    const inWindow = (h, w) => h >= w[0] && h < w[1];
     const floor = p.capacity * p.reserve;
     let soc = floor, bought = 0, sold = 0, cash = 0, wear = 0;
     const months = {}, trace = options.trace ? [] : null;
@@ -53,8 +87,8 @@
       months[month] ||= { month, energy: 0, wear: 0, net: 0, bought: 0, sold: 0, hours: 0 };
       const m = months[month]; m.hours++;
       let charge = 0, discharge = 0;
-      if (!options.idle && h >= 1 && h < 5) charge = Math.min(p.power, (p.capacity - soc) / eta);
-      if (!options.idle && h >= 17 && h < 21) {
+      if (!options.idle && inWindow(h, clock.charge)) charge = Math.min(p.power, (p.capacity - soc) / eta);
+      if (!options.idle && inWindow(h, clock.discharge)) {
         discharge = Math.min(p.power, Math.max(0, soc - floor) * eta);
         if (tariff) discharge = Math.min(discharge, tariff.annualUsage * loadWeights[h] / weightTotal);
       }
@@ -67,7 +101,7 @@
     }
     return { energy: cash, wear, net: cash - wear, bought, sold, initialSOC: floor, finalSOC: soc,
       residualKWh: soc - floor, months: Object.values(months), trace, hours: rows.length,
-      baseline: 0, parameters: p, mode: tariff ? 'retail' : 'wholesale' };
+      baseline: 0, parameters: p, schedule: clock, mode: tariff ? 'retail' : 'wholesale' };
   }
   function diagnostics(rows) {
     validateRows(rows);
@@ -103,5 +137,5 @@
       total, payback: cost !== null && total > 0 ? cost / total : null, cost,
       status: !known ? 'missing-inputs' : total <= 0 ? 'no-positive-return' : cost === null ? 'missing-cost' : 'scenario' };
   }
-  return { DEFAULTS, parameters, validateRows, backtest, diagnostics, rank, economics };
+  return { DEFAULTS, SCHEDULES, DEFAULT_SCHEDULE, schedule, parameters, validateRows, backtest, diagnostics, rank, economics };
 });

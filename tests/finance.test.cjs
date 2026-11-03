@@ -121,12 +121,170 @@ test('page defaults load, normalize, and produce a sane result', () => {
   const r = F.sizeDebt(F.normalize(raw));
   near(r.capex, 350 * 39.2, 1e-9);
   assert.ok(r.debt > 0 && r.debt <= r.cap);
-  near(r.equity, r.capex - 695 - r.debt, 1e-6);
+  near(r.itc, 0.3 * r.capex, 1e-9);
+  near(r.equity, r.capex - 695 - r.itc - r.debt, 1e-6);
 });
 
 test('no em dashes in the finance files', () => {
-  for (const f of ['finance.html', 'finance.js', 'finance-core.js', 'finance.css', 'data/finance-defaults.json', 'tests/finance.test.cjs']) {
+  for (const f of ['finance.html', 'finance.js', 'finance-core.js', 'finance.css', 'data/finance-defaults.json', 'tests/finance.test.cjs', 'api/v1/finance.js', 'docs/plug-and-play/finance.md', 'docs/api.md']) {
     const p = path.join(__dirname, '..', f);
     if (fs.existsSync(p)) assert.ok(!fs.readFileSync(p, 'utf8').includes(String.fromCharCode(0x2014)), f);
   }
+});
+
+// ---------- review fixes ----------
+
+const DEF = JSON.parse(fs.readFileSync(path.join(__dirname, '../data/finance-defaults.json'), 'utf8'));
+const ZV = JSON.parse(fs.readFileSync(path.join(__dirname, '../data/zone-value.json'), 'utf8'));
+const FIELDS = DEF.groups.flatMap((g) => g.fields);
+const field = (k) => FIELDS.find((f) => f.key === k);
+function defaultInputs(over = {}) {
+  const raw = { revenueCase: DEF.revenueCaseDefault, arbPerYear: ZV.zones.find((z) => z.id === DEF.zoneDefault).usdPerYear };
+  for (const f of FIELDS) raw[f.key] = f.value;
+  return F.normalize(Object.assign(raw, over));
+}
+
+test('tax credit: reduces the net cost debt and equity fund, not the cash flow', () => {
+  const no = F.sizeDebt({ ...base, tollPerKwYear: 1000 });
+  const yes = F.sizeDebt({ ...base, tollPerKwYear: 1000, itc: 0.3 });
+  assert.equal(yes.itc, 3000);
+  assert.equal(yes.netCapex, 7000);
+  assert.equal(yes.year1Cfads, no.year1Cfads);
+  assert.equal(yes.debt, 7000); // advance cap and net cost are both $7,000
+  assert.equal(yes.equity, 0);
+  // With a member payment the net cost binds below the advance cap.
+  const both = F.sizeDebt({ ...base, tollPerKwYear: 1000, itc: 0.3, upfront: 1000 });
+  assert.equal(both.netCapex, 6000);
+  assert.equal(both.debt, 6000);
+  assert.equal(both.binding, 'cost');
+  assert.match(F.bindingText(both), /member payment and the tax credit/);
+});
+
+test('tax credit plus member payment above cost: nothing to finance, text says so', () => {
+  const r = F.sizeDebt({ ...base, tollPerKwYear: 130, itc: 0.5, upfront: 6000 });
+  assert.equal(r.netCapex, 0);
+  assert.equal(r.debt, 0);
+  assert.equal(r.equity, 0);
+  const text = F.explain(r).join(' ');
+  assert.match(text, /Nothing is left to finance/);
+  assert.doesNotMatch(text, /too small|lend nothing/);
+  assert.match(F.bindingText(r), /No debt needed/);
+});
+
+test('tax credit default is sourced from the statute, with eligibility and PFE notes', () => {
+  const f = field('itcPct');
+  assert.equal(f.value, 30);
+  assert.equal(f.kind, 'sourced');
+  assert.match(f.source, /law\.cornell\.edu\/uscode\/text\/26\/48E/);
+  for (const re of [/48E/, /6418/, /25D/, /P\.L\. 119-21/, /Notice 2026-15/, /prohibited foreign entity/, /55%/]) assert.match(f.note, re);
+});
+
+test('default case does not hinge on the toll placeholder', () => {
+  assert.equal(DEF.revenueCaseDefault, 'merchant');
+  assert.equal(field('tollPerKwYear').kind, 'assumption');
+  const a = F.sizeDebt(defaultInputs());
+  const b = F.sizeDebt(defaultInputs({ tollPerKwYear: 0 }));
+  const c = F.sizeDebt(defaultInputs({ tollPerKwYear: 500 }));
+  assert.ok(a.debt > 0);
+  assert.equal(a.debt, b.debt);
+  assert.equal(a.debt, c.debt);
+  // The first explain line names the biggest line and whether it is public.
+  assert.match(F.explain(a)[0], /biggest revenue line.*public number/);
+  // In the toll case the toll drives it, and the text says it is an assumption.
+  const t = F.sizeDebt(defaultInputs({ revenueCase: 'toll' }));
+  assert.match(F.explain(t)[0], /^The utility toll is the biggest revenue line.*labeled assumption/);
+});
+
+test('retail margin stays at 0 with its math and reason shown', () => {
+  const f = field('retailMarginMonthly');
+  assert.equal(f.value, 0);
+  assert.equal(f.kind, 'assumption');
+  assert.match(f.note, /Left at \$0 on purpose/);
+  assert.match(f.note, /x kWh/);
+});
+
+test('generic fleet: 1,000 batteries, no company valuation or member count in the copy', () => {
+  const f = field('fleetCount');
+  assert.equal(f.value, 1000);
+  assert.equal(f.integer, true);
+  assert.equal(f.kind, 'assumption');
+  for (const name of ['finance.html', 'finance.js', 'data/finance-defaults.json', 'api/v1/finance.js']) {
+    const t = fs.readFileSync(path.join(__dirname, '..', name), 'utf8');
+    assert.doesNotMatch(t, /30,000|30000|Series D|valuation|raised to date/, name);
+  }
+});
+
+test('explain matches the binding limit in edge cases', () => {
+  // kwh 0: cash flow is positive but there is no cost to finance.
+  const k0 = F.sizeDebt(defaultInputs({ kwh: 0 }));
+  assert.ok(k0.minCfads > 0);
+  assert.equal(k0.debt, 0);
+  assert.deepEqual(F.explain(k0), ['Installed cost is $0, so there is nothing to finance.']);
+  assert.doesNotMatch(F.bindingText(k0), /weakest year/);
+  // Advance rate 0: cash flow is fine, the cap is 0.
+  const a0 = F.sizeDebt(defaultInputs({ advancePct: 0 }));
+  assert.equal(a0.debt, 0);
+  assert.equal(a0.binding, 'advance');
+  assert.match(F.explain(a0).join(' '), /advance rate is 0%/);
+  assert.doesNotMatch(F.explain(a0).join(' '), /too small|cash flow after operating cost/);
+  assert.match(F.bindingText(a0), /advance rate is 0%/);
+  // Negative cash flow: the text says the weakest year has nothing left.
+  const neg = F.sizeDebt(defaultInputs({ opexPerYear: 5000 }));
+  assert.equal(neg.binding, 'none');
+  assert.match(F.explain(neg)[0], /lend nothing.*nothing is left to repay/);
+  // Tiny debt service never prints absurd percentages.
+  const tiny = F.sizeDebt({ ...base, tollPerKwYear: 1000, memberFeeMonthly: 10, capexPerKwh: 0.01 });
+  for (const line of F.explain(tiny)) assert.doesNotMatch(line, /e\+|Infinity|NaN/);
+});
+
+test('every field has a min and a max, and the defaults sit inside them', () => {
+  for (const f of FIELDS) {
+    assert.ok(Number.isFinite(f.min) && Number.isFinite(f.max) && f.min < f.max, f.key);
+    assert.ok(f.value >= f.min && f.value <= f.max, f.key);
+    assert.equal(F.fieldError(f, f.value), null, f.key);
+  }
+});
+
+test('parseDecimal accepts plain decimals only', () => {
+  assert.equal(F.parseDecimal('12'), 12);
+  assert.equal(F.parseDecimal(' -3.5 '), -3.5);
+  assert.equal(F.parseDecimal('.5'), 0.5);
+  assert.equal(F.parseDecimal('1e3'), 1000);
+  assert.equal(F.parseDecimal('$1,200'), 1200);
+  assert.equal(F.parseDecimal(8.5), 8.5);
+  for (const bad of ['0x10', '0b1', '0o7', 'Infinity', '-Infinity', 'NaN', '', '  ', '1e999', '12abc', '1.2.3', true, null, [5], {}]) {
+    assert.ok(Number.isNaN(F.parseDecimal(bad)), String(bad));
+  }
+});
+
+test('validateFields: the page and the API share one set of rules', () => {
+  const typed = Object.fromEntries(FIELDS.map((f) => [f.key, String(f.value)]));
+  assert.deepEqual(F.validateFields(DEF, typed).errors, {});
+  // Blank keeps the default, it is not 0.
+  const blank = F.validateFields(DEF, { ...typed, capexPerKwh: '', ratePct: '   ' });
+  assert.deepEqual(blank.errors, {});
+  assert.equal(blank.values.capexPerKwh, 350);
+  assert.equal(blank.values.ratePct, 8);
+  const cases = {
+    capexPerKwh: '-100', ratePct: '500', dscr: '0', lifeYears: '0', availabilityPct: '1000',
+    kwh: '1e308', tollPerKwYear: '0x10', fleetCount: '2.5', tenorYears: '7.5', upfront: 'abc',
+  };
+  const { errors } = F.validateFields(DEF, { ...typed, ...cases });
+  assert.deepEqual(Object.keys(errors).sort(), Object.keys(cases).sort());
+  assert.match(errors.tollPerKwYear, /plain decimal/);
+  assert.match(errors.fleetCount, /whole number/);
+  assert.match(errors.kwh, /at most 1000/);
+  assert.match(errors.capexPerKwh, /at least 0/);
+  // fleetCount must be a positive whole number with a max.
+  assert.ok(F.validateFields(DEF, { fleetCount: '0' }).errors.fleetCount);
+  assert.ok(F.validateFields(DEF, { fleetCount: '20000000' }).errors.fleetCount);
+  assert.deepEqual(F.validateFields(DEF, { fleetCount: '5000' }).errors, {});
+});
+
+test('the largest allowed inputs still give finite numbers', () => {
+  const raw = { revenueCase: 'stacked', arbPerYear: F.ARB_MAX };
+  for (const f of FIELDS) raw[f.key] = f.key === 'itcPct' ? 0 : f.max;
+  const r = F.sizeDebt(F.normalize(raw));
+  for (const k of ['capex', 'debt', 'equity', 'debtService', 'year1Cfads', 'minCfads']) assert.ok(Number.isFinite(r[k]), k);
+  for (const line of F.explain(r)) assert.doesNotMatch(line, /e\+|Infinity|NaN/);
 });

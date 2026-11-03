@@ -127,7 +127,7 @@ FOOTPRINT = {
     "TX": {
         "status": "operating",
         "label": "Operating",
-        "detail": "Base's public offer is a Texas retail plan with a battery Base owns. A Connecticut job post describes expansion beyond Texas. The mark is not part of the score.",
+        "detail": "Base's public offer is a Texas retail plan with a battery Base owns. The mark is not part of the score.",
     },
     "IL": {
         "status": "operating",
@@ -138,11 +138,6 @@ FOOTPRINT = {
         "status": "announced",
         "label": "Announced",
         "detail": "Grid & Generation reported on 21 Oct 2026, citing Utility Dive, a Central Georgia EMC partnership for up to 50 MW, with installations planned to begin in 2027. This build did not open a Base or co-op primary release.",
-    },
-    "CT": {
-        "status": "hiring",
-        "label": "Hiring",
-        "detail": "Base posted a Connecticut operations manager on 10 Sep 2026 and an electrical supervisor in North Haven. No customer offer was found in the sources opened for this note.",
     },
 }
 

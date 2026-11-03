@@ -52,15 +52,17 @@
       const fs = el('fieldset', { class: 'fin-group' }, el('legend', { text: g.title }));
       for (const f of g.fields) {
         const id = `in-${f.key}`;
-        const input = el('input', { id, name: f.key, type: 'number', inputmode: 'decimal', step: String(f.step ?? 'any'), value: String(f.value) });
-        if (f.min != null) input.min = String(f.min);
-        if (f.max != null) input.max = String(f.max);
+        // type=text: a number input hides what was typed when it is not a number, so the
+        // error could not name it. Validation is FinanceCore.validateFields, the API's rules.
+        const input = el('input', { id, name: f.key, type: 'text', inputmode: 'decimal', autocomplete: 'off', spellcheck: 'false', value: String(f.value), placeholder: String(f.value), 'aria-describedby': `err-${f.key}` });
         const note = el('p', { class: 'fin-note' }, f.note);
+        const err = el('p', { class: 'fin-error', id: `err-${f.key}`, hidden: '' });
         const link = sourceLink(f);
         if (link) note.append(' ', link, `, retrieved ${f.retrieved}.`);
         fs.append(el('div', { class: 'fin-field' },
           el('label', { for: id }, `${f.label} `, tag(f.kind)),
           el('div', { class: 'fin-input' }, input, el('span', { class: 'fin-unit', text: f.unit })),
+          err,
           note));
       }
       wrap.append(fs);
@@ -83,7 +85,8 @@
     const span = p ? `${p.start} to ${p.endExclusive} (end not included)` : '12 months';
     $('zone-period').textContent = span;
     $('zone-note').textContent = '';
-    $('zone-note').append(`Energy arbitrage only, per battery per year, ${span}, fixed charge and discharge clock. Range $${Math.round(Math.min(...zones.map((z) => z.usdPerYear)))} to $${Math.round(Math.max(...zones.map((z) => z.usdPerYear)))}. `,
+    const clock = zoneMeta.schedule && zoneMeta.schedule.label ? `${zoneMeta.schedule.label}` : 'fixed charge and discharge clock';
+    $('zone-note').append(`Energy arbitrage only, per battery per year, ${span}. ${clock}. Range $${Math.round(Math.min(...zones.map((z) => z.usdPerYear)))} to $${Math.round(Math.max(...zones.map((z) => z.usdPerYear)))}. `,
       el('a', { href: '/data/zone-value.json', text: 'Data and method' }), '.');
   }
 
@@ -93,12 +96,26 @@
     if (zones.length) $('zone').value = zones.some((z) => z.id === defaults.zoneDefault) ? defaults.zoneDefault : zones[0].id;
   }
 
+  // Model inputs from the form, or null when any field is invalid. A blank field keeps
+  // its default. Errors show under the field; nothing is computed from a bad value.
   function readInputs() {
-    const raw = { revenueCase: $('revenueCase').value };
+    const typed = {};
+    for (const f of fields()) typed[f.key] = $(`in-${f.key}`).value;
+    const { values, errors } = F.validateFields(defaults, typed);
     for (const f of fields()) {
-      const v = $(`in-${f.key}`).value;
-      raw[f.key] = v === '' ? 0 : Number(v);
+      const input = $(`in-${f.key}`), err = $(`err-${f.key}`);
+      const msg = Object.prototype.hasOwnProperty.call(errors, f.key) ? errors[f.key] : '';
+      err.textContent = msg ? `${msg} Allowed: ${f.min} to ${f.max}${f.integer ? ', whole numbers' : ''}.` : '';
+      err.hidden = !msg;
+      if (msg) input.setAttribute('aria-invalid', 'true'); else input.removeAttribute('aria-invalid');
     }
+    const bad = Object.keys(errors).length;
+    const note = $('invalid');
+    note.hidden = !bad;
+    note.textContent = bad ? `${bad} input${bad === 1 ? ' is' : 's are'} not valid, so the results below are from the last valid inputs. Fix the field${bad === 1 ? '' : 's'} marked in red.` : '';
+    $('results').classList.toggle('is-stale', !!bad);
+    if (bad) return null;
+    const raw = Object.assign({ revenueCase: $('revenueCase').value }, values);
     const z = zones.find((x) => x.id === $('zone').value);
     raw.arbPerYear = arbOverride != null ? arbOverride : (z ? z.usdPerYear : 0);
     return F.normalize(raw);
@@ -108,27 +125,21 @@
     return el('div', { class: 'card kpi' }, el('p', { class: 'kpi-label', text: label }), el('p', { class: 'kpi-value mono', text: value }), sub ? el('p', { class: 'kpi-sub', text: sub }) : null);
   }
 
-  const BIND_TEXT = {
-    dscr: 'Binding limit: cash flow (DSCR). More revenue or a cheaper loan raises the debt.',
-    advance: 'Binding limit: advance rate on cost. Extra revenue does not raise the debt until the cap moves.',
-    cost: 'Binding limit: net cost. The loan covers everything the member did not pay up front.',
-    none: 'No debt: the weakest year has no cash left after operating cost.',
-  };
-
-  function renderKpis(r) {
+  function renderKpis(r, inp) {
     const k = $('kpis');
     k.textContent = '';
     k.append(
-      kpi('Installed cost', usd(r.capex), `${usd(r.capex / Math.max(1e-9, readInputs().kwh))}/kWh`),
+      kpi('Installed cost', usd(r.capex), inp.kwh > 0 ? `${usd(r.capex / inp.kwh)}/kWh` : 'no energy capacity'),
       kpi('CFADS, year 1', usd(r.year1Cfads), `weakest year in term ${usd(r.minCfads)}`),
       kpi('Debt', usd(r.debt), `${pct(r.debtPctCapex)} of cost`),
-      kpi('Equity', usd(r.equity), `after ${usd(r.upfront)} from the member`),
+      kpi('Equity', usd(r.equity), `after ${usd(r.upfront)} from the member and ${usd(r.itc)} tax credit`),
     );
     const b = $('binding');
-    b.textContent = BIND_TEXT[r.binding];
+    b.textContent = F.bindingText(r);
     b.dataset.binding = r.binding;
-    b.classList.toggle('notice-green', r.binding !== 'none');
-    b.classList.toggle('notice-red', r.binding === 'none');
+    const noDebt = r.debt <= 0;
+    b.classList.toggle('notice-green', !noDebt);
+    b.classList.toggle('notice-red', noDebt);
   }
 
   function renderMeaning(r) {
@@ -191,7 +202,8 @@
     li(`Weakest CFADS in the ${r.tenor}-year term: `, el('b', { class: 'mono', text: usd(r.minCfads) }), '.');
     li(`Divide by target DSCR ${r.dscrTarget.toFixed(2)}x: the loan can cost at most `, el('b', { class: 'mono', text: `${usd(r.allowedPayment)}/yr` }), '.');
     li(`Present value at ${(r.rate * 100).toFixed(2)}% over ${r.tenor} years (factor ${F.annuityFactor(r.rate, r.tenor).toFixed(3)}): cash flow supports `, el('b', { class: 'mono', text: usd(r.dscrDebt) }), '.');
-    li(`Cap: advance rate x cost = `, el('b', { class: 'mono', text: usd(r.advanceCap) }), `; cost minus member payment = `, el('b', { class: 'mono', text: usd(r.netCapex) }), '.');
+    li(`Tax credit at ${pct(r.itcRate)} of cost: `, el('b', { class: 'mono', text: usd(r.itc) }), ', treated as cash when the battery goes into service.');
+    li(`Cap: advance rate x cost = `, el('b', { class: 'mono', text: usd(r.advanceCap) }), `; cost minus member payment minus tax credit = `, el('b', { class: 'mono', text: usd(r.netCapex) }), '.');
     li('Debt is the lowest of these: ', el('b', { class: 'mono', text: usd(r.debt) }), `. Equity fills the rest: `, el('b', { class: 'mono', text: usd(r.equity) }), '.');
   }
 
@@ -209,6 +221,7 @@
         row('Power', a.count * inp.kw / 1000, b.count * inp.kw / 1000, (x) => `${Math.round(x).toLocaleString('en-US')} MW`),
         row('Installed cost', a.capex, b.capex),
         row('Member upfront payments', a.upfront, b.upfront),
+        row('Tax credit', a.itc, b.itc),
         row('Debt', a.debt, b.debt),
         row('Equity', a.equity, b.equity),
         row('Yearly loan payment', a.debtService, b.debtService),
@@ -248,20 +261,21 @@
     t.append(el('thead', {}, el('tr', {}, ...['Input', 'Default', 'Type', 'Where it comes from'].map((h) => el('th', { scope: 'col', text: h })))));
     const body = el('tbody');
     const add = (name, val, kind, ...src) => body.append(el('tr', {}, el('th', { scope: 'row', text: name }), el('td', { class: 'mono', text: val }), el('td', {}, tag(kind)), el('td', {}, ...src)));
-    add('Revenue case', 'Tolled to a utility', 'assumption', 'Base names tolling and build-transfer. Which one, and at what price, is not public.');
+    add('Revenue case', F.CASES[publicDefaults.revenueCaseDefault].label, 'assumption', 'Merchant by default: it counts only public numbers (member fees and ERCOT arbitrage), not the toll placeholder. A utility toll is a private contract with no public price.');
     add('Energy arbitrage zone', defaults.zoneDefault, 'sourced', 'ERCOT prices, our fixed-clock simulation. ', el('a', { href: '/data/zone-value.json', text: 'zone-value.json' }));
     for (const f of fields()) {
       const link = sourceLink(f);
       add(f.label, `${f.value} ${f.unit}`, f.kind, f.note, link ? ' ' : null, link, link ? `, retrieved ${f.retrieved}.` : null);
     }
-    add('Base debt terms', 'unknown', 'assumption', 'No public debt facility or terms found in a search on 2026-10-30. Rate, term, DSCR and advance rate above are placeholders.');
+    add('Lender terms', 'generic', 'assumption', "Rate, term, DSCR and advance rate above are generic placeholders, not any company's debt terms.");
     t.append(body);
   }
 
   function update() {
     const inp = readInputs();
+    if (!inp) return;
     const r = F.sizeDebt(inp);
-    renderKpis(r);
+    renderKpis(r, inp);
     renderMeaning(r);
     renderCf(r);
     renderChart(r);
@@ -320,6 +334,7 @@
       $('inputs').addEventListener('input', update);
       $('inputs').addEventListener('change', update);
       $('reset').addEventListener('click', () => { setDefaults(); update(); });
+      $('inputs').addEventListener('submit', (e) => e.preventDefault());
       $('status').hidden = true;
       $('app').hidden = false;
       update();

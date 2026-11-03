@@ -28,6 +28,28 @@ test('perfect foresight cannot change the fixed-clock commands', () => {
   const b = D.backtest(day(900, -50), {}, { trace: true });
   assert.deepEqual(a.trace.map(t => [t.charge, t.discharge]), b.trace.map(t => [t.charge, t.discharge]));
 });
+test('default clock is still overnight; a named or custom schedule moves the commands', () => {
+  const at = (r, he) => r.trace.find(t => t.hourEnding === he);
+  const def = D.backtest(day(), {}, { trace: true });
+  assert.deepEqual(def.schedule, { charge: [1, 5], discharge: [17, 21] });
+  assert.deepEqual(D.backtest(day(), {}, { trace: true, schedule: 'overnight' }).trace, def.trace);
+  const eve = D.backtest(day(), { capacity: 39.2, power: 20 }, { trace: true, schedule: 'solarEvening' });
+  for (const t of eve.trace) {
+    if (t.charge > 0) assert.ok(t.hourEnding >= 11 && t.hourEnding <= 14, `charge at HE${t.hourEnding}`);
+    if (t.discharge > 0) assert.ok(t.hourEnding >= 20 && t.hourEnding <= 21, `discharge at HE${t.hourEnding}`);
+  }
+  near(at(eve, 20).discharge, 20); assert.ok(at(eve, 21).discharge > 0);
+  // The old clock empties a 2-hour battery before HE20.
+  const old = D.backtest(day(), { capacity: 39.2, power: 20 }, { trace: true });
+  near(at(old, 20).discharge, 0);
+  const custom = D.backtest(day(), {}, { trace: true, schedule: { charge: [0, 2], discharge: [22, 24] } });
+  assert.ok(at(custom, 1).charge > 0 && at(custom, 23).discharge > 0 && at(custom, 18).discharge === 0);
+});
+test('bad schedules are rejected', () => {
+  for (const s of ['nope', { charge: [5, 1], discharge: [17, 21] }, { charge: [1, 5], discharge: [17, 25] },
+    { charge: [1, 5.5], discharge: [17, 21] }, { charge: [10, 20], discharge: [19, 21] }, { charge: [1, 5] }])
+    assert.throws(() => D.backtest(day(), {}, { schedule: s }));
+});
 test('100% reserve is idle, including a flat retail tariff', () => {
   const r = D.backtest(day(), { reserve: 1 }, { tariff: { annualUsage: 100, profile: 'flat', offPeak: .2, peak: .2 } });
   near(r.net, 0); near(r.bought, 0); near(r.sold, 0);

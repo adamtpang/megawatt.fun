@@ -149,4 +149,56 @@ function invalid(errors) { return new HttpError(422, errors); }
 
 function docsUrl(tool) { return SITE + '/plug-and-play#' + tool; }
 
-module.exports = { MAX_BYTES, SITE, HttpError, setCors, send, readBody, query, objectBody, unknownKeys, endpoint, invalid, docsUrl, parseCSV: YD.parseCSV };
+/* ---------- Safe input helpers (any endpoint may use these) ---------- */
+
+// Own-key lookups. A user-supplied key such as "__proto__" or "constructor" must never
+// reach Object.prototype through a plain object.
+function hasOwn(obj, key) { return obj != null && typeof obj === 'object' && Object.prototype.hasOwnProperty.call(obj, key); }
+function getOwn(obj, key) { return hasOwn(obj, key) ? obj[key] : undefined; }
+// A Map from rows, for user-keyed lookups: byKey(MAP.states, (s) => s.abbr).
+function byKey(rows, keyFn) { return new Map((rows || []).map((r) => [keyFn(r), r])); }
+// Names that are reserved on every JavaScript object. Ids and keys from a request may not use them.
+function isReservedKey(key) {
+  return typeof key === 'string' && (key === '__proto__' || key === 'prototype' || key in Object.prototype);
+}
+
+// Plain decimal numbers only: 12, -3.5, .5, 1e3. No hex (0x10), binary, octal, Infinity or NaN.
+const DECIMAL = /^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$/;
+
+/* Parse one numeric input. v may be a number or a string; booleans, arrays, objects and null
+   are not numbers. opts: { min, max, integer, strip } where strip is a regex of characters to
+   drop first (for example /[$,%\s]/g). Returns { ok: true, value } or { ok: false, error },
+   where error finishes the sentence "<name> ...", for example "must be at most 10.". */
+function parseNumber(v, opts) {
+  const o = opts || {};
+  let n;
+  if (typeof v === 'number') n = v;
+  else if (typeof v === 'string') {
+    const t = (o.strip ? v.replace(o.strip, '') : v).trim();
+    if (t === '') return { ok: false, error: 'is blank.' };
+    if (!DECIMAL.test(t)) return { ok: false, error: 'is not a number: "' + v + '".' };
+    n = Number(t);
+  } else {
+    return { ok: false, error: 'must be a number, got ' + (v === null ? 'null' : Array.isArray(v) ? 'a list' : typeof v) + '.' };
+  }
+  if (!Number.isFinite(n)) return { ok: false, error: 'must be a finite number.' };
+  if (o.integer && !Number.isInteger(n)) return { ok: false, error: 'must be a whole number.' };
+  if (o.min != null && n < o.min) return { ok: false, error: 'must be at least ' + o.min + '.' };
+  if (o.max != null && n > o.max) return { ok: false, error: 'must be at most ' + o.max + '.' };
+  return { ok: true, value: n };
+}
+
+// A CSV body that is really JSON (sent with the wrong Content-Type) parses as one header row.
+function looksLikeJsonCsv(parsed) {
+  if (!parsed || parsed.kind !== 'csv') return false;
+  const t = String(parsed.text || '').trim();
+  return t.startsWith('{') || t.startsWith('[');
+}
+function jsonAsCsvError() {
+  return invalid(['The body looks like JSON but was sent as CSV. Send it with Content-Type: application/json, or send CSV text with a header row.']);
+}
+
+module.exports = {
+  MAX_BYTES, SITE, HttpError, setCors, send, readBody, query, objectBody, unknownKeys, endpoint, invalid, docsUrl, parseCSV: YD.parseCSV,
+  hasOwn, getOwn, byKey, isReservedKey, parseNumber, looksLikeJsonCsv, jsonAsCsvError,
+};

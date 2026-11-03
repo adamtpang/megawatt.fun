@@ -12,15 +12,16 @@ const L = require('../_lib.js');
 
 const ZONE_IDS = Z.zones.map((x) => x.id);
 const KNOWN = ['weights', 'metrics', 'zones'];
+const MAX_WEIGHT = 10;
 
 function usage() {
   return {
     tool: 'market',
-    what: 'Scores every state as a stack of percentile ranks (customer pull and market access), with your own weights and your own per-state metrics, and ranks Texas ERCOT zones by what one battery earned from energy arbitrage.',
+    what: 'Scores every state as a stack of percentile ranks (customer pull and market access), with your own weights and your own per-state metrics, and ranks Texas ERCOT load zones by what one battery earned from energy arbitrage.',
     post: {
       content_types: ['application/json', 'text/csv'],
       json_body: {
-        weights: '{ factorId: weight } (optional; weight 0 or more, the page slider runs 0 to 3; omitted factors keep their default, 1)',
+        weights: '{ factorId: weight } (optional; each weight a number from 0 to 10, the page slider runs 0 to 3; omitted factors keep their default, 1)',
         metrics: 'your per-state file (optional): { factors?: [{ key, label, higherIsBetter }], states: { "TX": { key: value } } }, or the same CSV text as a string',
         zones: 'your Texas zone file (optional): [{ zone, usd_per_year }], { "LZ_NORTH": 150 }, or CSV text "zone,usd_per_year"',
       },
@@ -47,8 +48,16 @@ function asParsed(v, what) {
   throw L.invalid([what + ' must be an object or CSV text.']);
 }
 
-async function post(parsed) {
-  let statesFile = null, zonesFile = null, weightsIn = {}, warnings = [], mp = 'metrics: ', zp = 'zones: ';
+// Request checks (input hardening): this endpoint reads only the body, so say so for any query parameter.
+function queryWarnings(req) {
+  return Object.keys(L.query(req)).map((k) => k === 'weights'
+    ? 'Ignored "weights" in the query string. Send weights in a JSON body, with your CSV as a string: { "weights": { "homes": 0 }, "metrics": "state,...\\n" }.'
+    : 'Ignored query string parameter "' + k + '". This endpoint reads only the request body.');
+}
+
+async function post(parsed, req) {
+  if (L.looksLikeJsonCsv(parsed)) throw L.jsonAsCsvError();
+  let statesFile = null, zonesFile = null, weightsIn = {}, warnings = queryWarnings(req), mp = 'metrics: ', zp = 'zones: ';
   if (parsed && parsed.kind === 'csv') {
     mp = zp = ''; // one CSV file: its messages need no field name
     const k = MC.detect(parsed);
@@ -56,7 +65,7 @@ async function post(parsed) {
     if (k.kind === 'states') statesFile = parsed; else zonesFile = parsed;
   } else {
     const b = L.objectBody(parsed);
-    warnings = L.unknownKeys(b, KNOWN);
+    warnings = warnings.concat(L.unknownKeys(b, KNOWN));
     if (b.weights != null && (typeof b.weights !== 'object' || Array.isArray(b.weights))) throw L.invalid(['weights must be an object of { factorId: weight }.']);
     weightsIn = b.weights || {};
     statesFile = asParsed(b.metrics, 'metrics');
@@ -84,10 +93,11 @@ async function post(parsed) {
   const factorIds = MS.allFactors(E, yours).map((f) => f.id);
   const weights = {};
   for (const [id, w] of Object.entries(weightsIn)) {
-    const v = typeof w === 'number' ? w : Number(String(w).trim());
+    // A weight is a JSON number (or decimal text) from 0 to MAX_WEIGHT; "" and null are not 0.
+    const n = L.parseNumber(w, { min: 0, max: MAX_WEIGHT });
     if (!factorIds.includes(id)) errors.push('weights: unknown factor "' + id + '". Use one of ' + factorIds.join(', ') + '.');
-    else if (!Number.isFinite(v) || v < 0) errors.push('weights: ' + id + ' must be a number 0 or more, got "' + w + '".');
-    else weights[id] = v;
+    else if (!n.ok) errors.push('weights: ' + id + ' must be a number from 0 to ' + MAX_WEIGHT + ' (the page slider runs 0 to 3), got ' + JSON.stringify(w) + '.');
+    else weights[id] = n.value;
   }
   if (errors.length) throw L.invalid(errors);
 
@@ -105,7 +115,8 @@ async function post(parsed) {
       tiers,
       states: out.states,
       texas_zones: {
-        about: 'What one Base Core (20 kW / 39.2 kWh) would have earned from buying cheap power at night and selling it 5 to 9 PM at each ERCOT settlement point, ' + Z.period.start + ' to ' + Z.period.endExclusive + ' (end not included). Energy arbitrage only. Not Base revenue.',
+        about: 'What one Base Core (20 kW / 39.2 kWh) would have earned in each ERCOT load zone, ' + Z.period.start + ' to ' + Z.period.endExclusive + ' (end not included), on one fixed daily clock: ' + Z.schedule.label + ', at real-time load zone prices. Only load zones are ranked; trading hubs are not places a home battery earns. Energy arbitrage only. Not Base revenue.',
+        schedule: { charge_hours: Z.schedule.charge, discharge_hours: Z.schedule.discharge, note: 'Clock hours [start, end) Central; hour h is ERCOT hour ending h+1.' },
         zones: z.zones.map((x, i) => ({ rank: i + 1, id: x.id, kind: x.kind, usd_per_battery_year: x.usdPerYear, yours: x.yours, public_usd_per_battery_year: x.yours ? x.publicUsdPerYear : x.usdPerYear })),
       },
     },

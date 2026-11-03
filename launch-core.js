@@ -6,6 +6,11 @@
 
   function round1(x) { return Math.round(x * 10) / 10; }
 
+  // Own-key lookups only: a step id such as "constructor" must never reach Object.prototype.
+  const hasOwn = (o, k) => o != null && Object.prototype.hasOwnProperty.call(o, k);
+  // Names reserved on every JavaScript object. A step id may not use them.
+  function isReserved(k) { return k === '__proto__' || k === 'prototype' || k in Object.prototype; }
+
   // Check ids and dependencies, then return step ids in dependency order.
   // Throws on duplicate ids, unknown dependencies, bad durations, or cycles.
   function topoOrder(steps) {
@@ -50,7 +55,7 @@
     key = key || 'low';
     const order = topoOrder(steps);
     const byId = new Map(steps.map(s => [s.id, s]));
-    const out = {};
+    const out = Object.create(null); // keyed by step id
     for (const id of order) {
       const s = byId.get(id);
       const dur = durationOf(s, key);
@@ -90,7 +95,7 @@
   function applyEdits(steps, edits) {
     edits = edits || {};
     return steps.map(s => {
-      const e = edits[s.id];
+      const e = hasOwn(edits, s.id) ? edits[s.id] : null;
       if (!e) return Object.assign({}, s);
       const c = Object.assign({}, s);
       if (Number.isFinite(e.low)) c.low = e.low;
@@ -122,9 +127,10 @@
   function resolveSteps(data, pathId, abbr) {
     const path = data.paths[pathId];
     if (!path) throw new Error('Unknown path ' + pathId);
-    const ov = ((data.overrides || {})[abbr] || {})[pathId] || {};
+    const byState = hasOwn(data.overrides, abbr) ? data.overrides[abbr] : null;
+    const ov = byState && hasOwn(byState, pathId) ? byState[pathId] : {};
     return path.steps.map(s => {
-      const o = ov[s.id];
+      const o = hasOwn(ov, s.id) ? ov[s.id] : null;
       const c = Object.assign({}, s, { depends_on: (s.depends_on || []).slice() });
       if (o) { Object.assign(c, o); c.override = true; }
       return c;
@@ -152,7 +158,7 @@
     const ids = new Set(steps.map(s => s.id));
     return (data.tennis || []).filter(t => ids.has(t.step) &&
       (!pathId || ((!t.path || t.path === pathId) && !(t.except_paths || []).includes(pathId)))).map(t => {
-      const c = Object.assign({}, t, ((t.states || {})[abbr]) || {});
+      const c = Object.assign({}, t, hasOwn(t.states, abbr) ? t.states[abbr] : {});
       delete c.states;
       delete c.except_paths;
       return c;
@@ -162,12 +168,20 @@
   const MAX_WEEKS = 260;
   const STEP_COLUMNS = ['path', 'id', 'name', 'owner', 'low', 'high', 'depends_on', 'round_weeks', 'note'];
 
-  function cellText(v) { return v == null ? '' : String(v).trim(); }
+  // Text cells: strings, or numbers written as text. Objects, lists and true/false are not text.
+  function isText(v) { return v == null || typeof v === 'string' || (typeof v === 'number' && Number.isFinite(v)); }
+  function cellText(v) { return v != null && isText(v) ? String(v).trim() : ''; }
+  function kindOf(v) { return v === null ? 'null' : Array.isArray(v) ? 'a list' : typeof v === 'object' ? 'an object' : typeof v; }
+  // Plain decimal numbers only: no hex (0x10), Infinity, true/false, lists or objects.
+  const DECIMAL = /^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$/;
   function cellNum(v) {
     if (typeof v === 'number') return v;
-    const t = cellText(v).replace(/\s/g, '');
-    return t === '' ? NaN : Number(t);
+    if (typeof v !== 'string') return NaN;
+    const t = v.replace(/\s/g, '');
+    return DECIMAL.test(t) ? Number(t) : NaN;
   }
+  // A cell as shown in an error message.
+  function shown(v) { return v == null || typeof v === 'string' || typeof v === 'number' ? cellText(v) : kindOf(v); }
   function depList(v) {
     if (Array.isArray(v)) return v.map(cellText).filter(Boolean);
     return cellText(v).split(';').map(x => x.trim()).filter(Boolean);
@@ -186,7 +200,7 @@
     const entries = []; // { pid, where, r }
     const tennisIn = []; // { where, t }
     if (Array.isArray(raw)) {
-      raw.forEach((r, i) => entries.push({ pid: cellText(r && r.path), where: 'Row ' + (i + (parsed.kind === 'csv' ? 2 : 1)) + ': ', r: r || {} }));
+      raw.forEach((r, i) => entries.push({ pid: cellText(r && r.path), where: 'Row ' + (i + (parsed.kind === 'csv' ? 2 : 1)) + ': ', r }));
     } else if (raw && typeof raw === 'object') {
       const ps = raw.paths;
       if (ps != null && (typeof ps !== 'object' || Array.isArray(ps))) errors.push('"paths" must be an object like { "retail": { "steps": [...] } }.');
@@ -195,7 +209,7 @@
           const list = p && Array.isArray(p.steps) ? p.steps : null;
           if (!list) { errors.push(pid + ': needs a "steps" list.'); continue; }
           if (!list.length) { errors.push(pid + ': the "steps" list is empty.'); continue; }
-          list.forEach((r, i) => entries.push({ pid, where: pid + ' step ' + (i + 1) + ': ', r: r || {} }));
+          list.forEach((r, i) => entries.push({ pid, where: pid + ' step ' + (i + 1) + ': ', r }));
         }
       }
       if (raw.tennis != null && !Array.isArray(raw.tennis)) errors.push('"tennis" must be a list of { step, round_weeks }.');
@@ -204,29 +218,41 @@
     if (!entries.length && !errors.length) errors.push('No steps found. Use the CSV columns ' + STEP_COLUMNS.join(', ') + ', or JSON { "paths": { "retail": { "steps": [...] } } }.');
 
     // Validate each row and group it by path.
-    const byPath = {}; // pid -> [{ where, step, rw }]
+    const byPath = Object.create(null); // pid -> [{ where, step, rw }]
     for (const { pid, where, r } of entries) {
+      if (!r || typeof r !== 'object' || Array.isArray(r)) { errors.push(where + 'each step must be an object with ' + STEP_COLUMNS.join(', ') + '.'); continue; }
+      if (!isText(r.path) && Array.isArray(raw)) { errors.push(where + 'path must be text, got ' + kindOf(r.path) + '. Use ' + pathIds.join(' or ') + '.'); continue; }
       if (!pid) { errors.push(where + 'missing path. Use ' + pathIds.join(' or ') + '.'); continue; }
       if (!pathIds.includes(pid)) { errors.push(where + 'unknown path "' + pid + '". Use ' + pathIds.join(' or ') + '.'); continue; }
       const id = cellText(r.id), name = cellText(r.name);
       let bad = false;
-      if (!id) { errors.push(where + 'missing id.'); bad = true; }
+      for (const k of ['id', 'name', 'owner', 'note']) {
+        if (!isText(r[k])) { errors.push(where + k + ' must be text, got ' + kindOf(r[k]) + '.'); bad = true; }
+      }
+      if (Array.isArray(r.depends_on) ? !r.depends_on.every(isText) : !isText(r.depends_on)) {
+        errors.push(where + 'depends_on must be text like "a;b" or a list of step ids.'); bad = true;
+      }
+      if (!id) { if (isText(r.id)) errors.push(where + 'missing id.'); bad = true; }
       else if (!/^[A-Za-z0-9_.-]+$/.test(id)) { errors.push(where + 'id "' + id + '" may only use letters, digits, _ . and -.'); bad = true; }
-      if (!name) { errors.push(where + 'missing name' + (id ? ' for ' + id : '') + '.'); bad = true; }
+      else if (isReserved(id)) { errors.push(where + 'id "' + id + '" is a reserved name. Use another id, such as "' + id.replace(/^_+|_+$/g, '') + '_step".'); bad = true; }
+      if (!name) { if (isText(r.name)) errors.push(where + 'missing name' + (id ? ' for ' + id : '') + '.'); bad = true; }
       const label = id || 'this step';
       const dur = {};
       for (const k of ['low', 'high']) {
         const v = cellNum(r[k]);
-        if (!Number.isFinite(v)) { errors.push(where + k + ' for ' + label + ' is not a number: "' + cellText(r[k]) + '".'); bad = true; }
+        if (!Number.isFinite(v)) {
+          errors.push(where + k + ' for ' + label + (r[k] == null || typeof r[k] === 'string' || typeof r[k] === 'number' ? ' is not a number: "' + cellText(r[k]) + '".' : ' must be a number, got ' + kindOf(r[k]) + '.'));
+          bad = true;
+        }
         else if (v < 0) { errors.push(where + k + ' for ' + label + ' cannot be negative.'); bad = true; }
         else if (v > MAX_WEEKS) { errors.push(where + k + ' for ' + label + ' is over ' + MAX_WEEKS + ' weeks (5 years).'); bad = true; }
         else dur[k] = v;
       }
       if (dur.low != null && dur.high != null && dur.high < dur.low) { errors.push(where + 'high (' + dur.high + ') for ' + label + ' is less than low (' + dur.low + ').'); bad = true; }
       let rw = null;
-      if (cellText(r.round_weeks) !== '') {
+      if (shown(r.round_weeks) !== '') {
         const v = cellNum(r.round_weeks);
-        if (!Number.isFinite(v) || v < 0 || v > MAX_WEEKS) { errors.push(where + 'round_weeks for ' + label + ' must be a number from 0 to ' + MAX_WEEKS + ', got "' + cellText(r.round_weeks) + '".'); bad = true; }
+        if (!Number.isFinite(v) || v < 0 || v > MAX_WEEKS) { errors.push(where + 'round_weeks for ' + label + ' must be a number from 0 to ' + MAX_WEEKS + ', got "' + shown(r.round_weeks) + '".'); bad = true; }
         else rw = v;
       }
       let owner = cellText(r.owner);
@@ -258,8 +284,9 @@
     }
 
     // JSON tennis entries: each must name a step from the file.
-    const extraTennis = {}; // pid -> step -> entry
+    const extraTennis = new Map(); // pid -> Map(step id -> entry)
     for (const { where, t } of tennisIn) {
+      if (!isText(t.step)) { errors.push(where + 'step must be text, got ' + kindOf(t.step) + '.'); continue; }
       const sid = cellText(t.step);
       const owners = filePaths.filter(pid => byPath[pid].some(x => x.step.id === sid));
       if (!sid) { errors.push(where + 'missing step.'); continue; }
@@ -267,8 +294,13 @@
       const v = cellNum(t.round_weeks);
       if (!Number.isFinite(v) || v < 0 || v > MAX_WEEKS) { errors.push(where + 'round_weeks for ' + sid + ' must be a number from 0 to ' + MAX_WEEKS + '.'); continue; }
       const e = { round_weeks: v };
+      const notText = ['with', 'bounce', 'fix'].filter(k => !isText(t[k]));
+      if (notText.length) { errors.push(where + notText.join(', ') + ' must be text.'); continue; }
       for (const k of ['with', 'bounce', 'fix']) if (cellText(t[k])) e[k] = cellText(t[k]);
-      for (const pid of owners) (extraTennis[pid] = extraTennis[pid] || {})[sid] = e;
+      for (const pid of owners) {
+        if (!extraTennis.has(pid)) extraTennis.set(pid, new Map());
+        extraTennis.get(pid).set(sid, e);
+      }
     }
 
     if (errors.length) return { data: d, errors, warnings, summary: '', paths: [] };
@@ -278,11 +310,11 @@
     for (const pid of filePaths) {
       d.paths[pid] = Object.assign({}, d.paths[pid], { steps: byPath[pid].map(x => x.step), yours: true });
       for (const abbr of Object.keys(d.overrides || {})) delete d.overrides[abbr][pid];
-      const rounds = {};
-      for (const x of byPath[pid]) if (x.rw != null) rounds[x.step.id] = { round_weeks: x.rw };
-      for (const [sid, e] of Object.entries(extraTennis[pid] || {})) rounds[sid] = Object.assign(rounds[sid] || {}, e);
+      const rounds = new Map(); // step id -> entry
+      for (const x of byPath[pid]) if (x.rw != null) rounds.set(x.step.id, { round_weeks: x.rw });
+      for (const [sid, e] of (extraTennis.get(pid) || [])) rounds.set(sid, Object.assign(rounds.get(sid) || {}, e));
       d.tennis = d.tennis || [];
-      for (const [sid, e] of Object.entries(rounds)) {
+      for (const [sid, e] of rounds) {
         const pub = d.tennis.find(t => t.step === sid && !t.path);
         if (pub) pub.except_paths = (pub.except_paths || []).concat(pid);
         const base = pub ? { with: pub.with, bounce: pub.bounce, fix: pub.fix } : { with: 'The other side', bounce: '', fix: '' };
@@ -300,10 +332,10 @@
   // Template rows: the path's resolved steps for one state, with each step's email-tennis round cost.
   function templateRows(data, pathId, abbr) {
     const steps = resolveSteps(data, pathId, abbr);
-    const rw = Object.fromEntries(resolveTennis(data, steps, abbr, pathId).map(t => [t.step, t.round_weeks]));
+    const rw = new Map(resolveTennis(data, steps, abbr, pathId).map(t => [t.step, t.round_weeks]));
     return steps.map(s => ({
       path: pathId, id: s.id, name: s.name, owner: s.owner, low: s.low, high: s.high,
-      depends_on: (s.depends_on || []).join(';'), round_weeks: rw[s.id] == null ? '' : rw[s.id], note: s.note || ''
+      depends_on: (s.depends_on || []).join(';'), round_weeks: rw.get(s.id) == null ? '' : rw.get(s.id), note: s.note || ''
     }));
   }
 
@@ -312,8 +344,8 @@
   function tennisCost(steps, loops, rounds, key) {
     key = key || 'low';
     const base = schedule(steps, key);
-    const extra = Object.fromEntries(loops.map(t => [t.step, t.round_weeks * rounds]));
-    const trial = steps.map(s => extra[s.id] ? Object.assign({}, s, { [key]: durationOf(s, key) + extra[s.id] }) : s);
+    const extra = new Map(loops.map(t => [t.step, t.round_weeks * rounds]));
+    const trial = steps.map(s => extra.get(s.id) ? Object.assign({}, s, { [key]: durationOf(s, key) + extra.get(s.id) }) : s);
     const after = schedule(trial, key);
     const first = r => r.steps.first_installs ? r.steps.first_installs.ef : r.total;
     // Which single loop, if it took one round, delays first install most?
@@ -326,7 +358,7 @@
 
   function weeksToMonths(w) { return round1(w * 7 / 30.4375); }
 
-  const api = { topoOrder, schedule, applyEdits, bestShortening, resolveSteps, suggestPath, weeksToMonths, resolveTennis, tennisCost, applyOverrides, templateRows, STEP_COLUMNS, MAX_WEEKS };
+  const api = { topoOrder, schedule, applyEdits, bestShortening, resolveSteps, suggestPath, weeksToMonths, resolveTennis, tennisCost, applyOverrides, templateRows, isReserved, STEP_COLUMNS, MAX_WEEKS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (typeof window !== 'undefined') window.LaunchCore = api;
 })(typeof window !== 'undefined' ? window : globalThis);

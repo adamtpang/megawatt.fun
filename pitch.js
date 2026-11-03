@@ -3,7 +3,7 @@
   'use strict';
   var P = window.PitchCore;
   var DEFAULT_ID = '5078-TX'; // CoServ, a member-owned co-op Base names publicly
-  var state = { data: null, market: null, byLabel: {}, byId: {}, selected: null, built: false, terms: P.publicTerms(), changed: {}, targets: {} };
+  var state = { data: null, market: null, byLabel: Object.create(null), byId: Object.create(null), selected: null, built: false, terms: P.publicTerms(), changed: {}, targets: {} };
   var $ = function (id) { return document.getElementById(id); };
 
   function esc(s) {
@@ -113,7 +113,7 @@
     $('ranking-panel').addEventListener('click', function (e) {
       var b = e.target.closest('button[data-id]');
       if (!b) return;
-      select(state.byId[b.getAttribute('data-id')]);
+      select(P.own(state.byId, b.getAttribute('data-id')));
       render();
       $('sheet').scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
@@ -121,7 +121,7 @@
 
   function matchInput() {
     var v = $('utility').value.trim().toLowerCase();
-    return state.byLabel[v] || null;
+    return P.own(state.byLabel, v) || null;
   }
 
   function select(u) {
@@ -142,7 +142,8 @@
       { key: 'base', title: P.BASE_SOURCE.title, url: P.BASE_SOURCE.url, date: 'retrieved ' + P.BASE_SOURCE.retrieved }
     ];
     if (pick.source) list.push({ key: 'ercot', title: pick.source.title, url: pick.source.url, date: 'retrieved ' + pick.source.retrieved });
-    var k = P.KNOWN[u.id];
+    P.extraSources(u, pick).forEach(function (s) { list.push({ key: s.key, title: s.title, url: s.url, date: 'retrieved ' + s.retrieved }); });
+    var k = P.known(u.id);
     if (k && k.aliasSource) list.push({ key: 'alias', title: k.aliasSource.title, url: k.aliasSource.url, date: 'retrieved ' + k.aliasSource.retrieved });
     if (k && k.source && k.source.url !== P.BASE_SOURCE.url) list.push({ key: 'known', title: k.source.title, url: k.source.url, date: k.source.retrieved });
     list.forEach(function (s, i) { s.n = i + 1; });
@@ -170,8 +171,9 @@
     var r = function (k) { return ref(src, k); };
     var name = P.shortName(u);
     var today = new Date().toISOString().slice(0, 10);
-    var known = P.KNOWN[u.id];
-    var target = state.targets[u.id];
+    var known = P.known(u.id);
+    var target = P.own(state.targets, u.id);
+    var wires = pick.wires;
     var nYours = Object.keys(state.changed).length;
     var costYours = state.changed.costLowPerKwh || state.changed.costHighPerKwh, timeYours = state.changed.deployMonthsLow || state.changed.deployMonthsHigh;
     var h = [];
@@ -182,6 +184,13 @@
     h.push('<p class="pt-sub">' + esc(P.displayName(u)) + ', ' + esc(st.name) + '. ' + num(u.values.homes) + ' residential customers' + r('eia') + '. Balancing authority: ' + esc(u.detail.rtos) + r('eia') + '.</p>');
     if (target) h.push('<p class="pt-target">' + YOURS + ' <strong>Your target list:</strong> ' + esc(target.status) +
       (target.owner ? '. Owner: ' + esc(target.owner) : '') + (target.note ? '. ' + esc(target.note) : '') + '</p>');
+    // Wires-only: say so first, before any number, so nobody pitches a capacity buy to a company that does not buy power.
+    if (wires) {
+      var wref = function (keys) { return keys.map(function (k) { return r(k); }).join(''); };
+      h.push('<div class="notice pt-wires" role="note"><p><strong>Wires-only utility.</strong> ' + esc(wires.what) + ' ' + esc(wires.reason) + wref(wires.sources) + '</p>' +
+        '<p>In its area a home-battery company reaches homes as a retail provider.' + (wires.baseRetail ? ' ' + esc(wires.baseRetail) + r(wires.baseSource) : '') +
+        ' So the useful conversation with ' + esc(name) + ' is about interconnection and distribution-level value, not a capacity purchase.</p></div>');
+    }
     if (known) h.push('<p class="notice notice-green pt-known"><strong>Public link to Base:</strong> ' + esc(known.note) + ' ' + (known.source.url === P.BASE_SOURCE.url ? r('base') : r('known')) + (known.aliasSource ? ' EIA lists CoServ under its legal name, Denton County Electric Cooperative.' + r('alias') : '') + '</p>');
 
     // Program
@@ -195,7 +204,7 @@
         (P.isNum(prog.dispatchMwh) ? ' With ' + num(T.memberReservePct) + '% held back for each home, about ' + num(prog.dispatchMwh, 1) + ' MWh is left to dispatch.' + yours('memberReservePct') : '') +
         (P.isNum(prog.share) && prog.share > 1 ? ' <strong>This program needs more batteries than the utility has residential customers.</strong>' : '') + '</p></section>');
     } else {
-      h.push('<section class="pt-block"><h3>The program</h3><p class="pt-note">Enter a program size above zero.</p></section>');
+      h.push('<section class="pt-block"><h3>The program</h3><p class="pt-note">Enter a program size above 0 and at most 5,000 MW.</p></section>');
     }
 
     // Problem
@@ -225,12 +234,17 @@
       '<p class="pt-note">Utility and state SAIDI come from EIA-861 2025. The US figure comes from EIA\'s Electric Power Annual, a different table, so treat the US comparison as rough. Utility reporting method: ' + esc(u.detail.note) + '. Storm and heat scores are population-weighted over the counties EIA lists in the service territory.</p></section>');
 
     // Offer
-    var others = ['bulk', 'distribution', 'speed'].filter(function (k) { return k !== pick.offer.id; }).map(function (k) { return P.OFFERS[k]; });
-    h.push('<section class="pt-block pt-offer"><h3>The offer that fits: ' + esc(pick.offer.name) + '</h3>' +
+    var others = ['bulk', 'distribution', 'speed'].filter(function (k) { return k !== pick.offer.id && !(wires && k === 'bulk'); }).map(function (k) { return P.OFFERS[k]; });
+    var ercotRefs = pick.source ? r('ercot') + r('tcos') + r('tcos12') : '';
+    h.push('<section class="pt-block pt-offer"><h3>' + (wires ? 'The conversation that fits: ' : 'The offer that fits: ') + esc(pick.offer.name) + '</h3>' +
       '<blockquote>"' + esc(pick.offer.quote) + '"' + r('base') + '</blockquote>' +
-      '<p><strong>Why, by rule ' + pick.rule + ':</strong> ' + esc(pick.reason) + (pick.source ? r('ercot') : '') +
-        (pick.rule === 2 ? yours('reliabilityCutoffPct') : pick.rule === 3 ? yours('wholesaleCutoffPct') : '') + '</p>' +
-      '<p class="pt-note">Also on Base\'s menu: ' + others.map(function (o) { return esc(o.name); }).join(' and ') + '. Speed to power is picked only when you mark a large-load queue, because no public file here shows one.</p></section>');
+      (wires
+        ? '<p><strong>Why, by rule 0:</strong> ' + esc(wires.what) + ' A capacity offer needs a buyer for capacity, so this pitch makes none. Batteries behind its meters can still relieve its circuits' + (pick.offer.id === 'speed' ? ' and help large loads connect' : '') + ', which is a wires question.</p>' +
+          '<p class="pt-note">Not on the table here: Bulk peaking capacity, because ' + esc(name) + ' does not buy capacity. Also on Base\'s menu: ' + others.map(function (o) { return esc(o.name); }).join(' and ') + '.</p>'
+        : '<p><strong>Why, by rule ' + pick.rule + ':</strong> ' + esc(pick.reason) + ercotRefs +
+          (pick.rule === 2 ? yours('reliabilityCutoffPct') : pick.rule === 3 ? yours('wholesaleCutoffPct') : '') + '</p>' +
+          '<p class="pt-note">Also on Base\'s menu: ' + others.map(function (o) { return esc(o.name); }).join(' and ') + '. Speed to power is picked only when you mark a large-load queue, because no public file here shows one.</p>') +
+      '</section>');
 
     // Speed and cost
     var ct = '<div class="pt-table-wrap"><table class="ds-table pt-table pt-claims"><thead><tr><th scope="col">Option</th><th scope="col">Time to deploy 100 MW</th><th scope="col">Landed cost of storage</th><th scope="col">This program at that cost</th></tr></thead><tbody>';
@@ -262,7 +276,7 @@
 
     // Questions
     h.push('<section class="pt-block"><h3>Questions to answer together</h3><ol class="pt-questions">' +
-      P.questions(u, pick, T).map(function (q) { return '<li>' + esc(q) + '</li>'; }).join('') + '</ol></section>');
+      P.questions(u, pick, T).map(function (q) { return '<li>' + esc(q) + (/^Value stack in ERCOT/.test(q) ? r('tcos') + r('tcos12') : '') + '</li>'; }).join('') + '</ol></section>');
 
     // Real vs claimed vs assumed
     h.push('<section class="pt-block pt-rca"><h3>Real vs claimed vs assumed</h3><div class="pt-rca-grid">' +
@@ -271,6 +285,7 @@
         '<li>Storm and heat-wave risk: FEMA National Risk Index' + r('fema') + '.</li>' +
         '<li>US SAIDI and state prices and bills: EIA' + r('epa') + r('price') + '.</li>' +
         (known ? '<li>' + esc(known.note) + '</li>' : '') +
+        (wires ? '<li>Wires-only: ' + esc(wires.what) + wires.sources.map(function (k) { return r(k); }).join('') + '</li>' : '') +
       '</ul></div>' +
       '<div class="pt-rca-claimed"><h4><span class="badge badge-white">Claimed</span> Base\'s marketing</h4><ul>' +
         '<li>20 kW / 39.2 kWh per home battery.' + (state.changed.kwPerHome || state.changed.kwhPerHome ? ' This pitch uses yours: ' + num(T.kwPerHome, dec(T.kwPerHome)) + ' kW / ' + num(T.kwhPerHome, dec(T.kwhPerHome)) + ' kWh.' + (yours('kwPerHome') || yours('kwhPerHome')) : '') + '</li>' +
@@ -314,26 +329,28 @@
     var hasTargets = Object.keys(tg).length > 0;
     // Your targets first (all of them in this state), then the public top 10. Public rank order inside each group.
     var ordered = P.orderWithTargets(all, tg);
-    var nMine = all.filter(function (x) { return tg[x.id]; }).length;
-    var top = ordered.slice(0, nMine).concat(ordered.slice(nMine).filter(function (x) { return x.rank <= 10; }));
+    var nMine = all.filter(function (x) { return P.own(tg, x.id); }).length;
+    var top = ordered.slice(0, nMine).concat(ordered.slice(nMine).filter(function (x) { return !x.wires && x.rank <= 10; }));
+    var wiresRows = all.filter(function (x) { return x.wires; });
     var mine = all.filter(function (x) { return x.id === u.id; })[0];
     if (mine && top.indexOf(mine) < 0) top.push(mine);
     $('ranking-title').textContent = 'Who to call first in ' + st.name;
     $('ranking-help').textContent = all.length + ' utilities in ' + st.name + ' in this file. Ranked by residential customers x SAIDI minutes (EIA-861 2025).' +
+      (wiresRows.length ? ' ' + wiresRows.length + ' wires-only utilit' + (wiresRows.length === 1 ? 'y delivers' : 'ies deliver') + ' power but do' + (wiresRows.length === 1 ? 'es' : '') + ' not buy it, so ' + (wiresRows.length === 1 ? 'it is' : 'they are') + ' not ranked: ' + wiresRows.map(function (x) { return x.name; }).join(', ') + '.' : '') +
       (nMine ? ' Your ' + nMine + ' target' + (nMine === 1 ? '' : 's') + ' in ' + st.name + ' come first, still in public rank order.' : '') + ' Pick one to rebuild the pitch.';
     var t = '<thead><tr><th scope="col">#</th><th scope="col">Utility</th>' + (hasTargets ? '<th scope="col">Your status</th>' : '') + '<th scope="col" class="num">Residential customers</th><th scope="col" class="num">SAIDI min</th><th scope="col" class="num">Customer-minutes (millions)</th></tr></thead><tbody>';
     if (!top.length) t += '<tr><td colspan="' + (hasTargets ? 6 : 5) + '">No utilities in ' + esc(st.name) + ' publish enough data to rank.</td></tr>';
     top.forEach(function (row) {
       var cur = row.id === u.id;
-      var mt = tg[row.id];
+      var mt = P.own(tg, row.id);
       var cls = [cur ? 'is-current' : '', mt ? 'is-target' : ''].join(' ').trim();
-      t += '<tr' + (cls ? ' class="' + cls + '"' : '') + (cur ? ' aria-current="true"' : '') + '><td data-label="#">' + row.rank + '</td><td data-label="Utility"><button type="button" class="pt-link" data-id="' + esc(row.id) + '">' + esc(row.name) + '</button></td>' +
+      t += '<tr' + (cls ? ' class="' + cls + '"' : '') + (cur ? ' aria-current="true"' : '') + '><td data-label="#">' + (row.wires ? '<span class="badge badge-white" title="Delivers power but does not buy it">Wires only</span>' : row.rank) + '</td><td data-label="Utility"><button type="button" class="pt-link" data-id="' + esc(row.id) + '">' + esc(row.name) + '</button></td>' +
         (hasTargets ? '<td data-label="Your status">' + (mt ? '<span class="pt-statuscell"><span class="badge badge-solid pt-status-chip">' + esc(mt.status) + '</span>' + (mt.owner ? ' <span class="pt-owner">' + esc(mt.owner) + '</span>' : '') + '</span>' : '') + '</td>' : '') +
         '<td class="num" data-label="Customers">' + num(row.customers) + '</td><td class="num" data-label="SAIDI">' + num(row.saidi, 0) + '</td><td class="num" data-label="Cust-min (M)">' + (P.isNum(row.score) ? num(row.score / 1e6, 1) : 'not published') + '</td></tr>';
     });
     $('ranking').innerHTML = t + '</tbody>';
     // Targets in other states, so a national list is one tap away.
-    var elsewhere = Object.keys(tg).map(function (id) { return state.byId[id]; }).filter(function (x) { return x && x.state !== u.state; })
+    var elsewhere = Object.keys(tg).map(function (id) { return P.own(state.byId, id); }).filter(function (x) { return x && x.state !== u.state; })
       .sort(function (a, b) { return label(a) < label(b) ? -1 : 1; });
     var box = $('targets-elsewhere');
     if (!box) {
@@ -364,7 +381,7 @@
   // Starter target list: the public top 5 to call in the selected utility's state.
   function targetTemplate() {
     var u = state.selected || state.byId[DEFAULT_ID];
-    var rows = P.rankState(state.data.utilities, u.state, 5).map(function (x) {
+    var rows = P.rankState(state.data.utilities, u.state, Infinity).filter(function (x) { return !x.wires; }).slice(0, 5).map(function (x) {
       return { utility: x.id, state: u.state, status: 'not contacted', owner: '', note: state.byId[x.id].name };
     });
     return window.YourData.toCSV(rows, P.TARGET_COLUMNS);

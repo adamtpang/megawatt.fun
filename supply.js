@@ -52,7 +52,7 @@
     // Risk flags use the shared badge mapping: shortage and single source are risks (red), tariff is neutral.
     const flagClass = { 'Will run short': 'badge-red', 'Single source': 'badge-red', 'Tariff 25%+': '' };
     const rows = res.rows.map(r => {
-      const pub = partNames[r.category];
+      const pub = partNames.get(r.category);
       return '<tr' + (r.gap > 0 ? ' class="is-short"' : '') + '>' +
         '<td data-label="Part"><strong>' + esc(r.part) + '</strong>' +
         (pub ? '<br><a class="sp-small" href="#part-' + esc(r.category) + '">Public research: ' + esc(pub) + '</a>' : '<br><span class="sp-small">' + esc(r.category) + '</span>') +
@@ -91,7 +91,7 @@
     const S = window.SupplyCore, Y = window.YourData;
     if (!S || !Y || !$('yourdata')) return;
     const ids = d.parts.map(p => p.id);
-    const partNames = Object.fromEntries(d.parts.map(p => [p.id, p.name]));
+    const partNames = new Map(d.parts.map(p => [p.id, p.name])); // a Map: categories from a file never reach Object.prototype
     Y.mount({
       el: $('yourdata'),
       tool: 'supply',

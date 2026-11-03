@@ -12,21 +12,13 @@ const ZONE_IDS = ZONES.map((z) => z.id);
 const SPECIAL = ['revenueCase', 'zone', 'arbPerYear'];
 const KNOWN = ['inputs', 'revenueCase', 'zone', 'arbPerYear', 'fleetCount'];
 
-// Same text as the page's "Binding limit" notice.
-const BIND_TEXT = {
-  dscr: 'Binding limit: cash flow (DSCR). More revenue or a cheaper loan raises the debt.',
-  advance: 'Binding limit: advance rate on cost. Extra revenue does not raise the debt until the cap moves.',
-  cost: 'Binding limit: net cost. The loan covers everything the member did not pay up front.',
-  none: 'No debt: the weakest year has no cash left after operating cost.',
-};
-
 const fields = (d) => d.groups.flatMap((g) => g.fields);
 const round2 = (x) => (Number.isFinite(x) ? Math.round(x * 100) / 100 : x);
 
 function usage() {
   return {
     tool: 'finance',
-    what: 'Sizes the loan on one home battery the way a lender does (level debt service, target DSCR, advance-rate cap), then rolls it up to your fleet and to 100 MW.',
+    what: 'Sizes the loan on one leased home battery the way a lender does (level debt service, target DSCR, advance-rate cap), after the member payment and the storage investment tax credit, then rolls it up to your fleet and to 100 MW. A generic model, not the books of any real company.',
     post: {
       content_types: ['application/json', 'text/csv'],
       json_body: {
@@ -34,12 +26,13 @@ function usage() {
         revenueCase: 'toll | merchant | stacked (optional, default ' + DEFAULTS.revenueCaseDefault + ')',
         zone: 'ERCOT zone for the arbitrage value (optional, default ' + DEFAULTS.zoneDefault + '): ' + ZONE_IDS.join(', '),
         arbPerYear: 'your own arbitrage value, $ per battery per year; replaces the zone (optional)',
-        fleetCount: 'batteries in your fleet roll-up (optional, same as inputs.fleetCount)',
+        fleetCount: 'batteries in your fleet roll-up, a whole number from 1 to 10,000,000 (optional, same as inputs.fleetCount)',
       },
       csv_body: 'The page\'s "Use your own data" file: key,value columns, one row per input. Same keys, including revenueCase, zone and arbPerYear.',
-      input_keys: fields(DEFAULTS).map((f) => ({ key: f.key, unit: f.unit, public_value: f.value, min: f.min, max: f.max, basis: f.kind })),
+      input_keys: fields(DEFAULTS).map((f) => ({ key: f.key, unit: f.unit, public_value: f.value, min: f.min, max: f.max, integer: !!f.integer, basis: f.kind })),
+      numbers: 'Plain decimal numbers only (12, 8.5, 1e3). Hex such as 0x10, Infinity and out-of-range values are 422 errors.',
     },
-    example: { inputs: { capexPerKwh: 280, tollPerKwYear: 90, ratePct: 8.5 }, revenueCase: 'toll', zone: 'LZ_NORTH' },
+    example: { inputs: { capexPerKwh: 280, itcPct: 30, tollPerKwYear: 90, ratePct: 8.5 }, revenueCase: 'toll', zone: 'LZ_NORTH' },
     returns: 'debt, equity, CFADS by year, DSCR, binding limit, plain-English explain lines, the fleet and 100 MW roll-up, and a toll x rate sensitivity grid.',
     docs: L.docsUrl('finance'),
     page: L.SITE + '/finance',
@@ -53,15 +46,19 @@ function toOverrides(parsed) {
   const b = L.objectBody(parsed);
   const warnings = L.unknownKeys(b, KNOWN);
   if (b.inputs != null && (typeof b.inputs !== 'object' || Array.isArray(b.inputs))) throw L.invalid(['inputs must be an object of { key: value }.']);
-  const flat = Object.assign({}, b.inputs || {});
-  for (const k of SPECIAL.concat('fleetCount')) if (b[k] != null) flat[k] = b[k];
+  // A null-prototype object, so a key such as "__proto__" stays an own key and
+  // applyOverrides reports it as unknown instead of it changing the object's prototype.
+  const flat = Object.create(null);
+  const own = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+  if (b.inputs != null) for (const k of Object.keys(b.inputs)) flat[k] = b.inputs[k];
+  for (const k of SPECIAL.concat('fleetCount')) if (own(b, k) && b[k] != null) flat[k] = b[k];
   return { parsed: Object.keys(flat).length ? { kind: 'json', data: flat } : null, warnings };
 }
 
 // finance.js readInputs(), with the DOM swapped for the defaults object.
 function readInputs(d, arbOverride) {
   const raw = { revenueCase: d.revenueCaseDefault };
-  for (const f of fields(d)) raw[f.key] = f.value === '' ? 0 : Number(f.value);
+  for (const f of fields(d)) raw[f.key] = Number(f.value);
   const zoneId = ZONES.some((z) => z.id === d.zoneDefault) ? d.zoneDefault : (ZONES[0] && ZONES[0].id);
   const z = ZONES.find((x) => x.id === zoneId);
   raw.arbPerYear = arbOverride != null ? arbOverride : (z ? z.usdPerYear : 0);
@@ -69,7 +66,7 @@ function readInputs(d, arbOverride) {
 }
 
 function fleetRow(a) {
-  return { batteries: a.count, capex: a.capex, upfront: a.upfront, debt: a.debt, equity: a.equity, debt_service: a.debtService, year1_cfads: a.year1Cfads };
+  return { batteries: a.count, capex: a.capex, upfront: a.upfront, itc: a.itc, debt: a.debt, equity: a.equity, debt_service: a.debtService, year1_cfads: a.year1Cfads };
 }
 
 async function post(parsed) {
@@ -94,6 +91,9 @@ async function post(parsed) {
     revenue_case_label: r.caseLabel,
     capex: r.capex,
     upfront: r.upfront,
+    itc_rate: r.itcRate,
+    itc: r.itc,
+    itc_treatment: 'IRC 48E storage credit, sold for cash at face value when the battery goes into service (IRC 6418 transfer). It lowers net_capex. Left out: the transfer discount, timing, recapture, basis reduction and bonus adders.',
     net_capex: r.netCapex,
     year1_revenue_lines: { counted: r.counted, full: r.full, opex: r.opex },
     year1_cfads: r.year1Cfads,
@@ -111,7 +111,7 @@ async function post(parsed) {
     tenor_years: r.tenor,
     tenor_clamped: r.tenorClamped,
     binding: r.binding,
-    binding_text: BIND_TEXT[r.binding],
+    binding_text: F.bindingText(r),
     explain,
     cfads_by_year: r.years.map((y) => ({ year: y.year, member: y.member, retail: y.retail, toll: y.toll, arb: y.arb, opex: y.opex, revenue: y.revenue, cfads: y.cfads, in_tenor: y.year <= r.tenor })),
     fleet: {
