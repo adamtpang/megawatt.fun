@@ -29,3 +29,9 @@ retail,license,Retail license,Regulatory,10,14,entity,3,Filed with staff
 retail,edi,Market testing,Ops,6,9,license,,
 retail,first_installs,First installs,Field,2,3,license;edi,,
 ```
+
+### ZIP lookup {#zip}
+
+The same page looks up one US ZIP: wires utility, permit office (city or county), interconnection path, and days to a first install. `POST /api/v1/zip` with `{ "zip": "78704" }` runs the same lookup. There is no company file for it. The public file is `data/zip-launch.json`.
+
+A figure that is not in the source files is the word unknown. The day total is `permit_review_days + interconnection_days + crew_days`, and only when each input is a calendar-day number. Coverage is Texas first (Austin, Houston, Dallas, San Antonio), plus Illinois, Georgia, and Connecticut. Oncor, CenterPoint, AEP Texas, and TNMP are not in the OpenEI ZIP file, so those wires utilities stay unknown.

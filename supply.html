@@ -13,7 +13,9 @@
 <link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/site.css"><link rel="stylesheet" href="/supply.css">
 <script src="/supply-core.js" defer></script>
 <script src="/yourdata.js" defer></script>
+<script src="/bom-check-core.js" defer></script>
 <script src="/supply.js" defer></script>
+<script src="/bom-check.js" defer></script>
 </head>
 <body class="tool-page">
 <header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/">Guide</a><a href="/roadmap">Roadmap</a><a href="/tools">Tools</a><details class="nav-more is-current"><summary>More</summary><div class="nav-more-menu"><a href="/market">Market map</a><a href="/pitch">Utility pitch</a><a href="/launch">Launch planner</a><a href="/finance">Financing</a><a href="/supply" aria-current="page">Supply risks</a><a href="/base">Battery</a><a href="/bench">Battery backup test</a><a href="/live">Live</a><a href="/kardashev">Kardashev</a><a href="/titans">Energy companies</a><a href="/notes">Notes</a><a href="/sources">Sources</a></div></details></nav></header>
@@ -25,6 +27,26 @@
     <p class="lede">One home battery, broken into its parts. For each part: how long it takes to get, where the price is heading, who makes it, and which 2026 US rules touch it.</p>
     <p class="notice sp-flag"><strong>Independent. Not affiliated with Base Power.</strong> Base's suppliers are not public. Every number links to a dated public source. <span class="badge badge-yellow">Our read</span> is this site's judgment, not a source.</p>
     <div id="yourdata"></div>
+  </section>
+
+  <section class="card sp-card" id="bom-check" aria-labelledby="bom-check-title">
+    <div class="sp-part-head">
+      <h2 id="bom-check-title">BOM CSV checker</h2>
+      <span class="badge badge-yellow" id="bom-demo-badge">Demo</span>
+    </div>
+    <p>Upload or paste a bill of materials. The file is read in this browser and never uploaded. The sample is made-up demo data, not a real company's suppliers.</p>
+    <p class="sp-small" id="bom-formula"></p>
+    <div class="sp-bom-actions">
+      <input id="bom-file" class="sp-bom-file" type="file" accept=".csv,text/csv">
+      <label class="btn btn-sm sp-bom-upload" for="bom-file">Upload CSV</label>
+      <button type="button" class="btn btn-outline btn-sm" id="bom-check-btn">Check paste</button>
+      <button type="button" class="btn btn-outline btn-sm" id="bom-sample">Load sample</button>
+      <button type="button" class="btn btn-outline btn-sm" id="bom-download">Download flagged CSV</button>
+    </div>
+    <label class="sp-small" for="bom-paste">Paste CSV</label>
+    <textarea id="bom-paste" rows="8" spellcheck="false" aria-label="BOM CSV"></textarea>
+    <div id="bom-status" role="status"></div>
+    <div id="bom-table"></div>
   </section>
 
   <div id="bom-slot" aria-live="polite"></div>
