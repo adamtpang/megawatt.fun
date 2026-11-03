@@ -327,7 +327,14 @@
     } catch (e) {
       const s = $('status');
       s.classList.add('notice-red');
-      s.textContent = "We couldn't load the input data, so there is nothing to show. Check your connection and reload the page to try again.";
+      s.textContent = "We couldn't load the input data, so there is nothing to show. Check your connection, then try again. ";
+      const retry = el('button', { type: 'button', class: 'btn btn-outline btn-sm', text: 'Try again' });
+      retry.addEventListener('click', () => {
+        s.classList.remove('notice-red');
+        s.textContent = 'Loading inputs...';
+        load();
+      });
+      s.append(retry);
       $('app').hidden = true;
     }
   }

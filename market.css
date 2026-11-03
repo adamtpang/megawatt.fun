@@ -6,7 +6,8 @@
 .mm-map svg { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
 .mm-map svg.dragging { cursor: grabbing; }
 .mm-map .st { stroke: #fff; stroke-width: .7; vector-effect: non-scaling-stroke; cursor: pointer; transition: fill .25s; }
-.mm-map .st:hover, .mm-map .st:focus-visible { stroke: var(--charcoal); stroke-width: 1.6; outline: none; }
+.mm-map .st:hover { stroke: var(--charcoal); stroke-width: 1.6; }
+.mm-map .st:focus-visible { stroke: var(--green-90); stroke-width: 3.5; outline: none; }
 .mm-map .st.sel { stroke: var(--charcoal); stroke-width: 2.4; }
 .mm-map .base { fill: none; stroke: var(--brand-foreground); stroke-width: 3; vector-effect: non-scaling-stroke; pointer-events: none; }
 .mm-map .lbl { font: 600 11px var(--body); fill: var(--charcoal); paint-order: stroke; stroke: #ffffffcc; stroke-width: 3px; pointer-events: none; }
