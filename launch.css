@@ -152,3 +152,17 @@
   .lp-real-grid { grid-template-columns: 1.3fr 1fr; gap: 16px; }
   .lp-step { grid-template-columns: minmax(0, 1fr) auto; }
 }
+
+/* ZIP lookup */
+.lp-zip-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; margin: 12px 0; }
+.lp-zip-form .lp-field { flex: 1 1 140px; }
+.lp-zip-form input { width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid var(--grey-20); border-radius: var(--radius-control); font: 500 16px/1.5 var(--body); color: var(--grey-100); background: #fff; }
+.lp-zip-form input:focus-visible { outline: 2px solid var(--green-90); outline-offset: 2px; }
+.lp-zip-examples { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 8px; }
+.lp-facts small { display: block; font-weight: 500; color: var(--grey-80); margin-top: 2px; }
+.lp-zip-util { margin: 8px 0; }
+.lp-zip-more { margin-top: 12px; }
+.lp-zip-more summary { cursor: pointer; font-weight: 600; min-height: 44px; display: flex; align-items: center; }
+.lp-zip-more ul { margin: 8px 0 0; padding-left: 18px; display: grid; gap: 8px; }
+#zip-result h3 { margin: 16px 0 6px; }
+#zip-result .lp-facts dd { overflow-wrap: anywhere; }

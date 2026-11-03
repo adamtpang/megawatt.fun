@@ -16,7 +16,7 @@ Independent. Not affiliated with Base Power.
 | How do we pitch a utility or co-op on a home-battery program? | [/pitch](https://megawatt.fun/pitch) | `POST /api/v1/pitch` |
 | Which parts could stop the next install (cells, power chips, memory, modems)? | [/supply](https://megawatt.fun/supply) | `POST /api/v1/supply` |
 | How much debt can one battery, and a fleet, carry? | [/finance](https://megawatt.fun/finance) | `POST /api/v1/finance` |
-| How long until the first install in a new state, and what does email tennis cost? | [/launch](https://megawatt.fun/launch) | `POST /api/v1/launch` |
+| How long until the first install in a new state, and what does one ZIP show? | [/launch](https://megawatt.fun/launch) | `POST /api/v1/launch`, `POST /api/v1/zip` |
 
 ## Try it out
 
@@ -52,9 +52,9 @@ The rule that matters most: a company's file is checked strictly before anything
 | --- | --- | --- | --- |
 | Market | `data/expansion-map.json`, `data/zone-value.json` | `market-core.js`, `market-score.js`, `notes/score.js` | [market](https://megawatt.fun/plug-and-play#market) |
 | Pitch | `data/expansion-map.json`, `data/market-states.json` | `pitch-core.js` | [pitch](https://megawatt.fun/plug-and-play#pitch) |
-| Supply | `data/supply.json` | `supply-core.js` | [supply](https://megawatt.fun/plug-and-play#supply) |
+| Supply | `data/supply.json` | `supply-core.js`, `bom-check-core.js` | [supply](https://megawatt.fun/plug-and-play#supply) |
 | Finance | `data/finance-defaults.json`, `data/zone-value.json` | `finance-core.js` | [finance](https://megawatt.fun/plug-and-play#finance) |
-| Launch | `data/launch-steps.json` | `launch-core.js` | [launch](https://megawatt.fun/plug-and-play#launch) |
+| Launch | `data/launch-steps.json`, `data/zip-launch.json` | `launch-core.js`, `zip-launch-core.js` | [launch](https://megawatt.fun/plug-and-play#launch) |
 
 ## Run the tests
 

@@ -8,6 +8,7 @@ const LAUNCH = require('../../data/launch-steps.json');
 const SUPPLY = require('../../data/supply.json');
 const MAP = require('../../data/expansion-map.json');
 const MARKET = require('../../data/market-states.json');
+const ZIP = require('../../data/zip-launch.json');
 
 const TOOLS = [
   ['finance', 'Debt, equity, CFADS and DSCR for one home battery, plus fleet and 100 MW roll-ups.'],
@@ -15,6 +16,7 @@ const TOOLS = [
   ['supply', 'Which parts in your bill of materials will run short, and tariff cost per battery.'],
   ['market', 'States ranked for home batteries, and Texas zones ranked by $/battery/year.'],
   ['pitch', 'The outside-view pitch for one utility, and who to call first in its state.'],
+  ['zip', 'Wires utility, permit office, interconnection path, and days to a first install for one US ZIP.'],
 ];
 
 function version() {
@@ -36,6 +38,7 @@ function body() {
       supply: SUPPLY.generated,
       expansion_map: MAP.generated,
       market_states: MARKET.retrieved,
+      zip_launch: ZIP.generated,
     },
     docs: L.SITE + '/docs/api.md',
     note: 'Public data only. Nothing you send is stored.',

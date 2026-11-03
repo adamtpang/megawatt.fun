@@ -21,8 +21,10 @@ const H = {
   supply: require('../api/v1/supply.js'),
   market: require('../api/v1/market.js'),
   pitch: require('../api/v1/pitch.js'),
+  zip: require('../api/v1/zip.js'),
 };
-const TOOLS = ['finance', 'launch', 'supply', 'market', 'pitch'];
+const ZIP = require('../data/zip-launch.json');
+const TOOLS = ['finance', 'launch', 'supply', 'market', 'pitch', 'zip'];
 const JSON_CT = { 'content-type': 'application/json' };
 const CSV_CT = { 'content-type': 'text/csv' };
 
@@ -57,6 +59,7 @@ test('health: status, version, endpoints, data dates, note', async () => {
   assert.equal(j.data_as_of.zone_value.period_start, ZONES.period.start);
   assert.equal(j.data_as_of.launch_steps, LAUNCH.generated);
   assert.equal(j.data_as_of.expansion_map, MAP.generated);
+  assert.equal(j.data_as_of.zip_launch, ZIP.generated);
   assert.equal(j.note, 'Public data only. Nothing you send is stored.');
   assert.equal(r.headers['access-control-allow-origin'], '*');
 

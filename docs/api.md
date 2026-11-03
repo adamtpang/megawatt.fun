@@ -57,6 +57,7 @@ Any file you can load on a page's "Use your own data" panel can be sent as the b
 | `/api/v1/supply` | usage | shortage check on your bill of materials |
 | `/api/v1/market` | usage | states and Texas zones ranked |
 | `/api/v1/pitch` | usage | pitch for one utility |
+| `/api/v1/zip` | usage | utility, permit office, and days for one ZIP |
 
 ### Health
 
@@ -167,6 +168,26 @@ The outside-view pitch for one utility. Same rules as [/pitch](https://megawatt.
 `utility` is required: an EIA id as in the data (`5078-TX`), the name, `Name, ST`, or a public alias. Term keys are listed by `GET /api/v1/pitch`. CSV: the page's terms and targets file, with `utility` in the query string.
 
 Result: `headline` and `headline_signal` (value and national percentile), `offer` (which of Base's three offers fits, the rule that picked it, and why), `program` (batteries, MWh, share of customers), `landed_cost` rows, `your_offer` when you send a toll price, `problem` signals, `deal_structure`, `questions` to ask, and `who_to_call_first` in the utility's state, your targets first.
+
+### ZIP
+
+Utility, permit office, interconnection path, and days to a first install for one US ZIP. Same lookup as the ZIP card on [/launch](https://megawatt.fun/launch).
+
+```bash
+curl -X POST https://megawatt.fun/api/v1/zip \
+  -H 'Content-Type: application/json' \
+  -d '{"zip": "78704"}'
+```
+
+`zip` is a 5-digit US ZIP or ZIP+4. It can sit in the query string instead (`?zip=78704`). The body is JSON, not CSV.
+
+Coverage is Texas, Illinois, Georgia, and Connecticut ZCTAs from the 2020 Census, joined to the NREL/OpenEI 2024 ZIP file. A ZIP outside that file returns `covered: false` and `unknown` for the figures. It is not an error.
+
+Result: `utility` when exactly one wires utility is listed, `utilities` always, `ahj` (city or county), `solarapp` (`yes`, `no`, or `unknown`), `interconnection_path`, and `days_to_first_install`. The total uses `permit_review_days + interconnection_days + crew_days` and is `unknown` unless every input is a calendar-day number. Published clocks that are outside limits or business-day windows are listed and are not added. Retail power marketer rows are not the wires utility.
+
+### BOM checker
+
+The BOM checker on [/supply](https://megawatt.fun/supply) runs in the browser. It does not have an API, and the file is not uploaded. Columns are `part_number`, `description`, `qty`, `supplier`, and optional `alt_suppliers`, `lead_time_days`. That is a different file from `POST /api/v1/supply`.
 
 ## Errors
 
