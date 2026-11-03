@@ -203,7 +203,7 @@
     $('real-list').innerHTML = real.map(x => '<li>' + x + '</li>').join('');
     $('assumed-list').innerHTML = assumed.concat(partly).map(x => '<li>' + x + '</li>').join('') +
       '<li>The step list and dependencies themselves. They are a reasonable outline, not Base\'s actual process.</li>' +
-      '<li>Permit speed and home-battery interconnection time: no public data was found.</li>' +
+      '<li>Permit speed and home-battery interconnection time are not steps on this state chart. The ZIP lookup above cites the published clocks that were found and leaves the rest unknown.</li>' +
       (list.some(s => s.basis === 'yours') ? '<li>Your file: ' + list.filter(s => s.basis === 'yours').length + ' steps for this path, as you entered them.</li>' : '') +
       (list.some(s => s.edited) ? '<li>Your edits: ' + list.filter(s => s.edited).map(s => esc(s.name)).join(', ') + '.</li>' : '');
   }

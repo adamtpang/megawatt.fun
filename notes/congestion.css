@@ -20,6 +20,7 @@
 .bar-fill { display: block; height: 100%; background: #1e4d2b; border-radius: 99px; }
 .bar-fill.LZ_NORTH { background: #048ee5; }
 .bar-fill.LZ_SOUTH { background: #77a45a; }
+.bar-fill.LZ_WEST { background: #ed6c30; }
 .bar-val { font-family: var(--mono); font-size: 12px; color: var(--lamp); min-width: 64px; text-align: right; }
 .zone-chip { font-family: var(--mono); font-size: 11px; color: var(--muted); }
 #bars { min-height: 280px; }

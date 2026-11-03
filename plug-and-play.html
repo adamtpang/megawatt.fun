@@ -82,6 +82,10 @@ termYears,10,,,,
 <pre><code>part,category,supplier,country,lead_time_weeks,on_hand_weeks,second_source,tariff_pct,unit_cost_usd,qty_per_unit,note
 Inverter module,power_electronics,Example Supplier A,Germany,30,12,no,25,900,1,
 LFP cell,cells,Example Supplier C,China,16,8,yes,55,40,12,</code></pre>
+<h3 id="bom-checker">BOM CSV checker</h3>
+<p>A second checker on the same page, above the research. It reads a CSV in the browser and does not upload it. It is not the file above, and it is not <code>POST /api/v1/supply</code>.</p>
+<div class="pp-table"><table><thead><tr><th scope="col">Column</th><th scope="col">Meaning</th><th scope="col">Required</th></tr></thead><tbody><tr><td><code>part_number</code></td><td>part id</td><td>yes</td></tr><tr><td><code>description</code></td><td>what it is</td><td>yes</td></tr><tr><td><code>qty</code></td><td>how many, greater than 0</td><td>yes</td></tr><tr><td><code>supplier</code></td><td>who you buy it from</td><td>yes</td></tr><tr><td><code>alt_suppliers</code></td><td>other suppliers, separated by <code>;</code> (or `</td><td>`, or commas if there is no semicolon)</td><td>no</td></tr><tr><td><code>lead_time_days</code></td><td>days from order to delivery</td><td>no</td></tr></tbody></table></div>
+<p>A row with one supplier is flagged. Block score is <code>single_source * lead_time_days * qty</code>, where single source is 1 or 0. A missing lead time leaves the score unknown. Rows are not merged. The sample on the page is demo data with made-up suppliers. Download gives the flagged rows only.</p>
 </section>
 <section class="pp-card card">
 <h2 id="finance">Finance</h2>
@@ -110,6 +114,9 @@ retail,entity,Form the company,Legal,1,3,,,
 retail,license,Retail license,Regulatory,10,14,entity,3,Filed with staff
 retail,edi,Market testing,Ops,6,9,license,,
 retail,first_installs,First installs,Field,2,3,license;edi,,</code></pre>
+<h3 id="zip">ZIP lookup</h3>
+<p>The same page looks up one US ZIP: wires utility, permit office (city or county), interconnection path, and days to a first install. <code>POST /api/v1/zip</code> with <code>{ "zip": "78704" }</code> runs the same lookup. There is no company file for it. The public file is <code>data/zip-launch.json</code>.</p>
+<p>A figure that is not in the source files is the word unknown. The day total is <code>permit_review_days + interconnection_days + crew_days</code>, and only when each input is a calendar-day number. Coverage is Texas first (Austin, Houston, Dallas, San Antonio), plus Illinois, Georgia, and Connecticut. Oncor, CenterPoint, AEP Texas, and TNMP are not in the OpenEI ZIP file, so those wires utilities stay unknown.</p>
 </section>
 
   <nav class="gift-set" aria-label="Home battery company tools"><span>Five tools for a home-battery company</span><a href="/market">Where to grow</a><a href="/pitch">Pitch a utility</a><a href="/supply">Supply risks</a><a href="/finance">Finance a fleet</a><a href="/launch">Launch a state</a></nav>

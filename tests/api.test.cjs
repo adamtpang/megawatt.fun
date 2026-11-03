@@ -21,8 +21,10 @@ const H = {
   supply: require('../api/v1/supply.js'),
   market: require('../api/v1/market.js'),
   pitch: require('../api/v1/pitch.js'),
+  zip: require('../api/v1/zip.js'),
 };
-const TOOLS = ['finance', 'launch', 'supply', 'market', 'pitch'];
+const ZIP = require('../data/zip-launch.json');
+const TOOLS = ['finance', 'launch', 'supply', 'market', 'pitch', 'zip'];
 const JSON_CT = { 'content-type': 'application/json' };
 const CSV_CT = { 'content-type': 'text/csv' };
 
@@ -57,6 +59,7 @@ test('health: status, version, endpoints, data dates, note', async () => {
   assert.equal(j.data_as_of.zone_value.period_start, ZONES.period.start);
   assert.equal(j.data_as_of.launch_steps, LAUNCH.generated);
   assert.equal(j.data_as_of.expansion_map, MAP.generated);
+  assert.equal(j.data_as_of.zip_launch, ZIP.generated);
   assert.equal(j.note, 'Public data only. Nothing you send is stored.');
   assert.equal(r.headers['access-control-allow-origin'], '*');
 
@@ -394,16 +397,16 @@ test('supply bad input is 422 with row-named errors', async () => {
 
 // ---------- market ----------
 
-// Expected values are from the narrative that analysis/build_expansion.py (an independent Python
-// implementation of the same score) wrote into data/expansion-map.json.
-test('market default weights match the published score: Michigan 76, Texas 71, Maryland 69', async () => {
+// Expected values are the equal-weight score with the retail-choice path included,
+// the same ranking the expansion-map narrative publishes in data/expansion-map.json.
+test('market default weights match the published score: Texas 74, Michigan 73, California 71', async () => {
   const j = (await post('market', {})).json().result;
   assert.equal(j.states.length, 51);
-  assert.deepEqual(j.states.slice(0, 3).map((s) => [s.name, s.points, s.tier]), [['Michigan', 76, 'S'], ['Texas', 71, 'S'], ['Maryland', 69, 'S']]);
+  assert.deepEqual(j.states.slice(0, 3).map((s) => [s.name, s.points, s.tier]), [['Texas', 74, 'S'], ['Michigan', 73, 'S'], ['California', 71, 'S']]);
   const at = (n) => j.states.find((s) => s.name === n);
-  assert.deepEqual([at('Illinois').rank, at('Illinois').points], [8, 60]);
+  assert.deepEqual([at('Illinois').rank, at('Illinois').points], [9, 58]);
   assert.deepEqual([at('Georgia').rank, at('Georgia').points], [30, 47]);
-  assert.deepEqual([at('Connecticut').rank, at('Connecticut').points], [19, 54]);
+  assert.deepEqual([at('Connecticut').rank, at('Connecticut').points], [21, 53]);
   assert.match(at('Michigan').why, /^Leads on outage duration/);
   assert.equal(j.texas_zones.zones[0].id, 'LZ_WEST');
   assert.ok(j.texas_zones.zones.every((z) => z.kind === 'load zone' && z.id.startsWith('LZ_')));
@@ -411,9 +414,9 @@ test('market default weights match the published score: Michigan 76, Texas 71, M
   assert.doesNotMatch(j.texas_zones.about, /5 to 9 PM|at night/);
 });
 
-test('market with homes weighted 0 matches the published re-ranking: Michigan 75, Maryland 70, Texas 68', async () => {
+test('market with homes weighted 0 matches the published re-ranking: Michigan 72, Texas 71, California 68', async () => {
   const j = (await post('market', { weights: { homes: 0 } })).json().result;
-  assert.deepEqual(j.states.slice(0, 3).map((s) => [s.name, s.points]), [['Michigan', 75], ['Maryland', 70], ['Texas', 68]]);
+  assert.deepEqual(j.states.slice(0, 3).map((s) => [s.name, s.points]), [['Michigan', 72], ['Texas', 71], ['California', 68]]);
 });
 
 test('market adds your own metrics and zones', async () => {

@@ -16,7 +16,7 @@ Independent. Not affiliated with Base Power.
 | How do we pitch a utility or co-op on a home-battery program? | [/pitch](https://megawatt.fun/pitch) | `POST /api/v1/pitch` |
 | Which parts could stop the next install (cells, power chips, memory, modems)? | [/supply](https://megawatt.fun/supply) | `POST /api/v1/supply` |
 | How much debt can one battery, and a fleet, carry? | [/finance](https://megawatt.fun/finance) | `POST /api/v1/finance` |
-| How long until the first install in a new state, and what does email tennis cost? | [/launch](https://megawatt.fun/launch) | `POST /api/v1/launch` |
+| How long until the first install in a new state, and what does one ZIP show? | [/launch](https://megawatt.fun/launch) | `POST /api/v1/launch`, `POST /api/v1/zip` |
 
 ## Try it out
 
@@ -52,9 +52,9 @@ The rule that matters most: a company's file is checked strictly before anything
 | --- | --- | --- | --- |
 | Market | `data/expansion-map.json`, `data/zone-value.json` | `market-core.js`, `market-score.js`, `notes/score.js` | [market](https://megawatt.fun/plug-and-play#market) |
 | Pitch | `data/expansion-map.json`, `data/market-states.json` | `pitch-core.js` | [pitch](https://megawatt.fun/plug-and-play#pitch) |
-| Supply | `data/supply.json` | `supply-core.js` | [supply](https://megawatt.fun/plug-and-play#supply) |
+| Supply | `data/supply.json` | `supply-core.js`, `bom-check-core.js` | [supply](https://megawatt.fun/plug-and-play#supply) |
 | Finance | `data/finance-defaults.json`, `data/zone-value.json` | `finance-core.js` | [finance](https://megawatt.fun/plug-and-play#finance) |
-| Launch | `data/launch-steps.json` | `launch-core.js` | [launch](https://megawatt.fun/plug-and-play#launch) |
+| Launch | `data/launch-steps.json`, `data/zip-launch.json` | `launch-core.js`, `zip-launch-core.js` | [launch](https://megawatt.fun/plug-and-play#launch) |
 
 ## Run the tests
 
@@ -93,6 +93,20 @@ python -m unittest discover -s tests -p "test_*.py"
 The renderer updates static HTML in `index.html` and the public CSV so all indicators remain readable without JavaScript. `climb.js` adds geography filters. There are no live metric API calls. US examples are explicitly regional; price is a cost proxy, not household affordability.
 
 For deployment, run `python scripts/package-site.py` and deploy only the printed staging directory. Its allowlist excludes private drafts and session history.
+
+## Suite
+
+`/notes` is the index. Two questions: which states have a faster public path to a launch, and what cash flow one home battery would have produced on historical ERCOT load-zone prices. Both say what the public record does not contain.
+
+## Financing a home battery
+
+`/notes/financing-a-home-battery` dispatches one battery against ERCOT day-ahead load-zone prices, report 13060, for the complete years 2018 through 2025. The default energy is the published Base Core size, 39.2 kWh. Power, efficiency, fade, term, and capital cost are labeled illustrations where Base does not publish them. Debt service is blank until a $/kWh is set.
+
+```sh
+python3 analysis/build_financing.py
+```
+
+The script caches yearly workbooks in `analysis/cache/ercot-lz/` and writes `data/financing.json`.
 
 ## Make, move, store, sell
 

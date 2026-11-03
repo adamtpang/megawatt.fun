@@ -4,15 +4,17 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>New-Market Launch Planner</title>
 <link rel="canonical" href="https://megawatt.fun/launch">
-<meta name="description" content="How long it might take a home-battery company to start selling and installing in a new state: steps, dependencies, critical path, and known snags. Every duration is sourced or labeled as an assumption you can edit. Independent, not affiliated with Base Power.">
+<meta name="description" content="How long it might take a home-battery company to start selling and installing in a new state, and what one US ZIP shows for the utility, the permit office, and days to a first install. Every duration is sourced or unknown. Independent, not affiliated with Base Power.">
 <meta property="og:title" content="New-Market Launch Planner">
 <meta property="og:description" content="How long a home-battery company might take to start selling and installing in a new state: steps, critical path, known snags. Every duration sourced or labeled as an assumption.">
 <meta property="og:url" content="https://megawatt.fun/launch">
 <meta property="og:type" content="website">
 <link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/site.css"><link rel="stylesheet" href="/launch.css">
 <script src="/launch-core.js" defer></script>
+<script src="/zip-launch-core.js" defer></script>
 <script src="/yourdata.js" defer></script>
 <script src="/launch.js" defer></script>
+<script src="/zip-launch.js" defer></script>
 </head>
 <body class="launch-page tool-page">
 <header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/">Guide</a><a href="/roadmap">Roadmap</a><a href="/tools">Tools</a><details class="nav-more is-current"><summary>More</summary><div class="nav-more-menu"><a href="/market">Market map</a><a href="/pitch">Utility pitch</a><a href="/launch" aria-current="page">Launch planner</a><a href="/finance">Financing</a><a href="/supply">Supply risks</a><a href="/base">Battery</a><a href="/bench">Battery backup test</a><a href="/live">Live</a><a href="/kardashev">Kardashev</a><a href="/titans">Energy companies</a><a href="/notes">Notes</a><a href="/sources">Sources</a></div></details></nav></header>
@@ -21,9 +23,37 @@
   <section class="lp-intro">
     <p class="eyebrow">New-market launch planner</p>
     <h1>How long does a new state take?</h1>
-    <p class="lede lp-lede">Pick a state and a way in. The planner lays out the steps a home-battery company would need before it can sell and install there, finds the critical path, and shows which step to attack first.</p>
+    <p class="lede lp-lede">Pick a state and a way in. The planner lays out the steps a home-battery company would need before it can sell and install there, finds the critical path, and shows which step to attack first. Or start with a ZIP code: the utility, the permit office, and the clocks we can cite.</p>
     <p class="notice lp-flag"><strong>Independent. Not affiliated with Base Power.</strong> Base's real launch timelines are not public. Every duration below is either sourced (with a link and date) or marked <span class="badge badge-yellow">assumption</span>. Replace assumptions with your own data.</p>
     <div id="yourdata"></div>
+  </section>
+
+  <section class="card lp-card" id="zip-card" aria-labelledby="zip-title">
+    <h2 id="zip-title">What does one ZIP take?</h2>
+    <p id="zip-explainer">Loading the ZIP lookup...</p>
+    <form id="zip-form" class="lp-zip-form">
+      <label class="lp-field" for="zip-input">US ZIP
+        <input id="zip-input" name="zip" inputmode="numeric" autocomplete="postal-code" maxlength="10" placeholder="78704" aria-describedby="zip-coverage">
+      </label>
+      <button type="submit" class="btn">Look up</button>
+    </form>
+    <div class="lp-zip-examples" id="zip-examples">
+      <button type="button" class="btn btn-outline btn-sm" data-zip="78704">78704 Austin</button>
+      <button type="button" class="btn btn-outline btn-sm" data-zip="77002">77002 Houston</button>
+      <button type="button" class="btn btn-outline btn-sm" data-zip="75201">75201 Dallas</button>
+      <button type="button" class="btn btn-outline btn-sm" data-zip="78205">78205 San Antonio</button>
+      <button type="button" class="btn btn-outline btn-sm" data-zip="78620">78620 PEC</button>
+    </div>
+    <p class="lp-small" id="zip-coverage"></p>
+    <div id="zip-result" aria-live="polite"></div>
+    <details class="lp-zip-more">
+      <summary>Coverage gaps</summary>
+      <div id="zip-gaps"></div>
+    </details>
+    <details class="lp-zip-more">
+      <summary>Every published clock on file</summary>
+      <div id="zip-all-clocks"></div>
+    </details>
   </section>
 
   <section class="card lp-card lp-controls" aria-label="Planner settings">

@@ -27,3 +27,18 @@ part,category,supplier,country,lead_time_weeks,on_hand_weeks,second_source,tarif
 Inverter module,power_electronics,Example Supplier A,Germany,30,12,no,25,900,1,
 LFP cell,cells,Example Supplier C,China,16,8,yes,55,40,12,
 ```
+
+### BOM CSV checker {#bom-checker}
+
+A second checker on the same page, above the research. It reads a CSV in the browser and does not upload it. It is not the file above, and it is not `POST /api/v1/supply`.
+
+| Column | Meaning | Required |
+| --- | --- | --- |
+| `part_number` | part id | yes |
+| `description` | what it is | yes |
+| `qty` | how many, greater than 0 | yes |
+| `supplier` | who you buy it from | yes |
+| `alt_suppliers` | other suppliers, separated by `;` (or `|`, or commas if there is no semicolon) | no |
+| `lead_time_days` | days from order to delivery | no |
+
+A row with one supplier is flagged. Block score is `single_source * lead_time_days * qty`, where single source is 1 or 0. A missing lead time leaves the score unknown. Rows are not merged. The sample on the page is demo data with made-up suppliers. Download gives the flagged rows only.

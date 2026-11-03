@@ -54,3 +54,13 @@
   .sp-yd-table { font-size: 11px; }
   a { color: var(--grey-100); }
 }
+
+/* BOM CSV checker. Parsed in the browser. */
+.sp-bom-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0; position: relative; }
+.sp-bom-upload { cursor: pointer; }
+.sp-bom-file { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0; }
+#bom-paste { width: 100%; min-height: 140px; margin-top: 6px; padding: 12px; border: 1px solid var(--grey-20); border-radius: var(--radius-control); font: 500 14px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--grey-100); background: #fff; resize: vertical; }
+#bom-paste:focus-visible, .sp-bom-file:focus-visible + .sp-bom-upload { outline: 2px solid var(--green-90); outline-offset: 2px; }
+#bom-status { margin-top: 12px; }
+#bom-status ul { margin: 8px 0 0; padding-left: 18px; }
+#bom-table { margin-top: 8px; }
