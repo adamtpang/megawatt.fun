@@ -4,7 +4,8 @@ Bullets only. Adam words it in his own voice.
 
 - Who I am, one line. Missed the Base Power x AITX hackathon because I live in Malaysia.
 - What I noticed in the public entries: fleet simulation, demand forecasting, utility ZIP targeting.
-  All grid-side or business-side. None show what a member sees.
+  BaseScanning (homeowner install-placement scan) reports winning Most Commercializable, so
+  homeowner-facing work is not new. This screen covers a different moment: the member's day after install.
 - The role I'm applying for is about making the energy system clear to members. So I built that screen.
 - Show /base on a phone:
   - Top sentence: what the battery did today, generated from the day's data.

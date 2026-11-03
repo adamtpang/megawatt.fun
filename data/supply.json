@@ -1,0 +1,584 @@
+{
+  "generated": "2026-11-01",
+  "base_public": [
+    {
+      "claim": "Base Core is a 20 kW / 39.2 kWh residential battery.",
+      "quote": "Our proprietary residential BESS (20 kW / 39.2 kWh)",
+      "url": "https://www.basepowercompany.com/utilities",
+      "publisher": "Base Power, utilities page",
+      "date": "2026-11-01 (retrieved)"
+    },
+    {
+      "claim": "Base Core capacity is 39.2 kWh per unit, 78.4 kWh for two units.",
+      "quote": "one of the largest home batteries on the market at 39.2 kWh / 78.4 kWh",
+      "url": "https://www.01net.it/base-power-announces-1b-series-d-and-launches-base-core-first-of-its-kind-home-battery-built-in-the-united-states/",
+      "publisher": "Base Power press release (Business Wire), republished by 01net",
+      "date": "2026-08-03"
+    },
+    {
+      "claim": "Base Core is built at Base Factory 1 in Austin.",
+      "quote": "now in production at Base Factory 1 in Austin.",
+      "url": "https://www.01net.it/base-power-announces-1b-series-d-and-launches-base-core-first-of-its-kind-home-battery-built-in-the-united-states/",
+      "publisher": "Base Power press release (Business Wire), republished by 01net",
+      "date": "2026-08-03"
+    },
+    {
+      "claim": "Factory 1 output is thousands of systems per month (company claim).",
+      "quote": "Base's Factory 1 is now producing thousands of systems a month",
+      "url": "https://www.01net.it/base-power-announces-1b-series-d-and-launches-base-core-first-of-its-kind-home-battery-built-in-the-united-states/",
+      "publisher": "Base Power press release (Business Wire), republished by 01net",
+      "date": "2026-08-03"
+    },
+    {
+      "claim": "Base Core uses LFP chemistry.",
+      "quote": "The lithium iron phosphate (LFP) battery is designed to operate between -22F and 122F,",
+      "url": "https://electrek.co/?p=478397",
+      "publisher": "Electrek",
+      "date": "2026-08-03"
+    },
+    {
+      "claim": "Base framed the factory as a storage and power electronics hub, and is planning a second factory.",
+      "quote": "the company is building its first factory, an energy storage and power electronics manufacturing hub",
+      "url": "https://electrek.co/2025/10/08/base-power-raises-1b-to-reinvent-texas-grid-with-home-batteries/",
+      "publisher": "Electrek",
+      "date": "2025-10-08"
+    },
+    {
+      "claim": "Base said it is already planning a second factory.",
+      "quote": "This factory in Austin is our first, and we're already planning for our second.",
+      "url": "https://electrek.co/2025/10/08/base-power-raises-1b-to-reinvent-texas-grid-with-home-batteries/",
+      "publisher": "Electrek",
+      "date": "2025-10-08"
+    },
+    {
+      "claim": "Earlier Base batteries were made in China and the CEO expected a tariff impact (pre-Base Core).",
+      "quote": "However, the batteries are made in China, and Dell said he expects to see an impact from tariffs.",
+      "url": "https://newsio.com/2025/04/29/why-lennar-is-betting-on-a-startup-building-backup-batteries-for-texas-homes",
+      "publisher": "CNBC (republished by News IO)",
+      "date": "2025-04-29",
+      "stale": true
+    },
+    {
+      "claim": "Base is hiring a Global Supply Manager for Cells and Strategic Materials, which implies cells are bought from outside suppliers.",
+      "quote": null,
+      "url": "https://climatebase.org/job/72053556/global-supply-manager---cells--strategic-materials",
+      "publisher": "Climatebase job listing",
+      "date": null,
+      "basis": "inference",
+      "source_quality": "job title only; page returned 403 so the description was not read"
+    }
+  ],
+  "parts": [
+    {
+      "id": "power_electronics",
+      "name": "Inverter and power electronics (IGBT, Si MOSFET, SiC MOSFET)",
+      "what_it_does": "Converts battery DC to home AC and back, and does the grid-forming switching. Base describes its Austin plant as a power electronics hub.",
+      "lead_time": {
+        "value": "beyond 30 weeks generally, some 52 weeks",
+        "unit": "weeks",
+        "quote": "while power device lead times have generally stretched beyond 30 weeks, with some reaching 52 weeks.",
+        "url": "https://www.trendforce.com/news/2026/08/21/news-stmicroelectronics-plans-third-2026-price-hike-for-august-23-power-device-lead-times-reportedly-hit-52-weeks/",
+        "publisher": "TrendForce News",
+        "date": "2026-08-21"
+      },
+      "price_trend": {
+        "value": "Infineon raised power device prices twice in 2026, July round 10-20%; ST third hike of 2026 from Aug 23",
+        "quote": "lifting AI server power and automotive power device prices by 10%-20%.",
+        "url": "https://www.trendforce.com/news/2026/08/21/news-stmicroelectronics-plans-third-2026-price-hike-for-august-23-power-device-lead-times-reportedly-hit-52-weeks/",
+        "publisher": "TrendForce News",
+        "date": "2026-08-21"
+      },
+      "concentration": {
+        "value": "SiC substrates 2024: Wolfspeed 33.7%, China's TanKeBlue 17.3% and SICC 17.1%",
+        "quote": "Wolfspeed first with a 33.7% market share",
+        "url": "https://www.trendforce.com/presscenter/news/20250512-12574.html",
+        "publisher": "TrendForce",
+        "date": "2025-05-12",
+        "note": "2024 data; Wolfspeed went through Chapter 11 in mid-2025. No IGBT/MOSFET share data collected (not found)."
+      },
+      "policy": [
+        {
+          "name": "Section 301 on Chinese-origin semiconductors",
+          "status": "in effect",
+          "value": "50%",
+          "quote": "Increase rate to 50% in 2025",
+          "url": "https://www.mcguirewoods.com/client-resources/alerts/2024/10/final-increased-tariffs-announced-in-response-to-u-s-trade-representative-review-of-chinese-imports/",
+          "publisher": "McGuireWoods",
+          "date": "2024-10-22",
+          "stale": true
+        }
+      ],
+      "alternatives": [
+        {
+          "name": "Infineon, onsemi, STMicroelectronics, Wolfspeed",
+          "note": "Non-China IGBT/MOSFET/SiC sources, all raising prices in 2026.",
+          "url": "https://www.trendforce.com/news/2026/08/21/news-stmicroelectronics-plans-third-2026-price-hike-for-august-23-power-device-lead-times-reportedly-hit-52-weeks/"
+        },
+        {
+          "name": "Chinese IGBT makers (MacMic, JieJie)",
+          "note": "Also raising 10-20%, and carry 50% Section 301 duty.",
+          "url": null,
+          "basis": "secondary search summary, not fetched"
+        }
+      ],
+      "risk_note": "Power semiconductors are on 30 to 52 week lead times with three rounds of 2026 price hikes, so inverter builds need parts ordered most of a year ahead.",
+      "our_read": {
+        "label": "Long wait",
+        "rank": 1,
+        "why": "Order most of a year ahead. Power chips are the longest lead item inside the box."
+      }
+    },
+    {
+      "id": "bms_memory",
+      "name": "Battery management system and control electronics (MCU, DRAM, NAND/eMMC)",
+      "what_it_does": "Measures cell voltages and temperatures, balances cells, runs the controller and stores firmware and logs. Uses small, mostly legacy memory parts (DDR4, LPDDR4, eMMC) plus microcontrollers.",
+      "lead_time": {
+        "value": "32-40+ weeks for standard DDR4 and DDR5 modules in some cases, under allocation",
+        "unit": "weeks",
+        "quote": "lead times on standard DDR4 and DDR5 modules have already stretched to 32-40+ weeks in some cases",
+        "url": "https://www.assured-systems.com/ai-is-driving-memory-prices-through-the-roof-and-industrial-computing-isnt-immune/",
+        "publisher": "Assured Systems (industrial PC vendor blog)",
+        "date": null,
+        "source_quality": "vendor blog behind a bot check; quote not verified by us"
+      },
+      "price_trend": {
+        "value": "Conventional DRAM contract prices +45-50% QoQ in 4Q25, forecast +90-95% QoQ in 1Q26, +13-18% in 3Q26, +10-15% in 4Q26. NAND +10-15% in 3Q26 and +15-20% in 4Q26.",
+        "quote": "Conventional DRAM contract prices rose 45-50% QoQ",
+        "url": "https://www.trendforce.com/presscenter/news/20260226-12937.html",
+        "publisher": "TrendForce",
+        "date": "2026-02-26",
+        "more": [
+          {
+            "quote": "with conventional DRAM prices expected to surge 90-95% QoQ",
+            "url": "https://www.trendforce.com/presscenter/news/20260226-12937.html",
+            "publisher": "TrendForce",
+            "date": "2026-02-26"
+          },
+          {
+            "quote": "Conventional DRAM contract prices are forecast to rise 13-18% QoQ in 3Q26",
+            "url": "https://www.trendforce.com/presscenter/news/20260703-13134.html",
+            "publisher": "TrendForce",
+            "date": "2026-07-03"
+          },
+          {
+            "quote": "Contract prices for conventional DRAM are expected to rise by 10-15% QoQ in the fourth quarter of 2026",
+            "url": "https://evertiq.com/news/2026-10-02-ai-keeps-memory-prices-climbing-in-q4-as-consumer-demand-weakens",
+            "publisher": "Evertiq, reporting TrendForce",
+            "date": "2026-10-02"
+          },
+          {
+            "quote": "July consumer DDR4 contract prices have already risen by more than 60-85%.",
+            "url": "https://iconnect007.com/article/146462/ddr4-lpddr4-supply-tightens-sharply-in-2h25-as-structural-shortage-drives-strong-price-surge/146459/ein",
+            "publisher": "TrendForce via I-Connect007",
+            "date": "2025-08-11"
+          },
+          {
+            "quote": "We believe that the aggregate industry supply will remain substantially short of the demand for the foreseeable future.",
+            "url": "https://www.theregister.com/2025/12/18/micron_q1_2026/",
+            "publisher": "The Register, quoting Micron CEO Sanjay Mehrotra",
+            "date": "2025-12-18"
+          }
+        ],
+        "conflict": "One secondary report (StockHub, 2026-10-20) says TrendForce later put 4Q26 DRAM near +20%; not verified on TrendForce."
+      },
+      "concentration": {
+        "value": "Allocation goes to AI and server first; industrial and consumer DDR4 users rank last",
+        "quote": "Memory suppliers continue to prioritize capacity allocation toward higher-margin AI and server products",
+        "url": "https://www.trendforce.com/presscenter/news/20260703-13134.html",
+        "publisher": "TrendForce",
+        "date": "2026-07-03",
+        "more": [
+          {
+            "quote": "ranks behind PC and server applications in suppliers' allocation priorities.",
+            "url": "https://iconnect007.com/article/146462/ddr4-lpddr4-supply-tightens-sharply-in-2h25-as-structural-shortage-drives-strong-price-surge/146459/ein",
+            "publisher": "TrendForce via I-Connect007",
+            "date": "2025-08-11"
+          }
+        ],
+        "share_numbers": null,
+        "share_note": "DRAM is made mainly by Samsung, SK hynix and Micron; no dated share quote collected (not found in this pass)."
+      },
+      "policy": [
+        {
+          "name": "Section 301 on Chinese-origin semiconductors",
+          "status": "in effect since 2025",
+          "value": "50%",
+          "quote": "Increase rate to 50% in 2025",
+          "url": "https://www.mcguirewoods.com/client-resources/alerts/2024/10/final-increased-tariffs-announced-in-response-to-u-s-trade-representative-review-of-chinese-imports/",
+          "publisher": "McGuireWoods (summarizing USTR)",
+          "date": "2024-10-22",
+          "stale": true
+        },
+        {
+          "name": "Section 232 semiconductors, phase 1 (Proclamation 11002)",
+          "status": "in effect since 2026-01-15, but only for advanced AI-class chips; broader phase 2 possible",
+          "value": "25% on chips above performance thresholds; not BMS-class parts",
+          "quote": "The tariff applies only to semiconductors meeting specific technical performance thresholds, not to all semiconductor imports.",
+          "url": "https://www.thomsonreuters.com/en-us/help/onesource-global-trade/regulatory-insights/2026/january-15th/trump-admin-tariffs-advanced-ai-chips-232.html",
+          "publisher": "Thomson Reuters ONESOURCE",
+          "date": "2026-01-15"
+        }
+      ],
+      "alternatives": [
+        {
+          "name": "Winbond, Nanya and other Taiwanese DDR4 makers",
+          "note": "Still producing DDR4 as Micron, Samsung and SK hynix exit; TrendForce says their expansion cannot fully offset the cut.",
+          "url": "https://www.trendforce.com/presscenter/news/20260703-13134.html"
+        },
+        {
+          "name": "Design out discrete DRAM",
+          "note": "MCUs with on-chip SRAM and flash avoid buying commodity DRAM at all.",
+          "url": null,
+          "basis": "inference"
+        }
+      ],
+      "risk_note": "The memory in a battery controller is cheap in dollars but sits at the back of the allocation line behind AI servers, so the risk is a missing part, not a big cost hit.",
+      "our_read": {
+        "label": "Allocation",
+        "rank": 2,
+        "why": "Cheap per unit, but last in line behind AI servers. A missing memory chip stops the whole controller."
+      }
+    },
+    {
+      "id": "cells",
+      "name": "LFP battery cells",
+      "what_it_does": "Stores the energy. About 39 kWh of LFP cells per Base Core, the largest single cost item.",
+      "lead_time": {
+        "value": "order backlogs past Q3 2026 at most tier-1 and tier-2 Chinese ESS cell makers",
+        "unit": "qualitative",
+        "quote": "Order backlogs for most first- and second-tier enterprises have now extended beyond Q3 this year.",
+        "url": "https://news.metal.com/newscontent/103999667-smm-analysis-riding-the-winds-in-and-outside-china-breaking-the-iron-law-of-old-cycles-2026-energy-storage-battery-cell-semi-annual-review-and-outlook",
+        "publisher": "SMM (Shanghai Metals Market)",
+        "date": "2026-07-10"
+      },
+      "price_trend": {
+        "value": "314Ah LFP storage cell up from 0.32 to about 0.365 yuan/Wh in H1 2026 (about +14%), reversing the 2025 decline",
+        "quote": "314Ah cell prices have climbed steadily from 0.32 Yuan/Wh at the start of the year to around 0.365 Yuan/Wh.",
+        "url": "https://news.metal.com/newscontent/103999667-smm-analysis-riding-the-winds-in-and-outside-china-breaking-the-iron-law-of-old-cycles-2026-energy-storage-battery-cell-semi-annual-review-and-outlook",
+        "publisher": "SMM (Shanghai Metals Market)",
+        "date": "2026-07-10",
+        "context": [
+          {
+            "value": "2025 baseline: stationary storage pack price fell 45% to $70/kWh",
+            "quote": "Battery pack costs for stationary storage fell 45% year-on-year to $70/kWh in 2025",
+            "url": "https://about.bnef.com/insights/clean-energy/lithium-ion-battery-pack-prices-fall-to-108-per-kilowatt-hour-despite-rising-metal-prices-bloombergnef/",
+            "publisher": "BloombergNEF (quote as returned by search summary; verify on page)",
+            "date": "2025-12"
+          },
+          {
+            "value": "China cut the battery export VAT rebate from 9% to 6% on 2026-04-01 and ends it 2027-01-01",
+            "quote": "The export VAT rebate rate for battery products will be reduced from 9% to 6% from April 1, 2026",
+            "url": "https://newsletter.en.creamermedia.com/article/lithium-soars-as-china-to-revoke-battery-export-tax-rebates-2026-01-12",
+            "publisher": "Creamer Media (Reuters/Bloomberg syndication)",
+            "date": "2026-01-12"
+          }
+        ]
+      },
+      "concentration": {
+        "value": "China made well over 80% of all batteries in 2025 (IEA via Mercom); grid-scale batteries depend on China for at least one step",
+        "quote": "China leads by a wide margin, manufacturing well over 80% of all batteries in 2025.",
+        "url": "https://www.mercomindia.com/global-lithium-ion-battery-market-surpassed-150-billion-in-2025-iea",
+        "publisher": "Mercom India, citing IEA",
+        "date": "2026-02-20"
+      },
+      "policy": [
+        {
+          "name": "Section 301 on Chinese non-EV lithium-ion batteries",
+          "status": "in effect since 2026-01-01 (scheduled in 2024)",
+          "value": "7.5% raised to 25%",
+          "quote": "Increase rate to 25% in 2026",
+          "url": "https://www.mcguirewoods.com/client-resources/alerts/2024/10/final-increased-tariffs-announced-in-response-to-u-s-trade-representative-review-of-chinese-imports/",
+          "publisher": "McGuireWoods (summarizing USTR final action)",
+          "date": "2024-10-22",
+          "stale": true,
+          "stale_note": "Source is old but describes the 2026 step that is now in force."
+        },
+        {
+          "name": "New Section 301 regime replacing Section 122 (after the Supreme Court struck down IEEPA tariffs on 2026-02-20)",
+          "status": "in effect since 2026-07-24",
+          "value": "10% or 12.5% depending on country; China's tier and stacking with older China 301 duties not confirmed",
+          "quote": "Effective July 24, USTR is imposing new Section 301 tariffs on 60 economies.",
+          "url": "https://uhy-us.com/insights/news/2026/july/tariff-reset-section-122-expires-as-section-301-duties-expand",
+          "publisher": "UHY",
+          "date": "2026-07-24"
+        },
+        {
+          "name": "IRS Notice 2026-15 (primary)",
+          "status": "issued",
+          "value": "interim PFE material assistance rules",
+          "quote": "any Section 45Y or 48E qualified facility or energy storage technology the construction of which begins after Dec. 31, 2025",
+          "url": "https://www.irs.gov/newsroom/treasury-irs-provide-guidance-for-certain-energy-tax-credits-regarding-material-assistance-provided-by-prohibited-foreign-entities-under-the-one-big-beautiful-bill",
+          "publisher": "IRS (IR-2026-23)",
+          "date": "2026-02-12"
+        },
+        {
+          "name": "AD/CVD on Chinese active anode material (graphite)",
+          "status": "NOT imposed. Commerce found rates near 160-170% but the ITC voted negative on 2026-03-12.",
+          "value": "0% (case ended)",
+          "quote": "Therefore, neither the anti-dumping duties (AD) nor the countervailing duties (CVD) took effect.",
+          "url": "https://news.metal.com/newscontent/103806000-smm-analysis-itc-rejects-tariffs-on-chinese-graphite-anodes-final-duties-not-imposed",
+          "publisher": "SMM",
+          "date": "2026-03-13"
+        }
+      ],
+      "alternatives": [
+        {
+          "name": "LG Energy Solution (Holland and Lansing, Michigan)",
+          "note": "LFP ESS cells in Michigan; LGES targets more than 50 GWh of North American LFP capacity by end of 2026 (company target, via energy-storage.news; page returned 403 so not quoted).",
+          "url": "https://energy-storage.news/lg-energy-solution-begins-lfp-and-nmc-bess-and-ev-cell-production-at-michigan-factory"
+        },
+        {
+          "name": "AESC (Smyrna, Tennessee)",
+          "note": "Reported LFP production launch in mid-2025; no 2026 update found.",
+          "url": "https://www.energy-storage.news/ev-slowdown-creates-potential-lifeline-for-us-energy-storage-amid-feoc-tariffs"
+        },
+        {
+          "name": "Non-China Asian cell makers (Samsung SDI, SK On, LGES Korea)",
+          "note": "Avoid FEOC issues but carry ocean freight and new Section 301 country tariffs; not individually sourced here.",
+          "url": null,
+          "basis": "inference"
+        }
+      ],
+      "risk_note": "Cells are the biggest cost and most China-concentrated part, prices turned up in 2026, and tax credit eligibility now depends on how much of the cell content traces to China.",
+      "our_read": {
+        "label": "Price and rules",
+        "rank": 3,
+        "why": "Biggest cost and most concentrated in China. Tax credits now depend on where cell content comes from."
+      }
+    },
+    {
+      "id": "cellular",
+      "name": "Cellular modem / connectivity module",
+      "what_it_does": "Lets the fleet operator dispatch the battery and push firmware. Base's business model (virtual power plant) depends on it.",
+      "lead_time": null,
+      "lead_time_note": "not found",
+      "price_trend": {
+        "value": "Counterpoint expects module ASPs to rise in H2 2026 because of memory costs",
+        "quote": "预计 2026 年下半年蜂窝物联网模组ASP将有所上升。",
+        "quote_translation": "Cellular IoT module ASP is expected to rise in the second half of 2026.",
+        "url": "https://counterpointresearch.com/cn/insights/5g-fuels-growth-as-global-cellular-iot-module-market-climbs-4-percent-in-q1-2026",
+        "publisher": "Counterpoint Research",
+        "date": "2026-06-19"
+      },
+      "concentration": {
+        "value": "Top five module makers (Quectel, Fibocom, Telit Cinterion, MeiG, China Mobile IoT) held 73% of revenue in 2025; China-based suppliers lead on volume",
+        "quote": "These held a collective market share of 73% in terms of revenues.",
+        "url": "https://www.computerweekly.com/news/366645256/Cellular-IoT-gains-new-heights-in-2025",
+        "publisher": "Computer Weekly, citing Counterpoint Research",
+        "date": null
+      },
+      "policy": [
+        {
+          "name": "FCC Covered List debate on Chinese cellular modules",
+          "status": "under discussion (reported May 2026); no listing found",
+          "value": "Reported debate on adding Chinese module makers to the FCC Covered List. Chinese firms control more than 70% of the global module market.",
+          "quote": "Chinese companies, including Quectel, Fibocom, China Mobile, Sunsea, and MeiG, collectively control more than 70% of the global cellular module market.",
+          "url": "https://www.tomshardware.com/tech-industry/trump-administration-reportedly-debating-ban-on-chinese-cellular-modules-in-expansion-of-fcc-crackdown-potential-restrictions-could-impact-everything-from-smart-devices-and-routers-to-connected-cars-and-industrial-iot-systems",
+          "publisher": "Tom's Hardware, citing the Financial Times",
+          "date": "2026-05-12"
+        }
+      ],
+      "alternatives": [
+        {
+          "name": "Telit Cinterion",
+          "note": "Largest non-Chinese module supplier per Counterpoint coverage.",
+          "url": "https://www.communicationstoday.co.in/?p=413072"
+        },
+        {
+          "name": "u-blox, Sierra Wireless (Semtech), Nordic nRF91",
+          "note": "Non-Chinese LTE-M / Cat 1 options; not individually sourced here.",
+          "url": null,
+          "basis": "inference"
+        }
+      ],
+      "risk_note": "If Chinese modules are added to the FCC Covered List, any fleet built on Quectel or Fibocom would need a redesign and recertification.",
+      "our_read": {
+        "label": "Rule risk",
+        "rank": 4,
+        "why": "No shortage today. A federal ban on Chinese modules would force a redesign and recertification."
+      }
+    },
+    {
+      "id": "grid_equipment",
+      "name": "Distribution transformers and switchgear (utility side)",
+      "what_it_does": "Utility pad-mount or pole transformers and switchgear serving the home. Matters if a battery install needs a service upgrade or new interconnection.",
+      "lead_time": {
+        "value": "distribution transformers about 30 weeks average in Q2 2025 (down from 100+ in 2023); switchgear 44 weeks; power transformers 128 weeks",
+        "unit": "weeks",
+        "quote": "Distribution lead times averaged 30 weeks in Q2 compared to a 100+ week peak in 2023.",
+        "url": "https://eepower.com/market-insights/transformer-supply-chain-woes-persist-as-energy-demand-grows/",
+        "publisher": "EE Power, citing Wood Mackenzie Q2 2025 survey",
+        "date": null,
+        "more": [
+          {
+            "quote": "while switchgear edged down to an average of 44 weeks.",
+            "url": "https://www.woodmac.com/es/news/opinion/mind-the-gap-tackling-supply-chain-challenges-in-the-electric-td-sector",
+            "publisher": "Wood Mackenzie",
+            "date": "2025-10-15"
+          },
+          {
+            "quote": "Power transformer lead times also eased in Q2, falling by 10 weeks to an average of 128 weeks.",
+            "url": "https://www.woodmac.com/es/news/opinion/mind-the-gap-tackling-supply-chain-challenges-in-the-electric-td-sector",
+            "publisher": "Wood Mackenzie",
+            "date": "2025-10-15"
+          },
+          {
+            "quote": "all recorded steady increases in Q2, however.",
+            "context": "refers to pad-mount one- and three-phase transformers, reclosers, and wire and cable",
+            "url": "https://www.woodmac.com/es/news/opinion/mind-the-gap-tackling-supply-chain-challenges-in-the-electric-td-sector",
+            "publisher": "Wood Mackenzie",
+            "date": "2025-10-15"
+          }
+        ]
+      },
+      "price_trend": {
+        "value": "some distribution transformer classes up as much as 95% since 2019; MV switchgear up 50% since 2021",
+        "quote": "some classes of distribution transformers rising as much as 95%",
+        "url": "https://www.powermag.com/transformers-in-2026-shortage-scramble-or-self-inflicted-crisis",
+        "publisher": "POWER Magazine",
+        "date": "2026-01-02",
+        "more": [
+          {
+            "quote": "circuit breakers have jumped 47% since 2021, with medium-voltage switchgear up 50%",
+            "url": "https://www.powermag.com/transformers-in-2026-shortage-scramble-or-self-inflicted-crisis",
+            "publisher": "POWER Magazine",
+            "date": "2026-01-02"
+          }
+        ]
+      },
+      "concentration": {
+        "value": "about 50% of US distribution transformer supply imported in 2025; 10% supply deficit",
+        "quote": "a supply shortage for power and distribution transformers to hit 30% and 10%, respectively, in 2025.",
+        "url": "https://www.woodmac.com/press-releases/power-transformers-and-distribution-transformers-will-face-supply-deficits-of-30-and-10-in-2025/",
+        "publisher": "Wood Mackenzie",
+        "date": "2025-08-14"
+      },
+      "policy": [
+        {
+          "name": "Section 232 steel/aluminum derivatives and copper",
+          "status": "in effect",
+          "value": "steel and aluminum content at 50%, copper up to 50%",
+          "quote": "Section 232 steel and aluminum duties have been expanded to hundreds of additional tariff lines",
+          "url": "https://www.powermag.com/transformers-in-2026-shortage-scramble-or-self-inflicted-crisis",
+          "publisher": "POWER Magazine",
+          "date": "2026-01-02"
+        }
+      ],
+      "alternatives": [
+        {
+          "name": "Avoid the upgrade",
+          "note": "A battery sized to the existing service and run behind the meter may avoid new utility equipment entirely.",
+          "url": null,
+          "basis": "inference"
+        }
+      ],
+      "risk_note": "Average distribution transformer waits have eased to about 30 weeks, but pad-mount units were still getting longer in 2025, so any install that triggers a utility upgrade can stall for months.",
+      "our_read": {
+        "label": "Long wait, utility side",
+        "rank": 5,
+        "why": "Only matters when an install triggers a utility upgrade. Sizing to the existing service avoids it."
+      }
+    },
+    {
+      "id": "labor",
+      "name": "Electricians and install labor",
+      "what_it_does": "Installs the unit and the transfer equipment at each home.",
+      "lead_time": null,
+      "lead_time_note": "not found",
+      "price_trend": null,
+      "concentration": {
+        "value": "About 72,700 electrician openings per year projected 2025 to 2035; employment to grow 9%, much faster than average",
+        "quote": "About 72,700 openings for electricians are projected each year, on average, over the decade.",
+        "url": "https://www.bls.gov/ooh/Construction-and-Extraction/Electricians.htm",
+        "publisher": "US Bureau of Labor Statistics, Occupational Outlook Handbook",
+        "date": "2025-2035 projections, checked 2026-11-01"
+      },
+      "policy": [],
+      "alternatives": [
+        {
+          "name": "In-house installer crews",
+          "note": "Not sourced for Base specifically.",
+          "url": null,
+          "basis": "inference"
+        }
+      ],
+      "risk_note": "Electrician demand is growing faster than average, which can slow install pace in new markets.",
+      "our_read": {
+        "label": "Pace",
+        "rank": 6,
+        "why": "Not a part, but it sets how fast new markets ramp."
+      }
+    },
+    {
+      "id": "metals",
+      "name": "Enclosure steel/aluminum and copper wiring and busbars",
+      "what_it_does": "Outdoor IP67 enclosure, racking, busbars and cabling.",
+      "lead_time": null,
+      "lead_time_note": "not found",
+      "price_trend": {
+        "value": "US Midwest aluminum premium hit a record $1.19/lb in June 2026, $1.09/lb in September; Comex copper record about $6.88/lb in August 2026",
+        "quote": "is high at $1.09 per lb, or $2,403 per metric ton, but has eased from a record $1.19 in June.",
+        "url": "https://www.kitco.com/news/off-the-wire/2026-09-10/cutting-canada-tariffs-alone-wont-flatten-us-aluminum-premium-alcoa",
+        "publisher": "Kitco (Reuters wire)",
+        "date": "2026-09-10",
+        "more": [
+          {
+            "quote": "rose to $6.8795 per pound in August, another all-time high",
+            "url": "https://www.barchart.com/story/news/4323062/is-copper-going-to-trade-7-per-pound",
+            "publisher": "Barchart",
+            "date": "2026-08",
+            "source_quality": "quote from search summary, exact date not verified"
+          }
+        ]
+      },
+      "concentration": null,
+      "concentration_note": "not found",
+      "policy": [
+        {
+          "name": "Section 232 copper",
+          "status": "in effect since 2025-08-01",
+          "value": "50% on semi-finished copper (wire, rod, sheet, tube) and copper-intensive derivatives, on copper content",
+          "quote": "impose a 50% tariff on all imports of semi-finished copper products (e.g., copper pipes, wires, rods, sheets, and tubes)",
+          "url": "https://www.thompsoncoburn.com/insights/trump-administration-issues-proclamation-imposing-50-section-232-tariffs-export-controls-on-some-copper-scrap/",
+          "publisher": "Thompson Coburn",
+          "date": "2025-07-31"
+        },
+        {
+          "name": "Section 232 steel and aluminum (50% since 2025-06-04; 407 derivative lines added 2025-08-18)",
+          "status": "in effect",
+          "value": "50% on steel/aluminum content",
+          "quote": "these products will now be subject to the Section 232 tariff on steel and aluminum, currently set at 50%",
+          "url": "https://www.thompsonhinesmartrade.com/2025/08/bis-adds-407-derivative-products-now-subject-to-the-section-232-tariff-on-steel-and-aluminum/",
+          "publisher": "Thompson Hine SmarTrade",
+          "date": "2025-08"
+        }
+      ],
+      "alternatives": [
+        {
+          "name": "Domestic steel and aluminum fabricators (Texas)",
+          "note": "Base says many component suppliers are in Texas.",
+          "url": "https://tbpn-digest.vercel.app/story/2025-10-08/base-power-raises-1b-series-c-and-opens-its-first-austin-factory-to-scale-home-battery-storage-across-texas"
+        }
+      ],
+      "risk_note": "Metals are available but US prices carry a 50% tariff premium, so this is a cost risk, not a shortage risk.",
+      "our_read": {
+        "label": "Cost",
+        "rank": 7,
+        "why": "Available, but at a tariff premium. A cost risk, not a shortage risk."
+      }
+    }
+  ],
+  "gaps": [
+    "Base's cell supplier and cell origin: not found. The April 2025 CNBC piece said earlier batteries were made in China; no source names the Base Core cell maker.",
+    "Several pages returned 403 (energy-storage.news, eepower, computerweekly, climatebase, techspot, solarbuildermag); their quotes come from search snippets and are marked.",
+    "Whether China is in the 10% or 12.5% tier of the July 24, 2026 Section 301 regime, and whether it stacks on the older China 301 duties: not confirmed.",
+    "LFP cell lead time in weeks: not found; only order backlog language from SMM.",
+    "No dated 2026 distribution transformer lead time in weeks from WoodMac/NREL/DOE/NEMA found; latest is the Q2 2025 survey. NREL and DOE figures not collected.",
+    "Cellular module lead times: not found.",
+    "Steel price trend (HRC) for enclosures: not collected.",
+    "DRAM vendor concentration share numbers: not collected.",
+    "BNEF and some price quotes come from search summaries rather than fetched pages; verify wording before publishing.",
+    "The 2026 foreign-content threshold for storage tax credits was left out: only a low-credibility source gave a number. See IRS Notice 2026-15 for the rule itself."
+  ],
+  "about": "One home battery, part by part: how long each part takes to get, where prices are heading, where it comes from, and which 2026 US rules touch it. Every number links to a dated public source. \"Our read\" is this site's judgment, not a source. Independent, not affiliated with Base Power."
+}

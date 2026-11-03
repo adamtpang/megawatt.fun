@@ -1,6 +1,6 @@
-/* Shared design system, aligned to Base Power's public tokens (basepowercompany.com).
-   Paper surface, green-90 text, green-20 actions. Loaded LAST on most pages so these tokens win.
-   PP Neue Montreal is Base's face and is not redistributed. Instrument Sans (OFL, /fonts) is the face this site ships. */
+/* Shared Megawatt system. Instrument Sans (OFL, /fonts) is the shipped face; Base's PP Neue Montreal is not redistributed.
+    Base public tokens verified 2026-10-19.
+   Source and deliberate differences: docs/design-system.md. */
 @font-face {
   font-family: "Instrument Sans";
   src: url("/fonts/instrument-sans-latin-400-normal.woff2") format("woff2");
@@ -29,108 +29,245 @@
   font-style: normal;
   font-display: swap;
 }
-
 :root {
   color-scheme: light;
-  --bpc-grey-100: #292826;
-  --bpc-grey-80: #54524f;
-  --bpc-grey-60: #7f7d7a;
-  --bpc-grey-40: #a9a8a7;
-  --bpc-grey-20: #d8d7d5;
-  --bpc-grey-5: #f0eeeb;
-  --bpc-white: #fff;
-  --bpc-green-100: #102a17;
-  --bpc-green-90: #1e4d2b;
-  --bpc-green-60: #77a45a;
-  --bpc-green-20: #b2dd79;
-  --bpc-green-5: #d6f0b4;
-  --bpc-orange-90: #742c0b;
-  --bpc-orange-60: #ed6c30;
-  --bpc-orange-5: #fbe3d8;
-  --bpc-red-80: #c51808;
-  --bpc-red-5: #ffccc7;
-  --bpc-blue-60: #048ee5;
-  --bpc-yellow-20: #f7c33c;
-  --sans: "PP Neue Montreal", "Instrument Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-
-  /* names older pages already use */
-  --night: var(--bpc-grey-5);
-  --panel: var(--bpc-white);
-  --panel-solid: var(--bpc-white);
-  --line: var(--bpc-grey-20);
-  --ink: var(--bpc-grey-100);
-  --muted: var(--bpc-grey-80);
-  --lamp: var(--bpc-green-90);
-  --lamp-dim: var(--bpc-green-60);
-  --rung: var(--bpc-blue-60);
-  --good: var(--bpc-green-90);
-  --bad: var(--bpc-red-80);
-  --energy: var(--bpc-orange-60);
-  --livewire: var(--bpc-green-20);
-  --display: var(--sans);
-  --body: var(--sans);
-  --mono: "SF Mono", Monaco, Consolas, "Liberation Mono", ui-monospace, monospace;
-
-  --bg: var(--bpc-grey-5);
-  --dim: var(--bpc-grey-80);
-  --faint: var(--bpc-grey-60);
-  --charge: var(--bpc-green-90);
-  --discharge: var(--bpc-orange-60);
-  --idle: var(--bpc-grey-20);
-  --raised: var(--bpc-white);
-  --accent: var(--bpc-green-90);
-  --gold: var(--bpc-yellow-20);
-  --deep: var(--bpc-grey-5);
+  --surface: #f0eeeb;
+  --surface-raised: #fff;
+  --brand: #b2dd79;
+  --brand-foreground: #1e4d2b;
+  --brand-hover: #77a45a;
+  --brand-subtle: #d6f0b4;
+  --charcoal: #292826;
+  --line: #d8d7d5;
+  --ink: var(--charcoal);
+  --muted: #54524f;
+  --faint: #7f7d7a;
+  --good: #77a45a;
+  --bad: #bf5249;
+  --error: #c51808;
+  --body: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --display: var(--body);
+  --mono: "SF Mono", Monaco, Consolas, "Liberation Mono", monospace;
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+  --space-6: 24px; --space-8: 32px; --space-12: 48px; --space-16: 64px;
+  --radius-control: 8px; --radius-panel: 16px;
+  /* Compatibility with the existing Guide, Roadmap and energy illustrations. */
+  --night: var(--surface); --bg: var(--surface);
+  --panel-solid: var(--surface-raised); --panel: var(--surface-raised);
+  --lamp: var(--brand-foreground); --lamp-dim: var(--good); --dim: var(--muted);
+  --rung: #048ee5; --charge: var(--good); --discharge: var(--lamp);
+  --idle: var(--line); --raised: #e5e3df; --accent: var(--lamp);
+  --gold: #aa8422; --deep: #102a17;
 }
+body { background: var(--surface); color: var(--ink); font: 16px/1.5 var(--body); letter-spacing: normal; }
+a { color: var(--lamp); }
+a:hover { color: var(--ink); }
+.mono,code { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+h1,h2,h3 { color: var(--ink); font-family: var(--display); font-weight: 600; letter-spacing: normal; text-wrap: balance; }
+h1 { font-size: clamp(36px,5vw,48px); line-height: 1.1; }
+h2 { line-height: 1.2; }
+.intro h1,.hero h1,.section-heading h2,.milestone-main h3 { font-family: var(--display); font-weight: 600; letter-spacing: normal; }
+.intro h1 { font-size: clamp(36px,5vw,48px); line-height: 1.1; }
+.hero h1 span,h1 .fun { color: var(--lamp); }
+.eyebrow,.kicker,.tool-tag,.section-index { font-family: var(--body); text-transform: none; letter-spacing: normal; color: var(--muted); }
+button,input,select,textarea { font-family: var(--body); }
+button,a,input,select,summary { -webkit-tap-highlight-color: transparent; }
+:focus-visible { outline: 3px solid var(--lamp); outline-offset: 4px; }
+button:active,.btn:active,.button:active { transform: scale(.98); }
+input,select,textarea { color-scheme: light; color: var(--ink); background-color: #fff; border-color: var(--line); border-radius: var(--radius-control); }
+input[type=range] { accent-color: var(--brand-foreground); }
+.btn,.button { background: var(--brand); color: var(--brand-foreground); border: 1px solid transparent; border-radius: var(--radius-control); font-weight: 600; }
+.btn:hover,.button:hover { background: var(--brand-hover); color: var(--deep); }
 
-body { background: var(--bpc-grey-5); color: var(--ink); font-family: var(--sans); font-weight: 500; letter-spacing: .2px; }
-a { color: var(--bpc-green-90); }
-a:hover { color: var(--bpc-green-100); }
-.mono, code { font-family: var(--mono); font-variant-numeric: tabular-nums; letter-spacing: 0; }
-h1, h2, h3 { font-family: var(--sans); font-weight: 600; letter-spacing: 0; text-wrap: balance; }
-:focus-visible { outline: 2px solid var(--bpc-green-90); outline-offset: 3px; }
-.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--bpc-green-90); margin: 0 0 8px; }
-
-/* header matches the public marketing bar: 53px, paper, green wordmark */
-.site-top {
-  position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 16px;
-  min-height: 53px; padding: 0 20px; margin: 0;
-  background: var(--bpc-grey-5); border-bottom: 1px solid var(--bpc-grey-20);
-  font: 500 14px/1 var(--sans); letter-spacing: .2px;
-}
-.site-top .brand { color: var(--ink); text-decoration: none; font-weight: 600; letter-spacing: 0; font-size: 16px; }
-.site-top .brand span { color: var(--bpc-green-90); }
-.site-top nav { display: flex; gap: 16px; overflow-x: auto; white-space: nowrap; scrollbar-width: none; min-width: 0; }
-.site-top nav a { color: var(--bpc-grey-80); text-decoration: none; padding: 16px 0; font-weight: 500; }
-.site-top nav a:hover { color: var(--ink); }
-.site-top nav a[aria-current="page"] { color: var(--bpc-green-90); box-shadow: inset 0 -2px 0 var(--bpc-green-90); }
-@media (max-width: 560px) {
-  .site-top nav { gap: 12px; font-size: 13px; -webkit-mask-image: linear-gradient(90deg, #000 82%, transparent); mask-image: linear-gradient(90deg, #000 82%, transparent); padding-right: 24px; }
-}
-
-.site-bottom {
-  position: relative; z-index: 1; margin-top: 56px; padding: 20px; border-top: 1px solid var(--bpc-grey-20);
-  font-size: 13px; color: var(--bpc-grey-80); text-align: center; background: var(--bpc-grey-5);
-}
-.site-bottom a { margin: 0 6px; color: var(--bpc-grey-80); }
-.site-bottom a:hover { color: var(--bpc-green-90); }
-
+/* Navigation is shared; the tool does not borrow Base's identity or hero. */
+.site-top { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 32px; margin: 0; padding: 12px max(32px,calc((100vw - 1312px)/2)); background: var(--surface); color: var(--ink); border: 0; font: 16px/1.5 var(--body); }
+.site-top .brand { color: var(--ink); text-decoration: none; font: 600 20px/1.2 var(--body); letter-spacing: -.03em; }
+.site-top .brand span { color: var(--ink); }
+.site-top nav { display: flex; align-items: center; gap: 4px; min-width: 0; margin-right: auto; white-space: nowrap; overflow: visible; padding: 0; mask-image: none; -webkit-mask-image: none; }
+.site-top nav a { text-decoration: none; }
+.site-top nav > a,.nav-more > summary { min-height: 44px; display: flex; align-items: center; padding: 8px 14px; border-radius: var(--radius-control); color: var(--ink); font-weight: 500; }
+.site-top nav > a:hover,.nav-more[open] > summary,.nav-more.is-current > summary { color: var(--brand-foreground); background: var(--surface-raised); }
+.site-top nav > a[aria-current=page] { color: var(--brand-foreground); background: var(--surface-raised); border-bottom: 0; }
+.site-top :focus-visible { outline-color: var(--brand-foreground); }
+.nav-more { position: relative; }
+.nav-more > summary { cursor: pointer; list-style: none; gap: 6px; }
+.nav-more > summary::-webkit-details-marker { display: none; }
+.nav-more > summary::after { content: '⌄'; }
+.nav-more-menu { position: absolute; right: 0; top: 48px; width: 210px; border: 1px solid var(--line); border-radius: var(--radius-panel); padding: 8px; background: #fff; box-shadow: 0 8px 24px #2928261f; }
+.site-top .nav-more-menu a { display: flex; align-items: center; min-height: 44px; padding: 10px 12px; border-radius: var(--radius-control); border-bottom: 0; color: var(--charcoal); }
+.site-top .nav-more-menu a:hover { background: var(--surface); }
+.site-top .nav-more-menu a[aria-current=page] { color: var(--brand-foreground); background: var(--brand-subtle); }
+.nav-more-menu :focus-visible { outline-color: var(--lamp); }
+.site-bottom { position: relative; z-index: 1; margin-top: 56px; padding: 24px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); text-align: center; background: var(--surface); }
+.site-bottom a { margin: 0 6px; color: var(--muted); }
+.site-bottom a:hover { color: var(--lamp); }
+.site-bottom .footer-links { display: flex; flex-wrap: wrap; gap: 18px; justify-content: center; }
+.site-bottom .footer-links a { margin: 0; }
+.site-bottom p { margin: 14px auto 0; max-width: 70ch; }
 .page-note { max-width: 860px; margin: 44px auto 0; padding: 0 20px; font-size: 13px; color: var(--muted); text-align: center; }
 .page-note + .site-bottom { margin-top: 12px; }
 
-.intro h1, .section-heading h2, .milestone-main h3, .hero h1 { font-family: var(--sans); font-weight: 600; letter-spacing: 0; }
-.hero h1 span, h1 .fun { color: var(--bpc-green-90); }
+.card,.tile,.panel,.metric-card,.milestone-detail,.physical-meter,.scoreboard,.contribution-detail,.stat { background: var(--surface-raised); border-color: var(--line); box-shadow: none; border-radius: var(--radius-panel); }
+.tools-intro { margin: 32px 0; }
+.tools-intro h1 { font-size: clamp(32px,5vw,48px); font-weight: 600; }
+.tools-intro p { color: var(--muted); font-size: 17px; }
+.tool-directory { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+.tool-directory > a { display: flex; flex-direction: column; gap: 16px; padding: 32px; background: #fff; border: 1px solid transparent; border-radius: var(--radius-panel); color: var(--ink); text-decoration: none; }
+.tool-directory > a:hover { border-color: var(--lamp); }
+.tool-directory h2 { font-size: 24px; font-weight: 600; margin: 0; }
+.tool-directory p { font-size: 15px; color: var(--muted); margin: 0; line-height: 1.6; }
+.tool-directory span { margin-top: auto; color: var(--lamp); font-size: 14px; font-weight: 600; }
+.tool-notes { margin-top: 32px; }
+.tool-notes > summary { cursor: pointer; color: var(--muted); font-size: 14px; }
 
-/* primary action: green-20 fill, green-90 label, 8px radius */
-.door a, .button-link.primary, .seg-btn[aria-pressed="true"] {
-  background: var(--bpc-green-20); color: var(--bpc-green-90); border: 1px solid transparent; border-radius: 8px;
+/* Existing diagrams retain their geometry, with the same shared palette. */
+.plot text,.chart text,.climb-map text { fill: var(--muted); }
+.rung.here,.rung.lit { box-shadow: none; }
+.readout,.formula,.stat { color: var(--ink); }
+.field select { background: #fff; border-radius: var(--radius-control); }
+.alert { background: #ffccc7; color: #9a1306; }
+.seg-btn[aria-pressed=true] { background: var(--brand); color: var(--brand-foreground); border-color: transparent; }
+.vc-chart,.vc-head { background: #fff; }
+.vc-plot .lab,.vc-plot .dot { stroke: #fff; }
+.vc-plot .ax { stroke: var(--line); }
+.vc-plot .badge { fill: var(--brand); }
+.day-chart .dl.short { fill: #a12e26; }
+.day-chart .dl.bat,.day-chart .dl.charge { fill: var(--brand-foreground); }
+.n-grid,.n-house { fill: #fff; stroke: var(--muted); }
+.n-grid.short { fill: var(--brand-subtle); }
+.n-grid.down { fill: #ffccc7; }
+.n-bat { stroke: var(--muted); }
+.n-win { fill: var(--line); }
+.n-win.on { fill: var(--brand); }
+@media(max-width:700px) { .tool-directory { grid-template-columns: 1fr; } }
+@media(max-width:560px) { .site-top { padding: 10px 16px; gap: 12px; }.site-top nav { gap: 0; font-size: 14px; }.site-top nav > a,.nav-more > summary { padding: 8px; }.site-top .brand { font-size: 18px; }.tool-directory > a { padding: 24px; } }
+@media(prefers-reduced-motion:reduce) { html { scroll-behavior: auto; }button:active,.btn:active,.button:active { transform: none; } }
+
+/* Narrow phones: keep the shared header inside 375px. */
+@media (max-width: 480px) {
+  .site-top { gap: 6px; padding-left: 12px; padding-right: 12px; }
+  .site-top .brand { font-size: 18px; }
+  .site-top nav > a, .nav-more > summary { padding: 8px 6px; }
+  .site-top .nav-more-menu { right: 0; left: auto; max-width: calc(100vw - 24px); }
 }
-.door a { display: inline-block; margin: 0 8px 8px 0; padding: 8px 14px; text-decoration: none; font-family: var(--sans); font-size: 14px; font-weight: 600; }
-.door a:hover, .button-link.primary:hover { background: var(--bpc-green-60); color: var(--bpc-green-100); }
-.button-link { border-radius: 8px; border-color: var(--bpc-green-90); color: var(--bpc-green-90); font-weight: 600; }
-.card, .panel, .path, .pic, .stat, .readout {
-  background: var(--bpc-white); color: var(--ink); border-color: var(--line); backdrop-filter: none;
+
+/* The five home-battery company tools link to each other. */
+.gift-set { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; max-width: 960px; margin: 32px auto 0; padding: 16px; border-radius: var(--radius-panel); background: var(--surface-raised); }
+.gift-set span { flex: 1 0 100%; font-size: 13px; color: var(--muted); }
+.gift-set a { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 14px; border: 1px solid var(--line); border-radius: var(--radius-control); color: var(--ink); text-decoration: none; font-weight: 500; font-size: 15px; }
+.gift-set a:hover { border-color: var(--brand-foreground); color: var(--brand-foreground); }
+.gift-set a[aria-current=page] { background: var(--brand-subtle); border-color: transparent; color: var(--brand-foreground); }
+
+/* Use your own data panel (yourdata.js), shared by every tool. */
+.yd { margin: 16px 0; border: 1px solid var(--line); border-radius: var(--radius-panel); background: var(--surface-raised); }
+.yd > summary { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 12px 16px; cursor: pointer; font-weight: 600; color: var(--ink); list-style: none; }
+.yd > summary::-webkit-details-marker { display: none; }
+.yd > summary::after { content: '+'; margin-left: auto; font-weight: 400; color: var(--muted); }
+.yd[open] > summary::after { content: '\2212'; }
+.yd-badge { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--brand); color: var(--brand-foreground); }
+.yd-body { padding: 0 16px 16px; }
+.yd-lede { margin: 0 0 12px; color: var(--muted); font-size: 15px; }
+.yd-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.yd-btn { display: inline-flex; align-items: center; min-height: 44px; padding: 10px 16px; border: 1px solid var(--line); border-radius: var(--radius-control); background: #fff; color: var(--ink); font: 600 15px/1.2 var(--body); cursor: pointer; }
+.yd-btn:hover { border-color: var(--brand-foreground); }
+.yd-primary { background: var(--brand); border-color: transparent; color: var(--brand-foreground); }
+.yd-primary:hover { background: var(--brand-hover); }
+.yd-file { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
+.yd-file:focus-visible + .yd-btn, .yd-file:focus-visible ~ label { outline: 3px solid var(--brand-foreground); outline-offset: 2px; }
+.yd-status:empty { display: none; }
+.yd-status { margin-top: 12px; padding: 12px; border-radius: 12px; font-size: 14px; }
+.yd-status p { margin: 0; }
+.yd-status ul { margin: 6px 0 0; padding-left: 20px; }
+.yd-status.is-ok { background: var(--brand-subtle); color: var(--brand-foreground); }
+.yd-status.is-error { background: #ffccc7; color: #9a1306; }
+.yd-small { margin: 10px 0 0; font-size: 13px; }
+
+/* ===== Base design system components =====
+   Mirrors the public --bpc tokens and component rules on basepowercompany.com
+   (MarketingLayout CSS, measured 2026-10-19, see docs/design-system.md).
+   Deliberate differences: Instrument Sans stands in for the licensed PP Neue
+   Montreal, and muted text uses grey-80 (#54524f) instead of grey-60 so small
+   text passes WCAG AA contrast on the #f0eeeb canvas. */
+:root {
+  --green-100: #102a17; --green-90: #1e4d2b; --green-60: #77a45a; --green-20: #b2dd79; --green-5: #d6f0b4;
+  --orange-90: #742c0b; --orange-60: #ed6c30; --orange-40: #f09064; --orange-5: #fbe3d8;
+  --blue-100: #07314b; --blue-80: #06507e; --blue-60: #048ee5; --blue-40: #68baed; --blue-10: #cce5f5;
+  --yellow-80: #5e4507; --yellow-60: #aa8422; --yellow-20: #f7c33c; --yellow-5: #fdf1d3;
+  --red-80: #c51808; --red-20: #ff948a; --red-5: #ffccc7;
+  --grey-100: #292826; --grey-80: #54524f; --grey-60: #7f7d7a; --grey-40: #a9a8a7; --grey-20: #d8d7d5; --grey-5: #f0eeeb;
+  --border-active: var(--grey-100);
+  --text-display-md: 2.75rem; --text-display-sm: 1.875rem;
+  --text-heading-md: 1.625rem; --text-heading-sm: 1.25rem;
+  --text-body-md: .875rem; --text-body-sm: .75rem;
+  --radius-sm: 4px;
 }
-@media (max-width: 700px) {
-  .card, .panel { background: var(--bpc-white); backdrop-filter: none; }
+
+/* Eyebrow: small caps label above a heading. */
+.eyebrow, .kicker, .tool-tag, .section-index, .lp-eyebrow { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 8px; font: 600 var(--text-body-sm)/1.5 var(--body); letter-spacing: .12em; text-transform: uppercase; color: var(--green-90); }
+
+/* Tool page type scale (Base heading tokens). */
+.tool-page h1 { font-size: var(--text-display-sm); line-height: 1.2; font-weight: 600; letter-spacing: 0; margin: 0 0 12px; }
+.tool-page h2 { font-size: var(--text-heading-sm); line-height: 1.35; font-weight: 600; margin: 0 0 8px; }
+.tool-page h3 { font-size: 1rem; line-height: 1.35; font-weight: 600; margin: 0 0 6px; }
+.tool-page .lede { font-size: 1.125rem; line-height: 1.5; color: var(--grey-80); max-width: 62ch; }
+@media (min-width: 760px) {
+  .tool-page h1 { font-size: var(--text-display-md); line-height: 1.1; }
+  .tool-page h2 { font-size: var(--text-heading-md); line-height: 1.2; }
+  .tool-page h3 { font-size: var(--text-heading-sm); }
 }
+
+/* Badge: 4px corners, uppercase, 12px. */
+.badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--radius-sm); font: 500 var(--text-body-sm)/1.5 var(--body); letter-spacing: 0; text-transform: uppercase; white-space: nowrap; vertical-align: middle; background: var(--grey-20); color: var(--grey-100); }
+.badge-green { background: var(--green-5); color: var(--green-90); }
+.badge-solid { background: var(--green-20); color: var(--green-90); }
+.badge-white { background: #fff; color: var(--grey-100); box-shadow: inset 0 0 0 1px var(--grey-20); }
+.badge-yellow { background: var(--yellow-5); color: var(--yellow-80); }
+.badge-orange { background: var(--orange-5); color: var(--orange-90); }
+.badge-red { background: var(--red-5); color: var(--red-80); }
+.badge-blue { background: var(--blue-10); color: var(--blue-80); }
+
+/* Buttons. */
+.btn, .button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 12px 16px; border-radius: var(--radius-control); border: 1px solid transparent; font: 600 1rem/1.5 var(--body); letter-spacing: 0; text-decoration: none; cursor: pointer; transition: background-color .15s, border-color .15s, color .15s; background: var(--green-20); color: var(--green-90); }
+.btn:hover, .button:hover { background: var(--green-60); color: var(--green-90); }
+.btn-outline { background: transparent; border-color: var(--border-active); color: var(--grey-100); }
+.btn-outline:hover { background: transparent; border-color: var(--green-90); color: var(--green-90); }
+.btn-sm { min-height: 36px; padding: 6px 12px; font-size: var(--text-body-md); }
+.btn:disabled, .btn[aria-disabled=true] { opacity: .5; cursor: not-allowed; }
+
+/* Card. */
+.card, .ds-card { background: #fff; border: 1px solid var(--grey-20); border-radius: var(--radius-panel); }
+
+/* Inputs and selects. */
+.tool-page input[type=text], .tool-page input[type=number], .tool-page input[type=search], .tool-page input:not([type]), .tool-page select, .tool-page textarea { min-height: 44px; padding: 8px 12px; border: 1px solid var(--grey-20); border-radius: var(--radius-control); background: #fff; color: var(--grey-100); font: 400 1rem/1.5 var(--body); }
+.tool-page input:hover, .tool-page select:hover { border-color: var(--grey-60); }
+.tool-page input:focus-visible, .tool-page select:focus-visible, .tool-page textarea:focus-visible { outline: 2px solid var(--green-90); outline-offset: 1px; border-color: var(--grey-100); }
+
+/* Compact panels (the map's floating panel) use the heading-md size for h1. */
+.tool-page .mm-panel h1 { font-size: var(--text-heading-md); line-height: 1.2; }
+
+/* Segmented control (pressed buttons). */
+.tool-page [aria-pressed=true] { background: var(--green-20); border-color: transparent; color: var(--green-90); transition: none; }
+
+/* Data table. */
+.ds-table { width: 100%; border-collapse: collapse; font-size: var(--text-body-md); font-variant-numeric: tabular-nums; }
+.ds-table thead th { text-align: left; font: 600 var(--text-body-sm)/1.5 var(--body); letter-spacing: .04em; text-transform: uppercase; color: var(--grey-80); padding: 8px 12px; border-bottom: 1px solid var(--grey-100); }
+.ds-table tbody th { text-align: left; font-weight: 500; padding: 10px 12px; border-bottom: 1px solid var(--grey-20); vertical-align: top; }
+.ds-table td { padding: 10px 12px; border-bottom: 1px solid var(--grey-20); vertical-align: top; }
+.ds-table .num { text-align: right; }
+
+/* Notice: a tinted note for disclaimers and status. */
+.notice { padding: 12px 16px; border-radius: var(--radius-control); background: var(--yellow-5); color: var(--yellow-80); font-size: var(--text-body-md); }
+.notice-green { background: var(--green-5); color: var(--green-90); }
+.notice .badge-yellow { box-shadow: inset 0 0 0 1px var(--yellow-60); }
+.notice-red { background: var(--red-5); color: var(--red-80); }
+
+/* Shared panel and gift strip follow the system. */
+.yd { border-color: var(--grey-20); }
+.yd-btn:not(.yd-primary) { border-color: var(--border-active); background: transparent; }
+.yd-btn:not(.yd-primary):hover { border-color: var(--green-90); color: var(--green-90); }
+.yd-badge { border-radius: var(--radius-sm); text-transform: uppercase; font-weight: 500; background: var(--green-20); }
+.gift-set { border: 1px solid var(--grey-20); }
+.gift-set span { font: 600 var(--text-body-sm)/1.5 var(--body); letter-spacing: .12em; text-transform: uppercase; color: var(--green-90); }
+.gift-set a { border-color: var(--border-active); font-weight: 600; }
+.gift-set a:hover { border-color: var(--green-90); }
+.gift-set a[aria-current=page] { background: var(--green-20); }

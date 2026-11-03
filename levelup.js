@@ -8,7 +8,7 @@
   const big = (n) => n >= 1e12 ? fmt(n / 1e12, 1) + ' trillion' : n >= 1e9 ? fmt(n / 1e9, 1) + ' billion' : n >= 1e6 ? fmt(n / 1e6, 1) + ' million' : fmt(n);
   const SVG = 'http://www.w3.org/2000/svg';
   const el = (tag, attrs, text) => { const e = document.createElementNS(SVG, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; return e; };
-  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
 
   /* ---------- Screen 4: how much would it take ---------- */
   function levelUp(A) {
@@ -136,7 +136,7 @@
       homes.push({ cx, cy, win, lvl, jitter: Math.random() * 0.1 });
     }
     $('net').append(svg);
-    let hour = 8, soc = 0.5, storm = false, playing = !reduced, timer = null;
+    let hour = 8, soc = 0.5, storm = false, playing = !motionPreference.matches, timer = null;
     function phase(h) { if (h >= 10 && h < 16) return 'charge'; if (h >= 17 && h < 22) return 'send'; return 'hold'; }
     function tick(step = true) {
       if (step) hour = (hour + 1) % 24;
@@ -162,11 +162,11 @@
           : p === 'send' ? `<b>${clock}</b> · Demand spikes. Thousands of batteries send power to the grid at once, like one power plant, while each keeps some backup.`
             : `<b>${clock}</b> · Batteries wait, holding their charge.`;
     }
-    function play() { clearInterval(timer); if (playing) timer = setInterval(tick, 700); $('net-play').textContent = playing ? 'Pause' : 'Play'; }
-    $('net-play').addEventListener('click', () => { if (reduced) { tick(); return; } playing = !playing; play(); });
+    function play() { clearInterval(timer); if (playing && !motionPreference.matches) timer = setInterval(tick, 700); $('net-play').textContent = motionPreference.matches ? 'Step an hour' : playing ? 'Pause' : 'Play'; }
+    motionPreference.addEventListener('change', () => { playing = false; play(); });
+    $('net-play').addEventListener('click', () => { if (motionPreference.matches) { tick(); return; } playing = !playing; play(); });
     $('net-storm').addEventListener('click', () => { storm = !storm; $('net-storm').textContent = storm ? 'Restore the grid' : 'Storm: grid goes down'; if (storm) soc = Math.max(soc, 0.6); tick(false); });
     tick(false); play();
-    if (reduced) $('net-play').textContent = 'Step an hour';
   }
 
   function start() {

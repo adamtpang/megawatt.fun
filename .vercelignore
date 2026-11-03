@@ -1,0 +1,23 @@
+# Keep working notes off the public website. Vercel uploads everything in the
+# repo unless it is listed here, including notes never meant to be served.
+# Documents are allowlisted: only the files the pages link to are deployed.
+
+# No Markdown by default.
+*.md
+!demo/deployment-ops/README.md
+!demo/dispatch-bench/README.md
+!demo/dispatch-bench/RESTARTS.md
+!demo/dispatch-study/README.md
+!demo/dispatch-study/DEMO.md
+!demo/texas-deployment/README.md
+!vendor/airsup/NOTICE.md
+
+# docs/ holds working notes; only the public API reference is served.
+docs/**
+!docs/api.md
+
+# Source and tooling the site does not serve.
+.github/
+tests/
+analysis/
+interviews/

@@ -3,7 +3,7 @@
   var zone = "LZ_HOUSTON";
 
   function money(value) {
-    if (value === null || value === undefined || value !== value) return "—";
+    if (value === null || value === undefined || value !== value) return "n/a";
     var sign = value < 0 ? "−" : "";
     return sign + "$" + Math.abs(Math.round(value)).toLocaleString("en-US");
   }
@@ -82,7 +82,7 @@
     var ratio = block.p50_usd ? block.worst_usd / block.p50_usd : null;
     document.getElementById("predict").textContent =
       "Eight years. Mean " + money(block.mean_usd) + ", sample standard deviation " + money(block.stdev_usd) +
-      ". The worst year is " + (ratio === null ? "—" : Math.round(ratio * 100) + "%") +
+      ". The worst year is " + (ratio === null ? "n/a" : Math.round(ratio * 100) + "%") +
       " of the median. P90 exceedance is the 10th percentile: the revenue 90% of these years beat. " +
       "With eight years that percentile is coarse. 2021 is the spike year to read beside the median, not instead of it.";
 
@@ -140,7 +140,7 @@
       if (min === null || dscr < min) min = dscr;
       rows += "<tr><td>" + year + '</td><td class="num">' + money(revenue) +
         '</td><td class="num">' + money(payment) + '</td><td class="num">' +
-        (dscr === null ? "—" : dscr.toFixed(2)) + "</td></tr>";
+        (dscr === null ? "n/a" : dscr.toFixed(2)) + "</td></tr>";
     }
     document.getElementById("dscr-body").innerHTML = rows;
     var changed = Math.abs(energy - data.defaults.energy_kwh) > 0.05 ||
@@ -149,7 +149,7 @@
     out.textContent = note +
       "Loan balance at first operation " + money(balance) +
       " after " + delay + " months of capitalized interest. Annual payment " + money(payment) +
-      ". Lowest coverage " + (min === null ? "—" : min.toFixed(2)) +
+      ". Lowest coverage " + (min === null ? "n/a" : min.toFixed(2)) +
       " on the " + document.getElementById("case").selectedOptions[0].textContent.toLowerCase() +
       " of " + zone.replace("LZ_", "") + ". " +
       (changed ? "Energy, power, or efficiency no longer match the dispatch that produced these revenues. The dollars above are still that dispatch." : "Revenues are the dispatch at 39.2 kWh, 9.8 kW, and 90% round trip.");

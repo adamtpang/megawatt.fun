@@ -1,6 +1,74 @@
 # Megawatt
 
-A working plan for humanity to climb the Kardashev scale: measured energy, physical milestones, infrastructure workstreams, and concrete contributions. The homepage is the roadmap; battery dispatch is one supporting experiment.
+[![test](https://github.com/adamtpang/megawatt.fun/actions/workflows/test.yml/badge.svg)](https://github.com/adamtpang/megawatt.fun/actions/workflows/test.yml)
+
+Five tools for a home-battery company, plus a guide to the Kardashev scale. Each tool runs on public data out of the box, takes the company's own numbers as a CSV or JSON file, and has a JSON API that runs the same code.
+
+[Live site](https://megawatt.fun) · [The five tools](https://megawatt.fun/tools) · [File formats](https://megawatt.fun/plug-and-play) · [API](docs/api.md)
+
+Independent. Not affiliated with Base Power.
+
+## The five tools
+
+| Question | Page | API |
+| --- | --- | --- |
+| Which states should we roll out to, and where does one battery earn most? | [/market](https://megawatt.fun/market) | `POST /api/v1/market` |
+| How do we pitch a utility or co-op on a home-battery program? | [/pitch](https://megawatt.fun/pitch) | `POST /api/v1/pitch` |
+| Which parts could stop the next install (cells, power chips, memory, modems)? | [/supply](https://megawatt.fun/supply) | `POST /api/v1/supply` |
+| How much debt can one battery, and a fleet, carry? | [/finance](https://megawatt.fun/finance) | `POST /api/v1/finance` |
+| How long until the first install in a new state, and what does email tennis cost? | [/launch](https://megawatt.fun/launch) | `POST /api/v1/launch` |
+
+## Try it out
+
+The API is already running. Ask it how it's doing:
+
+```bash
+curl -s https://megawatt.fun/api/v1/health
+```
+
+It replies with `"status":"ok"`, the build, and the date of every data file. Then ask a real question, here the debt one battery can carry at your own cost and toll price:
+
+```bash
+curl -s -X POST https://megawatt.fun/api/v1/finance \
+  -H 'Content-Type: application/json' \
+  -d '{"inputs": {"capexPerKwh": 280, "tollPerKwYear": 90}}'
+```
+
+Nothing you send is stored. [docs/api.md](docs/api.md) has one example per tool, the response shapes and the error format.
+
+On the site, every tool has a **Use your own data** panel: download the template, fill it in, load it. The file is read in the browser and never uploaded.
+
+## How it works
+
+Each tool is three layers, and the page and the API share the bottom two:
+
+1. **Public data with sources**, one file per tool in `data/`. Every number is tagged sourced (with a link and a date), partly sourced, or assumption. Changing a number never needs a code change.
+2. **A pure core**, `*-core.js`, with no DOM. It validates a company's file and does the math. The same file runs in the browser, in the API (`api/v1/*.js`) and in the tests.
+3. **The page**, which renders the core's result on Base's public design system (tokens and components in `site.css`, see [docs/design-system.md](docs/design-system.md)).
+
+The rule that matters most: a company's file is checked strictly before anything uses it. A file with any problem is not used, and every problem is listed by row ("Row 4: high is below low"), so it can be fixed in one pass. Numbers from the file are tagged **Yours**; public numbers keep their sources.
+
+| Tool | Public data | Core | File format |
+| --- | --- | --- | --- |
+| Market | `data/expansion-map.json`, `data/zone-value.json` | `market-core.js`, `market-score.js`, `notes/score.js` | [market](https://megawatt.fun/plug-and-play#market) |
+| Pitch | `data/expansion-map.json`, `data/market-states.json` | `pitch-core.js` | [pitch](https://megawatt.fun/plug-and-play#pitch) |
+| Supply | `data/supply.json` | `supply-core.js` | [supply](https://megawatt.fun/plug-and-play#supply) |
+| Finance | `data/finance-defaults.json`, `data/zone-value.json` | `finance-core.js` | [finance](https://megawatt.fun/plug-and-play#finance) |
+| Launch | `data/launch-steps.json` | `launch-core.js` | [launch](https://megawatt.fun/plug-and-play#launch) |
+
+## Run the tests
+
+```bash
+node --test tests/*.test.cjs
+python -m pytest -q tests
+go test ./...
+```
+
+CI runs all three on every push (`.github/workflows/test.yml`), and also checks that `plug-and-play.html` matches `docs/plug-and-play/*.md` (rebuild with `python scripts/build-plug-docs.py`).
+
+## The Kardashev guide
+
+A working plan for humanity to climb the Kardashev scale: measured energy, physical milestones, infrastructure workstreams, and concrete contributions. Battery dispatch is one supporting experiment.
 
 ## Run the website locally
 
@@ -74,6 +142,19 @@ Optional: `python3 -m pip install pyshp` if you want the script to be able to dr
 LZ_LCRA and LZ_AEN were checked. The Base post and the 11 August 2026 DSWG deck name Houston, North, and South. The settlement-point file tags resource nodes to those three zones plus West. Phase 4, in the 7 October 2026 WMS deck, dispatches nodally and still settles at the load zone. The basis is a proxy for that gap. It is not a 100 MW revenue forecast. The note is independent of Base Power.
 
 ## Supporting dispatch work
+
+### Dispatch Bench (`/bench`)
+
+Interactive replay of the recorded 2026-09-30 Houston price day against simulated devices. Compare hold, clock, unguarded price and guarded price policies under duplicate deliveries, expiry, stale telemetry and synthetic forecast timing error. Household reserve and efficiency are configurable; command ledgers, cash versus ending-inventory accounting, exportable traces and share links make the outcomes inspectable.
+
+```sh
+node --test tests/bench.test.cjs tests/base.test.cjs
+node scripts/replay-bench.cjs
+```
+
+See [the five-minute engineer guide and model limits](demo/dispatch-bench/README.md). This reuses `base-core.js` and adds a pure command reducer in `dispatch-bench-core.js`; it is an offline simulation with no durable workers or device control. The packaging allowlist includes current guide/battery pages and the bench source ZIP, and excludes private event/application drafts.
+
+### Original Go study
 
 An independent Go demonstration, not affiliated with Base Power and using no proprietary Base data.
 
@@ -151,3 +232,17 @@ affiliated with Base Power.
 - Real-time (15-minute) prices, and a "what happened while you slept" push notification.
 - A monthly view: backup readiness, outages covered, and bill impact, stated only where measured.
 - Outage mode driven by live circuit data, so "what to turn off" is specific to the home.
+
+
+## Texas market intelligence (`/deploy`)
+
+Public ERCOT annual DAM/RTM files now cover 15 settlement points: five hubs, two hub averages and eight load zones. The cached snapshot spans October 2025–September 2026, retrieved October 19, 2026; ingestion selects the latest twelve complete Central calendar months and rejects incomplete hours. Run `python scripts/ingest-deployment.py --fetch` after installing `scripts/requirements-market.txt`, then `node scripts/replay-deployment.cjs`. Raw-file hashes and dates are in `data/deployment/manifest.json`.
+
+Dispatch charges 01:00–05:00 and discharges 17:00–21:00 Central, with losses and a reserve, against real-time prices. Monthly energy-only P&L retains losses; idle earns $0. DAM–RT spreads are diagnostics, not revenue. Property scoring exposes all four weights and withholds scores for missing active inputs. No real properties have been qualified.
+
+Unsourced scenario numbers: 25 kWh, 5 kW, 88% efficiency, 20% reserve, zero wear cost, dispatch hours, $100/MWh spike threshold, top-three spike hours, county 70/30 weights and property 40/20/20/20 weights. The optional property example is fictional; costs, areas, feeder capacity and eligibility are labeled synthetic. Base compensation, actual installation/operating costs, tariffs, loads, ancillary and reliability value are unknown. See the [five-minute demo README](demo/texas-deployment/README.md#market-intelligence-interface-and-unsourced-numbers) for every example value, method, source and test command.
+
+
+## Deployment operations (`/ops`)
+
+A Base-inspired 3D capacity study using Airsup's MIT discrete-event engine. Change crews, commissioning capacity, visit duration and queues to see the next constraint. All operating inputs are synthetic; the page is not Base telemetry or a forecast of actual operations. [Method, assumptions, video workflow and credits](demo/deployment-ops/README.md). Run `node --test tests/ops.test.cjs` and `node scripts/replay-ops.cjs` to reproduce the comparison. `FEATURE-PARITY.md` records the reference research and remaining gaps.

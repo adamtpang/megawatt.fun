@@ -2,6 +2,7 @@
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit
+import json
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -16,17 +17,25 @@ class Handler(SimpleHTTPRequestHandler):
 
     def do_GET(self):
         path = urlsplit(self.path).path
+        if path == '/api/franklin':
+            body = json.dumps({'enabled': False}).encode()
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Content-Length', str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
         if path == "/notes":
             self.path = "/notes/index.html"
         elif path == "/notes/expansion-map":
-            self.path = "/notes/expansion-map.html"
+            self.send_response(301); self.send_header("Location", "/market"); self.end_headers(); return
         elif path == "/notes/where-batteries-earn-most":
             self.path = "/notes/where-batteries-earn-most.html"
         elif path == "/notes/kardashev-stack":
             self.path = "/notes/kardashev-stack.html"
         elif path == "/notes/financing-a-home-battery":
             self.path = "/notes/financing-a-home-battery.html"
-        elif path in {"/tools", "/kardashev", "/live", "/titans", "/roadmap", "/essay", "/why", "/sources", "/base", "/about", "/contact", "/privacy"}:
+        elif path in {"/ops", "/market", "/pitch", "/launch", "/finance", "/supply", "/plug-and-play", "/deploy", "/tools", "/kardashev", "/live", "/titans", "/roadmap", "/essay", "/why", "/sources", "/base", "/bench", "/about", "/contact", "/privacy"}:
             self.path = path + ".html"
         super().do_GET()
 

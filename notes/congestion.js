@@ -103,7 +103,7 @@
   }
 
   function money(value) {
-    if (value === undefined || value === null) return "—";
+    if (value === undefined || value === null) return "n/a";
     var sign = value < 0 ? "−" : "";
     return sign + "$" + Math.abs(value).toFixed(2);
   }

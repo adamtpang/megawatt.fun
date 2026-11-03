@@ -1,0 +1,4920 @@
+{
+  "model": "dispatch-bench-v1",
+  "source": {
+    "source": "https://www.ercot.com/api/1/services/read/dashboards/systemWidePrices.json",
+    "via": "https://megawatt.fun/api/prices (server-side proxy; ercot.com blocks many non-US IPs)",
+    "downloaded": "2026-09-30T09:24:57+00:00",
+    "ercot_last_updated": "2026-09-30 04:17:00-0500",
+    "market": "Day-ahead market settlement point prices",
+    "settlement_point": "HB_HOUSTON (Houston Hub)",
+    "units": "USD per MWh",
+    "delivery_date": "2026-09-30",
+    "hours": [
+      {
+        "hour_ending": 1,
+        "usd_mwh": 30.15
+      },
+      {
+        "hour_ending": 2,
+        "usd_mwh": 28.32
+      },
+      {
+        "hour_ending": 3,
+        "usd_mwh": 26.41
+      },
+      {
+        "hour_ending": 4,
+        "usd_mwh": 26.61
+      },
+      {
+        "hour_ending": 5,
+        "usd_mwh": 27.9
+      },
+      {
+        "hour_ending": 6,
+        "usd_mwh": 29.61
+      },
+      {
+        "hour_ending": 7,
+        "usd_mwh": 32.19
+      },
+      {
+        "hour_ending": 8,
+        "usd_mwh": 32.64
+      },
+      {
+        "hour_ending": 9,
+        "usd_mwh": 29.55
+      },
+      {
+        "hour_ending": 10,
+        "usd_mwh": 26.57
+      },
+      {
+        "hour_ending": 11,
+        "usd_mwh": 28.71
+      },
+      {
+        "hour_ending": 12,
+        "usd_mwh": 32.99
+      },
+      {
+        "hour_ending": 13,
+        "usd_mwh": 42.12
+      },
+      {
+        "hour_ending": 14,
+        "usd_mwh": 41.67
+      },
+      {
+        "hour_ending": 15,
+        "usd_mwh": 42.84
+      },
+      {
+        "hour_ending": 16,
+        "usd_mwh": 46.08
+      },
+      {
+        "hour_ending": 17,
+        "usd_mwh": 51.01
+      },
+      {
+        "hour_ending": 18,
+        "usd_mwh": 57.54
+      },
+      {
+        "hour_ending": 19,
+        "usd_mwh": 59.76
+      },
+      {
+        "hour_ending": 20,
+        "usd_mwh": 53.34
+      },
+      {
+        "hour_ending": 21,
+        "usd_mwh": 56.77
+      },
+      {
+        "hour_ending": 22,
+        "usd_mwh": 64.3
+      },
+      {
+        "hour_ending": 23,
+        "usd_mwh": 51.35
+      },
+      {
+        "hour_ending": 24,
+        "usd_mwh": 46.95
+      }
+    ]
+  },
+  "sourceSha256": "59e95c27f723c89eb974f282a1b9d6bf581f9c1578c78139a548c92ea80bf78b",
+  "scenarios": [
+    {
+      "name": "clean",
+      "runs": [
+        {
+          "policy": "idle",
+          "config": {
+            "capacity": 25,
+            "power": 5,
+            "efficiency": 0.88,
+            "reserve": 0.3,
+            "fleet": 100,
+            "affected": 0.3,
+            "seed": 42,
+            "fault": "none",
+            "forecast": "known"
+          },
+          "cash": 0,
+          "inventoryMark": 0,
+          "markedValue": 0,
+          "purchased": 0,
+          "sold": 0,
+          "requested": 0,
+          "clipped": 0,
+          "rejected": 0,
+          "duplicates": 0,
+          "reserveBreaches": 0,
+          "affectedDevices": 32,
+          "endSoc": 750,
+          "initialSoc": 750,
+          "lossKwh": 0,
+          "balanceError": 0,
+          "hours": [
+            {
+              "hour": 0,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 30.15,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 1,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.32,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 2,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 26.41,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 3,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 26.61,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 4,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 27.9,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 5,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.61,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 6,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.19,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 7,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.64,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 8,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.55,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 9,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 26.57,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 10,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.71,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 11,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.99,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 12,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.12,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 13,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 41.67,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 14,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.84,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 15,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.08,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 16,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.01,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 17,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 57.54,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 18,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 59.76,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 19,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 53.34,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 20,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 56.77,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 21,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 64.3,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 22,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.35,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 23,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.95,
+              "minSoc": 7.5
+            }
+          ]
+        },
+        {
+          "policy": "clock",
+          "config": {
+            "capacity": 25,
+            "power": 5,
+            "efficiency": 0.88,
+            "reserve": 0.3,
+            "fleet": 100,
+            "affected": 0.3,
+            "seed": 42,
+            "fault": "none",
+            "forecast": "known"
+          },
+          "cash": 41.19509414536237,
+          "inventoryMark": -5.007109846785853e-15,
+          "markedValue": 41.19509414536236,
+          "purchased": 1865.506268111585,
+          "sold": 1641.645515938194,
+          "requested": 3507.151784049802,
+          "clipped": 1.7763568394002505e-13,
+          "rejected": 0,
+          "duplicates": 0,
+          "reserveBreaches": 0,
+          "affectedDevices": 32,
+          "endSoc": 749.9999999999999,
+          "initialSoc": 750,
+          "lossKwh": 223.86075217338998,
+          "balanceError": -1.3642420526593924e-12,
+          "hours": [
+            {
+              "hour": 0,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 30.15,
+              "minSoc": 12.19041575982343
+            },
+            {
+              "hour": 1,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 28.32,
+              "minSoc": 16.88083151964686
+            },
+            {
+              "hour": 2,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 26.41,
+              "minSoc": 21.571247279470292
+            },
+            {
+              "hour": 3,
+              "scheduled": -365.5062681115911,
+              "delivered": -365.5062681115908,
+              "price": 26.61,
+              "minSoc": 25
+            },
+            {
+              "hour": 4,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 27.9,
+              "minSoc": 25
+            },
+            {
+              "hour": 5,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.61,
+              "minSoc": 25
+            },
+            {
+              "hour": 6,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.19,
+              "minSoc": 25
+            },
+            {
+              "hour": 7,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.64,
+              "minSoc": 25
+            },
+            {
+              "hour": 8,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.55,
+              "minSoc": 25
+            },
+            {
+              "hour": 9,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 26.57,
+              "minSoc": 25
+            },
+            {
+              "hour": 10,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.71,
+              "minSoc": 25
+            },
+            {
+              "hour": 11,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.99,
+              "minSoc": 25
+            },
+            {
+              "hour": 12,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.12,
+              "minSoc": 25
+            },
+            {
+              "hour": 13,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 41.67,
+              "minSoc": 25
+            },
+            {
+              "hour": 14,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.84,
+              "minSoc": 25
+            },
+            {
+              "hour": 15,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.08,
+              "minSoc": 25
+            },
+            {
+              "hour": 16,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.01,
+              "minSoc": 25
+            },
+            {
+              "hour": 17,
+              "scheduled": 500,
+              "delivered": 500,
+              "price": 57.54,
+              "minSoc": 19.669982091109738
+            },
+            {
+              "hour": 18,
+              "scheduled": 500,
+              "delivered": 500,
+              "price": 59.76,
+              "minSoc": 14.339964182219477
+            },
+            {
+              "hour": 19,
+              "scheduled": 500,
+              "delivered": 500,
+              "price": 53.34,
+              "minSoc": 9.009946273329216
+            },
+            {
+              "hour": 20,
+              "scheduled": 141.64551593820036,
+              "delivered": 141.6455159382,
+              "price": 56.77,
+              "minSoc": 7.499999999999999
+            },
+            {
+              "hour": 21,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 64.3,
+              "minSoc": 7.499999999999999
+            },
+            {
+              "hour": 22,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.35,
+              "minSoc": 7.499999999999999
+            },
+            {
+              "hour": 23,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.95,
+              "minSoc": 7.499999999999999
+            }
+          ]
+        },
+        {
+          "policy": "unguarded",
+          "config": {
+            "capacity": 25,
+            "power": 5,
+            "efficiency": 0.88,
+            "reserve": 0.3,
+            "fleet": 100,
+            "affected": 0.3,
+            "seed": 42,
+            "fault": "none",
+            "forecast": "known"
+          },
+          "cash": 48.84859105949865,
+          "inventoryMark": 5.007109846785853e-15,
+          "markedValue": 48.84859105949866,
+          "purchased": 1865.5062681115858,
+          "sold": 1641.6455159381958,
+          "requested": 3507.1517840498027,
+          "clipped": 0,
+          "rejected": 0,
+          "duplicates": 0,
+          "reserveBreaches": 0,
+          "affectedDevices": 32,
+          "endSoc": 750.0000000000001,
+          "initialSoc": 750,
+          "lossKwh": 223.8607521733902,
+          "balanceError": 4.547473508864641e-13,
+          "hours": [
+            {
+              "hour": 0,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 30.15,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 1,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.32,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 2,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 26.41,
+              "minSoc": 12.19041575982343
+            },
+            {
+              "hour": 3,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 26.61,
+              "minSoc": 16.88083151964686
+            },
+            {
+              "hour": 4,
+              "scheduled": -365.506268111591,
+              "delivered": -365.5062681115908,
+              "price": 27.9,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 5,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.61,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 6,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.19,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 7,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.64,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 8,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.55,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 9,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 26.57,
+              "minSoc": 25
+            },
+            {
+              "hour": 10,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.71,
+              "minSoc": 25
+            },
+            {
+              "hour": 11,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.99,
+              "minSoc": 25
+            },
+            {
+              "hour": 12,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.12,
+              "minSoc": 25
+            },
+            {
+              "hour": 13,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 41.67,
+              "minSoc": 25
+            },
+            {
+              "hour": 14,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.84,
+              "minSoc": 25
+            },
+            {
+              "hour": 15,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.08,
+              "minSoc": 25
+            },
+            {
+              "hour": 16,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.01,
+              "minSoc": 25
+            },
+            {
+              "hour": 17,
+              "scheduled": 500,
+              "delivered": 500,
+              "price": 57.54,
+              "minSoc": 19.669982091109738
+            },
+            {
+              "hour": 18,
+              "scheduled": 500,
+              "delivered": 500,
+              "price": 59.76,
+              "minSoc": 14.339964182219477
+            },
+            {
+              "hour": 19,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 53.34,
+              "minSoc": 14.339964182219477
+            },
+            {
+              "hour": 20,
+              "scheduled": 141.64551593820008,
+              "delivered": 141.6455159381999,
+              "price": 56.77,
+              "minSoc": 12.830017908890262
+            },
+            {
+              "hour": 21,
+              "scheduled": 500,
+              "delivered": 500,
+              "price": 64.3,
+              "minSoc": 7.500000000000002
+            },
+            {
+              "hour": 22,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.35,
+              "minSoc": 7.500000000000002
+            },
+            {
+              "hour": 23,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.95,
+              "minSoc": 7.500000000000002
+            }
+          ]
+        },
+        {
+          "policy": "guarded",
+          "config": {
+            "capacity": 25,
+            "power": 5,
+            "efficiency": 0.88,
+            "reserve": 0.3,
+            "fleet": 100,
+            "affected": 0.3,
+            "seed": 42,
+            "fault": "none",
+            "forecast": "known"
+          },
+          "cash": 48.84859105949865,
+          "inventoryMark": 5.007109846785853e-15,
+          "markedValue": 48.84859105949866,
+          "purchased": 1865.5062681115858,
+          "sold": 1641.6455159381958,
+          "requested": 3507.1517840498027,
+          "clipped": 0,
+          "rejected": 0,
+          "duplicates": 0,
+          "reserveBreaches": 0,
+          "affectedDevices": 32,
+          "endSoc": 750.0000000000001,
+          "initialSoc": 750,
+          "lossKwh": 223.8607521733902,
+          "balanceError": 4.547473508864641e-13,
+          "hours": [
+            {
+              "hour": 0,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 30.15,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 1,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.32,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 2,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 26.41,
+              "minSoc": 12.19041575982343
+            },
+            {
+              "hour": 3,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 26.61,
+              "minSoc": 16.88083151964686
+            },
+            {
+              "hour": 4,
+              "scheduled": -365.506268111591,
+              "delivered": -365.5062681115908,
+              "price": 27.9,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 5,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.61,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 6,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.19,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 7,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.64,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 8,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.55,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 9,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 26.57,
+              "minSoc": 25
+            },
+            {
+              "hour": 10,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.71,
+              "minSoc": 25
+            },
+            {
+              "hour": 11,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.99,
+              "minSoc": 25
+            },
+            {
+              "hour": 12,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.12,
+              "minSoc": 25
+            },
+            {
+              "hour": 13,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 41.67,
+              "minSoc": 25
+            },
+            {
+              "hour": 14,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.84,
+              "minSoc": 25
+            },
+            {
+              "hour": 15,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.08,
+              "minSoc": 25
+            },
+            {
+              "hour": 16,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.01,
+              "minSoc": 25
+            },
+            {
+              "hour": 17,
+              "scheduled": 500,
+              "delivered": 500,
+              "price": 57.54,
+              "minSoc": 19.669982091109738
+            },
+            {
+              "hour": 18,
+              "scheduled": 500,
+              "delivered": 500,
+              "price": 59.76,
+              "minSoc": 14.339964182219477
+            },
+            {
+              "hour": 19,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 53.34,
+              "minSoc": 14.339964182219477
+            },
+            {
+              "hour": 20,
+              "scheduled": 141.64551593820008,
+              "delivered": 141.6455159381999,
+              "price": 56.77,
+              "minSoc": 12.830017908890262
+            },
+            {
+              "hour": 21,
+              "scheduled": 500,
+              "delivered": 500,
+              "price": 64.3,
+              "minSoc": 7.500000000000002
+            },
+            {
+              "hour": 22,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.35,
+              "minSoc": 7.500000000000002
+            },
+            {
+              "hour": 23,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.95,
+              "minSoc": 7.500000000000002
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "forecast-timing-error",
+      "runs": [
+        {
+          "policy": "idle",
+          "config": {
+            "capacity": 25,
+            "power": 5,
+            "efficiency": 0.88,
+            "reserve": 0.3,
+            "fleet": 100,
+            "affected": 0.3,
+            "seed": 42,
+            "fault": "none",
+            "forecast": "shift"
+          },
+          "cash": 0,
+          "inventoryMark": 0,
+          "markedValue": 0,
+          "purchased": 0,
+          "sold": 0,
+          "requested": 0,
+          "clipped": 0,
+          "rejected": 0,
+          "duplicates": 0,
+          "reserveBreaches": 0,
+          "affectedDevices": 32,
+          "endSoc": 750,
+          "initialSoc": 750,
+          "lossKwh": 0,
+          "balanceError": 0,
+          "hours": [
+            {
+              "hour": 0,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 30.15,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 1,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.32,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 2,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 26.41,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 3,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 26.61,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 4,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 27.9,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 5,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.61,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 6,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.19,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 7,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.64,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 8,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.55,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 9,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 26.57,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 10,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.71,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 11,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.99,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 12,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.12,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 13,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 41.67,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 14,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.84,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 15,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.08,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 16,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.01,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 17,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 57.54,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 18,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 59.76,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 19,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 53.34,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 20,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 56.77,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 21,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 64.3,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 22,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.35,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 23,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.95,
+              "minSoc": 7.5
+            }
+          ]
+        },
+        {
+          "policy": "clock",
+          "config": {
+            "capacity": 25,
+            "power": 5,
+            "efficiency": 0.88,
+            "reserve": 0.3,
+            "fleet": 100,
+            "affected": 0.3,
+            "seed": 42,
+            "fault": "none",
+            "forecast": "shift"
+          },
+          "cash": 41.19509414536237,
+          "inventoryMark": -5.007109846785853e-15,
+          "markedValue": 41.19509414536236,
+          "purchased": 1865.506268111585,
+          "sold": 1641.645515938194,
+          "requested": 3507.151784049802,
+          "clipped": 1.7763568394002505e-13,
+          "rejected": 0,
+          "duplicates": 0,
+          "reserveBreaches": 0,
+          "affectedDevices": 32,
+          "endSoc": 749.9999999999999,
+          "initialSoc": 750,
+          "lossKwh": 223.86075217338998,
+          "balanceError": -1.3642420526593924e-12,
+          "hours": [
+            {
+              "hour": 0,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 30.15,
+              "minSoc": 12.19041575982343
+            },
+            {
+              "hour": 1,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 28.32,
+              "minSoc": 16.88083151964686
+            },
+            {
+              "hour": 2,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 26.41,
+              "minSoc": 21.571247279470292
+            },
+            {
+              "hour": 3,
+              "scheduled": -365.5062681115911,
+              "delivered": -365.5062681115908,
+              "price": 26.61,
+              "minSoc": 25
+            },
+            {
+              "hour": 4,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 27.9,
+              "minSoc": 25
+            },
+            {
+              "hour": 5,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.61,
+              "minSoc": 25
+            },
+            {
+              "hour": 6,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.19,
+              "minSoc": 25
+            },
+            {
+              "hour": 7,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.64,
+              "minSoc": 25
+            },
+            {
+              "hour": 8,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.55,
+              "minSoc": 25
+            },
+            {
+              "hour": 9,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 26.57,
+              "minSoc": 25
+            },
+            {
+              "hour": 10,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.71,
+              "minSoc": 25
+            },
+            {
+              "hour": 11,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.99,
+              "minSoc": 25
+            },
+            {
+              "hour": 12,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.12,
+              "minSoc": 25
+            },
+            {
+              "hour": 13,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 41.67,
+              "minSoc": 25
+            },
+            {
+              "hour": 14,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.84,
+              "minSoc": 25
+            },
+            {
+              "hour": 15,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.08,
+              "minSoc": 25
+            },
+            {
+              "hour": 16,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.01,
+              "minSoc": 25
+            },
+            {
+              "hour": 17,
+              "scheduled": 500,
+              "delivered": 500,
+              "price": 57.54,
+              "minSoc": 19.669982091109738
+            },
+            {
+              "hour": 18,
+              "scheduled": 500,
+              "delivered": 500,
+              "price": 59.76,
+              "minSoc": 14.339964182219477
+            },
+            {
+              "hour": 19,
+              "scheduled": 500,
+              "delivered": 500,
+              "price": 53.34,
+              "minSoc": 9.009946273329216
+            },
+            {
+              "hour": 20,
+              "scheduled": 141.64551593820036,
+              "delivered": 141.6455159382,
+              "price": 56.77,
+              "minSoc": 7.499999999999999
+            },
+            {
+              "hour": 21,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 64.3,
+              "minSoc": 7.499999999999999
+            },
+            {
+              "hour": 22,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.35,
+              "minSoc": 7.499999999999999
+            },
+            {
+              "hour": 23,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.95,
+              "minSoc": 7.499999999999999
+            }
+          ]
+        },
+        {
+          "policy": "unguarded",
+          "config": {
+            "capacity": 25,
+            "power": 5,
+            "efficiency": 0.88,
+            "reserve": 0.3,
+            "fleet": 100,
+            "affected": 0.3,
+            "seed": 42,
+            "fault": "none",
+            "forecast": "shift"
+          },
+          "cash": 27.39337265226455,
+          "inventoryMark": 5.007109846785853e-15,
+          "markedValue": 27.393372652264553,
+          "purchased": 1865.5062681115858,
+          "sold": 1641.6455159381958,
+          "requested": 3507.1517840498027,
+          "clipped": 0,
+          "rejected": 0,
+          "duplicates": 0,
+          "reserveBreaches": 0,
+          "affectedDevices": 32,
+          "endSoc": 750.0000000000001,
+          "initialSoc": 750,
+          "lossKwh": 223.8607521733902,
+          "balanceError": 4.547473508864641e-13,
+          "hours": [
+            {
+              "hour": 0,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 30.15,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 1,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.32,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 2,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 26.41,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 3,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 26.61,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 4,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 27.9,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 5,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 29.61,
+              "minSoc": 12.19041575982343
+            },
+            {
+              "hour": 6,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 32.19,
+              "minSoc": 16.88083151964686
+            },
+            {
+              "hour": 7,
+              "scheduled": -365.506268111591,
+              "delivered": -365.5062681115908,
+              "price": 32.64,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 8,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.55,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 9,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 26.57,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 10,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.71,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 11,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.99,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 12,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 42.12,
+              "minSoc": 25
+            },
+            {
+              "hour": 13,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 41.67,
+              "minSoc": 25
+            },
+            {
+              "hour": 14,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.84,
+              "minSoc": 25
+            },
+            {
+              "hour": 15,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.08,
+              "minSoc": 25
+            },
+            {
+              "hour": 16,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.01,
+              "minSoc": 25
+            },
+            {
+              "hour": 17,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 57.54,
+              "minSoc": 25
+            },
+            {
+              "hour": 18,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 59.76,
+              "minSoc": 25
+            },
+            {
+              "hour": 19,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 53.34,
+              "minSoc": 25
+            },
+            {
+              "hour": 20,
+              "scheduled": 500,
+              "delivered": 500,
+              "price": 56.77,
+              "minSoc": 19.669982091109738
+            },
+            {
+              "hour": 21,
+              "scheduled": 500,
+              "delivered": 500,
+              "price": 64.3,
+              "minSoc": 14.339964182219477
+            },
+            {
+              "hour": 22,
+              "scheduled": 141.64551593820008,
+              "delivered": 141.6455159381999,
+              "price": 51.35,
+              "minSoc": 12.830017908890262
+            },
+            {
+              "hour": 23,
+              "scheduled": 500,
+              "delivered": 500,
+              "price": 46.95,
+              "minSoc": 7.500000000000002
+            }
+          ]
+        },
+        {
+          "policy": "guarded",
+          "config": {
+            "capacity": 25,
+            "power": 5,
+            "efficiency": 0.88,
+            "reserve": 0.3,
+            "fleet": 100,
+            "affected": 0.3,
+            "seed": 42,
+            "fault": "none",
+            "forecast": "shift"
+          },
+          "cash": 27.39337265226455,
+          "inventoryMark": 5.007109846785853e-15,
+          "markedValue": 27.393372652264553,
+          "purchased": 1865.5062681115858,
+          "sold": 1641.6455159381958,
+          "requested": 3507.1517840498027,
+          "clipped": 0,
+          "rejected": 0,
+          "duplicates": 0,
+          "reserveBreaches": 0,
+          "affectedDevices": 32,
+          "endSoc": 750.0000000000001,
+          "initialSoc": 750,
+          "lossKwh": 223.8607521733902,
+          "balanceError": 4.547473508864641e-13,
+          "hours": [
+            {
+              "hour": 0,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 30.15,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 1,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.32,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 2,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 26.41,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 3,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 26.61,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 4,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 27.9,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 5,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 29.61,
+              "minSoc": 12.19041575982343
+            },
+            {
+              "hour": 6,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 32.19,
+              "minSoc": 16.88083151964686
+            },
+            {
+              "hour": 7,
+              "scheduled": -365.506268111591,
+              "delivered": -365.5062681115908,
+              "price": 32.64,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 8,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.55,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 9,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 26.57,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 10,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.71,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 11,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.99,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 12,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 42.12,
+              "minSoc": 25
+            },
+            {
+              "hour": 13,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 41.67,
+              "minSoc": 25
+            },
+            {
+              "hour": 14,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.84,
+              "minSoc": 25
+            },
+            {
+              "hour": 15,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.08,
+              "minSoc": 25
+            },
+            {
+              "hour": 16,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.01,
+              "minSoc": 25
+            },
+            {
+              "hour": 17,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 57.54,
+              "minSoc": 25
+            },
+            {
+              "hour": 18,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 59.76,
+              "minSoc": 25
+            },
+            {
+              "hour": 19,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 53.34,
+              "minSoc": 25
+            },
+            {
+              "hour": 20,
+              "scheduled": 500,
+              "delivered": 500,
+              "price": 56.77,
+              "minSoc": 19.669982091109738
+            },
+            {
+              "hour": 21,
+              "scheduled": 500,
+              "delivered": 500,
+              "price": 64.3,
+              "minSoc": 14.339964182219477
+            },
+            {
+              "hour": 22,
+              "scheduled": 141.64551593820008,
+              "delivered": 141.6455159381999,
+              "price": 51.35,
+              "minSoc": 12.830017908890262
+            },
+            {
+              "hour": 23,
+              "scheduled": 500,
+              "delivered": 500,
+              "price": 46.95,
+              "minSoc": 7.500000000000002
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "duplicate-delivery",
+      "runs": [
+        {
+          "policy": "idle",
+          "config": {
+            "capacity": 25,
+            "power": 5,
+            "efficiency": 0.88,
+            "reserve": 0.3,
+            "fleet": 100,
+            "affected": 0.3,
+            "seed": 42,
+            "fault": "duplicate",
+            "forecast": "known"
+          },
+          "cash": 0,
+          "inventoryMark": 0,
+          "markedValue": 0,
+          "purchased": 0,
+          "sold": 0,
+          "requested": 0,
+          "clipped": 0,
+          "rejected": 0,
+          "duplicates": 0,
+          "reserveBreaches": 0,
+          "affectedDevices": 32,
+          "endSoc": 750,
+          "initialSoc": 750,
+          "lossKwh": 0,
+          "balanceError": 0,
+          "hours": [
+            {
+              "hour": 0,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 30.15,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 1,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.32,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 2,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 26.41,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 3,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 26.61,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 4,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 27.9,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 5,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.61,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 6,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.19,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 7,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.64,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 8,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.55,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 9,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 26.57,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 10,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.71,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 11,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.99,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 12,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.12,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 13,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 41.67,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 14,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.84,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 15,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.08,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 16,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.01,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 17,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 57.54,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 18,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 59.76,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 19,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 53.34,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 20,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 56.77,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 21,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 64.3,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 22,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.35,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 23,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.95,
+              "minSoc": 7.5
+            }
+          ]
+        },
+        {
+          "policy": "clock",
+          "config": {
+            "capacity": 25,
+            "power": 5,
+            "efficiency": 0.88,
+            "reserve": 0.3,
+            "fleet": 100,
+            "affected": 0.3,
+            "seed": 42,
+            "fault": "duplicate",
+            "forecast": "known"
+          },
+          "cash": 43.76828324610205,
+          "inventoryMark": -2.128082231455511,
+          "markedValue": 41.64020101464654,
+          "purchased": 1865.506268111585,
+          "sold": 1686.972081038416,
+          "requested": 3507.151784049802,
+          "clipped": 1.7763568394002505e-13,
+          "rejected": 0,
+          "duplicates": 0,
+          "reserveBreaches": 32,
+          "affectedDevices": 32,
+          "endSoc": 701.6817192534653,
+          "initialSoc": 750,
+          "lossKwh": 226.85246781970068,
+          "balanceError": -3.183231456205249e-12,
+          "hours": [
+            {
+              "hour": 0,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 30.15,
+              "minSoc": 12.19041575982343
+            },
+            {
+              "hour": 1,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 28.32,
+              "minSoc": 16.88083151964686
+            },
+            {
+              "hour": 2,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 26.41,
+              "minSoc": 21.571247279470292
+            },
+            {
+              "hour": 3,
+              "scheduled": -365.5062681115911,
+              "delivered": -365.5062681115908,
+              "price": 26.61,
+              "minSoc": 25
+            },
+            {
+              "hour": 4,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 27.9,
+              "minSoc": 25
+            },
+            {
+              "hour": 5,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.61,
+              "minSoc": 25
+            },
+            {
+              "hour": 6,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.19,
+              "minSoc": 25
+            },
+            {
+              "hour": 7,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.64,
+              "minSoc": 25
+            },
+            {
+              "hour": 8,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.55,
+              "minSoc": 25
+            },
+            {
+              "hour": 9,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 26.57,
+              "minSoc": 25
+            },
+            {
+              "hour": 10,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.71,
+              "minSoc": 25
+            },
+            {
+              "hour": 11,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.99,
+              "minSoc": 25
+            },
+            {
+              "hour": 12,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.12,
+              "minSoc": 25
+            },
+            {
+              "hour": 13,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 41.67,
+              "minSoc": 25
+            },
+            {
+              "hour": 14,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.84,
+              "minSoc": 25
+            },
+            {
+              "hour": 15,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.08,
+              "minSoc": 25
+            },
+            {
+              "hour": 16,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.01,
+              "minSoc": 25
+            },
+            {
+              "hour": 17,
+              "scheduled": 500,
+              "delivered": 500,
+              "price": 57.54,
+              "minSoc": 19.669982091109738
+            },
+            {
+              "hour": 18,
+              "scheduled": 500,
+              "delivered": 500,
+              "price": 59.76,
+              "minSoc": 14.339964182219477
+            },
+            {
+              "hour": 19,
+              "scheduled": 500,
+              "delivered": 500,
+              "price": 53.34,
+              "minSoc": 9.009946273329216
+            },
+            {
+              "hour": 20,
+              "scheduled": 141.64551593820036,
+              "delivered": 186.9720810384241,
+              "price": 56.77,
+              "minSoc": 5.990053726670782
+            },
+            {
+              "hour": 21,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 64.3,
+              "minSoc": 5.990053726670782
+            },
+            {
+              "hour": 22,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.35,
+              "minSoc": 5.990053726670782
+            },
+            {
+              "hour": 23,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.95,
+              "minSoc": 5.990053726670782
+            }
+          ]
+        },
+        {
+          "policy": "unguarded",
+          "config": {
+            "capacity": 25,
+            "power": 5,
+            "efficiency": 0.88,
+            "reserve": 0.3,
+            "fleet": 100,
+            "affected": 0.3,
+            "seed": 42,
+            "fault": "duplicate",
+            "forecast": "known"
+          },
+          "cash": 51.421780160238335,
+          "inventoryMark": -2.128082231455506,
+          "markedValue": 49.29369792878283,
+          "purchased": 1865.5062681115858,
+          "sold": 1686.9720810384179,
+          "requested": 3507.1517840498027,
+          "clipped": 0,
+          "rejected": 0,
+          "duplicates": 0,
+          "reserveBreaches": 32,
+          "affectedDevices": 32,
+          "endSoc": 701.6817192534654,
+          "initialSoc": 750,
+          "lossKwh": 226.8524678197009,
+          "balanceError": -1.5916157281026244e-12,
+          "hours": [
+            {
+              "hour": 0,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 30.15,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 1,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.32,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 2,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 26.41,
+              "minSoc": 12.19041575982343
+            },
+            {
+              "hour": 3,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 26.61,
+              "minSoc": 16.88083151964686
+            },
+            {
+              "hour": 4,
+              "scheduled": -365.506268111591,
+              "delivered": -365.5062681115908,
+              "price": 27.9,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 5,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.61,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 6,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.19,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 7,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.64,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 8,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.55,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 9,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 26.57,
+              "minSoc": 25
+            },
+            {
+              "hour": 10,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.71,
+              "minSoc": 25
+            },
+            {
+              "hour": 11,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.99,
+              "minSoc": 25
+            },
+            {
+              "hour": 12,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.12,
+              "minSoc": 25
+            },
+            {
+              "hour": 13,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 41.67,
+              "minSoc": 25
+            },
+            {
+              "hour": 14,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.84,
+              "minSoc": 25
+            },
+            {
+              "hour": 15,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.08,
+              "minSoc": 25
+            },
+            {
+              "hour": 16,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.01,
+              "minSoc": 25
+            },
+            {
+              "hour": 17,
+              "scheduled": 500,
+              "delivered": 500,
+              "price": 57.54,
+              "minSoc": 19.669982091109738
+            },
+            {
+              "hour": 18,
+              "scheduled": 500,
+              "delivered": 500,
+              "price": 59.76,
+              "minSoc": 14.339964182219477
+            },
+            {
+              "hour": 19,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 53.34,
+              "minSoc": 14.339964182219477
+            },
+            {
+              "hour": 20,
+              "scheduled": 141.64551593820008,
+              "delivered": 186.9720810384239,
+              "price": 56.77,
+              "minSoc": 11.320071635561048
+            },
+            {
+              "hour": 21,
+              "scheduled": 500,
+              "delivered": 500,
+              "price": 64.3,
+              "minSoc": 5.990053726670787
+            },
+            {
+              "hour": 22,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.35,
+              "minSoc": 5.990053726670787
+            },
+            {
+              "hour": 23,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.95,
+              "minSoc": 5.990053726670787
+            }
+          ]
+        },
+        {
+          "policy": "guarded",
+          "config": {
+            "capacity": 25,
+            "power": 5,
+            "efficiency": 0.88,
+            "reserve": 0.3,
+            "fleet": 100,
+            "affected": 0.3,
+            "seed": 42,
+            "fault": "duplicate",
+            "forecast": "known"
+          },
+          "cash": 48.84859105949865,
+          "inventoryMark": 5.007109846785853e-15,
+          "markedValue": 48.84859105949866,
+          "purchased": 1865.5062681115858,
+          "sold": 1641.6455159381958,
+          "requested": 3507.1517840498027,
+          "clipped": 0,
+          "rejected": 0,
+          "duplicates": 128,
+          "reserveBreaches": 0,
+          "affectedDevices": 32,
+          "endSoc": 750.0000000000001,
+          "initialSoc": 750,
+          "lossKwh": 223.8607521733902,
+          "balanceError": 4.547473508864641e-13,
+          "hours": [
+            {
+              "hour": 0,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 30.15,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 1,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.32,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 2,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 26.41,
+              "minSoc": 12.19041575982343
+            },
+            {
+              "hour": 3,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 26.61,
+              "minSoc": 16.88083151964686
+            },
+            {
+              "hour": 4,
+              "scheduled": -365.506268111591,
+              "delivered": -365.5062681115908,
+              "price": 27.9,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 5,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.61,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 6,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.19,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 7,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.64,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 8,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.55,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 9,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 26.57,
+              "minSoc": 25
+            },
+            {
+              "hour": 10,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.71,
+              "minSoc": 25
+            },
+            {
+              "hour": 11,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.99,
+              "minSoc": 25
+            },
+            {
+              "hour": 12,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.12,
+              "minSoc": 25
+            },
+            {
+              "hour": 13,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 41.67,
+              "minSoc": 25
+            },
+            {
+              "hour": 14,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.84,
+              "minSoc": 25
+            },
+            {
+              "hour": 15,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.08,
+              "minSoc": 25
+            },
+            {
+              "hour": 16,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.01,
+              "minSoc": 25
+            },
+            {
+              "hour": 17,
+              "scheduled": 500,
+              "delivered": 500,
+              "price": 57.54,
+              "minSoc": 19.669982091109738
+            },
+            {
+              "hour": 18,
+              "scheduled": 500,
+              "delivered": 500,
+              "price": 59.76,
+              "minSoc": 14.339964182219477
+            },
+            {
+              "hour": 19,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 53.34,
+              "minSoc": 14.339964182219477
+            },
+            {
+              "hour": 20,
+              "scheduled": 141.64551593820008,
+              "delivered": 141.6455159381999,
+              "price": 56.77,
+              "minSoc": 12.830017908890262
+            },
+            {
+              "hour": 21,
+              "scheduled": 500,
+              "delivered": 500,
+              "price": 64.3,
+              "minSoc": 7.500000000000002
+            },
+            {
+              "hour": 22,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.35,
+              "minSoc": 7.500000000000002
+            },
+            {
+              "hour": 23,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.95,
+              "minSoc": 7.500000000000002
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "stale-telemetry",
+      "runs": [
+        {
+          "policy": "idle",
+          "config": {
+            "capacity": 25,
+            "power": 5,
+            "efficiency": 0.88,
+            "reserve": 0.3,
+            "fleet": 100,
+            "affected": 0.3,
+            "seed": 42,
+            "fault": "stale",
+            "forecast": "known"
+          },
+          "cash": 0,
+          "inventoryMark": 0,
+          "markedValue": 0,
+          "purchased": 0,
+          "sold": 0,
+          "requested": 0,
+          "clipped": 0,
+          "rejected": 0,
+          "duplicates": 0,
+          "reserveBreaches": 0,
+          "affectedDevices": 32,
+          "endSoc": 750,
+          "initialSoc": 750,
+          "lossKwh": 0,
+          "balanceError": 0,
+          "hours": [
+            {
+              "hour": 0,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 30.15,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 1,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.32,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 2,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 26.41,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 3,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 26.61,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 4,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 27.9,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 5,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.61,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 6,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.19,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 7,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.64,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 8,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.55,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 9,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 26.57,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 10,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.71,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 11,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.99,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 12,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.12,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 13,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 41.67,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 14,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.84,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 15,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.08,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 16,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.01,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 17,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 57.54,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 18,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 59.76,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 19,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 53.34,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 20,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 56.77,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 21,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 64.3,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 22,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.35,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 23,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.95,
+              "minSoc": 7.5
+            }
+          ]
+        },
+        {
+          "policy": "clock",
+          "config": {
+            "capacity": 25,
+            "power": 5,
+            "efficiency": 0.88,
+            "reserve": 0.3,
+            "fleet": 100,
+            "affected": 0.3,
+            "seed": 42,
+            "fault": "stale",
+            "forecast": "known"
+          },
+          "cash": 41.19509414536237,
+          "inventoryMark": -5.007109846785853e-15,
+          "markedValue": 41.19509414536236,
+          "purchased": 1865.506268111585,
+          "sold": 1641.645515938194,
+          "requested": 3507.151784049802,
+          "clipped": 1.7763568394002505e-13,
+          "rejected": 0,
+          "duplicates": 0,
+          "reserveBreaches": 0,
+          "affectedDevices": 32,
+          "endSoc": 749.9999999999999,
+          "initialSoc": 750,
+          "lossKwh": 223.86075217338998,
+          "balanceError": -1.3642420526593924e-12,
+          "hours": [
+            {
+              "hour": 0,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 30.15,
+              "minSoc": 12.19041575982343
+            },
+            {
+              "hour": 1,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 28.32,
+              "minSoc": 16.88083151964686
+            },
+            {
+              "hour": 2,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 26.41,
+              "minSoc": 21.571247279470292
+            },
+            {
+              "hour": 3,
+              "scheduled": -365.5062681115911,
+              "delivered": -365.5062681115908,
+              "price": 26.61,
+              "minSoc": 25
+            },
+            {
+              "hour": 4,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 27.9,
+              "minSoc": 25
+            },
+            {
+              "hour": 5,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.61,
+              "minSoc": 25
+            },
+            {
+              "hour": 6,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.19,
+              "minSoc": 25
+            },
+            {
+              "hour": 7,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.64,
+              "minSoc": 25
+            },
+            {
+              "hour": 8,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.55,
+              "minSoc": 25
+            },
+            {
+              "hour": 9,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 26.57,
+              "minSoc": 25
+            },
+            {
+              "hour": 10,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.71,
+              "minSoc": 25
+            },
+            {
+              "hour": 11,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.99,
+              "minSoc": 25
+            },
+            {
+              "hour": 12,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.12,
+              "minSoc": 25
+            },
+            {
+              "hour": 13,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 41.67,
+              "minSoc": 25
+            },
+            {
+              "hour": 14,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.84,
+              "minSoc": 25
+            },
+            {
+              "hour": 15,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.08,
+              "minSoc": 25
+            },
+            {
+              "hour": 16,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.01,
+              "minSoc": 25
+            },
+            {
+              "hour": 17,
+              "scheduled": 500,
+              "delivered": 500,
+              "price": 57.54,
+              "minSoc": 19.669982091109738
+            },
+            {
+              "hour": 18,
+              "scheduled": 500,
+              "delivered": 500,
+              "price": 59.76,
+              "minSoc": 14.339964182219477
+            },
+            {
+              "hour": 19,
+              "scheduled": 500,
+              "delivered": 500,
+              "price": 53.34,
+              "minSoc": 9.009946273329216
+            },
+            {
+              "hour": 20,
+              "scheduled": 141.64551593820036,
+              "delivered": 141.6455159382,
+              "price": 56.77,
+              "minSoc": 7.499999999999999
+            },
+            {
+              "hour": 21,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 64.3,
+              "minSoc": 7.499999999999999
+            },
+            {
+              "hour": 22,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.35,
+              "minSoc": 7.499999999999999
+            },
+            {
+              "hour": 23,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.95,
+              "minSoc": 7.499999999999999
+            }
+          ]
+        },
+        {
+          "policy": "unguarded",
+          "config": {
+            "capacity": 25,
+            "power": 5,
+            "efficiency": 0.88,
+            "reserve": 0.3,
+            "fleet": 100,
+            "affected": 0.3,
+            "seed": 42,
+            "fault": "stale",
+            "forecast": "known"
+          },
+          "cash": 48.84859105949865,
+          "inventoryMark": 5.007109846785853e-15,
+          "markedValue": 48.84859105949866,
+          "purchased": 1865.5062681115858,
+          "sold": 1641.6455159381958,
+          "requested": 3507.1517840498027,
+          "clipped": 0,
+          "rejected": 0,
+          "duplicates": 0,
+          "reserveBreaches": 0,
+          "affectedDevices": 32,
+          "endSoc": 750.0000000000001,
+          "initialSoc": 750,
+          "lossKwh": 223.8607521733902,
+          "balanceError": 4.547473508864641e-13,
+          "hours": [
+            {
+              "hour": 0,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 30.15,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 1,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.32,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 2,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 26.41,
+              "minSoc": 12.19041575982343
+            },
+            {
+              "hour": 3,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 26.61,
+              "minSoc": 16.88083151964686
+            },
+            {
+              "hour": 4,
+              "scheduled": -365.506268111591,
+              "delivered": -365.5062681115908,
+              "price": 27.9,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 5,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.61,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 6,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.19,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 7,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.64,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 8,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.55,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 9,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 26.57,
+              "minSoc": 25
+            },
+            {
+              "hour": 10,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.71,
+              "minSoc": 25
+            },
+            {
+              "hour": 11,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.99,
+              "minSoc": 25
+            },
+            {
+              "hour": 12,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.12,
+              "minSoc": 25
+            },
+            {
+              "hour": 13,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 41.67,
+              "minSoc": 25
+            },
+            {
+              "hour": 14,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.84,
+              "minSoc": 25
+            },
+            {
+              "hour": 15,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.08,
+              "minSoc": 25
+            },
+            {
+              "hour": 16,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.01,
+              "minSoc": 25
+            },
+            {
+              "hour": 17,
+              "scheduled": 500,
+              "delivered": 500,
+              "price": 57.54,
+              "minSoc": 19.669982091109738
+            },
+            {
+              "hour": 18,
+              "scheduled": 500,
+              "delivered": 500,
+              "price": 59.76,
+              "minSoc": 14.339964182219477
+            },
+            {
+              "hour": 19,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 53.34,
+              "minSoc": 14.339964182219477
+            },
+            {
+              "hour": 20,
+              "scheduled": 141.64551593820008,
+              "delivered": 141.6455159381999,
+              "price": 56.77,
+              "minSoc": 12.830017908890262
+            },
+            {
+              "hour": 21,
+              "scheduled": 500,
+              "delivered": 500,
+              "price": 64.3,
+              "minSoc": 7.500000000000002
+            },
+            {
+              "hour": 22,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.35,
+              "minSoc": 7.500000000000002
+            },
+            {
+              "hour": 23,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.95,
+              "minSoc": 7.500000000000002
+            }
+          ]
+        },
+        {
+          "policy": "guarded",
+          "config": {
+            "capacity": 25,
+            "power": 5,
+            "efficiency": 0.88,
+            "reserve": 0.3,
+            "fleet": 100,
+            "affected": 0.3,
+            "seed": 42,
+            "fault": "stale",
+            "forecast": "known"
+          },
+          "cash": 17.219401958758837,
+          "inventoryMark": 24.664082231455524,
+          "markedValue": 41.88348419021436,
+          "purchased": 1865.5062681115858,
+          "sold": 1116.3189508379796,
+          "requested": 3507.1517840498027,
+          "clipped": 525.3265651002239,
+          "rejected": 128,
+          "duplicates": 0,
+          "reserveBreaches": 0,
+          "affectedDevices": 32,
+          "endSoc": 1310,
+          "initialSoc": 750,
+          "lossKwh": 189.187317273615,
+          "balanceError": 8.86757334228605e-12,
+          "hours": [
+            {
+              "hour": 0,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 30.15,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 1,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.32,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 2,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 26.41,
+              "minSoc": 12.19041575982343
+            },
+            {
+              "hour": 3,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 26.61,
+              "minSoc": 16.88083151964686
+            },
+            {
+              "hour": 4,
+              "scheduled": -365.506268111591,
+              "delivered": -365.5062681115908,
+              "price": 27.9,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 5,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.61,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 6,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.19,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 7,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.64,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 8,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.55,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 9,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 26.57,
+              "minSoc": 25
+            },
+            {
+              "hour": 10,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.71,
+              "minSoc": 25
+            },
+            {
+              "hour": 11,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.99,
+              "minSoc": 25
+            },
+            {
+              "hour": 12,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.12,
+              "minSoc": 25
+            },
+            {
+              "hour": 13,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 41.67,
+              "minSoc": 25
+            },
+            {
+              "hour": 14,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.84,
+              "minSoc": 25
+            },
+            {
+              "hour": 15,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.08,
+              "minSoc": 25
+            },
+            {
+              "hour": 16,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.01,
+              "minSoc": 25
+            },
+            {
+              "hour": 17,
+              "scheduled": 500,
+              "delivered": 340,
+              "price": 57.54,
+              "minSoc": 19.669982091109738
+            },
+            {
+              "hour": 18,
+              "scheduled": 500,
+              "delivered": 340,
+              "price": 59.76,
+              "minSoc": 14.339964182219477
+            },
+            {
+              "hour": 19,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 53.34,
+              "minSoc": 14.339964182219477
+            },
+            {
+              "hour": 20,
+              "scheduled": 141.64551593820008,
+              "delivered": 96.318950837976,
+              "price": 56.77,
+              "minSoc": 12.830017908890262
+            },
+            {
+              "hour": 21,
+              "scheduled": 500,
+              "delivered": 340,
+              "price": 64.3,
+              "minSoc": 7.500000000000002
+            },
+            {
+              "hour": 22,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.35,
+              "minSoc": 7.500000000000002
+            },
+            {
+              "hour": 23,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.95,
+              "minSoc": 7.500000000000002
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "late-delivery",
+      "runs": [
+        {
+          "policy": "idle",
+          "config": {
+            "capacity": 25,
+            "power": 5,
+            "efficiency": 0.88,
+            "reserve": 0.3,
+            "fleet": 100,
+            "affected": 0.3,
+            "seed": 42,
+            "fault": "late",
+            "forecast": "known"
+          },
+          "cash": 0,
+          "inventoryMark": 0,
+          "markedValue": 0,
+          "purchased": 0,
+          "sold": 0,
+          "requested": 0,
+          "clipped": 0,
+          "rejected": 0,
+          "duplicates": 0,
+          "reserveBreaches": 0,
+          "affectedDevices": 32,
+          "endSoc": 750,
+          "initialSoc": 750,
+          "lossKwh": 0,
+          "balanceError": 0,
+          "hours": [
+            {
+              "hour": 0,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 30.15,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 1,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.32,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 2,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 26.41,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 3,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 26.61,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 4,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 27.9,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 5,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.61,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 6,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.19,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 7,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.64,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 8,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.55,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 9,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 26.57,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 10,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.71,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 11,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.99,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 12,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.12,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 13,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 41.67,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 14,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.84,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 15,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.08,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 16,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.01,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 17,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 57.54,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 18,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 59.76,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 19,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 53.34,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 20,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 56.77,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 21,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 64.3,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 22,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.35,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 23,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.95,
+              "minSoc": 7.5
+            }
+          ]
+        },
+        {
+          "policy": "clock",
+          "config": {
+            "capacity": 25,
+            "power": 5,
+            "efficiency": 0.88,
+            "reserve": 0.3,
+            "fleet": 100,
+            "affected": 0.3,
+            "seed": 42,
+            "fault": "late",
+            "forecast": "known"
+          },
+          "cash": 41.552624162519294,
+          "inventoryMark": -5.007109846785853e-15,
+          "markedValue": 41.55262416251929,
+          "purchased": 1865.506268111585,
+          "sold": 1641.645515938194,
+          "requested": 3507.151784049802,
+          "clipped": 1.7763568394002505e-13,
+          "rejected": 0,
+          "duplicates": 0,
+          "reserveBreaches": 0,
+          "affectedDevices": 32,
+          "endSoc": 749.9999999999999,
+          "initialSoc": 750,
+          "lossKwh": 223.86075217338998,
+          "balanceError": -1.3642420526593924e-12,
+          "hours": [
+            {
+              "hour": 0,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 30.15,
+              "minSoc": 12.19041575982343
+            },
+            {
+              "hour": 1,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 28.32,
+              "minSoc": 16.88083151964686
+            },
+            {
+              "hour": 2,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 26.41,
+              "minSoc": 21.571247279470292
+            },
+            {
+              "hour": 3,
+              "scheduled": -365.5062681115911,
+              "delivered": -365.5062681115908,
+              "price": 26.61,
+              "minSoc": 25
+            },
+            {
+              "hour": 4,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 27.9,
+              "minSoc": 25
+            },
+            {
+              "hour": 5,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.61,
+              "minSoc": 25
+            },
+            {
+              "hour": 6,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.19,
+              "minSoc": 25
+            },
+            {
+              "hour": 7,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.64,
+              "minSoc": 25
+            },
+            {
+              "hour": 8,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.55,
+              "minSoc": 25
+            },
+            {
+              "hour": 9,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 26.57,
+              "minSoc": 25
+            },
+            {
+              "hour": 10,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.71,
+              "minSoc": 25
+            },
+            {
+              "hour": 11,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.99,
+              "minSoc": 25
+            },
+            {
+              "hour": 12,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.12,
+              "minSoc": 25
+            },
+            {
+              "hour": 13,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 41.67,
+              "minSoc": 25
+            },
+            {
+              "hour": 14,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.84,
+              "minSoc": 25
+            },
+            {
+              "hour": 15,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.08,
+              "minSoc": 25
+            },
+            {
+              "hour": 16,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.01,
+              "minSoc": 25
+            },
+            {
+              "hour": 17,
+              "scheduled": 500,
+              "delivered": 340,
+              "price": 57.54,
+              "minSoc": 19.669982091109738
+            },
+            {
+              "hour": 18,
+              "scheduled": 500,
+              "delivered": 340,
+              "price": 59.76,
+              "minSoc": 14.339964182219477
+            },
+            {
+              "hour": 19,
+              "scheduled": 500,
+              "delivered": 500,
+              "price": 53.34,
+              "minSoc": 9.009946273329216
+            },
+            {
+              "hour": 20,
+              "scheduled": 141.64551593820036,
+              "delivered": 256.3189508379759,
+              "price": 56.77,
+              "minSoc": 7.499999999999999
+            },
+            {
+              "hour": 21,
+              "scheduled": 0,
+              "delivered": 160,
+              "price": 64.3,
+              "minSoc": 7.499999999999999
+            },
+            {
+              "hour": 22,
+              "scheduled": 0,
+              "delivered": 45.326565100224116,
+              "price": 51.35,
+              "minSoc": 7.499999999999999
+            },
+            {
+              "hour": 23,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.95,
+              "minSoc": 7.499999999999999
+            }
+          ]
+        },
+        {
+          "policy": "unguarded",
+          "config": {
+            "capacity": 25,
+            "power": 5,
+            "efficiency": 0.88,
+            "reserve": 0.3,
+            "fleet": 100,
+            "affected": 0.3,
+            "seed": 42,
+            "fault": "late",
+            "forecast": "known"
+          },
+          "cash": 44.67652107665539,
+          "inventoryMark": 5.007109846785853e-15,
+          "markedValue": 44.6765210766554,
+          "purchased": 1865.5062681115858,
+          "sold": 1641.6455159381994,
+          "requested": 3507.1517840498027,
+          "clipped": 0,
+          "rejected": 0,
+          "duplicates": 0,
+          "reserveBreaches": 0,
+          "affectedDevices": 32,
+          "endSoc": 750.0000000000001,
+          "initialSoc": 750,
+          "lossKwh": 223.86075217339044,
+          "balanceError": 4.320099833421409e-12,
+          "hours": [
+            {
+              "hour": 0,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 30.15,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 1,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.32,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 2,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 26.41,
+              "minSoc": 12.19041575982343
+            },
+            {
+              "hour": 3,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 26.61,
+              "minSoc": 16.88083151964686
+            },
+            {
+              "hour": 4,
+              "scheduled": -365.506268111591,
+              "delivered": -365.5062681115908,
+              "price": 27.9,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 5,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.61,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 6,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.19,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 7,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.64,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 8,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.55,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 9,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 26.57,
+              "minSoc": 25
+            },
+            {
+              "hour": 10,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.71,
+              "minSoc": 25
+            },
+            {
+              "hour": 11,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.99,
+              "minSoc": 25
+            },
+            {
+              "hour": 12,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.12,
+              "minSoc": 25
+            },
+            {
+              "hour": 13,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 41.67,
+              "minSoc": 25
+            },
+            {
+              "hour": 14,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.84,
+              "minSoc": 25
+            },
+            {
+              "hour": 15,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.08,
+              "minSoc": 25
+            },
+            {
+              "hour": 16,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.01,
+              "minSoc": 25
+            },
+            {
+              "hour": 17,
+              "scheduled": 500,
+              "delivered": 340,
+              "price": 57.54,
+              "minSoc": 19.669982091109738
+            },
+            {
+              "hour": 18,
+              "scheduled": 500,
+              "delivered": 340,
+              "price": 59.76,
+              "minSoc": 14.339964182219477
+            },
+            {
+              "hour": 19,
+              "scheduled": 0,
+              "delivered": 160,
+              "price": 53.34,
+              "minSoc": 14.339964182219477
+            },
+            {
+              "hour": 20,
+              "scheduled": 141.64551593820008,
+              "delivered": 256.3189508379759,
+              "price": 56.77,
+              "minSoc": 12.830017908890262
+            },
+            {
+              "hour": 21,
+              "scheduled": 500,
+              "delivered": 340,
+              "price": 64.3,
+              "minSoc": 7.500000000000002
+            },
+            {
+              "hour": 22,
+              "scheduled": 0,
+              "delivered": 45.32656510022404,
+              "price": 51.35,
+              "minSoc": 7.500000000000002
+            },
+            {
+              "hour": 23,
+              "scheduled": 0,
+              "delivered": 160,
+              "price": 46.95,
+              "minSoc": 7.500000000000002
+            }
+          ]
+        },
+        {
+          "policy": "guarded",
+          "config": {
+            "capacity": 25,
+            "power": 5,
+            "efficiency": 0.88,
+            "reserve": 0.3,
+            "fleet": 100,
+            "affected": 0.3,
+            "seed": 42,
+            "fault": "late",
+            "forecast": "known"
+          },
+          "cash": 17.219401958758837,
+          "inventoryMark": 24.664082231455524,
+          "markedValue": 41.88348419021436,
+          "purchased": 1865.5062681115858,
+          "sold": 1116.3189508379796,
+          "requested": 3507.1517840498027,
+          "clipped": 525.3265651002239,
+          "rejected": 128,
+          "duplicates": 0,
+          "reserveBreaches": 0,
+          "affectedDevices": 32,
+          "endSoc": 1310,
+          "initialSoc": 750,
+          "lossKwh": 189.187317273615,
+          "balanceError": 8.86757334228605e-12,
+          "hours": [
+            {
+              "hour": 0,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 30.15,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 1,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.32,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 2,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 26.41,
+              "minSoc": 12.19041575982343
+            },
+            {
+              "hour": 3,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 26.61,
+              "minSoc": 16.88083151964686
+            },
+            {
+              "hour": 4,
+              "scheduled": -365.506268111591,
+              "delivered": -365.5062681115908,
+              "price": 27.9,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 5,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.61,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 6,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.19,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 7,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.64,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 8,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.55,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 9,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 26.57,
+              "minSoc": 25
+            },
+            {
+              "hour": 10,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.71,
+              "minSoc": 25
+            },
+            {
+              "hour": 11,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.99,
+              "minSoc": 25
+            },
+            {
+              "hour": 12,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.12,
+              "minSoc": 25
+            },
+            {
+              "hour": 13,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 41.67,
+              "minSoc": 25
+            },
+            {
+              "hour": 14,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.84,
+              "minSoc": 25
+            },
+            {
+              "hour": 15,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.08,
+              "minSoc": 25
+            },
+            {
+              "hour": 16,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.01,
+              "minSoc": 25
+            },
+            {
+              "hour": 17,
+              "scheduled": 500,
+              "delivered": 340,
+              "price": 57.54,
+              "minSoc": 19.669982091109738
+            },
+            {
+              "hour": 18,
+              "scheduled": 500,
+              "delivered": 340,
+              "price": 59.76,
+              "minSoc": 14.339964182219477
+            },
+            {
+              "hour": 19,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 53.34,
+              "minSoc": 14.339964182219477
+            },
+            {
+              "hour": 20,
+              "scheduled": 141.64551593820008,
+              "delivered": 96.318950837976,
+              "price": 56.77,
+              "minSoc": 12.830017908890262
+            },
+            {
+              "hour": 21,
+              "scheduled": 500,
+              "delivered": 340,
+              "price": 64.3,
+              "minSoc": 7.500000000000002
+            },
+            {
+              "hour": 22,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.35,
+              "minSoc": 7.500000000000002
+            },
+            {
+              "hour": 23,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.95,
+              "minSoc": 7.500000000000002
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "multiple-failures",
+      "runs": [
+        {
+          "policy": "idle",
+          "config": {
+            "capacity": 25,
+            "power": 5,
+            "efficiency": 0.88,
+            "reserve": 0.3,
+            "fleet": 100,
+            "affected": 0.3,
+            "seed": 42,
+            "fault": "mixed",
+            "forecast": "known"
+          },
+          "cash": 0,
+          "inventoryMark": 0,
+          "markedValue": 0,
+          "purchased": 0,
+          "sold": 0,
+          "requested": 0,
+          "clipped": 0,
+          "rejected": 0,
+          "duplicates": 0,
+          "reserveBreaches": 0,
+          "affectedDevices": 32,
+          "endSoc": 750,
+          "initialSoc": 750,
+          "lossKwh": 0,
+          "balanceError": 0,
+          "hours": [
+            {
+              "hour": 0,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 30.15,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 1,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.32,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 2,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 26.41,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 3,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 26.61,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 4,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 27.9,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 5,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.61,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 6,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.19,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 7,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.64,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 8,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.55,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 9,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 26.57,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 10,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.71,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 11,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.99,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 12,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.12,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 13,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 41.67,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 14,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.84,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 15,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.08,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 16,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.01,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 17,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 57.54,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 18,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 59.76,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 19,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 53.34,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 20,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 56.77,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 21,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 64.3,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 22,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.35,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 23,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.95,
+              "minSoc": 7.5
+            }
+          ]
+        },
+        {
+          "policy": "clock",
+          "config": {
+            "capacity": 25,
+            "power": 5,
+            "efficiency": 0.88,
+            "reserve": 0.3,
+            "fleet": 100,
+            "affected": 0.3,
+            "seed": 42,
+            "fault": "mixed",
+            "forecast": "known"
+          },
+          "cash": 43.88014328041589,
+          "inventoryMark": -2.128082231455511,
+          "markedValue": 41.752061048960385,
+          "purchased": 1865.506268111585,
+          "sold": 1686.972081038416,
+          "requested": 3507.151784049802,
+          "clipped": 1.7763568394002505e-13,
+          "rejected": 0,
+          "duplicates": 0,
+          "reserveBreaches": 32,
+          "affectedDevices": 32,
+          "endSoc": 701.6817192534653,
+          "initialSoc": 750,
+          "lossKwh": 226.85246781970068,
+          "balanceError": -3.183231456205249e-12,
+          "hours": [
+            {
+              "hour": 0,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 30.15,
+              "minSoc": 12.19041575982343
+            },
+            {
+              "hour": 1,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 28.32,
+              "minSoc": 16.88083151964686
+            },
+            {
+              "hour": 2,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 26.41,
+              "minSoc": 21.571247279470292
+            },
+            {
+              "hour": 3,
+              "scheduled": -365.5062681115911,
+              "delivered": -365.5062681115908,
+              "price": 26.61,
+              "minSoc": 25
+            },
+            {
+              "hour": 4,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 27.9,
+              "minSoc": 25
+            },
+            {
+              "hour": 5,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.61,
+              "minSoc": 25
+            },
+            {
+              "hour": 6,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.19,
+              "minSoc": 25
+            },
+            {
+              "hour": 7,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.64,
+              "minSoc": 25
+            },
+            {
+              "hour": 8,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.55,
+              "minSoc": 25
+            },
+            {
+              "hour": 9,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 26.57,
+              "minSoc": 25
+            },
+            {
+              "hour": 10,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.71,
+              "minSoc": 25
+            },
+            {
+              "hour": 11,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.99,
+              "minSoc": 25
+            },
+            {
+              "hour": 12,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.12,
+              "minSoc": 25
+            },
+            {
+              "hour": 13,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 41.67,
+              "minSoc": 25
+            },
+            {
+              "hour": 14,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.84,
+              "minSoc": 25
+            },
+            {
+              "hour": 15,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.08,
+              "minSoc": 25
+            },
+            {
+              "hour": 16,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.01,
+              "minSoc": 25
+            },
+            {
+              "hour": 17,
+              "scheduled": 500,
+              "delivered": 340,
+              "price": 57.54,
+              "minSoc": 19.669982091109738
+            },
+            {
+              "hour": 18,
+              "scheduled": 500,
+              "delivered": 340,
+              "price": 59.76,
+              "minSoc": 14.339964182219477
+            },
+            {
+              "hour": 19,
+              "scheduled": 500,
+              "delivered": 500,
+              "price": 53.34,
+              "minSoc": 9.009946273329216
+            },
+            {
+              "hour": 20,
+              "scheduled": 141.64551593820036,
+              "delivered": 256.3189508379759,
+              "price": 56.77,
+              "minSoc": 7.499999999999999
+            },
+            {
+              "hour": 21,
+              "scheduled": 0,
+              "delivered": 160,
+              "price": 64.3,
+              "minSoc": 7.499999999999999
+            },
+            {
+              "hour": 22,
+              "scheduled": 0,
+              "delivered": 90.65313020044823,
+              "price": 51.35,
+              "minSoc": 5.990053726670782
+            },
+            {
+              "hour": 23,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.95,
+              "minSoc": 5.990053726670782
+            }
+          ]
+        },
+        {
+          "policy": "unguarded",
+          "config": {
+            "capacity": 25,
+            "power": 5,
+            "efficiency": 0.88,
+            "reserve": 0.3,
+            "fleet": 100,
+            "affected": 0.3,
+            "seed": 42,
+            "fault": "mixed",
+            "forecast": "known"
+          },
+          "cash": 47.00404019455199,
+          "inventoryMark": -2.128082231455506,
+          "markedValue": 44.87595796309648,
+          "purchased": 1865.5062681115858,
+          "sold": 1686.9720810384215,
+          "requested": 3507.1517840498027,
+          "clipped": 0,
+          "rejected": 0,
+          "duplicates": 0,
+          "reserveBreaches": 32,
+          "affectedDevices": 32,
+          "endSoc": 701.6817192534654,
+          "initialSoc": 750,
+          "lossKwh": 226.85246781970113,
+          "balanceError": 2.2737367544323206e-12,
+          "hours": [
+            {
+              "hour": 0,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 30.15,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 1,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.32,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 2,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 26.41,
+              "minSoc": 12.19041575982343
+            },
+            {
+              "hour": 3,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 26.61,
+              "minSoc": 16.88083151964686
+            },
+            {
+              "hour": 4,
+              "scheduled": -365.506268111591,
+              "delivered": -365.5062681115908,
+              "price": 27.9,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 5,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.61,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 6,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.19,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 7,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.64,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 8,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.55,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 9,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 26.57,
+              "minSoc": 25
+            },
+            {
+              "hour": 10,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.71,
+              "minSoc": 25
+            },
+            {
+              "hour": 11,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.99,
+              "minSoc": 25
+            },
+            {
+              "hour": 12,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.12,
+              "minSoc": 25
+            },
+            {
+              "hour": 13,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 41.67,
+              "minSoc": 25
+            },
+            {
+              "hour": 14,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.84,
+              "minSoc": 25
+            },
+            {
+              "hour": 15,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.08,
+              "minSoc": 25
+            },
+            {
+              "hour": 16,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.01,
+              "minSoc": 25
+            },
+            {
+              "hour": 17,
+              "scheduled": 500,
+              "delivered": 340,
+              "price": 57.54,
+              "minSoc": 19.669982091109738
+            },
+            {
+              "hour": 18,
+              "scheduled": 500,
+              "delivered": 340,
+              "price": 59.76,
+              "minSoc": 14.339964182219477
+            },
+            {
+              "hour": 19,
+              "scheduled": 0,
+              "delivered": 160,
+              "price": 53.34,
+              "minSoc": 14.339964182219477
+            },
+            {
+              "hour": 20,
+              "scheduled": 141.64551593820008,
+              "delivered": 256.3189508379759,
+              "price": 56.77,
+              "minSoc": 12.830017908890262
+            },
+            {
+              "hour": 21,
+              "scheduled": 500,
+              "delivered": 340,
+              "price": 64.3,
+              "minSoc": 7.500000000000002
+            },
+            {
+              "hour": 22,
+              "scheduled": 0,
+              "delivered": 90.65313020044808,
+              "price": 51.35,
+              "minSoc": 7.500000000000002
+            },
+            {
+              "hour": 23,
+              "scheduled": 0,
+              "delivered": 160,
+              "price": 46.95,
+              "minSoc": 5.990053726670787
+            }
+          ]
+        },
+        {
+          "policy": "guarded",
+          "config": {
+            "capacity": 25,
+            "power": 5,
+            "efficiency": 0.88,
+            "reserve": 0.3,
+            "fleet": 100,
+            "affected": 0.3,
+            "seed": 42,
+            "fault": "mixed",
+            "forecast": "known"
+          },
+          "cash": 17.219401958758837,
+          "inventoryMark": 24.664082231455524,
+          "markedValue": 41.88348419021436,
+          "purchased": 1865.5062681115858,
+          "sold": 1116.3189508379796,
+          "requested": 3507.1517840498027,
+          "clipped": 525.3265651002239,
+          "rejected": 256,
+          "duplicates": 0,
+          "reserveBreaches": 0,
+          "affectedDevices": 32,
+          "endSoc": 1310,
+          "initialSoc": 750,
+          "lossKwh": 189.187317273615,
+          "balanceError": 8.86757334228605e-12,
+          "hours": [
+            {
+              "hour": 0,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 30.15,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 1,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.32,
+              "minSoc": 7.5
+            },
+            {
+              "hour": 2,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 26.41,
+              "minSoc": 12.19041575982343
+            },
+            {
+              "hour": 3,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 26.61,
+              "minSoc": 16.88083151964686
+            },
+            {
+              "hour": 4,
+              "scheduled": -365.506268111591,
+              "delivered": -365.5062681115908,
+              "price": 27.9,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 5,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.61,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 6,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.19,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 7,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.64,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 8,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 29.55,
+              "minSoc": 20.30958424017657
+            },
+            {
+              "hour": 9,
+              "scheduled": -500,
+              "delivered": -500,
+              "price": 26.57,
+              "minSoc": 25
+            },
+            {
+              "hour": 10,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 28.71,
+              "minSoc": 25
+            },
+            {
+              "hour": 11,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 32.99,
+              "minSoc": 25
+            },
+            {
+              "hour": 12,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.12,
+              "minSoc": 25
+            },
+            {
+              "hour": 13,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 41.67,
+              "minSoc": 25
+            },
+            {
+              "hour": 14,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 42.84,
+              "minSoc": 25
+            },
+            {
+              "hour": 15,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.08,
+              "minSoc": 25
+            },
+            {
+              "hour": 16,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.01,
+              "minSoc": 25
+            },
+            {
+              "hour": 17,
+              "scheduled": 500,
+              "delivered": 340,
+              "price": 57.54,
+              "minSoc": 19.669982091109738
+            },
+            {
+              "hour": 18,
+              "scheduled": 500,
+              "delivered": 340,
+              "price": 59.76,
+              "minSoc": 14.339964182219477
+            },
+            {
+              "hour": 19,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 53.34,
+              "minSoc": 14.339964182219477
+            },
+            {
+              "hour": 20,
+              "scheduled": 141.64551593820008,
+              "delivered": 96.318950837976,
+              "price": 56.77,
+              "minSoc": 12.830017908890262
+            },
+            {
+              "hour": 21,
+              "scheduled": 500,
+              "delivered": 340,
+              "price": 64.3,
+              "minSoc": 7.500000000000002
+            },
+            {
+              "hour": 22,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 51.35,
+              "minSoc": 7.500000000000002
+            },
+            {
+              "hour": 23,
+              "scheduled": 0,
+              "delivered": 0,
+              "price": 46.95,
+              "minSoc": 7.500000000000002
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

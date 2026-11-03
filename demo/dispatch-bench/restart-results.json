@@ -1,0 +1,151 @@
+{
+  "model": "restart-fixture-v1",
+  "source_sha256": "5c062ba278fd9c808555980d75ba8844389fde1fcb5a626a67d1464ded502c05",
+  "scope": "Actual local child-process termination; SQLite persistence; synthetic non-idempotent actuator. No real batteries.",
+  "command": {
+    "id": "device-1:export-1",
+    "device": "device-1",
+    "kwh": 2.0,
+    "start": 10,
+    "expires": 20
+  },
+  "reserve_kwh": 7.5,
+  "initial_stored_kwh": 20,
+  "round_trip_efficiency": 0.88,
+  "passed": 6,
+  "total": 6,
+  "cases": [
+    {
+      "fault": "none",
+      "baseline": {
+        "mode": "volatile",
+        "first_exit": 0,
+        "retry": "applied",
+        "applications": 2,
+        "exported_kwh": 4.0,
+        "stored_kwh": 15.73598567,
+        "receipt": "none"
+      },
+      "durable": {
+        "mode": "durable",
+        "first_exit": 0,
+        "retry": "duplicate ignored",
+        "applications": 1,
+        "exported_kwh": 2.0,
+        "stored_kwh": 17.86799284,
+        "receipt": "applied"
+      },
+      "passed": true
+    },
+    {
+      "fault": "before_intent",
+      "baseline": {
+        "mode": "volatile",
+        "first_exit": 86,
+        "retry": "applied",
+        "applications": 1,
+        "exported_kwh": 2.0,
+        "stored_kwh": 17.86799284,
+        "receipt": "none"
+      },
+      "durable": {
+        "mode": "durable",
+        "first_exit": 86,
+        "retry": "applied",
+        "applications": 1,
+        "exported_kwh": 2.0,
+        "stored_kwh": 17.86799284,
+        "receipt": "applied"
+      },
+      "passed": true
+    },
+    {
+      "fault": "before_intent_commit",
+      "baseline": {
+        "mode": "volatile",
+        "first_exit": 86,
+        "retry": "applied",
+        "applications": 1,
+        "exported_kwh": 2.0,
+        "stored_kwh": 17.86799284,
+        "receipt": "none"
+      },
+      "durable": {
+        "mode": "durable",
+        "first_exit": 86,
+        "retry": "applied",
+        "applications": 1,
+        "exported_kwh": 2.0,
+        "stored_kwh": 17.86799284,
+        "receipt": "applied"
+      },
+      "passed": true
+    },
+    {
+      "fault": "after_intent",
+      "baseline": {
+        "mode": "volatile",
+        "first_exit": 86,
+        "retry": "applied",
+        "applications": 1,
+        "exported_kwh": 2.0,
+        "stored_kwh": 17.86799284,
+        "receipt": "none"
+      },
+      "durable": {
+        "mode": "durable",
+        "first_exit": 86,
+        "retry": "reconciliation required",
+        "applications": 0,
+        "exported_kwh": 0.0,
+        "stored_kwh": 20.0,
+        "receipt": "uncertain"
+      },
+      "passed": true
+    },
+    {
+      "fault": "after_action",
+      "baseline": {
+        "mode": "volatile",
+        "first_exit": 86,
+        "retry": "applied",
+        "applications": 2,
+        "exported_kwh": 4.0,
+        "stored_kwh": 15.73598567,
+        "receipt": "none"
+      },
+      "durable": {
+        "mode": "durable",
+        "first_exit": 86,
+        "retry": "reconciliation required",
+        "applications": 1,
+        "exported_kwh": 2.0,
+        "stored_kwh": 17.86799284,
+        "receipt": "uncertain"
+      },
+      "passed": true
+    },
+    {
+      "fault": "after_receipt",
+      "baseline": {
+        "mode": "volatile",
+        "first_exit": 86,
+        "retry": "applied",
+        "applications": 2,
+        "exported_kwh": 4.0,
+        "stored_kwh": 15.73598567,
+        "receipt": "none"
+      },
+      "durable": {
+        "mode": "durable",
+        "first_exit": 86,
+        "retry": "duplicate ignored",
+        "applications": 1,
+        "exported_kwh": 2.0,
+        "stored_kwh": 17.86799284,
+        "receipt": "applied"
+      },
+      "passed": true
+    }
+  ]
+}
