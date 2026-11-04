@@ -27,6 +27,13 @@
   const LOWER = /\s*\((lower|higher) is better\)\s*$/i;
   const STATE_COLS = ['state', 'abbr', 'state_abbr'];
   const ZONE_COL = 'zone', VALUE_COL = 'usd_per_year';
+  // A metric needs values for at least this many states before it counts in the score.
+  // Percentile ranks step by 1 / (n - 1): with one state it gets full marks, with two the
+  // lower one gets 0 and scores below states with no data at all. Five gives steps of a
+  // quarter, the same quarters the map legend colors by.
+  const MIN_STATES = 5;
+  // Most one battery can earn in a year, the same cap /finance puts on arbPerYear (FinanceCore.ARB_MAX).
+  const ZONE_MAX = 100000;
 
   // "$1,200" and "12%" are numbers; blank is null; anything else is NaN.
   function toNum(v) {
@@ -90,6 +97,8 @@
     const head = Object.keys(rows[0] || {});
     const stateCol = head.find((h) => STATE_COLS.includes(h.trim().toLowerCase()));
     const factors = head.filter((h) => h !== stateCol && h.trim() !== '').map(factorFromHeader);
+    // parseCSV keeps one value per header name, so a repeated column would lose its other values.
+    (rows.duplicateHeaders || []).forEach((h) => errors.push('Two columns are both named "' + h + '". Rename or remove one.'));
     return { factors, rows: rows.map((r, i) => ({ where: 'Row ' + (i + 2), raw: r[stateCol], cells: r })) };
   }
 
@@ -123,9 +132,18 @@
       });
       values[abbr] = out;
     });
-    const used = factors.filter((f) => f.id && Object.values(values).some((v) => v[f.id] != null));
-    factors.filter((f) => f.id && !used.includes(f)).forEach((f) => warnings.push('"' + f.label + '" has no values, so it is left out.'));
-    if (!errors.length && !used.length) errors.push('No numeric metric columns with values. Add at least one column of numbers next to the state column.');
+    const count = (f) => Object.values(values).filter((v) => v[f.id] != null).length;
+    const withValues = factors.filter((f) => f.id && count(f) > 0);
+    factors.filter((f) => f.id && !withValues.includes(f)).forEach((f) => warnings.push('"' + f.label + '" has no values, so it is left out.'));
+    if (!errors.length && !withValues.length) errors.push('No numeric metric columns with values. Add at least one column of numbers next to the state column.');
+    // Too few states to rank: left out of the score, and its values dropped, so it cannot move any state.
+    const used = withValues.filter((f) => count(f) >= MIN_STATES);
+    withValues.filter((f) => !used.includes(f)).forEach((f) => {
+      const n = count(f);
+      warnings.push('"' + f.label + '" has values for only ' + n + ' state' + (n === 1 ? '' : 's') + ', so it is left out of the score. A metric needs at least ' + MIN_STATES + ' states: a rank among fewer is not meaningful (one state would get full marks).');
+      Object.values(values).forEach((v) => { delete v[f.id]; });
+    });
+    if (!errors.length && withValues.length && !used.length) errors.push('No metric has values for at least ' + MIN_STATES + ' states, so nothing can be ranked. Fill in at least ' + MIN_STATES + ' states for a metric.');
     used.forEach((f) => {
       const missing = STATES.map(([a]) => a).filter((a) => !values[a] || values[a][f.id] == null);
       if (missing.length) warnings.push('"' + f.label + '" has no value for ' + missing.length + ' state' + (missing.length === 1 ? '' : 's') + ' (' + missing.join(', ') + '). They are scored on the other factors, the same as missing public data.');
@@ -146,6 +164,7 @@
       const head = Object.keys(d[0] || {});
       const zc = head.find((h) => h.trim().toLowerCase() === ZONE_COL), vc = head.find((h) => h.trim().toLowerCase() === VALUE_COL);
       if (!vc) errors.push('Zone files need a "usd_per_year" column next to "zone".');
+      (d.duplicateHeaders || []).forEach((h) => errors.push('Two columns are both named "' + h + '". Rename or remove one.'));
       rows = d.map((r, i) => ({ where: 'Row ' + (i + 2), zone: r[zc], value: vc ? r[vc] : '' }));
     }
     const zones = {}, first = new Map();
@@ -159,6 +178,7 @@
       const v = toNum(r.value);
       if (!Number.isFinite(v)) { errors.push(r.where + ', column "usd_per_year": "' + shown(r.value) + '" is not a number.'); return; }
       if (v < 0) { errors.push(r.where + ': ' + id + ' cannot be negative.'); return; }
+      if (v > ZONE_MAX) { errors.push(r.where + ': ' + id + ' must be at most ' + ZONE_MAX.toLocaleString('en-US') + ' $ per battery per year (the same cap as arbPerYear on /finance), got ' + shown(r.value) + '.'); return; }
       zones[id] = v;
     });
     if (!errors.length && !Object.keys(zones).length) errors.push('No zone values found.');
@@ -196,7 +216,7 @@
     return publicZ.zones.map((x) => ({ zone: x.id, usd_per_year: x.usdPerYear }));
   }
 
-  const api = { STATES, stateOf, detect, load, loadStates, loadZones, applyZones, rankValue, STATE_TEMPLATE_COLUMNS, stateTemplateRows, zoneTemplateRows };
+  const api = { STATES, MIN_STATES, ZONE_MAX, stateOf, detect, load, loadStates, loadZones, applyZones, rankValue, STATE_TEMPLATE_COLUMNS, stateTemplateRows, zoneTemplateRows };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   root.MarketCore = api;
 })(typeof window !== 'undefined' ? window : globalThis);

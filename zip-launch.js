@@ -45,7 +45,7 @@
       return;
     }
     const utils = r.utilities.length
-      ? r.utilities.map((u) => '<div class="lp-zip-util"><strong>' + esc(u.name) + '</strong> <span class="badge badge-green">sourced</span><br><span class="lp-small">EIA ' + esc(u.eia_id) + '. ' + esc(u.ownership) + '. ' + esc(u.service_type) + '. ' + esc(u.path.label) + '.</span><p class="lp-small">' + esc(u.path.detail) + '</p></div>').join('')
+      ? r.utilities.map((u) => '<div class="lp-zip-util"><strong>' + esc(u.name) + '</strong> <span class="badge badge-green">sourced</span><br><span class="lp-small">EIA ' + esc(u.eia_id) + '. ' + esc(u.ownership) + '. ' + esc(u.service_type) + '. ' + esc(u.path.label) + '. From ' + (u.source === 'ptc' ? 'Power to Choose' : 'OpenEI' + (u.ptc_listed ? ' and Power to Choose' : '')) + '.</span><p class="lp-small">' + esc(u.path.detail) + '</p></div>').join('')
       : '<p><strong>' + esc(Z.UNKNOWN) + '</strong></p>';
     const ahj = r.ahj;
     const solar = r.solarapp;
@@ -85,7 +85,10 @@
   function renderFileNotes() {
     $('zip-explainer').textContent = DATA.explainer;
     $('zip-coverage').textContent = DATA.coverage.note;
-    const gaps = (DATA.coverage.gaps || []).map((g) => '<li>' + esc(g) + '</li>').join('');
+    const byState = DATA.coverage.gaps_by_state || {};
+    const names = { TX: 'Texas', IL: 'Illinois', GA: 'Georgia', CT: 'Connecticut' };
+    const gaps = (DATA.coverage.gaps || []).map((g) => '<li>' + esc(g) + '</li>').join('') +
+      Object.keys(byState).map((st) => byState[st].map((g) => '<li><strong>' + esc(names[st] || st) + ':</strong> ' + esc(g) + '</li>').join('')).join('');
     const clocks = (DATA.clocks || []).map((c) => '<li><strong>' + esc(c.display) + '</strong>. ' + esc(c.about) + ' <span class="lp-small">' + link(srcById(c.source)) + '.</span></li>').join('');
     $('zip-gaps').innerHTML = '<ul>' + gaps + '</ul>';
     $('zip-all-clocks').innerHTML = '<ul>' + clocks + '</ul>';

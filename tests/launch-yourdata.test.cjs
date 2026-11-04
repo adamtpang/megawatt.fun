@@ -166,3 +166,39 @@ test('durations are plain decimals: hex and Infinity are not numbers', () => {
   assert.ok(r.errors.includes('Row 3: high for b is not a number: "Infinity".'));
   assert.ok(r.errors.some(e => e.startsWith('Row 4: round_weeks for c must be a number from 0 to 260')));
 });
+
+test('column names match case-insensitively and trimmed; unknown columns warn', () => {
+  const rows = [
+    { ' Path ': 'retail', Id: 'entity', NAME: 'Form', Owner: 'Legal', Low: '1', High: '2', 'Depends On': '', Colour: 'red' },
+    { ' Path ': 'retail', Id: 'first_installs', NAME: 'First', Owner: 'Field', Low: '2', High: '3', 'Depends On': 'entity', Colour: '' },
+  ];
+  const r = L.applyOverrides(data, { kind: 'csv', data: rows });
+  assert.deepEqual(r.errors, []);
+  assert.ok(r.warnings.some(w => /unknown column "Colour"/.test(w)));
+  const steps = r.data.paths.retail.steps;
+  assert.deepEqual(steps.map(s => s.id), ['entity', 'first_installs']);
+  assert.deepEqual(steps[1].depends_on, ['entity']);
+  // A copy of the public JSON carries basis and source: no warning for those.
+  const j = L.applyOverrides(data, { kind: 'json', data: { paths: { retail: { steps: data.paths.retail.steps } } } });
+  assert.deepEqual(j.errors, []);
+  assert.ok(!j.warnings.some(w => /unknown column/.test(w)), j.warnings.join(' | '));
+});
+
+test('zero durations warn: all-zero plans loudly, single milestones quietly', () => {
+  const zero = L.applyOverrides(data, { kind: 'csv', data: [
+    { path: 'retail', id: 'a', name: 'A', owner: 'x', low: 0, high: 0, depends_on: '' },
+    { path: 'retail', id: 'first_installs', name: 'F', owner: 'x', low: 0, high: 0, depends_on: 'a' },
+  ] });
+  assert.deepEqual(zero.errors, []);
+  assert.ok(zero.warnings.some(w => /every step is 0 weeks/.test(w)));
+  const one = L.applyOverrides(data, { kind: 'csv', data: [
+    { path: 'retail', id: 'a', name: 'A', owner: 'x', low: 0, high: 0, depends_on: '' },
+    { path: 'retail', id: 'm', name: 'Filed', owner: 'x', low: 0, high: 0, depends_on: 'a', note: 'A milestone' },
+    { path: 'retail', id: 'first_installs', name: 'F', owner: 'x', low: 2, high: 3, depends_on: 'm' },
+  ] });
+  assert.deepEqual(one.errors, []);
+  assert.deepEqual(one.warnings, ['retail: a is 0 weeks in both cases, so it counts as a milestone, not work time.']);
+  // The public template's license_filed step says it is a milestone, so it loads back without a warning.
+  const tpl = L.applyOverrides(data, { kind: 'csv', data: L.templateRows(data, 'retail', 'TX') });
+  assert.deepEqual(tpl.warnings, []);
+});

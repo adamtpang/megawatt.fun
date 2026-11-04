@@ -72,10 +72,60 @@ test('finance file: hex, Infinity, huge and fractional counts are rejected like 
     'Row 4: capexPerKwh is not a number: "Infinity". Use plain decimal digits.',
     'Row 5: fleetCount must be a whole number.',
     'Row 6: arbPerYear must be at most ' + F.ARB_MAX + '.',
-    'Row 7: fleetCount must be at least 1.',
+    // A key given twice is an error, not "last row wins".
+    'Row 7: fleetCount appears again (first at Row 5). Keep one row per key.',
     'Row 8: itcPct must be at most 70.',
   ]);
+  assert.deepEqual(F.applyOverrides(defaults, Y.parseText('key,value\nfleetCount,0', 'd.csv'), ['LZ_NORTH']).errors, ['Row 2: fleetCount must be at least 1.']);
   const ok = F.applyOverrides(defaults, Y.parseText('key,value\nitcPct,40\nfleetCount,"2,500"', 'c.csv'), ['LZ_NORTH']);
   assert.deepEqual(ok.errors, []);
   assert.deepEqual(ok.changed, ['itcPct', 'fleetCount']);
+});
+
+// ---------- break-test fixes, 2026-11-04 ----------
+
+test('parseCSV records a header written twice (last value kept), without changing the rows', () => {
+  const rows = Y.parseCSV('a,b,a\n1,2,3\n');
+  assert.deepEqual(rows, [{ a: '3', b: '2' }]);
+  assert.deepEqual(rows.duplicateHeaders, ['a']);
+  assert.deepEqual(Object.keys(rows), ['0']);
+  assert.deepEqual(Y.parseCSV('a,b\n1,2\n').duplicateHeaders, []);
+});
+
+test('a failed load says which earlier file is still in use', () => {
+  const f = Y.failureStatus('bad.csv', ['Row 2: missing key.'], 'good.csv');
+  assert.equal(f.title, 'bad.csv was not loaded. Fix these and load it again:');
+  assert.deepEqual(f.items, ['Row 2: missing key.']);
+  assert.equal(f.note, 'Still using good.csv, the file loaded before.');
+  assert.equal(Y.failureStatus('bad.csv', ['x'], null).note, 'Still using the public data.');
+  assert.equal(Y.failureStatus('big.csv', [], 'good.csv', 'big.csv is larger than 5 MB.').title, 'big.csv is larger than 5 MB.');
+});
+
+test('finance file: Key,Value headers in any case, duplicate keys, zone in any case, arbPerYear over a zone', () => {
+  const zones = ['LZ_NORTH', 'LZ_WEST'];
+  const mixed = F.applyOverrides(defaults, Y.parseText('Key,VALUE\ncapexPerKwh,300\n', 'm.csv'), zones);
+  assert.deepEqual(mixed.errors, []);
+  assert.deepEqual(mixed.changed, ['capexPerKwh']);
+  const dup = F.applyOverrides(defaults, Y.parseText('key,value\ncapexPerKwh,300\ncapexPerKwh,310\n', 'd.csv'), zones);
+  assert.deepEqual(dup.errors, ['Row 3: capexPerKwh appears again (first at Row 2). Keep one row per key.']);
+  const lower = F.applyOverrides(defaults, { kind: 'json', data: { zone: 'lz_west' } }, zones);
+  assert.deepEqual(lower.errors, []);
+  assert.equal(lower.defaults.zoneDefault, 'LZ_WEST');
+  assert.match(F.applyOverrides(defaults, { kind: 'json', data: { zone: 'lz_mars' } }, zones).errors[0], /zone must be one of LZ_NORTH, LZ_WEST \(any case\), got "lz_mars"/);
+  const both = F.applyOverrides(defaults, { kind: 'json', data: { zone: 'LZ_WEST', arbPerYear: 150 } }, zones);
+  assert.deepEqual(both.errors, []);
+  assert.ok(both.warnings.includes('arbPerYear replaces the zone value, so zone LZ_WEST is not used. Leave arbPerYear blank to use the zone.'), both.warnings.join(' | '));
+});
+
+test('finance file: a number too large to store is out of range, quoting what was typed', () => {
+  const j = F.applyOverrides(defaults, Y.parseText('{"capexPerKwh":1e400}', 'x.json'), ['LZ_NORTH']);
+  assert.equal(j.errors.length, 1);
+  assert.match(j.errors[0], /^capexPerKwh is out of range: the number is too large\. Allowed: \d+ to \d+\.$/);
+  assert.doesNotMatch(j.errors[0], /Infinity|not a number/);
+  const c = F.applyOverrides(defaults, Y.parseText('key,value\ncapexPerKwh,1e400\narbPerYear,-1e999\n', 'x.csv'), ['LZ_NORTH']);
+  assert.match(c.errors[0], /^Row 2: capexPerKwh is out of range: "1e400" is too large\. Allowed: /);
+  assert.match(c.errors[1], /^Row 3: arbPerYear is out of range: "-1e999" is too large\. Allowed: 0 to 100000\.$/);
+  // The page's input fields say the same.
+  const v = F.validateFields(defaults, { capexPerKwh: '1e400' });
+  assert.match(v.errors.capexPerKwh, /out of range: "1e400" is too large/);
 });

@@ -1,5 +1,5 @@
 {
-  "built": "2026-11-03",
+  "built": "2026-11-04",
   "note": "Defaults for /finance. A generic model of one leased home battery, not any company's books. kind is 'sourced' (public number, link and date given) or 'assumption' (our placeholder, edit it). Every field has min and max; integer fields must be whole numbers.",
   "zoneDefault": "LZ_NORTH",
   "revenueCaseDefault": "merchant",
@@ -8,8 +8,8 @@
       "id": "battery",
       "title": "The battery",
       "fields": [
-        { "key": "capexPerKwh", "label": "Installed cost", "unit": "$/kWh", "value": 350, "min": 0, "max": 5000, "step": 10, "kind": "sourced",
-          "note": "Midpoint of the \"landed cost of storage\" range one home-battery company publishes, about $300 to $400 per kWh.",
+        { "key": "capexPerKwh", "label": "Installed cost (cost basis)", "unit": "$/kWh", "value": 350, "min": 0, "max": 5000, "step": 10, "kind": "sourced",
+          "note": "Cost basis, from Base's public landed-cost range: the midpoint of \"Landed cost of storage ~$300-400 / kWh\" in the comparison table on Base's utilities page (that table cites EnergySage, Lazard and Wood Mac). That is the cost of storage as Base presents it to a utility, so it may include Base's margin and sit above what the battery costs Base to build. No public number gives the owner's own build cost. Enter yours if you have it.",
           "source": "https://www.basepowercompany.com/utilities", "retrieved": "2026-10-29" },
         { "key": "kwh", "label": "Energy", "unit": "kWh", "value": 39.2, "min": 0, "max": 1000, "step": 0.1, "kind": "sourced",
           "note": "A published whole-home battery spec: 20 kW / 39.2 kWh.",
@@ -24,8 +24,11 @@
       "title": "Tax credit",
       "fields": [
         { "key": "itcPct", "label": "Investment tax credit", "unit": "% of cost", "value": 30, "min": 0, "max": 70, "step": 1, "kind": "sourced",
-          "note": "IRC 48E credit for energy storage technology owned by a third party (the leasing company), 30% for a battery under 1 MW without the wage and apprenticeship tests (48E(a)(2)(B)). Modeled as sold for cash at face value when the battery goes into service (transfer under IRC 6418), lowering what debt and equity fund. Eligibility: the homeowner credit (25D) ended for spending after 2025, but the 2025 budget law (P.L. 119-21) kept 48E for storage: full credit for construction starting through 2033, then 75%, 50%, 0. The 48E(i) lease ban covers solar water heating and small wind, not batteries. Storage that starts construction after 2025 gets no credit if it includes material assistance from a prohibited foreign entity: the non-PFE share of component cost must be at least 55% for 2026 starts, rising to 75% for 2030 (IRC 7701(a)(52), IRS Notice 2026-15, 2026-02-12). Battery cells and parts often come from China, so a project can fail this test and get 0. Bonus adders (+10 domestic content, +10 energy community) are left out; set this to 0 to test a failed claim.",
-          "source": "https://www.law.cornell.edu/uscode/text/26/48E", "retrieved": "2026-11-03" }
+          "note": "IRC 48E credit for energy storage technology owned by a third party (the leasing company), 30% for a battery under 1 MW without the wage and apprenticeship tests (48E(a)(2)(B)). Modeled as sold for cash when the battery goes into service (transfer under IRC 6418), at the credit sale price below, lowering what debt and equity fund. Eligibility: the homeowner credit (25D) ended for spending after 2025, but the 2025 budget law (P.L. 119-21) kept 48E for storage: full credit for construction starting through 2033, then 75%, 50%, 0. The 48E(i) lease ban covers solar water heating and small wind, not batteries. Storage that starts construction after 2025 gets no credit if it includes material assistance from a prohibited foreign entity: the non-PFE share of component cost must be at least 55% for 2026 starts, rising to 75% for 2030 (IRC 7701(a)(52), IRS Notice 2026-15, 2026-02-12). Battery cells and parts often come from China, so a project can fail this test and get 0. Bonus adders (+10 domestic content, +10 energy community) are left out; set this to 0 to test a failed claim.",
+          "source": "https://www.law.cornell.edu/uscode/text/26/48E", "retrieved": "2026-11-03" },
+        { "key": "itcPriceCents", "label": "Credit sale price", "unit": "cents per $1 of credit", "value": 89.5, "min": 50, "max": 100, "step": 0.5, "kind": "sourced",
+          "note": "Buyers of transferred credits pay less than face value. Crux, a tax credit marketplace, reports that ITC pricing for 2026-vintage credits averaged $0.895 per dollar of credit (2025 vintage: $0.909). That is a market-wide average across deal sizes and technologies, not a home-battery quote: small or lower-credit-quality portfolios can price lower, and a large investment-grade deal higher (one review put it at about 92 to 95 cents). Cash from the credit = credit percent x installed cost x this price.",
+          "source": "https://www.crux.com/blog/1q2026-market-update-qa-josh-price", "retrieved": "2026-11-04" }
       ]
     },
     {
@@ -33,13 +36,16 @@
       "title": "Money in",
       "fields": [
         { "key": "upfront", "label": "Member pays up front", "unit": "$", "value": 695, "min": 0, "max": 100000, "step": 5, "kind": "sourced",
-          "note": "A published home-battery offer: \"$695 and then $19/mo.\" Treated as cash that lowers what must be financed.",
+          "note": "A published home-battery offer: \"$695 and then $19/mo.\" Treated as cash that lowers what must be financed. The price is not the same everywhere: Base's site says \"Base availability, pricing, and offers vary by address\" and \"pricing vary by state\", and shows these numbers next to an Oncor-territory plan.",
           "source": "https://www.basepowercompany.com/core", "retrieved": "2026-10-29" },
         { "key": "memberFeeMonthly", "label": "Member fee", "unit": "$/month", "value": 19, "min": 0, "max": 1000, "step": 1, "kind": "sourced",
-          "note": "Same published offer. We assume every member pays every month (no churn).",
+          "note": "Same published offer, which Base says varies by address and by state. We assume every member pays every month (no churn).",
           "source": "https://www.basepowercompany.com/core", "retrieved": "2026-10-29" },
         { "key": "tollPerKwYear", "label": "Utility toll or capacity payment", "unit": "$/kW-year", "value": 60, "min": 0, "max": 1000, "step": 5, "kind": "assumption",
           "note": "Placeholder with no public source: $60/kW-year is $5 per kW-month. It counts only in the toll and stacked revenue cases. The default (merchant) case ignores it, so the default answer does not depend on it. ERCOT has no capacity market, so a toll would be a private contract." },
+        { "key": "ancPerKwYear", "label": "Ancillary services (ADER)", "unit": "$/kW-year", "value": 0, "min": 0, "max": 500, "step": 5, "kind": "assumption",
+          "note": "Left at $0 on purpose: no public number gives what an aggregated home battery nets from ERCOT reserves. In ERCOT, home batteries reach ancillary services only as part of an aggregation in ERCOT's Aggregate Distributed Energy Resource (ADER) pilot, which qualifies aggregations for Non-Spin and ECRS (Phase 3 proposed RRS under a cap), with system-wide MW limits. Enter the extra value per kW of battery power after what the battery gives up: a kW held back as reserve in an hour cannot also discharge for arbitrage in that hour, so enter reserve value from hours outside the 7 to 9 PM discharge, or net of the arbitrage it displaces. Example math only (a made-up price, not a forecast): a $10/MW-hour reserve price x 0.001 MW per kW x 20 hours a day x 365 days = $73/kW-year, before availability. Counts in the merchant and stacked cases, not the toll case (whoever holds the toll controls dispatch). Availability and fade apply.",
+          "source": "https://www.ercot.com/mktrules/pilots/ader", "retrieved": "2026-11-04" },
         { "key": "availabilityPct", "label": "Availability", "unit": "%", "value": 96, "min": 0, "max": 100, "step": 1, "kind": "sourced",
           "note": "One fleet operator reports \"96% fleet availability\". Applied to the toll and to arbitrage (pay for performance).",
           "source": "https://www.basepowercompany.com/utilities", "retrieved": "2026-10-29" },

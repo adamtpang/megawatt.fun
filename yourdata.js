@@ -29,7 +29,12 @@
     if (row.some((x) => x.trim() !== '')) rows.push(row);
     if (!rows.length) return [];
     const head = rows[0].map((h) => h.trim());
-    return rows.slice(1).map((r) => Object.fromEntries(head.map((h, i) => [h, (r[i] == null ? '' : r[i]).trim()])));
+    const out = rows.slice(1).map((r) => Object.fromEntries(head.map((h, i) => [h, (r[i] == null ? '' : r[i]).trim()])));
+    // A header written twice keeps only its last value in each row object. Record the names
+    // (not enumerable, so the rows look the same) so a tool can warn instead of losing data quietly.
+    const dup = head.filter((h, i) => h !== '' && head.indexOf(h) !== i).filter((h, i, a) => a.indexOf(h) === i);
+    Object.defineProperty(out, 'duplicateHeaders', { value: dup, enumerable: false });
+    return out;
   }
 
   function toCSV(rows, columns) {
@@ -58,7 +63,18 @@
     return t === '' ? NaN : Number(t);
   }
 
-  const api = { parseCSV, toCSV, parseText, num };
+  /* What the status line says when a file fails. active is the name of the file still in use
+     from before (null when the public data is showing), so the page never looks as if the
+     bad file was ignored and nothing else is loaded. Returns { title, items, note }. */
+  function failureStatus(name, errors, active, title) {
+    return {
+      title: title || (name + ' was not loaded. Fix these and load it again:'),
+      items: errors || [],
+      note: active ? 'Still using ' + active + ', the file loaded before.' : 'Still using the public data.',
+    };
+  }
+
+  const api = { parseCSV, toCSV, parseText, num, failureStatus };
 
   if (typeof module !== 'undefined' && module.exports) { module.exports = api; return; }
 
@@ -113,21 +129,31 @@
         opts.docs ? h('p', { class: 'yd-small' }, h('a', { href: opts.docs }, 'File format and field list')) : null));
     opts.el.append(box);
 
-    function show(kind, title, items) {
+    // Name of the file whose data is on the page now, or null for the public data.
+    let active = null;
+
+    function show(kind, title, items, note) {
       status.textContent = '';
       status.className = 'yd-status is-' + kind;
       status.append(h('p', {}, h('strong', { text: title })));
       if (items && items.length) status.append(h('ul', {}, ...items.slice(0, 12).map((x) => h('li', { text: x }))));
       if (items && items.length > 12) status.append(h('p', { text: 'And ' + (items.length - 12) + ' more.' }));
+      if (note) status.append(h('p', { class: 'yd-still', text: note }));
+    }
+    function fail(name, errors, title) {
+      const f = failureStatus(name, errors, active, title);
+      show('error', f.title, f.items, f.note);
+      return false;
     }
 
     function use(text, name, fromStore) {
       let parsed;
-      try { parsed = parseText(text, name); } catch (e) { show('error', 'Could not read ' + name, [e.message]); return false; }
+      try { parsed = parseText(text, name); } catch (e) { return fail(name, [e.message], 'Could not read ' + name); }
       let res;
-      try { res = opts.load(parsed, name); } catch (e) { show('error', 'Could not use ' + name, [e.message]); return false; }
-      if (res.errors && res.errors.length) { show('error', name + ' was not loaded. Fix these and load it again:', res.errors); return false; }
+      try { res = opts.load(parsed, name); } catch (e) { return fail(name, [e.message], 'Could not use ' + name); }
+      if (res.errors && res.errors.length) return fail(name, res.errors);
       res.apply();
+      active = name;
       badge.hidden = false; reset.hidden = false;
       const saved = fromStore || store.set(key, { name, text });
       show('ok', (fromStore ? 'Using your saved file ' : 'Using ') + name + '. ' + (res.summary || ''),
@@ -138,11 +164,12 @@
     input.addEventListener('change', () => {
       const f = input.files && input.files[0];
       if (!f) return;
-      if (f.size > 5e6) { show('error', f.name + ' is larger than 5 MB.', []); return; }
+      if (f.size > 5e6) { fail(f.name, [], f.name + ' is larger than 5 MB.'); return; }
       f.text().then((t) => { use(t, f.name, false); input.value = ''; });
     });
     reset.addEventListener('click', () => {
       store.del(key); opts.reset();
+      active = null;
       badge.hidden = true; reset.hidden = true;
       show('ok', 'Back to the public data.', []);
     });

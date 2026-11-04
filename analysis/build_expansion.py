@@ -153,7 +153,7 @@ FOOTPRINT = {
     "GA": {
         "status": "announced",
         "label": "Announced",
-        "detail": "Grid & Generation reported on 21 Oct 2026, citing Utility Dive, a Central Georgia EMC partnership for up to 50 MW, with installations planned to begin in 2027. This build did not open a Base or co-op primary release.",
+        "detail": "Base Power and Central Georgia EMC announced a residential battery program on 13 Oct 2026 (Business Wire), for up to 50 MW with installations planned to begin in 2027. The mark is not part of the score.",
     },
 }
 

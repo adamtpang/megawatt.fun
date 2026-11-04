@@ -147,3 +147,36 @@ test('supply bom: text fields need text, numbers need plain decimals', () => {
   // A part number is fine as text; $ and % are still read.
   assert.deepEqual([v.rows[0].part, v.rows[0].lead_time_weeks, v.rows[0].tariff_pct], ['4471', 4, 25]);
 });
+
+// ---------- break-test fixes, 2026-11-04 ----------
+
+test('supply bom: a column written twice is warned about, naming which value is used', () => {
+  const v = load('part,category,lead_time_weeks,lead_time_weeks\nA,cells,5,9\n');
+  assert.deepEqual(v.errors, []);
+  assert.equal(v.rows[0].lead_time_weeks, 9);
+  assert.ok(v.warnings.includes('Column "lead_time_weeks" appears more than once; the value in the last "lead_time_weeks" column is used. Remove the extra column.'), v.warnings.join(' | '));
+});
+
+test('supply bom: a tiny gap never reads as 0 weeks', () => {
+  assert.equal(S.weeksText(0.00005), 'under 0.1 wk');
+  assert.equal(S.weeksText(-0.00005), 'under 0.1 wk spare');
+  assert.equal(S.weeksText(0), '0 wk');
+  assert.equal(S.weeksText(0.05), '0.1 wk');
+  assert.equal(S.weeksText(12.34), '12.3 wk');
+  assert.equal(S.weeksText(null), '');
+  const res = S.analyze(S.validate({ kind: 'json', data: [{ part: 'A', category: 'cells', lead_time_weeks: 0.0001, on_hand_weeks: 0.00005 }] }, ids).rows);
+  assert.deepEqual(res.rows[0].flags, ['Will run short']);
+  const sum = S.summary(res);
+  assert.equal(sum.head, '1 of 1 part will run short.');
+  assert.match(sum.rest, /Longest gap: A, under 0\.1 wk\./);
+  assert.doesNotMatch(sum.head + sum.rest, /\b0 wk/);
+});
+
+test('supply bom: the tariff hint names only the columns that are missing', () => {
+  const sumOf = (parts) => { const s = S.summary(S.analyze(S.validate({ kind: 'json', data: parts }, ids).rows)); return s.head + s.rest; };
+  const base = { part: 'A', category: 'cells', lead_time_weeks: 4 };
+  assert.match(sumOf([Object.assign({ tariff_pct: 30 }, base)]), / Add unit_cost_usd and qty_per_unit to see tariff cost per battery \(a part needs all three: unit_cost_usd, qty_per_unit and tariff_pct\)\.$/);
+  assert.match(sumOf([Object.assign({ tariff_pct: 30, unit_cost_usd: 10 }, base)]), / Add qty_per_unit to see tariff cost per battery/);
+  assert.match(sumOf([base]), / Add unit_cost_usd, qty_per_unit and tariff_pct to see tariff cost per battery\.$/);
+  assert.match(sumOf([Object.assign({ tariff_pct: 30, unit_cost_usd: 10, qty_per_unit: 2 }, base)]), /Tariff cost per battery: \$6 across 1 part/);
+});

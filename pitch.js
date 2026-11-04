@@ -3,7 +3,7 @@
   'use strict';
   var P = window.PitchCore;
   var DEFAULT_ID = '5078-TX'; // CoServ, a member-owned co-op Base names publicly
-  var state = { data: null, market: null, byLabel: Object.create(null), byId: Object.create(null), selected: null, built: false, terms: P.publicTerms(), changed: {}, targets: {} };
+  var state = { data: null, market: null, idx: null, byLabel: Object.create(null), byId: Object.create(null), selected: null, built: false, terms: P.publicTerms(), changed: {}, targets: {} };
   var $ = function (id) { return document.getElementById(id); };
 
   function esc(s) {
@@ -18,6 +18,7 @@
   }
   function money(x) {
     if (!P.isNum(x)) return 'n/a';
+    if (Math.abs(x) < 1e6) return '$' + Math.round(x).toLocaleString('en-US');
     var m = x / 1e6;
     if (m >= 1000) return '$' + (m / 1000).toFixed(1) + 'B';
     return '$' + (m < 10 ? m.toFixed(1) : Math.round(m).toLocaleString('en-US')) + 'M';
@@ -67,6 +68,7 @@
       });
       list.textContent = '';
       list.appendChild(frag);
+      state.idx = P.utilityIndex(state.data.utilities);
       var start = state.byId[DEFAULT_ID] || state.data.utilities[0];
       select(start);
       $('controls').removeAttribute('aria-busy');
@@ -94,18 +96,21 @@
     $('controls').addEventListener('submit', function (e) {
       e.preventDefault();
       if (!state.data) return;
-      var u = matchInput();
-      if (!u) { setStatus('Pick a utility from the list.', 'error'); return; }
-      setStatus('Ready. Data: ' + state.data.vintage.split('.')[0] + '.');
-      state.selected = u;
-      state.built = true;
-      $('print').disabled = false;
-      render();
-      $('sheet').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      var res = matchInput();
+      if (!res.u) { noMatch(res); return; }
+      build(res.u);
     });
     $('utility').addEventListener('input', function () {
-      var u = matchInput();
-      if (u) { state.selected = u; if (state.built) render(); }
+      if (!state.data) return;
+      var res = matchInput();
+      if (res.u) { state.selected = res.u; if (state.built) { setReady(); render(); } }
+    });
+    // "Did you mean" and "pick one" buttons in the status line.
+    $('status').addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-id]');
+      if (!b) return;
+      var u = P.own(state.byId, b.getAttribute('data-id'));
+      if (u) { select(u); build(u); }
     });
     $('mw').addEventListener('input', function () { if (state.built) render(); });
     $('largeloads').addEventListener('change', function () { if (state.built) render(); });
@@ -119,9 +124,64 @@
     });
   }
 
+  function setReady() { setStatus('Ready. Data: ' + state.data.vintage.split('.')[0] + '.'); }
+
+  function build(u) {
+    setReady();
+    state.selected = u;
+    state.built = true;
+    $('print').disabled = false;
+    render();
+    $('sheet').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  /* The same matcher as the API: a list label, an EIA id, a name, "Name, ST", an alias or a short name
+     (CoServ, Oncor, ComEd), in any case. Returns PitchCore.matchUtility's result shape. */
   function matchInput() {
-    var v = $('utility').value.trim().toLowerCase();
-    return P.own(state.byLabel, v) || null;
+    var v = $('utility').value.trim();
+    if (!v) return { empty: true };
+    var hit = P.own(state.byLabel, v.toLowerCase());
+    if (hit) return { u: hit };
+    // A bare state code, as the placeholder invites: no single utility, so offer that state's top-ranked one.
+    if (/^[A-Za-z]{2}$/.test(v) && P.own(state.idx.states, v.toUpperCase())) {
+      var top = P.rankState(state.data.utilities, v.toUpperCase(), 1).filter(function (x) { return x.rank !== null; })[0];
+      return { stateOnly: v.toUpperCase(), suggestion: top ? P.own(state.byId, top.id) : null };
+    }
+    return P.matchUtility(state.idx, v, null);
+  }
+
+  // A failed Build: say why, offer the closest utility, and mark any sheet already on screen as stale.
+  function noMatch(res) {
+    var typed = P.clip($('utility').value.trim(), 60);
+    var msg = res.empty ? 'Type a utility name, an EIA id such as 5078-TX, or a state.'
+      : res.tooLong ? 'That name is longer than ' + P.MAX_NAME + ' characters. Type a utility name or an EIA id such as 5078-TX.'
+      : res.stateOnly ? res.stateOnly + ' is a state. Pick one of its utilities from the list.'
+      : res.ambiguous ? '"' + typed + '" matches ' + res.ambiguous.length + ' utilities. Pick one:'
+      : res.stateMismatch ? '"' + typed + '" is in ' + res.stateMismatch.state + ', not ' + res.state + '.'
+      : 'No utility called "' + typed + '".';
+    setStatus(msg + ' ', 'error');
+    var choices = res.ambiguous ? res.ambiguous.slice(0, 6) : res.stateMismatch ? [res.stateMismatch] : res.suggestion ? [res.suggestion] : [];
+    if (!res.ambiguous && choices.length) $('status').appendChild(document.createTextNode(res.stateOnly ? 'Top of its call ranking: ' : 'Did you mean '));
+    choices.forEach(function (u) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'btn btn-outline btn-sm pt-retry';
+      b.setAttribute('data-id', u.id);
+      b.textContent = label(u);
+      $('status').appendChild(b);
+    });
+    if (state.built && !$('sheet').hidden) {
+      $('sheet').classList.add('pt-stale');
+      $('print').disabled = true;
+      if (!$('stale-note')) {
+        var n = document.createElement('p');
+        n.id = 'stale-note';
+        n.className = 'notice notice-red pt-stale-note';
+        n.setAttribute('role', 'note');
+        $('sheet').insertBefore(n, $('sheet').firstChild);
+      }
+      $('stale-note').textContent = 'Out of date: this sheet is still for ' + label(state.selected) + ', not "' + typed + '". Pick a utility and build again.';
+    }
   }
 
   function select(u) {
@@ -191,17 +251,19 @@
         '<p>In its area a home-battery company reaches homes as a retail provider.' + (wires.baseRetail ? ' ' + esc(wires.baseRetail) + r(wires.baseSource) : '') +
         ' So the useful conversation with ' + esc(name) + ' is about interconnection and distribution-level value, not a capacity purchase.</p></div>');
     }
-    if (known) h.push('<p class="notice notice-green pt-known"><strong>Public link to Base:</strong> ' + esc(known.note) + ' ' + (known.source.url === P.BASE_SOURCE.url ? r('base') : r('known')) + (known.aliasSource ? ' EIA lists CoServ under its legal name, Denton County Electric Cooperative.' + r('alias') : '') + '</p>');
+    var partner = P.partnerFrame(u);
+    if (known) h.push('<p class="notice notice-green pt-known"><strong>' + (partner ? esc(partner.label) + ':' : 'Public link to Base:') + '</strong> ' + esc(known.note) + ' ' + (known.source.url === P.BASE_SOURCE.url ? r('base') : r('known')) + (known.aliasSource ? ' EIA lists CoServ under its legal name, Denton County Electric Cooperative.' + r('alias') : '') +
+      (partner ? ' ' + esc(partner.framing) : '') + '</p>');
 
     // Program
     if (prog) {
       h.push('<section class="pt-block"><h3>The program</h3><dl class="pt-stats">' +
-        stat(num(prog.mw, prog.mw % 1 ? 1 : 0) + ' MW', 'nameplate, your input' + (prog.mw === T.programMw ? yours('programMw') : '')) +
-        stat(num(prog.batteries), 'home batteries at ' + num(prog.kw, dec(prog.kw)) + ' kW each' + (yours('kwPerHome') || r('base'))) +
-        stat(num(prog.mwh, 1) + ' MWh', 'at ' + num(prog.kwh, dec(prog.kwh)) + ' kWh each' + (yours('kwhPerHome') || r('base'))) +
+        stat(P.fmtPower(prog.roundedUp ? prog.nameplateMw : prog.mw), prog.roundedUp ? 'nameplate, rounded up to whole batteries from your ' + esc(P.fmtPower(prog.mw)) : 'nameplate, your input' + (prog.mw === T.programMw ? yours('programMw') : '')) +
+        stat(num(prog.batteries), 'home batter' + (prog.batteries === 1 ? 'y' : 'ies') + ' at ' + num(prog.kw, dec(prog.kw)) + ' kW each' + (yours('kwPerHome') || r('base'))) +
+        stat(P.fmtEnergy(prog.mwh), 'at ' + num(prog.kwh, dec(prog.kwh)) + ' kWh each' + (yours('kwhPerHome') || r('base'))) +
         stat(share(prog.share), 'of residential customers would need to enroll') +
-        '</dl><p class="pt-note">About ' + prog.hours.toFixed(2) + ' hours at full output, derived from ' + (state.changed.kwPerHome || state.changed.kwhPerHome ? 'your battery spec' : 'Base\'s claimed spec') + '. Nameplate is not accredited capacity, and each home keeps a backup reserve, so the dispatchable share is a question below.' +
-        (P.isNum(prog.dispatchMwh) ? ' With ' + num(T.memberReservePct) + '% held back for each home, about ' + num(prog.dispatchMwh, 1) + ' MWh is left to dispatch.' + yours('memberReservePct') : '') +
+        '</dl>' + (prog.roundedUp ? '<p class="pt-note pt-rounded">' + esc(P.roundedUpNote(prog)) + '</p>' : '') + '<p class="pt-note">About ' + prog.hours.toFixed(2) + ' hours at full output, derived from ' + (state.changed.kwPerHome || state.changed.kwhPerHome ? 'your battery spec' : 'Base\'s claimed spec') + '. Nameplate is not accredited capacity, and each home keeps a backup reserve, so the dispatchable share is a question below.' +
+        (P.isNum(prog.dispatchMwh) ? ' With ' + num(T.memberReservePct) + '% held back for each home, about ' + P.fmtEnergy(prog.dispatchMwh) + ' is left to dispatch.' + yours('memberReservePct') : '') +
         (P.isNum(prog.share) && prog.share > 1 ? ' <strong>This program needs more batteries than the utility has residential customers.</strong>' : '') + '</p></section>');
     } else {
       h.push('<section class="pt-block"><h3>The program</h3><p class="pt-note">Enter a program size above 0 and at most 5,000 MW.</p></section>');
@@ -263,7 +325,7 @@
     });
     ct += '</tbody></table></div>';
     h.push('<section class="pt-block"><h3>Speed and cost, as Base states them</h3>' +
-      '<p><span class="badge badge-white">Base\'s claim</span> The first three columns are Base\'s own comparison table, which Base attributes to EnergySage, Lazard and Wood Mackenzie' + r('base') + '. The last column multiplies those $/kWh figures by this program\'s ' + (prog ? num(prog.mwh, 1) : 'n/a') + ' MWh. It is arithmetic on a claim, not a quote.</p>' + ct +
+      '<p><span class="badge badge-white">Base\'s claim</span> The first three columns are Base\'s own comparison table, which Base attributes to EnergySage, Lazard and Wood Mackenzie' + r('base') + '. The last column multiplies those $/kWh figures by this program\'s ' + (prog ? P.fmtEnergy(prog.mwh) : 'n/a') + '. It is arithmetic on a claim, not a quote.</p>' + ct +
       (costYours || timeYours ? '<p class="pt-note">The Base row uses your own ' + (costYours && timeYours ? 'time and cost' : costYours ? 'cost' : 'time') + ' from your file. Base\'s public claim is 3 to 6 months and ~$300 to $400/kWh' + r('base') + '.</p>' : '') +
       '<p class="pt-note">Base also claims: deployment across 3 metros and 6 utilities in the last 12 months, an in-house deployment factory, dispatch up to 500 cycles a year, 96% fleet availability, and a field-demonstrated forced outage rate under 5%' + r('base') + '.' +
       (state.changed.cyclesPerYear || state.changed.availabilityPct || state.changed.forcedOutagePct ? ' Your file says: up to ' + num(T.cyclesPerYear) + ' cycles a year' + yours('cyclesPerYear') + ', ' + num(T.availabilityPct, dec(T.availabilityPct)) + '% fleet availability' + yours('availabilityPct') + ', forced outage rate under ' + num(T.forcedOutagePct, dec(T.forcedOutagePct)) + '%' + yours('forcedOutagePct') + '.' : '') + '</p></section>');
@@ -295,7 +357,7 @@
         '<li>Utility keeps full dispatch rights; members keep a backup reserve.' + r('base') + '</li>' +
       '</ul></div>' +
       '<div class="pt-rca-assumed"><h4><span class="badge badge-yellow">Assumed</span> Choices made here</h4><ul>' +
-        '<li>Program size: ' + (prog ? num(prog.mw) : 'n/a') + ' MW nameplate, every battery a full ' + num(T.kwPerHome, dec(T.kwPerHome)) + ' kW unit.</li>' +
+        '<li>Program size: ' + (prog ? P.fmtPower(prog.nameplateMw) : 'n/a') + ' nameplate, every battery a full ' + num(T.kwPerHome, dec(T.kwPerHome)) + ' kW unit.</li>' +
         '<li>Offer cutoffs: outages higher than ' + num(T.reliabilityCutoffPct) + '% of US utilities' + yours('reliabilityCutoffPct') + '; ' + num(T.wholesaleCutoffPct) + '% of customers in an ISO or RTO' + yours('wholesaleCutoffPct') + '.</li>' +
         '<li>Large-load queue: ' + ($('largeloads').checked ? 'marked by you' : 'not marked') + '.</li>' +
         '<li>Call ranking: residential customers x SAIDI as a stand-in for customer minutes interrupted.</li>' +
@@ -308,7 +370,9 @@
     }).join('') + '</ol></section>');
 
     $('sheet').innerHTML = h.join('');
+    $('sheet').classList.remove('pt-stale');
     $('sheet').hidden = false;
+    $('print').disabled = false;
     renderRanking(u, st);
   }
 
@@ -319,7 +383,7 @@
     var tv = prog ? P.tollValue(T, prog.mw) : null;
     if (!tv) return '';
     return '<p class="pt-yours-offer"><strong>Your offer:</strong> $' + num(T.tollPerKwYear, T.tollPerKwYear % 1 ? 2 : 0) + ' per kW-year' + yours('tollPerKwYear') +
-      ' on ' + num(prog.mw, dec(prog.mw)) + ' MW is ' + money(tv.perYear) + ' a year' +
+      ' on ' + P.fmtPower(prog.mw) + ' is ' + money(tv.perYear) + ' a year' +
       (P.isNum(tv.total) ? ', ' + money(tv.total) + ' over ' + num(T.termYears) + ' years' + yours('termYears') : '') + '. From your file, not public data.</p>';
   }
 
@@ -330,12 +394,16 @@
     // Your targets first (all of them in this state), then the public top 10. Public rank order inside each group.
     var ordered = P.orderWithTargets(all, tg);
     var nMine = all.filter(function (x) { return P.own(tg, x.id); }).length;
-    var top = ordered.slice(0, nMine).concat(ordered.slice(nMine).filter(function (x) { return !x.wires && x.rank <= 10; }));
+    // Then existing Base partners, unranked: an expansion conversation, not a cold call.
+    var partnerRows = all.filter(function (x) { return x.partner; });
+    var top = ordered.slice(0, nMine).concat(ordered.slice(nMine).filter(function (x) { return x.rank !== null && x.rank <= 10; }), partnerRows.filter(function (x) { return !P.own(tg, x.id); }));
     var wiresRows = all.filter(function (x) { return x.wires; });
     var mine = all.filter(function (x) { return x.id === u.id; })[0];
     if (mine && top.indexOf(mine) < 0) top.push(mine);
+    var mkt = P.stateMarket(state.data.utilities, u.state);
     $('ranking-title').textContent = 'Who to call first in ' + st.name;
-    $('ranking-help').textContent = all.length + ' utilities in ' + st.name + ' in this file. Ranked by residential customers x SAIDI minutes (EIA-861 2025).' +
+    $('ranking-help').textContent = all.length + ' utilities in ' + st.name + ' in this file. Ranked by residential customers x SAIDI minutes (EIA-861 2025). ' + mkt.reason +
+      (partnerRows.length ? ' ' + partnerRows.length + ' already ' + (partnerRows.length === 1 ? 'is a Base partner' : 'are Base partners') + ', so ' + (partnerRows.length === 1 ? 'it is' : 'they are') + ' listed after the ranking, unranked, as an expansion conversation: ' + partnerRows.map(function (x) { return x.name; }).join(', ') + '.' : '') +
       (wiresRows.length ? ' ' + wiresRows.length + ' wires-only utilit' + (wiresRows.length === 1 ? 'y delivers' : 'ies deliver') + ' power but do' + (wiresRows.length === 1 ? 'es' : '') + ' not buy it, so ' + (wiresRows.length === 1 ? 'it is' : 'they are') + ' not ranked: ' + wiresRows.map(function (x) { return x.name; }).join(', ') + '.' : '') +
       (nMine ? ' Your ' + nMine + ' target' + (nMine === 1 ? '' : 's') + ' in ' + st.name + ' come first, still in public rank order.' : '') + ' Pick one to rebuild the pitch.';
     var t = '<thead><tr><th scope="col">#</th><th scope="col">Utility</th>' + (hasTargets ? '<th scope="col">Your status</th>' : '') + '<th scope="col" class="num">Residential customers</th><th scope="col" class="num">SAIDI min</th><th scope="col" class="num">Customer-minutes (millions)</th></tr></thead><tbody>';
@@ -344,7 +412,8 @@
       var cur = row.id === u.id;
       var mt = P.own(tg, row.id);
       var cls = [cur ? 'is-current' : '', mt ? 'is-target' : ''].join(' ').trim();
-      t += '<tr' + (cls ? ' class="' + cls + '"' : '') + (cur ? ' aria-current="true"' : '') + '><td data-label="#">' + (row.wires ? '<span class="badge badge-white" title="Delivers power but does not buy it">Wires only</span>' : row.rank) + '</td><td data-label="Utility"><button type="button" class="pt-link" data-id="' + esc(row.id) + '">' + esc(row.name) + '</button></td>' +
+      t += '<tr' + (cls ? ' class="' + cls + '"' : '') + (cur ? ' aria-current="true"' : '') + '><td data-label="#">' + (row.wires ? '<span class="badge badge-white" title="Delivers power but does not buy it">Wires only</span>' : row.partner ? '<span class="badge badge-green" title="' + esc(P.PARTNER_LABEL) + ': expand the existing program, not a cold call">Base partner</span>' : row.rank) + '</td><td data-label="Utility"><span class="pt-utilcell"><button type="button" class="pt-link" data-id="' + esc(row.id) + '">' + esc(row.name) + '</button>' +
+        (row.partner ? '<span class="pt-rowtag">' + esc(P.PARTNER_LABEL) + ': expand the program, not a cold call</span>' : '') + (row.marketNote ? '<span class="pt-rowtag pt-outside">' + esc(row.marketNote) + '</span>' : '') + '</span></td>' +
         (hasTargets ? '<td data-label="Your status">' + (mt ? '<span class="pt-statuscell"><span class="badge badge-solid pt-status-chip">' + esc(mt.status) + '</span>' + (mt.owner ? ' <span class="pt-owner">' + esc(mt.owner) + '</span>' : '') + '</span>' : '') + '</td>' : '') +
         '<td class="num" data-label="Customers">' + num(row.customers) + '</td><td class="num" data-label="SAIDI">' + num(row.saidi, 0) + '</td><td class="num" data-label="Cust-min (M)">' + (P.isNum(row.score) ? num(row.score / 1e6, 1) : 'not published') + '</td></tr>';
     });
@@ -381,7 +450,7 @@
   // Starter target list: the public top 5 to call in the selected utility's state.
   function targetTemplate() {
     var u = state.selected || state.byId[DEFAULT_ID];
-    var rows = P.rankState(state.data.utilities, u.state, Infinity).filter(function (x) { return !x.wires; }).slice(0, 5).map(function (x) {
+    var rows = P.rankState(state.data.utilities, u.state, Infinity).filter(function (x) { return x.rank !== null; }).slice(0, 5).map(function (x) {
       return { utility: x.id, state: u.state, status: 'not contacted', owner: '', note: state.byId[x.id].name };
     });
     return window.YourData.toCSV(rows, P.TARGET_COLUMNS);

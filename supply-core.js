@@ -105,6 +105,8 @@
       if (!bad) rows.push(out);
     });
     const head = [];
+    // A header written twice with the same spelling: parseCSV keeps only the last value.
+    if (isCsv && Array.isArray(data)) (data.duplicateHeaders || []).forEach((h) => head.push('Column "' + h + '" appears more than once; the value in the last "' + h + '" column is used. Remove the extra column.'));
     for (const [a, b] of dupes.values()) head.push('Columns "' + a + '" and "' + b + '" are the same column; the first value that is not blank is used.');
     for (const k of unknown.keys()) head.push('Ignored unknown column "' + k + '". Known columns: ' + COLUMNS.join(', ') + '.');
     return { rows, errors, warnings: head.concat(warnings) };
@@ -137,6 +139,33 @@
     };
   }
 
+  // Weeks as shown on the page and in the API. A value that is not zero never reads as 0:
+  // a part that is 0.00005 weeks short is "under 0.1 wk", so it matches its "Will run short" flag.
+  function weeksText(n) {
+    if (n == null) return '';
+    if (n !== 0 && Math.abs(n) < 0.05) return n < 0 ? 'under 0.1 wk spare' : 'under 0.1 wk'; // only a gap goes below 0
+    return (Math.round(n * 10) / 10) + ' wk';
+  }
+  const money = (n) => '$' + (Math.round(n * 100) / 100).toLocaleString('en-US', { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 });
+  const COST_COLS = ['unit_cost_usd', 'qty_per_unit', 'tariff_pct'];
+  const andList = (a) => (a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1]);
+
+  /* The summary under "Your bill of materials", in plain text, the same on the page and in the API.
+     Returns { head, rest }: head is the "N of M parts will run short." sentence. When no part has a
+     tariff cost, it names only the columns rows are actually missing. */
+  function summary(res) {
+    const t = res.totals;
+    const head = t.atRisk + ' of ' + t.parts + ' part' + (t.parts === 1 ? '' : 's') + ' will run short.';
+    let rest = t.singleSource ? ' ' + t.singleSource + ' single sourced.' : '';
+    if (t.longest && t.longest.gap > 0) rest += ' Longest gap: ' + t.longest.part + ', ' + weeksText(t.longest.gap) + '.';
+    if (t.tariffParts) rest += ' Tariff cost per battery: ' + money(t.tariffPerBattery) + ' across ' + t.tariffParts + ' part' + (t.tariffParts === 1 ? '' : 's') + ' with cost, quantity and tariff.';
+    else {
+      const missing = COST_COLS.filter((k) => res.rows.some((r) => r[k] == null));
+      rest += ' Add ' + andList(missing) + ' to see tariff cost per battery' + (missing.length < COST_COLS.length ? ' (a part needs all three: ' + andList(COST_COLS) + ').' : '.');
+    }
+    return { head, rest };
+  }
+
   // One plainly fictional row per category, for the downloadable template.
   function templateRows(categoryIds) {
     const cats = (categoryIds || CATEGORIES).concat('other');
@@ -160,7 +189,7 @@
     });
   }
 
-  const api = { CATEGORIES, COLUMNS, REQUIRED, validate, analyze, templateRows };
+  const api = { CATEGORIES, COLUMNS, REQUIRED, validate, analyze, templateRows, weeksText, summary };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   root.SupplyCore = api;
 })(typeof window !== 'undefined' ? window : globalThis);

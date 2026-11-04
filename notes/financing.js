@@ -152,7 +152,7 @@
       ". Lowest coverage " + (min === null ? "n/a" : min.toFixed(2)) +
       " on the " + document.getElementById("case").selectedOptions[0].textContent.toLowerCase() +
       " of " + zone.replace("LZ_", "") + ". " +
-      (changed ? "Energy, power, or efficiency no longer match the dispatch that produced these revenues. The dollars above are still that dispatch." : "Revenues are the dispatch at 39.2 kWh, 9.8 kW, and 90% round trip.");
+      (changed ? "Energy, power, or efficiency no longer match the dispatch that produced these revenues. The dollars above are still that dispatch." : "Revenues are the dispatch at " + data.defaults.energy_kwh + " kWh, " + data.defaults.power_kw + " kW, and " + Math.round(data.defaults.rte * 100) + "% round trip.");
   }
 
   ready();

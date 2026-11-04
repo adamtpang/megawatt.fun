@@ -22,9 +22,16 @@
     bill_usd: { label: 'Average monthly bill, 2024', unit: (v) => '$' + fmt(v), bins: [130, 160, 190] },
   };
 
-  let E, M, states, weights = {}, scored = {}, layer = 'score', selected = null, svg, view, home, byName = {};
+  // byName and scored are Maps: a name from the URL (?state=__proto__) or a search box must never reach Object.prototype.
+  let E, M, states, weights = {}, scored = new Map(), layer = 'score', selected = null, svg, view, home, byName = new Map();
   let yours = null, publicZ = null; // yours: { factors, values: { TX: { id: n } } } from a loaded file; never written into E
-  const data = (name) => byName[name];
+  const data = (name) => byName.get(name);
+  // A state from typed or URL text: full name or two-letter code, any case. Returns the state row or null.
+  function findState(text) {
+    const v = String(text == null ? '' : text).trim().toLowerCase().replace(/\s+/g, ' ');
+    if (!v) return null;
+    return states.find((o) => o.name.toLowerCase() === v || o.abbr.toLowerCase() === v) || null;
+  }
   // Public factors, then the company's own ("Yours") factors from a loaded file.
   const allFactors = () => (yours ? E.factors.concat(yours.factors) : E.factors);
   const isYours = (id) => !!(yours && yours.factors.some((f) => f.id === id));
@@ -60,14 +67,15 @@
   }
   function rescore() {
     const ranked = rank(states).sort((a, b) => (b.score ?? -1) - (a.score ?? -1) || a.row.name.localeCompare(b.row.name));
-    scored = {};
-    ranked.forEach((it, i) => { scored[it.row.name] = { score: it.score, rank: i + 1, tier: S().tierOf(it.score), factors: it.factors }; });
+    scored = new Map();
+    // Only scored states get a rank. With every weight at 0 nothing is scored, so nothing is ranked.
+    ranked.forEach((it, i) => { scored.set(it.row.name, { score: it.score, rank: it.score == null ? null : i + 1, tier: S().tierOf(it.score), factors: it.factors }); });
     return ranked;
   }
   const pts = (s) => (s === null || s === undefined ? 'n/a' : String(Math.round(s * 100)));
 
   function why(name) {
-    const st = data(name), it = scored[name];
+    const st = data(name), it = scored.get(name);
     const parts = allFactors().filter((f) => weights[f.id] > 0 && it.factors[f.id] != null).map((f) => ({ f, r: it.factors[f.id] })).sort((a, b) => b.r - a.r);
     if (!parts.length) return 'No weighted factor has a published value here.';
     const ph = (f) => `${f.yours ? 'your ' + f.label : f.label.toLowerCase()} ${factorFmt(f.id, val(st, f))}`;
@@ -79,12 +87,12 @@
 
   // ---------- layers ----------
   function layerValue(st) {
-    if (layer === 'score') return scored[st.name].score;
+    if (layer === 'score') return scored.get(st.name).score;
     if (EXTRA[layer]) return st[layer];
-    return scored[st.name].factors[layer]; // percentile rank 0..1
+    return scored.get(st.name).factors[layer]; // percentile rank 0..1
   }
   function fillFor(st) {
-    if (layer === 'score') { const t = TIERS.find((x) => x.id === scored[st.name].tier); return t ? t.fill : '#eceae6'; }
+    if (layer === 'score') { const t = TIERS.find((x) => x.id === scored.get(st.name).tier); return t ? t.fill : '#eceae6'; }
     const v = layerValue(st);
     if (v === null || v === undefined) return '#eceae6';
     const b = EXTRA[layer] ? EXTRA[layer].bins : [0.25, 0.5, 0.75];
@@ -114,7 +122,7 @@
     const n = (s) => ranked.filter((it) => it.row.footprint && it.row.footprint.status === s).length;
     const stats = [
       [top.row.name, 'Top score: ' + pts(top.score)],
-      [String(ranked.filter((it) => scored[it.row.name].tier === 'S').length), 'States in tier S'],
+      [String(ranked.filter((it) => scored.get(it.row.name).tier === 'S').length), 'States in tier S'],
       [String(n('operating')), 'States Base operates in'],
       [fmt(M.us.saidi_avg) + ' min', 'US outage minutes, 2-yr avg'],
     ];
@@ -122,9 +130,9 @@
   }
 
   function tiers(ranked) {
-    if (!ranked.some((it) => scored[it.row.name].tier)) { $('tiers').innerHTML = '<p class="mm-small">No state has a score. Every weight is 0, or no weighted factor has data. Raise a weight under Score weights.</p>'; return; }
+    if (!ranked.some((it) => scored.get(it.row.name).tier)) { $('tiers').innerHTML = '<p class="mm-small">No state has a score. Every weight is 0, or no weighted factor has data. Raise a weight under Score weights.</p>'; return; }
     $('tiers').innerHTML = TIERS.map((t) => {
-      const list = ranked.filter((it) => scored[it.row.name].tier === t.id);
+      const list = ranked.filter((it) => scored.get(it.row.name).tier === t.id);
       if (!list.length) return '';
       return `<div class="mm-tier"><span class="mm-tier-id" style="background:${t.fill};color:${['S', 'A'].includes(t.id) ? '#fff' : '#1e4d2b'}" title="${esc(t.label)}">${t.id}</span><div>` +
         list.map((it) => `<button type="button" class="mm-chip" aria-pressed="${it.row.name === selected}" data-state="${esc(it.row.name)}">${esc(it.row.abbr)} <b>${pts(it.score)}</b></button>`).join('') + '</div></div>';
@@ -134,9 +142,9 @@
   function paint() {
     const ranked = rescore();
     svg.querySelectorAll('.st').forEach((p) => {
-      const st = data(p.dataset.name), it = scored[st.name];
+      const st = data(p.dataset.name), it = scored.get(st.name);
       p.setAttribute('fill', fillFor(st));
-      p.setAttribute('aria-label', `${st.name}, tier ${it.tier || 'none'}, score ${pts(it.score)}, rank ${it.rank}`);
+      p.setAttribute('aria-label', `${st.name}, tier ${it.tier || 'none'}, score ${pts(it.score)}${it.rank ? ', rank ' + it.rank : ', not ranked'}`);
     });
     legend(); overview(ranked); tiers(ranked);
     if (selected) detail(selected, false);
@@ -144,13 +152,15 @@
 
   // ---------- detail ----------
   function detail(name, scroll = true) {
-    const st = data(name), it = scored[name]; selected = name;
+    const st = data(name), it = scored.get(name); selected = name;
     svg.querySelectorAll('.st').forEach((p) => p.classList.toggle('sel', p.dataset.name === name));
     document.querySelectorAll('.mm-chip').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.state === name)));
     const fp = st.footprint ? `<p class="notice mm-flag ${st.footprint.status === 'operating' ? 'notice-green' : 'mm-flag-planned'}"><b>${esc(st.footprint.label)}.</b> ${esc(st.footprint.detail)}</p>` : '';
     const rows = allFactors().map((f) => `<dt>${esc(f.label)}${yoursTag(f)}</dt><dd>${factorFmt(f.id, val(st, f))}</dd>`).join('');
     const c = $('detail'); c.hidden = false;
-    c.innerHTML = `<p class="mm-small">Tier ${it.tier || 'n/a'} · score ${pts(it.score)} · #${it.rank} of ${states.length}</p>
+    const nRanked = states.filter((x) => scored.get(x.name).rank).length;
+    const place = it.rank ? `#${it.rank} of ${nRanked}` : 'not ranked: no weighted factor is scored';
+    c.innerHTML = `<p class="mm-small">Tier ${it.tier || 'n/a'} · score ${pts(it.score)} · ${place}</p>
       <h2>${esc(name)}</h2>${fp}<p class="mm-why">${esc(why(name))}</p>
       <dl>${rows}
         <dt>Outage minutes, 2024 / 2025</dt><dd>${fmt(st.saidi_2024)} / ${fmt(st.saidi_2025)}</dd>
@@ -284,7 +294,7 @@
     $('btn-full').addEventListener('click', () => { const m = document.querySelector('.mm'); document.fullscreenElement ? document.exitFullscreen() : m.requestFullscreen && m.requestFullscreen(); });
     $('btn-search').addEventListener('click', () => { const f = $('search'); f.hidden = !f.hidden; $('btn-search').setAttribute('aria-expanded', String(!f.hidden)); if (!f.hidden) $('search-input').focus(); });
     $('state-list').innerHTML = states.map((s) => `<option value="${esc(s.name)}">`).join('');
-    const pick = () => { const v = $('search-input').value.trim().toLowerCase(); const s = states.find((o) => o.name.toLowerCase() === v || o.abbr.toLowerCase() === v); if (s) { detail(s.name); fitTo(s.name); } };
+    const pick = () => { const s = findState($('search-input').value); if (s) { detail(s.name); fitTo(s.name); } };
     $('search').addEventListener('submit', (e) => { e.preventDefault(); pick(); });
     $('search-input').addEventListener('change', pick);
     $('ov-toggle').addEventListener('click', () => { const b = $('ov-body'), open = b.hidden; b.hidden = !open; $('ov-toggle').setAttribute('aria-expanded', String(open)); });
@@ -355,10 +365,11 @@
     E = e; M = m; publicZ = z; zoneValue(z);
     const shape = Object.fromEntries(m.states.map((s) => [s.name, s]));
     states = e.states.filter((s) => shape[s.name]).map((s) => ({ ...shape[s.name], ...s, values: s.values, detail: s.detail || {} }));
-    byName = Object.fromEntries(states.map((s) => [s.name, s]));
+    byName = new Map(states.map((s) => [s.name, s]));
     weightsUI(); staticSections(); build(); controls(); paint(); mountYourData();
-    const q = new URLSearchParams(location.search).get('state');
-    if (q && byName[q]) { detail(q); fitTo(q); }
+    // ?state=Texas, ?state=TX and ?state=tx all open Texas; anything else is ignored.
+    const q = findState(new URLSearchParams(location.search).get('state'));
+    if (q) { detail(q.name); fitTo(q.name); }
   }
   load();
 })();

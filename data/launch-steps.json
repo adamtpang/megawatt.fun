@@ -47,8 +47,14 @@
     "ercot-flights": {
       "title": "ERCOT, Retail Market Test Flight Information",
       "url": "https://www.ercot.com/services/rq/lse/tfi",
-      "retrieved": "2026-10-30",
-      "quote": "Testing is required for new Competitive Retailers and for any current CR entering a new service territory. 2026 flights: 0226 (application deadline Jan 14, ends Mar 6), 0626 (Apr 15 to Jun 22), 1026 (Aug 19 to Oct 30)."
+      "retrieved": "2026-11-04",
+      "quote": "Testing is required for new Competitive Retailers and for any current CR entering a new service territory. 2026 flights: 0226 (application deadline Jan 14, ends Mar 6), 0626 (Apr 15 to Jun 22), 1026 (Aug 19 to Oct 30). Steps to complete before the Application Processing Deadline include: If registering as a Retail Electric Provider (REP), apply for REP certification with the Public Utility Commission of Texas."
+    },
+    "solarapp-list": {
+      "title": "SolarAPP+ participating jurisdictions (as read into data/zip-launch.json)",
+      "url": "/data/zip-launch.json",
+      "retrieved": "2026-11-03",
+      "quote": "The where-available page links a CSV of participating jurisdictions with PV and Solar + Storage columns. The copy in zip-launch.json is the file dated 2026-03-23. It lists jurisdictions, not permit-review times."
     },
     "expansion-map": {
       "title": "megawatt.fun expansion map data (EIA-861 2025, Census ACS, FEMA NRI)",
@@ -72,11 +78,20 @@
           "note": "Register the entity, post the security the license rules require, set up banking. Duration is a guess."
         },
         {
+          "id": "license_filed",
+          "name": "License application filed",
+          "owner": "Regulatory",
+          "low": 0, "high": 0,
+          "depends_on": ["entity"],
+          "basis": "assumption",
+          "note": "A milestone, not work time: the day the retail supplier license application is filed with the state commission. Preparing it is counted in the entity step. The license review starts here, and in Texas so can market testing."
+        },
+        {
           "id": "license",
           "name": "Retail supplier license from the state commission",
           "owner": "Regulatory",
           "low": 8, "high": 20,
-          "depends_on": ["entity"],
+          "depends_on": ["license_filed"],
           "basis": "assumption",
           "note": "Each state sets its own review clock. Texas and Illinois have sourced clocks below. Other states: replace with your own data."
         },
@@ -96,7 +111,7 @@
           "low": 8, "high": 20,
           "depends_on": ["license"],
           "basis": "assumption",
-          "note": "Enrollment, usage, and billing transactions must pass testing with each distribution utility before customers can switch."
+          "note": "Enrollment, usage, and billing transactions must pass testing with each distribution utility before customers can switch. Outside Texas this waits for the license by default; replace with the state's own testing rule."
         },
         {
           "id": "telemetry",
@@ -289,9 +304,10 @@
         },
         "edi": {
           "low": 7, "high": 28,
+          "depends_on": ["license_filed"],
           "basis": "sourced",
           "source": "ercot-flights",
-          "note": "ERCOT retail market testing runs in flights, three in 2026. From application deadline to flight end took 7 to 10 weeks. Missing a deadline adds up to about 18 weeks of waiting for the next one."
+          "note": "ERCOT retail market testing runs in flights, three in 2026. From application deadline to flight end took 7 to 10 weeks. Missing a deadline adds up to about 18 weeks of waiting for the next one. ERCOT asks a new retailer to have applied for PUCT REP certification by the flight's application deadline, not to hold the license, so testing starts when the license application is filed and runs alongside the PUCT review. The same deadline also needs a DUNS number, Texas Secretary of State registration, and the ERCOT LSE application; the fast case assumes those are filed with the license application. Customers still cannot be enrolled until the license is granted."
         }
       }
     },
@@ -393,8 +409,8 @@
       "id": "permit-data",
       "step": "permitting",
       "title": "Permit speed is not in public data",
-      "note": "The SolarAPP+ jurisdiction list could not be downloaded (HTTP 403), and its public table stopped at 100 jurisdictions. There is no state-by-state permit time for home batteries to plug in here.",
-      "source": "expansion-map",
+      "note": "The SolarAPP+ jurisdiction list (file dated 2026-03-23) says which permit offices take instant online solar permits, and which of those also cover solar plus storage. The ZIP lookup on this page reads it. The list has no permit-review day counts, so there is still no state-by-state permit time for home batteries to plug in here.",
+      "source": "solarapp-list",
       "kind": "data gap"
     },
     {
@@ -417,7 +433,7 @@
       "id": "edi-flights",
       "step": "edi",
       "title": "EDI testing runs on a fixed calendar in Texas",
-      "note": "ERCOT requires testing even for an existing retailer entering a new service territory. Flights happen a few times a year, so a missed deadline costs months, not days.",
+      "note": "ERCOT requires testing even for an existing retailer entering a new service territory. Flights happen a few times a year, so a missed deadline costs months, not days. A new retailer only has to have applied for its PUCT license by the flight's application deadline, so file the license application early enough to make the next flight instead of waiting for the license.",
       "source": "ercot-flights",
       "kind": "regulatory"
     },

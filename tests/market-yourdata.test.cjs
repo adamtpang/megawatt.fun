@@ -10,7 +10,7 @@ const zoneIds = Z.zones.map((z) => z.id);
 const csv = (t) => Y.parseText(t, 'x.csv');
 
 test('state metrics: abbr and full names, direction from the header, values by state', () => {
-  const r = MC.load(csv('state,install_cost_usd (lower is better),pipeline_homes\nTX,"$12,000",900\nCalifornia,15000,\nny,9000,40\n'), zoneIds);
+  const r = MC.load(csv('state,install_cost_usd (lower is better),pipeline_homes\nTX,"$12,000",900\nCalifornia,15000,\nny,9000,40\nFL,11000,10\nGA,10500,20\nAZ,9800,30\n'), zoneIds);
   assert.equal(r.kind, 'states');
   assert.deepEqual(r.errors, []);
   assert.deepEqual(r.factors.map((f) => [f.id, f.label, f.higherIsBetter]), [
@@ -21,8 +21,8 @@ test('state metrics: abbr and full names, direction from the header, values by s
   assert.deepEqual(r.values.CA, { yours_install_cost_usd: 15000 });
   assert.equal(r.values.NY.yours_pipeline_homes, 40);
   // Missing values are warned, listing the states, and left null for the score.
-  assert.ok(r.warnings.some((w) => /install_cost_usd" has no value for 48 states/.test(w)));
-  assert.ok(r.warnings.some((w) => /pipeline_homes" has no value for 49 states \(.*CA.*\)/.test(w)));
+  assert.ok(r.warnings.some((w) => /install_cost_usd" has no value for 45 states/.test(w)));
+  assert.ok(r.warnings.some((w) => /pipeline_homes" has no value for 46 states \(.*CA.*\)/.test(w)));
 });
 
 test('lower is better flips the rank; missing states are skipped like public data', () => {
@@ -37,15 +37,17 @@ test('lower is better flips the rank; missing states are skipped like public dat
 test('JSON state metrics with declared factors', () => {
   const j = Y.parseText(JSON.stringify({
     factors: [{ key: 'cac', label: 'Customer acquisition cost', higherIsBetter: false }, { key: 'permit_days', label: 'Permit days', higherIsBetter: false }],
-    states: { TX: { cac: 800, permit_days: 12 }, Florida: { cac: 1100 }, GA: { cac: '950', extra_metric: 3 } },
+    states: { TX: { cac: 800, permit_days: 12 }, Florida: { cac: 1100 }, GA: { cac: '950', extra_metric: 3 }, AZ: { cac: 900 }, NC: { cac: 1000 } },
   }), 'm.json');
   const r = MC.load(j, zoneIds);
   assert.deepEqual(r.errors, []);
+  // cac has 5 states and counts; permit_days and extra_metric have one each, so they are left out.
   assert.deepEqual(r.factors.map((f) => [f.id, f.label, f.higherIsBetter]), [
     ['yours_cac', 'Customer acquisition cost', false],
-    ['yours_permit_days', 'Permit days', false],
-    ['yours_extra_metric', 'extra_metric', true],
   ]);
+  assert.ok(r.warnings.some((w) => /^"Permit days" has values for only 1 state, so it is left out of the score/.test(w)), r.warnings.join(' | '));
+  assert.ok(r.warnings.some((w) => /^"extra_metric" has values for only 1 state/.test(w)));
+  assert.deepEqual(r.values.TX, { yours_cac: 800 });
   assert.equal(r.values.FL.yours_cac, 1100);
   assert.equal(r.values.GA.yours_cac, 950);
 });
@@ -137,7 +139,8 @@ test('reserved names never resolve as states, zones or cells', () => {
     'Row 3: unknown state "__proto__". Use a two-letter code such as TX, or the full name.',
   ]);
   // A metric called "constructor" that one state leaves out is missing there, not a function.
-  const j = MC.load({ kind: 'json', data: { states: { TX: { constructor: 5 }, FL: { other: 1 } } } }, zoneIds);
+  const five = { GA: { constructor: 1, other: 1 }, AZ: { constructor: 2, other: 2 }, NC: { constructor: 3, other: 3 }, OH: { constructor: 4, other: 4 } };
+  const j = MC.load({ kind: 'json', data: { states: Object.assign({ TX: { constructor: 5 }, FL: { other: 1 } }, five) } }, zoneIds);
   assert.deepEqual(j.errors, []);
   assert.deepEqual(j.values.FL, { yours_other: 1 });
   assert.deepEqual(j.values.TX, { yours_constructor: 5 });
@@ -156,4 +159,70 @@ test('metric values are plain decimals: hex, true and lists are not numbers', ()
   ]);
   const zz = MC.load({ kind: 'json', data: { zones: { LZ_WEST: '0x10' } } }, zoneIds);
   assert.deepEqual(zz.errors, ['zones.LZ_WEST, column "usd_per_year": "0x10" is not a number.']);
+});
+
+// ---------- break-test fixes, 2026-11-04 ----------
+
+test('a metric with fewer than 5 states is left out of the score, never full marks', () => {
+  const MS = require('../market-score.js');
+  const M = require('../data/market-states.json');
+  assert.equal(MC.MIN_STATES, 5);
+  // One state: an error, because nothing is left to rank, so no state can move.
+  const one = MC.load({ kind: 'json', data: { factors: [{ key: 'install_cost_usd', higherIsBetter: false }], states: { TX: { install_cost_usd: 999999 } } } }, zoneIds);
+  assert.deepEqual(one.errors, ['No metric has values for at least 5 states, so nothing can be ranked. Fill in at least 5 states for a metric.']);
+  assert.match(one.warnings[0], /^"install_cost_usd" has values for only 1 state, so it is left out of the score\. A metric needs at least 5 states/);
+  // Two states next to a good metric: the thin one is dropped, the good one counts.
+  const two = MC.load(csv('state,thin,good\nTX,1,1\nFL,2,2\nGA,,3\nAZ,,4\nNC,,5\n'), zoneIds);
+  assert.deepEqual(two.errors, []);
+  assert.deepEqual(two.factors.map((f) => f.id), ['yours_good']);
+  assert.ok(Object.values(two.values).every((v) => !('yours_thin' in v)));
+  assert.ok(two.warnings.some((w) => /^"thin" has values for only 2 states/.test(w)));
+  // States without the good metric score exactly as on public data; "thin" never ranks FL at 0.
+  const base = MS.scoreStates(E, M, {}), withTwo = MS.scoreStates(E, M, { yours: two });
+  const at = (o, a) => o.states.find((x) => x.abbr === a);
+  assert.equal(at(withTwo, 'CA').score, at(base, 'CA').score);
+  assert.equal(at(withTwo, 'FL').factors.yours_thin, undefined);
+  // Exactly 5 states counts.
+  const ok = MC.load(csv('state,m\nTX,1\nFL,2\nGA,3\nAZ,4\nNC,5\n'), zoneIds);
+  assert.deepEqual([ok.errors, ok.factors.map((f) => f.id)], [[], ['yours_m']]);
+});
+
+test('zone values are capped at the /finance arbPerYear cap and zone ids take any case', () => {
+  const F = require('../finance-core.js');
+  assert.equal(MC.ZONE_MAX, F.ARB_MAX);
+  const big = MC.load({ kind: 'json', data: { zones: { LZ_NORTH: 1e12 } } }, zoneIds);
+  assert.deepEqual(big.errors, ['zones.LZ_NORTH: LZ_NORTH must be at most 100,000 $ per battery per year (the same cap as arbPerYear on /finance), got 1000000000000.']);
+  assert.deepEqual(MC.load(csv('zone,usd_per_year\nlz_north,100000\n'), zoneIds).zones, { LZ_NORTH: 100000 });
+  assert.match(MC.load(csv('zone,usd_per_year\nLz_West,100000.01\n'), zoneIds).errors[0], /^Row 2: LZ_WEST must be at most 100,000/);
+});
+
+test('a CSV column written twice is an error, not a silent last-value-wins', () => {
+  const r = MC.load(csv('state,cac,cac\nTX,1,2\n'), zoneIds);
+  assert.ok(r.errors.includes('Two columns are both named "cac". Rename or remove one.'), r.errors.join(' | '));
+  const z = MC.load(csv('zone,usd_per_year,usd_per_year\nLZ_WEST,1,2\n'), zoneIds);
+  assert.deepEqual(z.errors, ['Two columns are both named "usd_per_year". Rename or remove one.']);
+});
+
+test('market page: own-key state lookups, abbreviations in any case, no rank when nothing is scored', () => {
+  const fs = require('node:fs'), path = require('node:path');
+  const src = fs.readFileSync(path.join(__dirname, '..', 'market.js'), 'utf8');
+  // No plain-object lookup by a URL or typed name (?state=__proto__ used to throw).
+  assert.doesNotMatch(src, /byName\[/);
+  assert.doesNotMatch(src, /scored\[/);
+  assert.match(src, /byName = new Map\(/);
+  assert.match(src, /const q = findState\(new URLSearchParams\(location\.search\)\.get\('state'\)\)/);
+  assert.match(src, /rank: it\.score == null \? null : i \+ 1/);
+  // findState, run on the real state list: names and codes in any case; reserved names find nothing.
+  const fnSrc = src.match(/function findState\(text\) \{[\s\S]*?\n  \}/)[0];
+  const M = require('../data/market-states.json');
+  const states = E.states.map((s) => ({ name: s.name, abbr: s.abbr }));
+  const findState = new Function('states', fnSrc + '\nreturn findState;')(states);
+  for (const q of ['Texas', 'TX', 'tx', ' texas ', 'TEXAS']) assert.equal(findState(q) && findState(q).name, 'Texas', q);
+  for (const q of ['__proto__', 'constructor', 'toString', '', null]) assert.equal(findState(q), null, String(q));
+  // The API ranks the same way: with every weight at 0, no state has a rank.
+  const MS = require('../market-score.js');
+  const zero = Object.fromEntries(E.factors.map((f) => [f.id, 0]));
+  const out = MS.scoreStates(E, M, { weights: zero });
+  assert.ok(out.states.every((s) => s.score === null && s.rank === null));
+  assert.equal(MS.scoreStates(E, M, {}).states[0].rank, 1);
 });

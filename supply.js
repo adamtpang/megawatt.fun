@@ -44,11 +44,10 @@
 
   // Your bill of materials (yourdata.js + supply-core.js). Rendered above the public
   // watch list; the public research below is never changed.
-  const usd = n => '$' + (Math.round(n * 100) / 100).toLocaleString('en-US', { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 });
-  const wk = n => n == null ? '' : (Math.round(n * 10) / 10) + ' wk';
+  // Shared with the API, so a short part never reads as "0 wk" and the summary names only what is missing.
+  const wk = n => window.SupplyCore.weeksText(n);
 
   function bomCard(res, partNames) {
-    const t = res.totals;
     // Risk flags use the shared badge mapping: shortage and single source are risks (red), tariff is neutral.
     const flagClass = { 'Will run short': 'badge-red', 'Single source': 'badge-red', 'Tariff 25%+': '' };
     const rows = res.rows.map(r => {
@@ -60,19 +59,17 @@
         '<td data-label="Supplier">' + esc(r.supplier || 'Not given') + (r.country ? '<br><span class="sp-small">' + esc(r.country) + '</span>' : '') + '</td>' +
         '<td data-label="Lead time" class="num">' + wk(r.lead_time_weeks) + '</td>' +
         '<td data-label="Cover" class="num">' + (r.on_hand_weeks == null ? '<span class="sp-small">none given</span>' : wk(r.on_hand_weeks)) + '</td>' +
-        '<td data-label="Gap" class="num"><strong>' + (r.gap > 0 ? '+' : '') + wk(r.gap) + '</strong></td>' +
+        '<td data-label="Gap" class="num"><strong>' + (r.gap >= 0.05 ? '+' : '') + wk(r.gap) + '</strong></td>' +
         '<td data-label="Flags">' + (r.flags.length ? r.flags.map(f => '<span class="badge sp-flagb' + (flagClass[f] ? ' ' + flagClass[f] : '') + '">' + esc(f) + '</span>').join(' ') : '<span class="sp-small">None</span>') + '</td></tr>';
     }).join('');
-    const longest = t.longest && t.longest.gap > 0 ? ' Longest gap: ' + esc(t.longest.part) + ', ' + wk(t.longest.gap) + '.' : '';
-    const tariff = t.tariffParts ? ' Tariff cost per battery: ' + usd(t.tariffPerBattery) + ' across ' + t.tariffParts + ' part' + (t.tariffParts === 1 ? '' : 's') + ' with cost, quantity and tariff.' : ' Add unit_cost_usd, qty_per_unit and tariff_pct to see tariff cost per battery.';
+    const sum = window.SupplyCore.summary(res);
     const sec = document.createElement('section');
     sec.className = 'card sp-card sp-yd';
     sec.id = 'bom-wrap';
     sec.setAttribute('aria-labelledby', 'bom-title');
     sec.innerHTML = '<div class="sp-part-head"><h2 id="bom-title">Your bill of materials</h2><span class="badge badge-solid">Your data</span></div>' +
       '<p class="sp-small">From your file, read in this browser only. Not public research. Gap is lead time minus weeks of cover (inventory plus open orders); a missing cover counts as zero.</p>' +
-      '<p class="sp-yd-sum"><strong>' + t.atRisk + ' of ' + t.parts + ' part' + (t.parts === 1 ? '' : 's') + ' will run short.</strong>' +
-      (t.singleSource ? ' ' + t.singleSource + ' single sourced.' : '') + longest + tariff + '</p>' +
+      '<p class="sp-yd-sum"><strong>' + esc(sum.head) + '</strong>' + esc(sum.rest) + '</p>' +
       '<div class="sp-yd-scroll"><table class="ds-table sp-yd-table"><thead><tr><th>Part</th><th>Supplier</th><th class="num">Lead time</th><th class="num">Cover</th><th class="num">Gap</th><th>Flags</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
     return sec;
   }

@@ -195,7 +195,7 @@
       'Base pitches utility partnerships: "deploy capacity in months, not years", 3 metros and 6 utilities in 12 months, 100 MW in 3 to 6 months vs 2 to 4 years for utility-scale storage. These are Base\'s own claims: ' + srcLink('base-utilities') + '.',
       'Install scheduling queue went from about 4 weeks to a few days: ' + srcLink('base-scheduling') + '.',
       'Field connectivity can fall back to unreliable 4G; commands persist until they expire: ' + srcLink('base-telemetry') + '.',
-      'Footprint: Texas operating, Illinois operating in ComEd, Georgia announced (Central Georgia EMC, installs planned for 2027): ' + srcLink('expansion-map') + '.'
+      'Footprint: Texas operating, Illinois operating in ComEd, Georgia announced (Central Georgia EMC, announced 13 Oct 2026, installs from 2027): ' + srcLink('expansion-map') + '.'
     ];
     for (const s of list) if ((s.basis === 'sourced' || s.basis === 'partly') && !s.edited) real.push(esc(s.name) + ' (' + esc(ui.abbr) + '): ' + fmt(s.low) + ' to ' + fmt(s.high) + ' weeks. ' + srcLink(s.source) + '.');
     const assumed = list.filter(s => s.basis === 'assumption' && !s.edited).map(s => esc(s.name) + ': ' + fmt(s.low) + ' to ' + fmt(s.high) + ' weeks');
@@ -247,7 +247,9 @@
     // A hash typed into the address bar, or reached with Back or Forward, selects that state.
     window.addEventListener('hashchange', () => {
       const r = routeFromHash(location.hash);
-      if (!r) return;
+      // A state-shaped hash with an unknown state (#zz/retail) keeps the page as it is and puts the
+      // URL back to the state on screen. Other hashes, such as a section link, are left alone.
+      if (!r) { if (/^#[A-Za-z]{2}(\/[A-Za-z_-]*)?\/?$/.test(location.hash)) writeHash(); return; }
       if (r.abbr === ui.abbr && r.path === ui.path) { writeHash(); return; }
       ui.path = r.path;
       selectState(r.abbr, true);

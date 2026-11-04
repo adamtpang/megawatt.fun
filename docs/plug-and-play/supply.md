@@ -18,7 +18,7 @@ Page: `/supply`. Loads your own bill of materials and shows which parts will run
 | `qty_per_unit` | how many go into one battery, 0 to 10,000 | count |
 | `note` | anything else | text |
 
-**Rules:** gap = `lead_time_weeks` minus `on_hand_weeks` (a blank cover counts as 0). Rows are sorted by gap, biggest first. Flags: **Will run short** when the gap is above 0, **Single source** when `second_source` is `no`, **Tariff 25%+** when `tariff_pct` is 25 or more. Tariff cost per battery adds `unit_cost_usd * qty_per_unit * tariff_pct / 100` over the rows that have all three. Column names match without regard to case or surrounding spaces, so `Lead_Time_Weeks` works; a column the tool does not know is named in a warning and ignored. Missing required fields, unknown categories, text fields that are not text (in JSON, an object or a list; a number such as a part number is read as text), non-numbers (plain decimals only, after dropping `$`, `,` and `%`; `0x10` and `Infinity` are not numbers), negative numbers and values over the limits in the table stop the load and are listed by row. Duplicate part names load with a warning. Each row links to the public research card for its category.
+**Rules:** gap = `lead_time_weeks` minus `on_hand_weeks` (a blank cover counts as 0). Rows are sorted by gap, biggest first. Flags: **Will run short** when the gap is above 0, **Single source** when `second_source` is `no`, **Tariff 25%+** when `tariff_pct` is 25 or more. Tariff cost per battery adds `unit_cost_usd * qty_per_unit * tariff_pct / 100` over the rows that have all three. Column names match without regard to case or surrounding spaces, so `Lead_Time_Weeks` works; a column the tool does not know is named in a warning and ignored. A column written twice loads with a warning that names it and says which value is used. A gap that is above 0 but under 0.1 weeks reads "under 0.1 wk", never "0 wk". When no row has a tariff cost, the summary names only the columns that are missing. Missing required fields, unknown categories, text fields that are not text (in JSON, an object or a list; a number such as a part number is read as text), non-numbers (plain decimals only, after dropping `$`, `,` and `%`; `0x10` and `Infinity` are not numbers), negative numbers and values over the limits in the table stop the load and are listed by row. Duplicate part names load with a warning. Each row links to the public research card for its category.
 
 **Example:**
 
@@ -36,9 +36,12 @@ A second checker on the same page, above the research. It reads a CSV in the bro
 | --- | --- | --- |
 | `part_number` | part id | yes |
 | `description` | what it is | yes |
-| `qty` | how many, greater than 0 | yes |
+| `qty` | how many, greater than 0, at most 10,000 | yes |
 | `supplier` | who you buy it from | yes |
 | `alt_suppliers` | other suppliers, separated by `;` (or `|`, or commas if there is no semicolon) | no |
-| `lead_time_days` | days from order to delivery | no |
+| `alt_qualified` | `yes` if a listed alternate is qualified to ship, otherwise `no` | no |
+| `lead_time_days` | days from order to delivery, 0 to 3,650 | no |
+| `on_hand_days` | days of stock on hand, 0 to 3,650 (blank counts as 0, with a warning) | no |
+| `unit_cost_usd` | price per unit, 0 to 1,000,000, used only to break ties | no |
 
-A row with one supplier is flagged. Block score is `single_source * lead_time_days * qty`, where single source is 1 or 0. A missing lead time leaves the score unknown. Rows are not merged. The sample on the page is demo data with made-up suppliers. Download gives the flagged rows only.
+Block score is `max(0, lead_time_days - on_hand_days) * (2 if single source, else 1)`, with ties broken by spend (`qty * unit_cost_usd`). The gap is how many days a reorder placed today would leave the build short. Single source means no qualified second source: listed alternates count only when `alt_qualified` is `yes`, and a row with unqualified alternates is flagged "Alternate listed, not qualified". Quantity does not raise the score, because one missing part stops the build whether you need 1 or 12. A missing lead time leaves the score unknown. Numbers are plain decimals (`$` and thousands commas are dropped first); `0x10`, `Infinity` and values over the limits in the table are row errors. Rows are not merged. The sample on the page is demo data with made-up suppliers. Download gives the flagged rows only.

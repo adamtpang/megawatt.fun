@@ -111,6 +111,8 @@ input[type=range] { accent-color: var(--brand-foreground); }
 .tools-intro { margin: 32px 0; }
 .tools-intro h1 { font-size: clamp(32px,5vw,48px); font-weight: 600; }
 .tools-intro p { color: var(--muted); font-size: 17px; }
+.tools-intro .eyebrow { color: var(--green-90); font-size: var(--text-body-sm); }
+.tools-subhead { margin: 48px 0 16px; font-size: var(--text-heading-sm); font-weight: 600; }
 .tool-directory { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
 .tool-directory > a { display: flex; flex-direction: column; gap: 16px; padding: 32px; background: #fff; border: 1px solid transparent; border-radius: var(--radius-panel); color: var(--ink); text-decoration: none; }
 .tool-directory > a:hover { border-color: var(--lamp); }

@@ -25,7 +25,7 @@
   <section class="prose" id="question">
     <h2>The question</h2>
     <p>A home battery that is paid the load-zone price earns the gap between the hours it charges and the hours it discharges. Report 13060 is the public day-ahead history of those load-zone prices back to 2011. This note uses the eight complete years 2018 through 2025. 2021 and 2023 are in the set. 2026 is a partial file and is left out.</p>
-    <p>The battery in the default run is a Base Core’s published 39.2 kWh. Continuous kilowatts, round-trip efficiency, fade, and cost are not on that spec sheet, so those inputs start as labeled illustrations. Changing them recomputes the debt math on the revenues below. It does not rerun the dispatch. The dispatch was run once, at the defaults, by <span class="mono">analysis/build_financing.py</span>.</p>
+    <p>The battery in the default run is a Base Core’s published 39.2 kWh and 20 kW (20 kW / 39.2 kWh on Base’s utilities page, the same spec the other tools on this site use). Round-trip efficiency, fade, and cost are not published, so those inputs start as labeled illustrations. Changing them recomputes the debt math on the revenues below. It does not rerun the dispatch. The dispatch was run once, at the defaults, by <span class="mono">analysis/build_financing.py</span>.</p>
   </section>
 
   <section class="deep" id="results" aria-labelledby="results-title">
@@ -60,8 +60,8 @@
         <legend><h2>Battery</h2></legend>
         <div class="slider"><label for="energy">Energy kWh</label><output id="o-energy" for="energy">39.2</output>
           <input id="energy" type="range" min="10" max="80" step="0.1" value="39.2"></div>
-        <div class="slider"><label for="power">Power kW</label><output id="o-power" for="power">9.8</output>
-          <input id="power" type="range" min="2" max="20" step="0.1" value="9.8"></div>
+        <div class="slider"><label for="power">Power kW</label><output id="o-power" for="power">20.0</output>
+          <input id="power" type="range" min="2" max="40" step="0.1" value="20"></div>
         <div class="slider"><label for="rte">Round-trip efficiency</label><output id="o-rte" for="rte">90%</output>
           <input id="rte" type="range" min="70" max="100" step="1" value="90"></div>
         <p class="quiet" id="battery-note"></p>
@@ -108,7 +108,7 @@
     <ul>
       <li>Base’s actual debt structure, interest rate, tenor, advance rate, and covenants.</li>
       <li>What the battery cost Base to build. The $695 installation fee and $19 a month on the public site are customer prices, not capital cost. NREL ATB’s residential-battery workbook was not read into a single cost row for this build, so the $/kWh slider starts at zero and debt service stays blank until you move it.</li>
-      <li>Continuous kilowatts, round-trip efficiency, cycle life, and fade. The Core spec sheet publishes 39.2 kWh, 120/240 V, and backup duration. The 9.8 kW default is 39.2 kWh divided by 4 hours.</li>
+      <li>Round-trip efficiency, cycle life, and fade. The Core spec sheet publishes 39.2 kWh, 120/240 V, and backup duration, but no kilowatts; the 20 kW default comes from Base’s utilities page (“20 kW / 39.2 kWh”).</li>
       <li>Fleet dispatch, reserve policy, and outage constraints. This run holds nothing back for backup and sees every future price in the year.</li>
       <li>Real-time prices, nodal prices, and ancillary-service revenue. Report 13060 is day-ahead hubs and load zones.</li>
       <li>A 10-year Treasury yield, if the public CSV did not load. The page says so in the loan note.</li>
@@ -120,6 +120,7 @@
     <ol>
       <li><a href="https://www.ercot.com/mp/data-products/data-product-details?id=NP4-180-ER">NP4-180-ER</a>, historical DAM load zone and hub prices, report type 13060. Years 2018 through 2025, friendly names DAMLZHBSPP_2018 through DAMLZHBSPP_2025.</li>
       <li><a href="https://www.basepowercompany.com/core">Base Core spec sheet</a>, read 27 October 2026. 39.2 kWh. No continuous kilowatts.</li>
+      <li><a href="https://www.basepowercompany.com/utilities">Base utilities page</a>, read 4 November 2026. “Our proprietary residential BESS (20 kW / 39.2 kWh).”</li>
       <li><a href="https://www.ercot.com/files/docs/2026/10/06/06.-ADER_Phase-4_WMS_10072026.pdf">ADER Phase 4, WMS, 7 October 2026</a>. Settlement stays at the load zone.</li>
       <li><a href="/notes/expansion-map">Where to look next</a>, for the launch-path side of the same question.</li>
     </ol>

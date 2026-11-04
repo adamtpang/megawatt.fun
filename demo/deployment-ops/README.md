@@ -51,24 +51,3 @@ python scripts/serve.py
 ```
 
 `results.json` contains the inputs and computed outputs. No dependencies need installing to run the model or page. The vendored renderer is Three.js r185. No network request or AI model powers the simulation.
-
-## Record and reply
-
-The supplied film mode steps the actual model deterministically: baseline, +3 crews at 8 seconds, +1 commissioning resource at 20 seconds. `scripts/record-ops.py` captures 36 seconds at 1920×1080/24fps through isolated Helium, encoded locally to H.264 MP4 with ffmpeg. It is a scripted simulation tour, not a recording of real Base operations. No voice, microphone, desktop or private session is captured.
-
-With the preview running, from this repository in PowerShell:
-
-```powershell
-$env:MEGAWATT_ROOT = (Get-Location).Path
-Get-Content scripts/record-ops.py -Raw | helium-agent --profile megawatt-design run
-```
-
-For your own narrated take, use **OBS**: Window Capture → Helium, 1920×1080, 30fps, microphone only, disable desktop audio, record 35–45 seconds, trim dead time, attach the MP4 directly to X. OBS recommends a short test recording first. MKV is resilient while recording; use OBS's remux feature to produce MP4. [OBS setup](https://obsproject.com/kb/quick-start-guide) · [Recording formats](https://obsproject.com/kb/standard-recording-output-guide).
-
-Loom is convenient for sharing a link, but its Starter Free plan does not allow downloading your recording, making it a poor fit for this native-video reply. [Loom download policy](https://support.atlassian.com/loom/docs/download-your-loom-video).
-
-Copy-ready reply, after reviewing the video:
-
-> Your warehouse demo inspired me to try this for battery deployment, using your open-source factory engine. Adding crews moves the bottleneck to commissioning. Synthetic operating inputs, computed queues and throughput. A small Base-inspired experiment in Megawatt.
-
-Upload the local video yourself. This tool has not been deployed; do not present `/ops` as live on megawatt.fun until it is released. Nothing has been posted or sent.

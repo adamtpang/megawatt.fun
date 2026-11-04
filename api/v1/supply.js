@@ -10,8 +10,6 @@ const IDS = DATA.parts.map((p) => p.id);
 const PART = L.byKey(DATA.parts, (p) => p.id); // a Map: categories from a request never reach Object.prototype
 const KNOWN = ['parts'];
 
-const wk = (n) => (n == null ? '' : (Math.round(n * 10) / 10) + ' wk');
-const usd = (n) => '$' + (Math.round(n * 100) / 100).toLocaleString('en-US', { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 });
 
 function usage() {
   return {
@@ -46,11 +44,8 @@ async function post(parsed) {
   const res = S.analyze(v.rows);
   const t = res.totals;
 
-  const longest = t.longest && t.longest.gap > 0 ? ' Longest gap: ' + t.longest.part + ', ' + wk(t.longest.gap) + '.' : '';
-  const tariff = t.tariffParts
-    ? ' Tariff cost per battery: ' + usd(t.tariffPerBattery) + ' across ' + t.tariffParts + ' part' + (t.tariffParts === 1 ? '' : 's') + ' with cost, quantity and tariff.'
-    : ' Add unit_cost_usd, qty_per_unit and tariff_pct to see tariff cost per battery.';
-  const summary = t.atRisk + ' of ' + t.parts + ' part' + (t.parts === 1 ? '' : 's') + ' will run short.' + (t.singleSource ? ' ' + t.singleSource + ' single sourced.' : '') + longest + tariff;
+  const sum = S.summary(res); // the page's summary text, word for word
+  const summary = sum.head + sum.rest;
 
   const rows = res.rows.map((r) => {
     const pub = PART.get(r.category);

@@ -22,12 +22,20 @@ class DispatchTests(unittest.TestCase):
         years = {item["year"]: item["revenue_usd"] for item in block["years"]}
         self.assertEqual(sorted(years), [2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025])
         self.assertEqual(block["worst_year"], 2020)
-        self.assertAlmostEqual(block["worst_usd"], 463.57, places=2)
-        self.assertAlmostEqual(block["p50_usd"], 1101.77, places=2)
-        self.assertAlmostEqual(block["p90_exceedance_usd"], 566.27, places=2)
+        self.assertAlmostEqual(block["worst_usd"], 596.96, places=2)
+        self.assertAlmostEqual(block["p50_usd"], 1394.45, places=2)
+        self.assertAlmostEqual(block["p90_exceedance_usd"], 746.15, places=2)
         self.assertEqual(block["best_year"], 2023)
         self.assertGreater(years[2021], years[2020])
         self.assertGreater(years[2023], years[2021])
+
+    def test_power_is_the_published_20_kw(self):
+        # Base utilities page: "20 kW / 39.2 kWh", the same spec /finance and the zone file use.
+        self.assertEqual(DATA["defaults"]["power_kw"], 20.0)
+        self.assertEqual(DATA["defaults"]["energy_kwh"], 39.2)
+        self.assertIn("20 kW / 39.2 kWh", DATA["defaults"]["power_source"])
+        zone_spec = json.loads((ROOT / "data" / "zone-value.json").read_text())["spec"]
+        self.assertEqual(zone_spec["power"], DATA["defaults"]["power_kw"])
 
     def test_routes_and_independence(self):
         html = (ROOT / "notes" / "financing-a-home-battery.html").read_text()

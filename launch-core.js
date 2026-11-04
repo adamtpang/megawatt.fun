@@ -132,7 +132,8 @@
     return path.steps.map(s => {
       const o = hasOwn(ov, s.id) ? ov[s.id] : null;
       const c = Object.assign({}, s, { depends_on: (s.depends_on || []).slice() });
-      if (o) { Object.assign(c, o); c.override = true; }
+      // An override may also change depends_on (Texas market testing waits only for the license filing).
+      if (o) { Object.assign(c, o, { depends_on: (o.depends_on || c.depends_on).slice() }); c.override = true; }
       return c;
     });
   }
@@ -187,6 +188,28 @@
     return cellText(v).split(';').map(x => x.trim()).filter(Boolean);
   }
 
+  // Column names match case-insensitively, trimmed, with spaces or hyphens read as underscores.
+  const colKey = h => String(h).trim().toLowerCase().replace(/[\s-]+/g, '_');
+  // Fields a copy of launch-steps.json carries that are not file columns. Ignored without a warning.
+  const QUIET_KEYS = ['basis', 'source', 'override', 'edited', 'yours'];
+  // One step row with its keys mapped onto STEP_COLUMNS. Unknown and repeated columns go into
+  // `unknown` and `dupes` (Maps keyed by the name as written), so each is warned about once.
+  function normalizeRow(r, unknown, dupes) {
+    if (!r || typeof r !== 'object' || Array.isArray(r)) return r;
+    const out = {}, from = Object.create(null);
+    for (const k of Object.keys(r)) {
+      const c = colKey(k);
+      if (!STEP_COLUMNS.includes(c)) {
+        if (k.trim() !== '' && !QUIET_KEYS.includes(c) && !unknown.has(k)) unknown.set(k, true);
+        continue;
+      }
+      if (c in from) { if (cellText(out[c]) === '' && !Array.isArray(out[c])) out[c] = r[k]; dupes.set(from[c] + '|' + k, [from[c], k]); continue; }
+      from[c] = k;
+      out[c] = r[k];
+    }
+    return out;
+  }
+
   // A company's own launch steps on top of the public data. parsed is
   // { kind: 'csv', data: [{ path, id, name, owner, low, high, depends_on: 'a;b', round_weeks, note }] }
   // or { kind: 'json', data: { paths: { retail: { steps: [...] } }, tennis: [{ step, round_weeks, with, bounce, fix }] } }.
@@ -199,8 +222,12 @@
     const raw = parsed && parsed.data;
     const entries = []; // { pid, where, r }
     const tennisIn = []; // { where, t }
+    const unknownCols = new Map(), dupeCols = new Map();
     if (Array.isArray(raw)) {
-      raw.forEach((r, i) => entries.push({ pid: cellText(r && r.path), where: 'Row ' + (i + (parsed.kind === 'csv' ? 2 : 1)) + ': ', r }));
+      raw.forEach((r0, i) => {
+        const r = normalizeRow(r0, unknownCols, dupeCols);
+        entries.push({ pid: cellText(r && r.path), where: 'Row ' + (i + (parsed.kind === 'csv' ? 2 : 1)) + ': ', r });
+      });
     } else if (raw && typeof raw === 'object') {
       const ps = raw.paths;
       if (ps != null && (typeof ps !== 'object' || Array.isArray(ps))) errors.push('"paths" must be an object like { "retail": { "steps": [...] } }.');
@@ -209,12 +236,14 @@
           const list = p && Array.isArray(p.steps) ? p.steps : null;
           if (!list) { errors.push(pid + ': needs a "steps" list.'); continue; }
           if (!list.length) { errors.push(pid + ': the "steps" list is empty.'); continue; }
-          list.forEach((r, i) => entries.push({ pid, where: pid + ' step ' + (i + 1) + ': ', r }));
+          list.forEach((r, i) => entries.push({ pid, where: pid + ' step ' + (i + 1) + ': ', r: normalizeRow(r, unknownCols, dupeCols) }));
         }
       }
       if (raw.tennis != null && !Array.isArray(raw.tennis)) errors.push('"tennis" must be a list of { step, round_weeks }.');
       else (raw.tennis || []).forEach((t, i) => tennisIn.push({ where: 'tennis ' + (i + 1) + ': ', t: t || {} }));
     }
+    for (const [a, b] of dupeCols.values()) warnings.push('Columns "' + a + '" and "' + b + '" are the same column; the first value that is not blank is used.');
+    for (const k of unknownCols.keys()) warnings.push('Ignored unknown column "' + k + '". Known columns: ' + STEP_COLUMNS.join(', ') + '.');
     if (!entries.length && !errors.length) errors.push('No steps found. Use the CSV columns ' + STEP_COLUMNS.join(', ') + ', or JSON { "paths": { "retail": { "steps": [...] } } }.');
 
     // Validate each row and group it by path.
@@ -281,6 +310,18 @@
         catch (e) { errors.push(pid + ': ' + e.message.replace(/^Cycle in launch steps/, 'cycle in depends_on') + '.'); }
       }
       if (!seen.has('first_installs')) warnings.push(pid + ': no step with id first_installs, so "First install" uses the end of the whole timeline.');
+      // Zero durations: a milestone is fine, an all-zero plan is almost certainly a mistake.
+      // A 0-week step whose name or note says "milestone" is intended (the public license_filed step is one).
+      const zero = rows.filter(x => x.step.low === 0 && x.step.high === 0);
+      const unmarked = zero.filter(x => !/milestone/i.test(x.step.name + ' ' + x.step.note));
+      if (ok && zero.length === rows.length) {
+        warnings.push(pid + ': every step is 0 weeks in both cases, so the first install shows at week 0. Check the low and high columns.');
+      } else if (ok && unmarked.length) {
+        const zero = unmarked;
+        warnings.push(pid + ': ' + zero.map(x => x.step.id).join(', ') + (zero.length === 1 ? ' is' : ' are') + ' 0 weeks in both cases, so ' + (zero.length === 1 ? 'it counts' : 'they count') + ' as a milestone, not work time.');
+      } else if (ok) {
+        try { if (schedule(rows.map(x => x.step), 'high').total === 0) warnings.push(pid + ': the whole timeline is 0 weeks. Check the low and high columns.'); } catch (e) { /* cycle already reported */ }
+      }
     }
 
     // JSON tennis entries: each must name a step from the file.

@@ -37,10 +37,10 @@ YEARS = {
     2024: "1065468714",
     2025: "1177667469",
 }
-# Published Base Core energy. Continuous kilowatts are not on the public spec sheet.
+# Published Base Core energy and power: "Our proprietary residential BESS (20 kW / 39.2 kWh)",
+# basepowercompany.com/utilities, read 4 November 2026. The other tools use the same spec.
 ENERGY_KWH = 39.2
-# Illustrative 4-hour duration, because no public continuous-power rating was found.
-POWER_KW = 9.8
+POWER_KW = 20.0
 # Illustrative. Base does not publish round-trip efficiency on the Core spec sheet.
 RTE = 0.90
 RESERVE = 0.0
@@ -233,7 +233,7 @@ def main():
             "energy_kwh": ENERGY_KWH,
             "energy_source": "Base Core public spec, basepowercompany.com/core, 39.2 kWh. Read 27 October 2026.",
             "power_kw": POWER_KW,
-            "power_source": "Illustrative. The public Core spec lists energy, voltage, and backup duration. It does not list continuous kilowatts. 9.8 kW is 39.2 kWh over 4 hours.",
+            "power_source": "Base utilities page, basepowercompany.com/utilities: \"Our proprietary residential BESS (20 kW / 39.2 kWh)\". Read 4 November 2026. The Core spec sheet itself lists no kW. Same 20 kW as the other megawatt.fun tools.",
             "rte": RTE,
             "rte_source": "Illustrative. Round-trip efficiency is not on the public Core spec sheet.",
             "reserve": RESERVE,

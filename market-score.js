@@ -81,8 +81,9 @@
     return {
       factors: factors.map((f) => ({ id: f.id, label: f.label, group: f.group, yours: !!f.yours, higherIsBetter: f.higherIsBetter !== false, weight: weights[f.id] })),
       weights,
+      // Only scored states are ranked, the same as the page: with every weight at 0, rank is null.
       states: ranked.map((it, i) => ({
-        rank: i + 1,
+        rank: it.score === null || it.score === undefined ? null : i + 1,
         abbr: it.row.abbr,
         name: it.row.name,
         score: it.score,

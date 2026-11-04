@@ -1,11 +1,11 @@
 {
-  "generated": "2026-10-28",
+  "generated": "2026-11-04",
   "method": "Each year is one perfect-foresight dispatch. The battery starts full and must finish the year full, so it can sell into a spike and recharge later, and a one-time emptying is not revenue. Charge and discharge are limited by power and by stored energy. Round-trip efficiency is split evenly between charge and discharge. The state of charge is stepped in 0.4 kWh. Prices are ERCOT day-ahead load-zone settlement prices, report 13060.",
   "defaults": {
     "energy_kwh": 39.2,
     "energy_source": "Base Core public spec, basepowercompany.com/core, 39.2 kWh. Read 27 October 2026.",
-    "power_kw": 9.8,
-    "power_source": "Illustrative. The public Core spec lists energy, voltage, and backup duration. It does not list continuous kilowatts. 9.8 kW is 39.2 kWh over 4 hours.",
+    "power_kw": 20.0,
+    "power_source": "Base utilities page, basepowercompany.com/utilities: \"Our proprietary residential BESS (20 kW / 39.2 kWh)\". Read 4 November 2026. The Core spec sheet itself lists no kW. Same 20 kW as the other megawatt.fun tools.",
     "rte": 0.9,
     "rte_source": "Illustrative. Round-trip efficiency is not on the public Core spec sheet.",
     "reserve": 0.0,
@@ -20,8 +20,8 @@
   },
   "treasury_10y": {
     "available": true,
-    "date": "10/27/2026",
-    "percent": 4.99,
+    "date": "10/30/2026",
+    "percent": 4.94,
     "source": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/all/202610?type=daily_treasury_yield_curve&field_tdr_date_value_month=202610&page&_format=csv"
   },
   "zones": {
@@ -29,241 +29,241 @@
       "years": [
         {
           "year": 2018,
-          "revenue_usd": 794.95,
+          "revenue_usd": 1057.71,
           "hours": 8760,
           "days": 365
         },
         {
           "year": 2019,
-          "revenue_usd": 1427.98,
+          "revenue_usd": 1907.98,
           "hours": 8760,
           "days": 365
         },
         {
           "year": 2020,
-          "revenue_usd": 463.57,
+          "revenue_usd": 596.96,
           "hours": 8784,
           "days": 366
         },
         {
           "year": 2021,
-          "revenue_usd": 1408.59,
+          "revenue_usd": 1712.17,
           "hours": 8760,
           "days": 365
         },
         {
           "year": 2022,
-          "revenue_usd": 1476.14,
+          "revenue_usd": 1845.81,
           "hours": 8760,
           "days": 365
         },
         {
           "year": 2023,
-          "revenue_usd": 2238.57,
+          "revenue_usd": 2733.87,
           "hours": 8760,
           "days": 365
         },
         {
           "year": 2024,
-          "revenue_usd": 752.95,
+          "revenue_usd": 1076.73,
           "hours": 8784,
           "days": 366
         },
         {
           "year": 2025,
-          "revenue_usd": 610.29,
+          "revenue_usd": 810.09,
           "hours": 8760,
           "days": 365
         }
       ],
-      "p50_usd": 1101.77,
-      "p90_exceedance_usd": 566.27,
+      "p50_usd": 1394.45,
+      "p90_exceedance_usd": 746.15,
       "worst_year": 2020,
-      "worst_usd": 463.57,
+      "worst_usd": 596.96,
       "best_year": 2023,
-      "best_usd": 2238.57,
-      "mean_usd": 1146.63,
-      "stdev_usd": 595.41
+      "best_usd": 2733.87,
+      "mean_usd": 1467.66,
+      "stdev_usd": 708.25
     },
     "LZ_NORTH": {
       "years": [
         {
           "year": 2018,
-          "revenue_usd": 810.79,
+          "revenue_usd": 1076.93,
           "hours": 8760,
           "days": 365
         },
         {
           "year": 2019,
-          "revenue_usd": 1425.03,
+          "revenue_usd": 1908.22,
           "hours": 8760,
           "days": 365
         },
         {
           "year": 2020,
-          "revenue_usd": 443.68,
+          "revenue_usd": 578.71,
           "hours": 8784,
           "days": 366
         },
         {
           "year": 2021,
-          "revenue_usd": 1378.48,
+          "revenue_usd": 1681.95,
           "hours": 8760,
           "days": 365
         },
         {
           "year": 2022,
-          "revenue_usd": 1335.21,
+          "revenue_usd": 1697.82,
           "hours": 8760,
           "days": 365
         },
         {
           "year": 2023,
-          "revenue_usd": 2233.31,
+          "revenue_usd": 2738.57,
           "hours": 8760,
           "days": 365
         },
         {
           "year": 2024,
-          "revenue_usd": 789.94,
+          "revenue_usd": 1134.92,
           "hours": 8784,
           "days": 366
         },
         {
           "year": 2025,
-          "revenue_usd": 666.19,
+          "revenue_usd": 888.79,
           "hours": 8760,
           "days": 365
         }
       ],
-      "p50_usd": 1073.0,
-      "p90_exceedance_usd": 599.44,
+      "p50_usd": 1408.43,
+      "p90_exceedance_usd": 795.77,
       "worst_year": 2020,
-      "worst_usd": 443.68,
+      "worst_usd": 578.71,
       "best_year": 2023,
-      "best_usd": 2233.31,
-      "mean_usd": 1135.33,
-      "stdev_usd": 574.66
+      "best_usd": 2738.57,
+      "mean_usd": 1463.24,
+      "stdev_usd": 686.27
     },
     "LZ_SOUTH": {
       "years": [
         {
           "year": 2018,
-          "revenue_usd": 845.4,
+          "revenue_usd": 1117.81,
           "hours": 8760,
           "days": 365
         },
         {
           "year": 2019,
-          "revenue_usd": 1446.23,
+          "revenue_usd": 1930.99,
           "hours": 8760,
           "days": 365
         },
         {
           "year": 2020,
-          "revenue_usd": 607.26,
+          "revenue_usd": 756.59,
           "hours": 8784,
           "days": 366
         },
         {
           "year": 2021,
-          "revenue_usd": 1368.7,
+          "revenue_usd": 1668.14,
           "hours": 8760,
           "days": 365
         },
         {
           "year": 2022,
-          "revenue_usd": 1266.8,
+          "revenue_usd": 1614.35,
           "hours": 8760,
           "days": 365
         },
         {
           "year": 2023,
-          "revenue_usd": 2061.74,
+          "revenue_usd": 2508.54,
           "hours": 8760,
           "days": 365
         },
         {
           "year": 2024,
-          "revenue_usd": 808.25,
+          "revenue_usd": 1116.39,
           "hours": 8784,
           "days": 366
         },
         {
           "year": 2025,
-          "revenue_usd": 583.19,
+          "revenue_usd": 759.42,
           "hours": 8760,
           "days": 365
         }
       ],
-      "p50_usd": 1056.1,
-      "p90_exceedance_usd": 600.04,
-      "worst_year": 2025,
-      "worst_usd": 583.19,
+      "p50_usd": 1366.08,
+      "p90_exceedance_usd": 758.57,
+      "worst_year": 2020,
+      "worst_usd": 756.59,
       "best_year": 2023,
-      "best_usd": 2061.74,
-      "mean_usd": 1123.45,
-      "stdev_usd": 507.13
+      "best_usd": 2508.54,
+      "mean_usd": 1434.03,
+      "stdev_usd": 609.89
     },
     "LZ_WEST": {
       "years": [
         {
           "year": 2018,
-          "revenue_usd": 876.81,
+          "revenue_usd": 1162.13,
           "hours": 8760,
           "days": 365
         },
         {
           "year": 2019,
-          "revenue_usd": 1592.8,
+          "revenue_usd": 2121.19,
           "hours": 8760,
           "days": 365
         },
         {
           "year": 2020,
-          "revenue_usd": 674.52,
+          "revenue_usd": 876.37,
           "hours": 8784,
           "days": 366
         },
         {
           "year": 2021,
-          "revenue_usd": 1434.97,
+          "revenue_usd": 1753.83,
           "hours": 8760,
           "days": 365
         },
         {
           "year": 2022,
-          "revenue_usd": 1464.68,
+          "revenue_usd": 1872.41,
           "hours": 8760,
           "days": 365
         },
         {
           "year": 2023,
-          "revenue_usd": 2468.32,
+          "revenue_usd": 3057.24,
           "hours": 8760,
           "days": 365
         },
         {
           "year": 2024,
-          "revenue_usd": 1051.36,
+          "revenue_usd": 1442.41,
           "hours": 8784,
           "days": 366
         },
         {
           "year": 2025,
-          "revenue_usd": 867.95,
+          "revenue_usd": 1078.62,
           "hours": 8760,
           "days": 365
         }
       ],
-      "p50_usd": 1243.16,
-      "p90_exceedance_usd": 809.92,
+      "p50_usd": 1598.12,
+      "p90_exceedance_usd": 1017.94,
       "worst_year": 2020,
-      "worst_usd": 674.52,
+      "worst_usd": 876.37,
       "best_year": 2023,
-      "best_usd": 2468.32,
-      "mean_usd": 1303.93,
-      "stdev_usd": 575.04
+      "best_usd": 3057.24,
+      "mean_usd": 1670.53,
+      "stdev_usd": 703.59
     }
   },
   "omitted": [

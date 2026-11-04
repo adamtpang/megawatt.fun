@@ -30,7 +30,7 @@
   <form class="card pt-controls" id="controls" autocomplete="off" aria-busy="true">
     <div class="pt-field pt-field-wide">
       <label for="utility">Utility</label>
-      <input id="utility" list="utility-list" type="text" inputmode="search" placeholder="Type a name or state, e.g. CoServ or GA" aria-describedby="utility-help">
+      <input id="utility" list="utility-list" type="text" inputmode="search" maxlength="200" autocomplete="off" placeholder="Type a name, id or state, e.g. CoServ, Oncor or GA" aria-describedby="utility-help">
       <datalist id="utility-list"></datalist>
       <p class="pt-help" id="utility-help">962 utilities with at least 10,000 residential customers on EIA-861 2025.</p>
     </div>
@@ -75,6 +75,8 @@
     </ol>
     <h3>Who to call first</h3>
     <p>Score = residential customers x SAIDI minutes. That is a residential stand-in for customer minutes interrupted, the total outage time a utility's homes sit through in a year. It favors big utilities with long outages. SAIDI covers all customers, so the product is an approximation. Utilities with no published SAIDI go last. Wires-only utilities are not ranked; they are named under the table.</p>
+    <p>Market first. A program's value case is built on one market's rules (capacity accreditation, peak pricing, transmission cost allocation). When one ISO or RTO holds at least 80% of a state's residential customers, utilities in it are ranked first and the rest follow, labeled "Outside" that market. In Texas that market is ERCOT (88% of homes in this file): Entergy Texas (MISO), Southwestern Public Service and SWEPCO (SPP) and El Paso Electric (no ISO) sit under different market rules, so they come after every ERCOT utility. In a split state, everyone is ranked together and each row names its market.</p>
+    <p>Existing Base partners are never ranked as a cold call. They are listed after the ranking, labeled <strong>Already a Base partner</strong>, and their pitch is framed as expanding the existing program, with questions about what that program has shown. Partners checked on 4 November 2026, each with a dated source: CoServ, Austin Energy, Bandera Electric Cooperative, Farmers Electric Cooperative, Guadalupe Valley Electric Cooperative and El Paso Electric in Texas, and Central Georgia EMC. EIA adjustment rows (state totals no utility reported) are left out.</p>
   </section>
   <nav class="gift-set" aria-label="Home battery company tools"><span>Five tools for a home-battery company</span><a href="/market">Where to grow</a><a href="/pitch" aria-current="page">Pitch a utility</a><a href="/supply">Supply risks</a><a href="/finance">Finance a fleet</a><a href="/launch">Launch a state</a></nav>
 </main>

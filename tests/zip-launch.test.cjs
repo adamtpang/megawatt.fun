@@ -162,12 +162,15 @@ test('San Antonio 78205 is the municipal utility in the OpenEI file', () => {
   assert.equal(r.days_to_first_install.display, 'unknown');
 });
 
-test('Houston 77002 has the city and SolarAPP PV, and no wires utility', () => {
+test('Houston 77002 is CenterPoint from Power to Choose, with the city and SolarAPP PV', () => {
   const out = Z.lookup(DATA, '77002');
   const r = out.result;
-  assert.equal(r.utilities.length, 0);
-  assert.equal(r.utility, null);
-  assert.equal(r.interconnection_path.id, 'unknown');
+  assert.equal(r.utilities.length, 1);
+  assert.equal(r.utility.name, 'CenterPoint Energy Houston Electric');
+  assert.equal(r.utility.eia_id, '8901');
+  assert.equal(r.utility.source, 'ptc');
+  assert.equal(r.interconnection_path.id, 'ercot_tdu');
+  assert.match(r.interconnection_path.detail, /retail electric provider sells the power/);
   assert.equal(r.ahj.name, 'Houston');
   assert.equal(r.ahj.kind, 'city');
   assert.equal(r.county.name, 'Harris County');
@@ -176,20 +179,66 @@ test('Houston 77002 has the city and SolarAPP PV, and no wires utility', () => {
   assert.equal(r.solarapp.solar_plus_storage, false);
   assert.equal(r.solarapp.file_modified, '2026-03-23');
   assert.equal(r.days_to_first_install.display, 'unknown');
-  assert.equal(r.days_to_first_install.clocks.length, 0);
-  assert.ok(out.warnings.some((w) => /wires utility/i.test(w)));
-  assert.ok(!/oncor|centerpoint/i.test(JSON.stringify(r.utilities)));
+  assert.deepEqual(r.days_to_first_install.clocks.map((c) => c.id).sort(), ['puct-25211-other', 'puct-25211-precertified']);
+  assert.equal(out.warnings.length, 0);
+  assert.ok(out.sources.some((s) => s.id === 'ptc'));
 });
 
-test('Dallas 75201 has the city and does not invent Oncor', () => {
+test('Dallas 75201 is Oncor from Power to Choose, and the Oncor clock attaches', () => {
   const r = Z.lookup(DATA, '75201').result;
-  assert.equal(r.utilities.length, 0);
+  assert.equal(r.utility.name, 'Oncor Electric Delivery');
+  assert.equal(r.utility.eia_id, '44372');
+  assert.equal(r.interconnection_path.id, 'ercot_tdu');
   assert.equal(r.ahj.name, 'Dallas');
   assert.equal(r.county.name, 'Dallas County');
   assert.equal(r.solarapp.display, 'no');
   assert.equal(r.days_to_first_install.display, 'unknown');
   const oncor = r.reference_clocks.find((c) => c.id === 'oncor-points-at-25211');
-  assert.equal(oncor.matched, false);
+  assert.equal(oncor.matched, true);
+});
+
+test('Austin 78701 stays Austin Energy, outside retail choice', () => {
+  const r = Z.lookup(DATA, '78701').result;
+  assert.equal(r.utility.name, 'Austin Energy');
+  assert.equal(r.interconnection_path.id, 'municipal');
+  assert.match(r.interconnection_path.detail, /outside Texas retail choice/);
+  assert.deepEqual(DATA.zips['78701'].tdus, []);
+});
+
+test('Denton 76201 is split: city utility, CoServ co-op, and Oncor, and says so', () => {
+  const out = Z.lookup(DATA, '76201');
+  const r = out.result;
+  assert.deepEqual(r.utilities.map((u) => u.name), ['City of Denton - (TX)', 'Denton County Elec Coop, Inc', 'Oncor Electric Delivery']);
+  assert.deepEqual(r.utilities.map((u) => u.path.id), ['municipal', 'cooperative', 'ercot_tdu']);
+  assert.equal(r.utility, null);
+  assert.equal(r.interconnection_path.id, 'unknown');
+  assert.ok(out.warnings.some((w) => /split/.test(w) && /Oncor/.test(w) && /City of Denton/.test(w)));
+});
+
+test('New Braunfels 78130 lists GVEC and its neighbors, none inside retail choice', () => {
+  const r = Z.lookup(DATA, '78130').result;
+  const names = r.utilities.map((u) => u.name);
+  assert.ok(names.includes('Guadalupe Valley Elec Coop Inc'));
+  assert.ok(names.includes('City of New Braunfels - (TX)'));
+  assert.ok(r.utilities.every((u) => !u.ptc_listed && u.source === 'openei-2024'));
+  assert.deepEqual(DATA.zips['78130'].tdus, []);
+  // EIA-861 lists AEP Texas Central in Guadalupe County, but Power to Choose has no plans in this ZIP.
+  assert.ok(!names.some((n) => /AEP/.test(n)));
+  const gvec = r.utilities.find((u) => /Guadalupe Valley/.test(u.name));
+  assert.match(gvec.path.detail, /has not opted into Texas retail choice/);
+});
+
+test('Lubbock 79401: LP&L is a city wires utility inside retail choice, not a seller of power', () => {
+  const out = Z.lookup(DATA, '79401');
+  const lpl = out.result.utilities.find((u) => u.eia_id === '11292');
+  assert.ok(lpl);
+  assert.equal(lpl.ptc_listed, true);
+  assert.equal(lpl.path.id, 'retail_choice_public');
+  assert.match(lpl.path.detail, /retail electric provider sells the power/);
+  assert.match(lpl.path.detail, /March 4, 2024/);
+  assert.doesNotMatch(lpl.path.detail, /city utility sells the power/);
+  assert.ok(out.sources.some((s) => s.id === 'puct-55999-lpl' && s.dated === '2024-02-27'));
+  assert.equal(DATA.retail_choice.tdus.lpl.joined, '2024-03-04');
 });
 
 test('78620 is Pedernales and the county, because the city is under half the land', () => {
@@ -253,17 +302,54 @@ test('Illinois is covered and a New York ZIP is not', () => {
   assert.equal(ny.result.solarapp.display, 'unknown');
 });
 
-test('the committed file does not name Oncor or CenterPoint', () => {
-  const names = new Set();
+test('Oncor and the other ERCOT wires companies come from Power to Choose, never from OpenEI rows', () => {
   for (const rec of Object.values(DATA.zips)) {
-    for (const u of rec.utilities || []) names.add(u.name);
+    for (const u of rec.utilities || []) assert.equal(/oncor|centerpoint|aep texas|tnmp/i.test(u.name), false, u.name);
   }
-  for (const n of names) {
-    assert.equal(/oncor|centerpoint|aep texas|tnmp/i.test(n), false, n);
+  const rc = DATA.retail_choice;
+  assert.equal(rc.source, 'ptc');
+  assert.ok(DATA.sources.ptc && DATA.sources['eia861-2024-territory']);
+  assert.deepEqual(rc.zips_failed, []);
+  assert.equal(rc.zips_queried, DATA.coverage.zip_counts.TX);
+  assert.deepEqual(Object.keys(rc.tdus).sort(), ['aep_central', 'aep_north', 'centerpoint', 'lpl', 'nueces', 'oncor', 'tnmp']);
+  for (const [z, rec] of Object.entries(DATA.zips)) {
+    if (rec.state === 'TX') assert.ok(Array.isArray(rec.tdus), z);
+    else assert.equal(rec.tdus, undefined, z);
+    for (const k of rec.tdus || []) assert.ok(rc.tdus[k], z + ' ' + k);
   }
   assert.equal(DATA.generated, '2026-11-03');
   assert.equal(DATA.solarapp.file_modified, '2026-03-23');
-  assert.ok(DATA.coverage.gaps.length >= 5);
+  assert.ok(DATA.coverage.gaps.length >= 3);
+  assert.ok(DATA.coverage.gaps_by_state.TX.length >= 5);
+});
+
+test('fixture: a Power to Choose wires company merges into an OpenEI row by EIA number', () => {
+  const rc = { source: 'ptc', retrieved: '2026-11-04', tdus: {
+    lpl: { name: 'Lubbock Power & Light', eia_id: '11292', ownership: 'Municipal', note: 'Joined March 4, 2024.' },
+    oncor: { name: 'Oncor Electric Delivery', eia_id: '44372', ownership: 'Investor Owned' },
+  } };
+  const data = fixture({
+    retail_choice: rc,
+    zips: {
+      '77777': { state: 'TX', county: { name: 'Lubbock County', geoid: '48303', land_share: 1 }, utilities: [{ name: 'City of Lubbock - (TX)', eia_id: '11292', ownership: 'Municipal', service_type: 'Bundled' }], tdus: ['lpl'] },
+      '88888': { state: 'TX', county: { name: 'Dallas County', geoid: '48113', land_share: 1 }, utilities: [], tdus: ['oncor'] },
+      '99999': { state: 'TX', county: { name: 'Travis County', geoid: '48453', land_share: 1 }, utilities: [] },
+      '12121': { state: 'TX', county: { name: 'Travis County', geoid: '48453', land_share: 1 }, utilities: [{ name: 'Example Muni', eia_id: '5', ownership: 'Municipal', service_type: 'Bundled' }], tdus: [] },
+    },
+  });
+  const lub = Z.lookup(data, '77777');
+  assert.equal(lub.result.utilities.length, 1);
+  assert.equal(lub.result.interconnection_path.id, 'retail_choice_public');
+  const dal = Z.lookup(data, '88888').result;
+  assert.equal(dal.utility.name, 'Oncor Electric Delivery');
+  assert.equal(dal.utility.service_type, 'Delivery');
+  assert.equal(dal.interconnection_path.id, 'ercot_tdu');
+  const none = Z.lookup(data, '99999');
+  assert.equal(none.result.interconnection_path.id, 'unknown');
+  assert.ok(none.warnings.some((w) => /did not answer/.test(w)));
+  const muni = Z.lookup(data, '12121').result;
+  assert.equal(muni.interconnection_path.id, 'municipal');
+  assert.match(muni.interconnection_path.detail, /sells the power/);
 });
 
 test('POST /api/v1/zip matches the core and rejects a bad ZIP', async () => {
@@ -287,4 +373,61 @@ test('POST /api/v1/zip matches the core and rejects a bad ZIP', async () => {
   const q = await post({}, '/api/v1/zip?zip=78205');
   assert.equal(q.statusCode, 200);
   assert.equal(q.json().result.ahj.name, 'San Antonio');
+});
+
+test('ComEd and CL&P appear once per ZIP, with both service types', () => {
+  for (const [z, name] of [['60601', 'Commonwealth Edison Co'], ['06103', 'Connecticut Light & Power Co']]) {
+    const out = Z.lookup(DATA, z);
+    assert.equal(out.result.utilities.length, 1, z);
+    assert.equal(out.result.utility.name, name);
+    assert.equal(out.result.utility.service_type, 'Bundled and Delivery');
+    assert.ok(!out.warnings.some((w) => /More than one/.test(w)), z);
+  }
+  for (const [z, rec] of Object.entries(DATA.zips)) {
+    const ids = (rec.utilities || []).map((u) => u.eia_id);
+    assert.equal(new Set(ids).size, ids.length, z);
+  }
+  // Older files with the duplicate rows are deduped by the core too.
+  const data = fixture({ zips: { '13131': { state: 'IL', county: { name: 'Cook County', geoid: '17031', land_share: 1 }, utilities: [
+    { name: 'Commonwealth Edison Co', eia_id: '4110', ownership: 'Investor Owned', service_type: 'Bundled' },
+    { name: 'Commonwealth Edison Co', eia_id: '4110', ownership: 'Investor Owned', service_type: 'Delivery' },
+  ] } } });
+  const r = Z.lookup(data, '13131').result;
+  assert.equal(r.utilities.length, 1);
+  assert.equal(r.utility.service_type, 'Bundled and Delivery');
+});
+
+test('gaps are state-specific: Texas caveats stay off Illinois, Georgia, and Connecticut ZIPs', () => {
+  const tx = Z.lookup(DATA, '77002').result.gaps;
+  assert.ok(tx.some((g) => /Power to Choose/.test(g) && /OpenEI 2024 ZIP rows for Texas/.test(g)));
+  for (const z of ['60601', '30303', '06103']) {
+    const gaps = Z.lookup(DATA, z).result.gaps;
+    assert.ok(gaps.length >= 4, z);
+    assert.ok(!gaps.some((g) => /PUCT|CenterPoint|Austin, Houston|OpenEI 2024 ZIP rows for Texas/.test(g)), z + ': ' + gaps.join(' | '));
+  }
+  assert.ok(Z.lookup(DATA, '60601').result.gaps.some((g) => /Bundled and Delivery/.test(g)));
+});
+
+test('ZIP input must be text: numbers, lists and objects get a clear error', async () => {
+  assert.match(Z.lookup(DATA, 6103).errors[0], /not the number 6103\. A number drops leading zeros/);
+  assert.match(Z.lookup(DATA, ['78704']).errors[0], /not a list/);
+  assert.match(Z.lookup(DATA, { a: 1 }).errors[0], /not an object/);
+  for (const body of [{ zip: ['78704'] }, { zip: { a: 1 } }, { zip: 6103 }, { zip: 78704 }]) {
+    const res = await post(body);
+    assert.equal(res.statusCode, 422, JSON.stringify(body));
+    assert.doesNotMatch(JSON.stringify(res.json()), /object Object/);
+  }
+  const ct = await post({ zip: '06103' });
+  assert.equal(ct.statusCode, 200);
+  assert.equal(ct.json().result.state, 'CT');
+});
+
+test('a ZIP in both the body and the query string must agree', async () => {
+  const clash = await post({ zip: '78704' }, '/api/v1/zip?zip=60601');
+  assert.equal(clash.statusCode, 422);
+  assert.match(clash.json().errors[0], /in the body but "60601" in the query string/);
+  const same = await post({ zip: '78704' }, '/api/v1/zip?zip=78704');
+  assert.equal(same.statusCode, 200);
+  const q = await post({}, '/api/v1/zip?zip=06103');
+  assert.equal(q.json().result.utility.name, 'Connecticut Light & Power Co');
 });

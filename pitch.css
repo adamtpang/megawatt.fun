@@ -19,6 +19,10 @@
 .pt-status { margin: 0; font-size: 13px; color: var(--grey-80); }
 .pt-status.notice { font-size: var(--text-body-md); color: var(--red-80); }
 .pt-retry { margin-left: 4px; vertical-align: middle; }
+.pt-status .pt-retry { margin: 4px 4px 0 0; max-width: 100%; white-space: normal; overflow-wrap: anywhere; text-align: left; }
+/* A failed Build leaves the old sheet greyed with a note on top, so nobody prints the wrong utility. */
+.pt-stale > :not(.pt-stale-note) { opacity: 0.45; }
+.pt-stale-note { margin: 0 0 12px; }
 
 .card.pt-sheet, .card.pt-panel { margin-top: 20px; padding: 16px; }
 .pt-sheet { scroll-margin-top: 80px; }
@@ -61,6 +65,9 @@
 .pt-table-wrap { width: 100%; }
 .ds-table.pt-table tbody th { font: 500 var(--text-body-md)/1.5 var(--body); text-transform: none; letter-spacing: 0; color: var(--grey-100); padding: 10px 12px; border-bottom-color: var(--grey-20); vertical-align: top; }
 .pt-table tr.is-current { background: var(--green-5); }
+.pt-utilcell { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pt-rowtag { font-size: 12px; color: var(--grey-80); line-height: 1.4; }
+.pt-rowtag.pt-outside { color: var(--red-80); }
 /* Narrow screens: each row becomes a small card, so nothing scrolls sideways. */
 @media (max-width: 699px) {
   .pt-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
@@ -69,6 +76,7 @@
   .ds-table.pt-table th, .ds-table.pt-table td, .ds-table.pt-table tbody th { border: 0; padding: 2px 0; }
   .ds-table.pt-table tbody th { font-weight: 600; }
   .pt-table td { display: flex; justify-content: space-between; gap: 12px; text-align: right; }
+  .pt-utilcell { align-items: flex-end; }
   .pt-table td::before { content: attr(data-label); color: var(--grey-80); font-size: 12px; flex: none; max-width: 50%; text-align: left; }
   .pt-table td:empty { display: none; }
 }

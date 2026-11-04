@@ -32,30 +32,66 @@
     return (data.ercot_tdu_names || []).some((n) => nameHas(name, n));
   }
 
+  // The Texas retail-choice block from Power to Choose, or null when the file has none.
+  function retailChoice(data) {
+    const rc = data.retail_choice;
+    return rc && rc.tdus ? rc : null;
+  }
+
+  // A wires company Power to Choose sells plans over, matched by EIA number. Statewide, not per ZIP:
+  // a city utility or co-op that is in retail choice anywhere is in it everywhere it serves.
+  function choiceTduFor(data, utility, state) {
+    const rc = retailChoice(data);
+    if (!rc || state !== 'TX' || !utility) return null;
+    for (const key of Object.keys(rc.tdus)) {
+      const t = rc.tdus[key];
+      if (t.eia_id && String(t.eia_id) === String(utility.eia_id)) return Object.assign({ key }, t);
+    }
+    return null;
+  }
+
   function pathFor(data, utility, state) {
     const own = utility.ownership;
+    const rc = retailChoice(data);
+    const choice = choiceTduFor(data, utility, state);
+    const srcOf = (u) => (u.source === 'ptc' ? ['ptc'] : ['openei-2024']);
+    if (choice && (own === 'Municipal' || own === 'Cooperative')) {
+      const kind = own === 'Municipal' ? 'City-owned' : 'Cooperative';
+      return {
+        id: 'retail_choice_public',
+        label: kind + ' wires utility inside Texas retail choice',
+        detail: 'Power to Choose, the PUCT plan site, lists retail plans over ' + choice.name + ' as the wires company. A retail electric provider sells the power. ' + choice.name + ' owns the wires and interconnects the battery.' + (choice.note ? ' ' + choice.note : ''),
+        sources: srcOf(utility).concat(['ptc'], choice.source ? [choice.source] : []),
+      };
+    }
     if (own === 'Municipal') {
+      const tx = state === 'TX' && rc;
       return {
         id: 'municipal',
         label: 'Municipal utility',
-        detail: 'OpenEI lists this utility as municipal. The city utility sells the power and interconnects a home battery.',
-        sources: ['openei-2024'],
+        detail: tx
+          ? 'OpenEI lists this utility as municipal, and Power to Choose (PUCT) lists no retail plans over it as of ' + rc.retrieved + ', so it is outside Texas retail choice. The city utility sells the power and interconnects a home battery.'
+          : 'OpenEI lists this utility as municipal. The city utility sells the power and interconnects a home battery.',
+        sources: tx ? ['openei-2024', 'ptc'] : ['openei-2024'],
       };
     }
     if (own === 'Cooperative') {
+      const tx = state === 'TX' && rc;
       return {
         id: 'cooperative',
         label: 'Electric cooperative',
-        detail: 'OpenEI lists this utility as a cooperative. The co-op interconnects a member battery. Whether it has opted into retail choice is not in this file, so that part is unknown.',
-        sources: ['openei-2024'],
+        detail: tx
+          ? 'OpenEI lists this utility as a cooperative, and Power to Choose (PUCT) lists no retail plans over it as of ' + rc.retrieved + ', so it has not opted into Texas retail choice. The co-op sells the power and interconnects a member battery.'
+          : 'OpenEI lists this utility as a cooperative. The co-op interconnects a member battery. Whether it has opted into retail choice is not in this file, so that part is unknown.',
+        sources: tx ? ['openei-2024', 'ptc'] : ['openei-2024'],
       };
     }
     if (own === 'Investor Owned' && state === 'TX' && isErcotTdu(data, utility.name)) {
       return {
         id: 'ercot_tdu',
         label: 'ERCOT wires utility',
-        detail: 'This name is one of the four investor-owned transmission and distribution utilities PUCT names inside ERCOT: CenterPoint, Oncor, TNMP, and AEP Texas. The wires company interconnects the battery. A retail electric provider sells the power.',
-        sources: ['openei-2024', 'puct-ercot-tdus'],
+        detail: 'This name is one of the four investor-owned transmission and distribution utilities PUCT names inside ERCOT: CenterPoint, Oncor, TNMP, and AEP Texas.' + (utility.source === 'ptc' ? ' Power to Choose (PUCT) lists retail plans over it in this ZIP.' : '') + ' The wires company interconnects the battery. A retail electric provider sells the power.',
+        sources: srcOf(utility).concat(['puct-ercot-tdus']),
       };
     }
     if (own === 'Investor Owned' && state === 'TX') {
@@ -273,7 +309,18 @@
     return out;
   }
 
+  // A ZIP must arrive as text. A number loses leading zeros (Connecticut 06103 becomes 6103),
+  // and a list or an object is not a ZIP, so each gets its own message instead of a guess.
+  function inputError(input) {
+    if (input == null || typeof input === 'string') return null;
+    if (typeof input === 'number') return 'ZIP must be text, for example "06103", not the number ' + input + '. A number drops leading zeros.';
+    const kind = Array.isArray(input) ? 'a list' : typeof input === 'object' ? 'an object' : typeof input;
+    return 'ZIP must be text, for example "78704", not ' + kind + '.';
+  }
+
   function lookup(data, input) {
+    const bad = inputError(input);
+    if (bad) return { errors: [bad], warnings: [], inputs_used: { zip: null }, result: null, sources: [] };
     const raw = text(input);
     const zip = normalizeZip(raw);
     if (!zip) {
@@ -286,7 +333,7 @@
       zip,
       explainer: data.explainer || '',
       coverage_note: coverage.note || '',
-      gaps: coverage.gaps || [],
+      gaps: (coverage.gaps || []).concat(rec && coverage.gaps_by_state && Array.isArray(coverage.gaps_by_state[rec.state]) ? coverage.gaps_by_state[rec.state] : []),
     };
     if (!rec) {
       return {
@@ -311,13 +358,36 @@
       };
     }
 
-    const utilities = (rec.utilities || []).map((u) => Object.assign({}, u, { path: pathFor(data, u, rec.state) }));
+    const rc = retailChoice(data);
     const warnings = [];
+    // OpenEI rows first, then any Power to Choose wires company OpenEI does not already name.
+    // One entry per EIA number. The build already merges OpenEI's Bundled and Delivery rows; this guards older files.
+    const base = [];
+    for (const u of rec.utilities || []) {
+      const same = base.find((b) => String(b.eia_id) === String(u.eia_id));
+      if (!same) base.push(Object.assign({ source: 'openei-2024' }, u));
+      else if (u.service_type && !String(same.service_type).split(' and ').includes(u.service_type)) same.service_type = String(same.service_type).split(' and ').concat(u.service_type).sort().join(' and ');
+    }
+    const tduKeys = Array.isArray(rec.tdus) ? rec.tdus : null;
+    if (rc && tduKeys) {
+      for (const key of tduKeys) {
+        const t = rc.tdus[key];
+        if (!t) continue;
+        const known = base.find((u) => t.eia_id && String(u.eia_id) === String(t.eia_id));
+        if (known) known.ptc_listed = true;
+        else base.push({ name: t.name, eia_id: t.eia_id || UNKNOWN, ownership: t.ownership, service_type: 'Delivery', source: 'ptc', ptc_listed: true });
+      }
+    } else if (rc && rec.state === 'TX') {
+      warnings.push('Power to Choose did not answer for this ZIP, so whether it is inside Texas retail choice is unknown.');
+    }
+    const utilities = base.map((u) => Object.assign({}, u, { path: pathFor(data, u, rec.state) }));
     let path;
     if (!utilities.length) {
       path = { id: UNKNOWN, label: UNKNOWN, detail: 'No wires utility is listed for this ZIP, so the interconnection path is unknown.', sources: ['openei-2024'] };
       if (rec.retail_marketers && rec.retail_marketers.length) {
         warnings.push('OpenEI lists ' + rec.retail_marketers.join(', ') + ' here as a retail power marketer. That is not the wires utility, so the utility is unknown.');
+      } else if (rc && tduKeys) {
+        warnings.push('Neither the OpenEI ZIP file nor Power to Choose names a wires utility here.');
       } else {
         warnings.push('The OpenEI ZIP file does not name a wires utility here.');
       }
@@ -328,7 +398,13 @@
       path = ids.size === 1
         ? Object.assign({}, utilities[0].path, { detail: utilities[0].path.detail + ' More than one utility is listed; each one has this same path.' })
         : { id: UNKNOWN, label: UNKNOWN, detail: 'More than one wires utility is listed, and they do not share a path. Each utility is listed with its own path.', sources: ['openei-2024'] };
-      warnings.push('More than one wires utility is listed for this ZIP. Confirm the one on the bill.');
+      const choiceNames = utilities.filter((u) => u.ptc_listed).map((u) => u.name);
+      const otherNames = utilities.filter((u) => !u.ptc_listed).map((u) => u.name);
+      if (choiceNames.length && otherNames.length) {
+        warnings.push('This ZIP is split. Power to Choose lists retail plans here over ' + choiceNames.join(' and ') + ', and OpenEI also lists ' + otherNames.join(', ') + '. Which one serves a home is on its electric bill.');
+      } else {
+        warnings.push('More than one wires utility is listed for this ZIP. Confirm the one on the bill.');
+      }
     }
 
     const ahj = ahjFor(data, rec);
@@ -338,6 +414,7 @@
     const sourceIds = ['openei-2024', 'census-zcta-county', 'census-zcta-place', 'solarapp'];
     for (const u of utilities) for (const id of u.path.sources || []) sourceIds.push(id);
     for (const id of path.sources || []) sourceIds.push(id);
+    if (rc && rec.state === 'TX') sourceIds.push('ptc');
     for (const c of days.clocks) sourceIds.push(c.source);
 
     const utility = utilities.length === 1 ? utilities[0] : null;

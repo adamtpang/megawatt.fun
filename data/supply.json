@@ -57,15 +57,6 @@
       "publisher": "CNBC (republished by News IO)",
       "date": "2025-04-29",
       "stale": true
-    },
-    {
-      "claim": "Base is hiring a Global Supply Manager for Cells and Strategic Materials, which implies cells are bought from outside suppliers.",
-      "quote": null,
-      "url": "https://climatebase.org/job/72053556/global-supply-manager---cells--strategic-materials",
-      "publisher": "Climatebase job listing",
-      "date": null,
-      "basis": "inference",
-      "source_quality": "job title only; page returned 403 so the description was not read"
     }
   ],
   "parts": [

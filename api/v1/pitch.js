@@ -19,18 +19,18 @@ function usage() {
     post: {
       content_types: ['application/json', 'text/csv'],
       json_body: {
-        utility: 'required: EIA id as in the data (for example "5078-TX"), the name, "Name, ST", or a public alias such as "CoServ Electric"',
+        utility: 'required, at most ' + P.MAX_NAME + ' characters: EIA id as in the data (for example "5078-TX"), the name, "Name, ST", a public alias such as "CoServ Electric", or a common short name such as "Oncor" or "ComEd". utility, state, mw and largeLoads may also go in the query string; sent in both places they must agree.',
         state: 'two-letter state to narrow a name match (optional). If it disagrees with the utility, the request is a 422.',
-        mw: 'program size in MW (optional, default terms.programMw, public 100)',
+        mw: 'program size in MW (optional, default terms.programMw, public 100). Sending both mw and a different terms.programMw is a 422. Batteries come whole, so a tiny size is rounded up.',
         largeLoads: 'true or false: large loads are waiting to connect; picks Speed to power (optional, default false). Anything else is a 422.',
         terms: '{ key: value } offer terms (optional): ' + P.TERMS.map((t) => t.key).join(', '),
-        targets: 'your target list (optional): [{ utility, state, status, owner, note }]',
+        targets: 'your target list (optional, at most ' + P.MAX_TARGETS + ' items): [{ utility, state, status, owner, note }], all text',
       },
       csv_body: 'The page\'s "Use your own data" file: key,value rows for offer terms and utility,status,owner,note rows for targets. Put utility (and optionally state, mw, largeLoads) in the query string, for example ?utility=5078-TX.',
       terms: P.TERMS.map((t) => ({ key: t.key, label: t.label, unit: t.unit, public_value: t.value, min: t.min, max: t.max, basis: t.basis })),
     },
     example: { utility: 'CoServ Electric', state: 'TX', terms: { tollPerKwYear: 85, termYears: 10 }, targets: [{ utility: 'Austin Energy', status: 'in talks', owner: 'Ben' }] },
-    returns: 'utility, headline signal and percentile, recommended offer and the rule that picked it, program size, landed cost range, deal structure, questions to ask, and who to call first in that state.',
+    returns: 'utility, headline signal and percentile, recommended offer and the rule that picked it, program size, landed cost range, deal structure, questions to ask, and who to call first in that state (utilities in the main market of the state first; existing Base partners listed after the ranking as expansion conversations, never as cold prospects).',
     docs: L.docsUrl('pitch'),
     page: L.SITE + '/pitch',
   };
@@ -72,46 +72,88 @@ function sourcesFor(u, pick) {
   return list;
 }
 
+const QUERY_KNOWN = ['utility', 'state', 'mw', 'largeLoads'];
+const describe = (v) => (Array.isArray(v) ? 'a list' : v === null ? 'null' : typeof v === 'object' ? 'an object' : typeof v === 'string' ? '"' + P.clip(v) + '"' : JSON.stringify(v));
+
+/* utility, state, mw and largeLoads from the query string and a JSON body. A value sent in both places must
+   agree (same text, same number, same yes or no, or the same utility by another name), or the request is a 422,
+   never silently resolved. Same rule as /api/v1/launch. */
+function readOptions(q, b) {
+  const errors = [], out = Object.create(null);
+  for (const k of QUERY_KNOWN) {
+    let qv = L.getOwn(q, k), bv = L.getOwn(b, k);
+    if (Array.isArray(qv)) { errors.push(k + ' appears more than once in the query string. Send it once.'); continue; }
+    if (qv != null && String(qv).trim() === '') qv = undefined;
+    if (typeof bv === 'string' && bv.trim() === '') bv = undefined;
+    if (bv === null) bv = undefined;
+    if (qv !== undefined && bv !== undefined && !same(k, qv, bv)) {
+      errors.push(k + ' is ' + describe(bv) + ' in the body but "' + P.clip(String(qv)) + '" in the query string. Send it in one place.');
+      continue;
+    }
+    out[k] = bv !== undefined ? bv : qv;
+  }
+  if (errors.length) throw L.invalid(errors);
+  return out;
+}
+function same(k, a, b) {
+  if (k === 'mw') { const x = numberIn(a), y = numberIn(b); return Number.isFinite(x) && Number.isFinite(y) ? x === y : String(a).trim() === String(b).trim(); }
+  if (k === 'largeLoads') { const x = yesNo(a), y = yesNo(b); return x !== null && x === y; }
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  if (a.trim().toLowerCase() === b.trim().toLowerCase()) return true;
+  if (k !== 'utility' || a.length > P.MAX_NAME || b.length > P.MAX_NAME) return false;
+  // Two names for one utility ("5078-TX" and "CoServ Electric") agree.
+  const x = P.matchUtility(IDX, a, null, { suggest: false }), y = P.matchUtility(IDX, b, null, { suggest: false });
+  return !!(x.u && y.u && x.u.id === y.u.id);
+}
+
 async function post(parsed, req) {
+  // JSON sent as text/csv parses as one strange header row. Say so instead of "utility is required".
+  if (L.looksLikeJsonCsv(parsed)) throw L.jsonAsCsvError();
   const q = L.query(req);
-  let opts, own = null, warnings = [];
-  // Only the known fields, read as own keys, into a null-prototype object: no "__proto__" or "constructor" can leak in.
-  const knownOnly = (src) => { const o = Object.create(null); KNOWN.forEach((k) => { if (P.own(src, k) !== undefined) o[k] = src[k]; }); return o; };
-  if (parsed && parsed.kind === 'csv') { opts = knownOnly(q); own = parsed; }
+  let b = Object.create(null), own = null, warnings = [];
+  if (parsed && parsed.kind === 'csv') own = parsed;
   else {
-    const b = L.objectBody(parsed) || {};
+    b = L.objectBody(parsed) || {};
     warnings = L.unknownKeys(b, KNOWN);
-    opts = Object.assign(knownOnly(q), knownOnly(b));
-    if (b.terms != null || b.targets != null) {
-      if (b.terms != null && (typeof b.terms !== 'object' || Array.isArray(b.terms))) throw L.invalid(['terms must be an object of { key: value }, for example { "tollPerKwYear": 85 }. Got ' + (Array.isArray(b.terms) ? 'a list' : typeof b.terms) + '.']);
-      own = { kind: 'json', data: { terms: b.terms || {}, targets: b.targets == null ? undefined : b.targets } };
+    const terms = L.getOwn(b, 'terms'), targets = L.getOwn(b, 'targets');
+    if (terms != null || targets != null) {
+      if (terms != null && (typeof terms !== 'object' || Array.isArray(terms))) throw L.invalid(['terms must be an object of { key: value }, for example { "tollPerKwYear": 85 }. Got ' + (Array.isArray(terms) ? 'a list' : typeof terms) + '.']);
+      if (Array.isArray(targets) && targets.length > P.MAX_TARGETS) throw L.invalid(['targets has ' + targets.length + ' items. The limit is ' + P.MAX_TARGETS + ' per request; split the list.']);
+      own = { kind: 'json', data: { terms: terms || {}, targets: targets == null ? undefined : targets } };
     }
   }
+  const opts = readOptions(q, b);
 
   // Offer terms and targets: the page's "Use your own data" loader.
-  let T = P.publicTerms(), changed = [], targets = {};
+  let T = P.publicTerms(), changed = [], targets = {}, given = [];
   if (own) {
     const r = P.loadYourData(own, D.utilities);
     // An empty terms object with no targets is not an error here; the page needs a file, the API does not.
     const onlyEmpty = r.errors.length === 1 && /^No rows found/.test(r.errors[0]);
     if (r.errors.length && !onlyEmpty) throw L.invalid(r.errors);
-    if (!onlyEmpty) { T = r.terms; changed = r.changed; targets = r.targets; warnings = warnings.concat(r.warnings); }
+    if (!onlyEmpty) { T = r.terms; changed = r.changed; targets = r.targets; given = r.given; warnings = warnings.concat(r.warnings); }
   }
 
-  // The utility.
-  if (opts.state != null && opts.state !== '' && !/^[A-Za-z]{2}$/.test(String(opts.state).trim())) throw L.invalid(['state must be a two-letter code such as "TX". Got "' + String(opts.state) + '".']);
+  // The utility. Type and length are checked before any matching, so a huge name costs nothing.
+  if (opts.state != null && typeof opts.state !== 'string') throw L.invalid(['state must be text, a two-letter code such as "TX". Got ' + describe(opts.state) + '.']);
+  if (opts.state != null && !/^[A-Za-z]{2}$/.test(opts.state.trim())) throw L.invalid(['state must be a two-letter code such as "TX". Got "' + P.clip(opts.state) + '".']);
   if (opts.utility != null && typeof opts.utility !== 'string') throw L.invalid(['utility must be text: an EIA id such as "5078-TX", a name, "Name, ST", or an alias.']);
-  if (opts.utility == null || String(opts.utility).trim() === '') throw L.invalid(['utility is required: an EIA id such as "5078-TX", a name, "Name, ST", or an alias such as "CoServ Electric".']);
-  const m = P.matchUtility(IDX, String(opts.utility), opts.state);
-  if (m.stateMismatch) throw L.invalid(['utility "' + opts.utility + '" is ' + P.displayName(m.stateMismatch) + ' in ' + m.stateMismatch.state + ', not ' + m.state + '. Fix state or leave it out.']);
-  if (m.ambiguous) throw L.invalid(['utility "' + opts.utility + '" matches ' + m.ambiguous.length + ' utilities (' + m.ambiguous.map((u) => u.id + ' ' + u.name).join('; ') + '). Use the id or add a state.']);
-  if (!m.u) throw L.invalid(['No utility called "' + opts.utility + '"' + (opts.state ? ' in ' + opts.state : '') + (m.suggestion ? '. Did you mean ' + P.displayName(m.suggestion) + ', ' + m.suggestion.state + ' (id ' + m.suggestion.id + ')?' : '.')]);
+  if (opts.utility == null || opts.utility.trim() === '') throw L.invalid(['utility is required: an EIA id such as "5078-TX", a name, "Name, ST", or an alias such as "CoServ Electric".']);
+  if (opts.utility.trim().length > P.MAX_NAME) throw L.invalid(['utility is ' + opts.utility.trim().length + ' characters. The limit is ' + P.MAX_NAME + '; send an EIA id such as "5078-TX" or a name.']);
+  const asked = P.clip(opts.utility.trim());
+  const m = P.matchUtility(IDX, opts.utility, opts.state);
+  if (m.stateMismatch) throw L.invalid(['utility "' + asked + '" is ' + P.displayName(m.stateMismatch) + ' in ' + m.stateMismatch.state + ', not ' + m.state + '. Fix state or leave it out.']);
+  if (m.ambiguous) throw L.invalid(['utility "' + asked + '" matches ' + m.ambiguous.length + ' utilities (' + m.ambiguous.slice(0, 10).map((u) => u.id + ' ' + u.name).join('; ') + (m.ambiguous.length > 10 ? '; ...' : '') + '). Use the id or add a state.']);
+  if (!m.u) throw L.invalid(['No utility called "' + asked + '"' + (opts.state ? ' in ' + opts.state.trim().toUpperCase() : '') + (m.suggestion ? '. Did you mean ' + P.displayName(m.suggestion) + ', ' + m.suggestion.state + ' (id ' + m.suggestion.id + ')?' : '.')]);
   const u = m.u;
 
-  const mwIn = opts.mw == null || opts.mw === '' ? T.programMw : numberIn(opts.mw);
+  const mwGiven = opts.mw != null;
+  const mwIn = mwGiven ? numberIn(opts.mw) : T.programMw;
   if (!Number.isFinite(mwIn) || mwIn <= 0 || mwIn > 5000) throw L.invalid(['mw must be a number above 0 and at most 5000.']);
+  // mw and an offer-terms programMw are the same thing. Both set and different is a conflict, not a silent pick.
+  if (mwGiven && given.includes('programMw') && mwIn !== T.programMw) throw L.invalid(['mw is ' + mwIn + ' but programMw in your offer terms is ' + T.programMw + '. Send the program size in one place.']);
   const largeLoads = yesNo(opts.largeLoads);
-  if (largeLoads === null) throw L.invalid(['largeLoads must be true or false. Got ' + JSON.stringify(opts.largeLoads) + '.']);
+  if (largeLoads === null) throw L.invalid(['largeLoads must be true or false. Got ' + describe(opts.largeLoads) + '.']);
 
   // pitch.js render(), without the HTML.
   const st = D.states.filter((s) => s.abbr === u.state)[0] || { name: u.state, values: {} };
@@ -148,8 +190,12 @@ async function post(parsed, req) {
   const all = P.rankState(D.utilities, u.state, Infinity);
   const ordered = P.orderWithTargets(all, targets);
   const nMine = all.filter((x) => P.own(targets, x.id)).length;
-  const top = ordered.slice(0, nMine).concat(ordered.slice(nMine).filter((x) => !x.wires && x.rank <= 10));
+  // Your targets, then the cold top 10, then existing Base partners (unranked: an expansion conversation, not a cold call).
+  const partnersInState = all.filter((x) => x.partner);
+  const top = ordered.slice(0, nMine).concat(ordered.slice(nMine).filter((x) => x.rank !== null && x.rank <= 10), partnersInState.filter((x) => !P.own(targets, x.id)));
   const wiresInState = all.filter((x) => x.wires);
+  const market = P.stateMarket(D.utilities, u.state);
+  const partner = P.partnerFrame(u);
   const mine = all.filter((x) => x.id === u.id)[0];
   if (mine && top.indexOf(mine) < 0) top.push(mine);
 
@@ -160,7 +206,8 @@ async function post(parsed, req) {
     utility: { id: u.id, name: u.name, display_name: P.displayName(u), state: u.state, state_name: st.name, residential_customers: u.values.homes, balancing_authority: u.detail.rtos, reporting_note: u.detail.note || null },
     headline: P.headline(u, sig),
     headline_signal: sig ? { id: sig.id, label: SIGNAL_LABELS[sig.id], value: sig.value, percentile: sig.pct, of_utilities: sig.n, text: 'higher than ' + Math.round(sig.pct * 100) + '% of US utilities' } : null,
-    public_link_to_base: known ? { note: known.note, source: known.source.url } : null,
+    public_link_to_base: known ? { note: known.note, source: known.source.url, base_partner: !!partner } : null,
+    base_partner: partner ? { status: partner.label, program: partner.program, since: partner.since, framing: partner.framing, note: known.note, source: known.source.url } : null,
     your_target: P.own(targets, u.id) || null,
     offer: { id: pick.offer.id, name: pick.offer.name, variant: pick.variant, quote: pick.offer.quote, rule: pick.rule, reason: pick.reason, also_on_menu: others, capacity_offer: pick.offer.id === 'bulk' },
     wires_only: pick.wires ? {
@@ -171,9 +218,9 @@ async function post(parsed, req) {
       sources: src.filter((s) => pick.wires.sources.includes(s.key) || s.key === pick.wires.baseSource).map((s) => s.n),
     } : null,
     program: prog ? {
-      mw: prog.mw, batteries: prog.batteries, kw_per_battery: prog.kw, kwh_per_battery: prog.kwh, mwh: prog.mwh, hours_at_full_output: prog.hours,
+      mw: prog.mw, nameplate_mw: prog.nameplateMw, rounded_up: prog.roundedUp, batteries: prog.batteries, kw_per_battery: prog.kw, kwh_per_battery: prog.kwh, mwh: prog.mwh, hours_at_full_output: prog.hours,
       share_of_residential_customers: prog.share, dispatchable_mwh: P.isNum(prog.dispatchMwh) ? prog.dispatchMwh : null,
-      note: 'Nameplate is not accredited capacity, and each home keeps a backup reserve.' + (P.isNum(prog.share) && prog.share > 1 ? ' This program needs more batteries than the utility has residential customers.' : ''),
+      note: (prog.roundedUp ? P.roundedUpNote(prog) + ' ' : '') + 'Nameplate is not accredited capacity, and each home keeps a backup reserve.' + (P.isNum(prog.share) && prog.share > 1 ? ' This program needs more batteries than the utility has residential customers.' : ''),
     } : null,
     landed_cost: { about: 'Base\'s own comparison table (Base attributes it to EnergySage, Lazard and Wood Mackenzie), times this program\'s MWh. Arithmetic on a claim, not a quote.', rows: claims },
     your_offer: tv ? { toll_per_kw_year: T.tollPerKwYear, per_year_usd: tv.perYear, term_years: P.isNum(T.termYears) ? T.termYears : null, total_usd: tv.total } : null,
@@ -185,10 +232,13 @@ async function post(parsed, req) {
     questions: P.questions(u, pick, T),
     who_to_call_first: {
       state: u.state,
-      method: 'Ranked by residential customers x SAIDI minutes (EIA-861 2025), a stand-in for customer minutes interrupted. Wires-only utilities, which deliver power but do not buy it, are not ranked.' + (nMine ? ' Your ' + nMine + ' target' + (nMine === 1 ? '' : 's') + ' in this state come first, still in public rank order.' : ''),
+      method: 'Ranked by residential customers x SAIDI minutes (EIA-861 2025), a stand-in for customer minutes interrupted. ' + market.reason + ' Existing Base partners are not ranked as cold prospects; they are listed after the ranking as an expansion conversation. Wires-only utilities, which deliver power but do not buy it, are not ranked.' + (nMine ? ' Your ' + nMine + ' target' + (nMine === 1 ? '' : 's') + ' in this state come first, still in public rank order.' : ''),
+      preferred_market: market.market,
+      market_reason: market.reason,
       utilities_in_state: all.length,
-      ranked_in_state: all.length - wiresInState.length,
-      rows: top.map((x) => ({ rank: x.rank, id: x.id, name: x.name, wires_only: x.wires, residential_customers: x.customers, saidi_minutes: x.saidi, customer_minutes: x.score, your_target: P.own(targets, x.id) || null, current: x.id === u.id })),
+      ranked_in_state: all.filter((x) => x.rank !== null).length,
+      rows: top.map((x) => ({ rank: x.rank, id: x.id, name: x.name, wires_only: x.wires, base_partner: x.partner, status: x.partner ? P.PARTNER_LABEL : null, market: x.market, outside_preferred_market: x.inMarket === false, market_note: x.marketNote, residential_customers: x.customers, saidi_minutes: x.saidi, customer_minutes: x.score, your_target: P.own(targets, x.id) || null, current: x.id === u.id })),
+      base_partners_in_state: partnersInState.map((x) => { const k = P.partnerOf(x.id); return { id: x.id, name: x.name, status: P.PARTNER_LABEL, program: k.program, since: k.since || null, source: k.source.url }; }),
       wires_only_in_state: wiresInState.map((x) => ({ id: x.id, name: x.name, residential_customers: x.customers })),
       your_targets_elsewhere: Object.keys(targets).map((id) => BY_ID.get(id)).filter((x) => x && x.state !== u.state).map((x) => ({ id: x.id, name: P.displayName(x), state: x.state, status: targets[x.id].status })),
     },

@@ -57,7 +57,8 @@ test('target list: matches by id, name, Name, ST and alias; targets go first in 
   const ordered = P.orderWithTargets(all, r.targets);
   const ids = ordered.slice(0, 2).map((x) => x.id);
   assert.deepEqual(ids.slice().sort(), ['1015-TX', '5078-TX']);
-  assert.ok(ordered[0].rank < ordered[1].rank, 'targets keep public rank order');
+  // Austin Energy and CoServ are both existing Base partners: listed first as targets, but never given a cold rank.
+  assert.ok(ordered.slice(0, 2).every((x) => x.partner && x.rank === null), 'partner targets stay unranked');
   const rest = ordered.slice(2).map((x) => x.rank);
   assert.deepEqual(rest.filter((x) => x !== null), rest.filter((x) => x !== null).sort((a, b) => a - b), 'non-targets keep public rank order');
   assert.ok(rest.slice(rest.findIndex((x) => x === null)).every((x) => x === null), 'wires-only rows come last, unranked');
@@ -203,7 +204,7 @@ test('ERCOT co-ops and city utilities: the offer and questions name 4CP transmis
       assert.match(pick.reason, /wholesale energy/);
     }
     assert.ok(P.questions(u, pick).some((q) => /4CP transmission allocation/.test(q) && /wholesale energy/.test(q)), id);
-    assert.deepEqual(P.extraSources(u, pick).map((s) => s.key), ['tcos', 'tcos12'], id);
+    assert.deepEqual(P.extraSources(u, pick).map((s) => s.key), ['tcos', 'tcos12', 'tcos58000'], id);
   }
   assert.match(P.TCOS_SOURCES.rule.url, /puc\.texas\.gov/);
   // No made-up value: the ERCOT text carries no dollar figure.
@@ -215,7 +216,7 @@ test('who to call first: wires-only utilities are labeled and not ranked', () =>
   const wiresRows = tx.filter((x) => x.wires);
   assert.deepEqual(wiresRows.map((x) => x.id).sort(), ['11292-TX', '20404-TX', '3278-TX', '40051-TX', '44372-TX', '8901-TX'].sort());
   assert.ok(wiresRows.every((x) => x.rank === null));
-  const ranked = tx.filter((x) => !x.wires);
+  const ranked = tx.filter((x) => !x.wires && !x.partner);
   assert.deepEqual(ranked.map((x) => x.rank), ranked.map((_, i) => i + 1));
   assert.ok(P.rankState(data.utilities, 'TX', 10).every((x) => !x.wires), 'top 10 is pitchable utilities only');
   assert.ok(!P.rankState(data.utilities, 'IL', 10).some((x) => x.id === '4110-IL'));
@@ -271,6 +272,44 @@ test('numeric terms: bounds on every key, plain decimals only, nothing reaches I
   assert.equal(P.sizeProgram(5001, 1000), null);
   assert.equal(P.sizeProgram(100, 1000, { kwPerHome: 1e-300, kwhPerHome: 39.2 }), null);
   const max = P.sizeProgram(5000, 1, { kwPerHome: 1, kwhPerHome: 500, memberReservePct: 99 });
-  for (const v of Object.values(max)) assert.ok(v === null || Number.isFinite(v), JSON.stringify(max));
+  for (const v of Object.values(max)) assert.ok(v === null || typeof v === 'boolean' || Number.isFinite(v), JSON.stringify(max));
   assert.equal(P.sizeProgram(100, 1000, { kwPerHome: 20, kwhPerHome: 39.2, memberReservePct: 1e308 }).dispatchMwh, undefined);
+});
+
+test('Texas who to call first: ERCOT utilities first, non-ERCOT labeled, partners never ranked cold', () => {
+  const tx = P.rankState(data.utilities, 'TX', Infinity);
+  const m = P.stateMarket(data.utilities, 'TX');
+  assert.equal(m.market, 'ERCOT');
+  assert.match(m.reason, /ERCOT/);
+  const ranked = tx.filter((x) => x.rank !== null);
+  const firstOut = ranked.findIndex((x) => x.inMarket === false);
+  assert.ok(firstOut > 10, 'the whole top 10 is ERCOT');
+  assert.ok(ranked.slice(0, firstOut).every((x) => x.inMarket === true));
+  assert.ok(ranked.slice(firstOut).every((x) => x.inMarket === false && /^Outside ERCOT/.test(x.marketNote)));
+  const top5 = P.rankState(data.utilities, 'TX', 5);
+  assert.deepEqual(top5.map((x) => x.id), ['16604-TX', '14626-TX', '11501-TX', '19159-TX', '7559-TX']);
+  for (const id of ['55937-TX', '17718-TX']) {
+    const row = tx.find((x) => x.id === id);
+    assert.ok(row.rank > firstOut, id + ' ranks after every ERCOT utility');
+    assert.match(row.marketNote, /^Outside ERCOT \((MISO|SPP)\): different market rules/);
+  }
+  // Partners: unranked, after the cold list, before wires-only, and out of the starter target list.
+  const partners = tx.filter((x) => x.partner);
+  assert.deepEqual(partners.map((x) => x.id).sort(), ['1015-TX', '1175-TX', '5078-TX', '5701-TX', '6182-TX', '7752-TX'].sort());
+  assert.ok(partners.every((x) => x.rank === null && !x.wires));
+  const lastRanked = tx.map((x) => x.rank !== null).lastIndexOf(true);
+  const firstWires = tx.findIndex((x) => x.wires);
+  assert.ok(tx.every((x, i) => !x.partner || (i > lastRanked && i < firstWires)));
+  assert.match(tx.find((x) => x.id === '5701-TX').marketNote, /^Outside ERCOT \(not in an ISO\)/);
+  assert.ok(!tx.some((x) => x.id === '99999-TX'), 'EIA adjustment row is not a utility to call');
+  // Georgia: Central Georgia EMC is a partner, not a cold prospect.
+  assert.ok(P.rankState(data.utilities, 'GA', Infinity).some((x) => x.id === '3248-GA' && x.partner && x.rank === null));
+});
+
+test('a partner on your target list stays a partner: first as a target, still unranked', () => {
+  const r = P.loadYourData(csv('utility,status\n7752-TX,expand'), data.utilities);
+  const ordered = P.orderWithTargets(P.rankState(data.utilities, 'TX', Infinity), r.targets);
+  assert.equal(ordered[0].id, '7752-TX');
+  assert.equal(ordered[0].partner, true);
+  assert.equal(ordered[0].rank, null);
 });

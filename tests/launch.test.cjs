@@ -142,3 +142,69 @@ test('email tennis: rounds add weeks, state rules override round cost', () => {
   const ga = L.resolveTennis(data, L.resolveSteps(data, 'utility', 'GA'), 'GA');
   assert.ok(ga.some(t => t.step === 'approval') && !ga.some(t => t.step === 'edi'));
 });
+
+test('page: an unknown state in the hash after load puts the URL back to the state on screen', async () => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const vm = require('node:vm');
+  const els = new Map();
+  const el = (id) => {
+    if (!els.has(id)) els.set(id, { id, innerHTML: '', textContent: '', hidden: false, value: '', dataset: {}, setAttribute() {}, removeAttribute() {}, addEventListener() {}, querySelectorAll: () => [] });
+    return els.get(id);
+  };
+  const listeners = {};
+  const location = { hash: '#TX/retail' };
+  const history = { replaceState(_s, _t, url) { location.hash = url; } };
+  const window = { addEventListener: (k, f) => { listeners[k] = f; } };
+  const document = { readyState: 'complete', getElementById: el, addEventListener() {} };
+  const json = (f) => JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', f), 'utf8'));
+  const fetch = async (url) => ({ ok: true, json: async () => json(url.replace('/data/', '')) });
+  const ctx = vm.createContext({ window, document, location, history, fetch, console, Map, Set, Promise, JSON, Math, Object, String, Number, Array, Error });
+  window.LaunchCore = L;
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'launch.js'), 'utf8'), ctx);
+  for (let i = 0; i < 20 && !listeners.hashchange; i++) await new Promise((r) => setImmediate(r));
+  assert.equal(el('state').value, 'TX');
+  assert.equal(location.hash, '#TX/retail');
+  location.hash = '#zz/retail';
+  listeners.hashchange();
+  assert.equal(el('state').value, 'TX');
+  assert.equal(location.hash, '#TX/retail');
+  location.hash = '#IL';
+  listeners.hashchange();
+  assert.equal(el('state').value, 'IL');
+  assert.match(location.hash, /^#IL\//);
+  location.hash = '#zip';
+  listeners.hashchange();
+  assert.equal(location.hash, '#zip', 'a section link is left alone');
+});
+
+test('Texas: market testing waits for the license filing, not the license, and the license review overlaps it', () => {
+  const tx = L.resolveSteps(data, 'retail', 'TX');
+  const by = Object.fromEntries(tx.map(s => [s.id, s]));
+  assert.deepEqual(by.edi.depends_on, ['license_filed']);
+  assert.deepEqual(by.license.depends_on, ['license_filed']);
+  assert.deepEqual(by.license_filed.depends_on, ['entity']);
+  assert.equal(by.license_filed.low, 0);
+  assert.equal(by.license_filed.high, 0);
+  // Enrollment still needs the license granted and the testing passed.
+  assert.deepEqual(by.sales.depends_on, ['license', 'edi']);
+  assert.match(data.sources['ercot-flights'].quote, /apply for REP certification/);
+  const fast = L.schedule(tx, 'low'), slow = L.schedule(tx, 'high');
+  assert.equal(fast.steps.edi.es, fast.steps.license.es, 'testing and license review start together');
+  assert.equal(fast.steps.first_installs.ef, 13); // was 19 when testing waited for the license
+  assert.equal(slow.steps.first_installs.ef, 44); // was 61
+  // The override did not leak into the shared data or other states.
+  const il = Object.fromEntries(L.resolveSteps(data, 'retail', 'IL').map(s => [s.id, s]));
+  assert.deepEqual(il.edi.depends_on, ['license']);
+  assert.equal(L.schedule(L.resolveSteps(data, 'retail', 'IL'), 'low').steps.first_installs.ef, 18);
+  tx.find(s => s.id === 'edi').depends_on.push('wholesale');
+  assert.deepEqual(data.overrides.TX.retail.edi.depends_on, ['license_filed']);
+});
+
+test('permit snag matches the SolarAPP+ list the ZIP lookup uses', () => {
+  const zip = require('../data/zip-launch.json');
+  const snag = data.snags.find(n => n.id === 'permit-data');
+  assert.doesNotMatch(snag.note, /403|could not be downloaded/);
+  assert.ok(snag.note.includes(zip.solarapp.file_modified), 'snag names the list date in zip-launch.json');
+  assert.ok(data.sources[snag.source]);
+});

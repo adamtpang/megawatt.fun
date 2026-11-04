@@ -31,7 +31,7 @@ The existing `data/ercot-dam-houston.json` records hourly Houston Hub day-ahead 
 
 Defaults are synthetic: 100 identical 25 kWh / 5 kW batteries, 30% household reserve, 88% round-trip efficiency, and seed 42. Independent seeded exposure selects 32 of 100 devices at the default 30% probability. Exposure means the same selected devices receive the chosen faults during the 4–10 PM window. Actual affected count is shown.
 
-For a fleet or market software engineer, the decision is whether command safeguards preserve household backup and how much scheduled delivery they sacrifice. This is an evaluation tool shape, not a claim that Base needs this exact implementation or lacks equivalent safeguards. The current [Software Engineering Intern role](https://jobs.ashbyhq.com/base-power/5353ea33-57d4-46fa-9a96-e392a3f841bc) lists fleet dispatch APIs among its possible domains. Base's [April 2025 telemetry post](https://inside.basepowercompany.com/p/building-a-telemetry-stack-for-the) describes unreliable connectivity, expiring commands, and durable edge storage, motivating the fault cases; it does not validate this simulator.
+For a fleet or market software engineer, the decision is whether command safeguards preserve household backup and how much scheduled delivery they sacrifice. This is an evaluation tool shape, not a claim that Base needs this exact implementation or lacks equivalent safeguards. Base's [April 2025 telemetry post](https://inside.basepowercompany.com/p/building-a-telemetry-stack-for-the) describes unreliable connectivity, expiring commands, and durable edge storage, motivating the fault cases; it does not validate this simulator.
 
 ## Algorithm and command contract
 

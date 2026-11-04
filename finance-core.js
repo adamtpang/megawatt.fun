@@ -8,12 +8,15 @@
   const PERCENT_FIELDS = ['availabilityPct', 'degradationPct', 'ratePct', 'advancePct', 'itcPct'];
 
   // Which revenue lines count toward cash flow in each revenue case.
-  // A tolled battery usually hands dispatch (and so the arbitrage) to the buyer of the toll,
-  // so counting both is an upper bound that double counts the same kWh.
+  // A tolled battery usually hands dispatch (and so the arbitrage and any ancillary
+  // services) to the buyer of the toll, so counting both is an upper bound that double
+  // counts the same kWh. anc: ERCOT ancillary services through an ADER aggregation. Its
+  // input is the value left after the arbitrage it displaces, so adding it to arbitrage
+  // does not sell the same kWh twice.
   const CASES = {
-    toll: { toll: true, arb: false, label: 'Tolled to a utility' },
-    merchant: { toll: false, arb: true, label: 'Merchant in ERCOT' },
-    stacked: { toll: true, arb: true, label: 'Stacked (upper bound)' },
+    toll: { toll: true, arb: false, anc: false, label: 'Tolled to a utility' },
+    merchant: { toll: false, arb: true, anc: true, label: 'Merchant in ERCOT' },
+    stacked: { toll: true, arb: true, anc: true, label: 'Stacked (upper bound)' },
   };
 
   // Limits for the special keys that are not fields in finance-defaults.json.
@@ -35,6 +38,16 @@
     return Number.isFinite(n) ? n : NaN;
   }
 
+  // A number written in plain decimal digits that is too big to store (1e400 becomes Infinity).
+  // Reported as out of range, not as "not a number".
+  function isHuge(v) {
+    if (typeof v === 'number') return v === Infinity || v === -Infinity;
+    if (typeof v !== 'string') return false;
+    const t = v.replace(/[$,%\s]/g, '');
+    return DECIMAL.test(t) && !Number.isFinite(Number(t));
+  }
+  const rangeText = (f) => (f.min != null && f.max != null ? ' Allowed: ' + f.min + ' to ' + f.max + '.' : '');
+
   // Why a value is not allowed for field f, or null when it is fine.
   function fieldError(f, v) {
     if (!Number.isFinite(v)) return 'must be a number';
@@ -55,7 +68,7 @@
       const s = has(raw, f.key) ? raw[f.key] : '';
       if (s == null || String(s).trim() === '') { values[f.key] = f.value; continue; }
       const v = parseDecimal(String(s));
-      const why = Number.isFinite(v) ? fieldError(f, v) : 'must be a plain decimal number';
+      const why = Number.isFinite(v) ? fieldError(f, v) : isHuge(String(s)) ? 'is out of range: "' + String(s).trim() + '" is too large' : 'must be a plain decimal number';
       if (why) errors[f.key] = f.label + ' ' + why + '.';
       else values[f.key] = v;
     }
@@ -97,10 +110,13 @@
     const kwh = nonNeg(inp.kwh), kw = nonNeg(inp.kw);
     const capex = nonNeg(inp.capexPerKwh) * kwh;
     const upfront = Math.min(nonNeg(inp.upfront), capex);
-    // Investment tax credit (IRC 48E), treated as cash at placed-in-service: sold at face value
-    // under IRC 6418 (transfer). It lowers what debt and equity must fund.
+    // Investment tax credit (IRC 48E), treated as cash at placed-in-service: sold under
+    // IRC 6418 (transfer) at itcPriceCents per dollar of credit (face value when not given).
+    // The cash lowers what debt and equity must fund.
     const itcRate = Math.min(1, nonNeg(inp.itc));
-    const itc = itcRate * capex;
+    const itcFace = itcRate * capex;
+    const itcPrice = inp.itcPriceCents == null ? 1 : Math.min(1, nonNeg(inp.itcPriceCents) / 100);
+    const itc = itcFace * itcPrice;
     const netCapex = Math.max(0, capex - upfront - itc);
     const availability = Math.min(1, nonNeg(inp.availability ?? 1));
     const deg = Math.min(1, nonNeg(inp.degradation));
@@ -112,31 +128,34 @@
       retail: num(inp.retailMarginMonthly) * 12,
       toll: nonNeg(inp.tollPerKwYear) * kw * availability,
       arb: nonNeg(inp.arbPerYear) * availability,
+      anc: nonNeg(inp.ancPerKwYear) * kw * availability,
     };
     const counted = {
       member: full.member,
       retail: full.retail,
       toll: kase.toll ? full.toll : 0,
       arb: kase.arb ? full.arb : 0,
+      anc: kase.anc ? full.anc : 0,
     };
     const opex = nonNeg(inp.opexPerYear);
 
     const years = [];
     for (let t = 1; t <= life; t++) {
-      const fade = Math.pow(1 - deg, t - 1); // degradation hits dispatch value, not member fees
+      const fade = Math.pow(1 - deg, t - 1); // degradation hits dispatch value (toll, arbitrage, reserves), not member fees
       const row = {
         year: t,
         member: counted.member,
         retail: counted.retail,
         toll: counted.toll * fade,
         arb: counted.arb * fade,
+        anc: counted.anc * fade,
         opex,
       };
-      row.revenue = row.member + row.retail + row.toll + row.arb;
+      row.revenue = row.member + row.retail + row.toll + row.arb + row.anc;
       row.cfads = row.revenue - opex;
       years.push(row);
     }
-    return { caseId, caseLabel: kase.label, capex, upfront, itcRate, itc, netCapex, full, counted, opex, life, years, year1Cfads: years[0].cfads };
+    return { caseId, caseLabel: kase.label, capex, upfront, itcRate, itcFace, itcPrice, itc, netCapex, full, counted, opex, life, years, year1Cfads: years[0].cfads };
   }
 
   /* Size the loan the way a lender does: level debt service, sized so the weakest year
@@ -190,7 +209,7 @@
 
   function fleet(r, count) {
     const n = nonNeg(count);
-    return { count: n, capex: r.capex * n, upfront: r.upfront * n, itc: r.itc * n, debt: r.debt * n, equity: r.equity * n, debtService: r.debtService * n, year1Cfads: r.year1Cfads * n };
+    return { count: n, capex: r.capex * n, upfront: r.upfront * n, itc: r.itc * n, itcFace: r.itcFace * n, debt: r.debt * n, equity: r.equity * n, debtService: r.debtService * n, year1Cfads: r.year1Cfads * n };
   }
 
   // Batteries needed for a fleet of `mw` megawatts at `kw` per battery.
@@ -209,9 +228,9 @@
     }));
   }
 
-  const LINE_NAMES = { member: 'member fees', retail: 'retail energy margin', toll: 'the utility toll', arb: 'energy arbitrage' };
-  // Where each revenue line's default comes from. The toll and retail margin are placeholders.
-  const LINE_BASIS = { member: 'sourced', retail: 'assumption', toll: 'assumption', arb: 'sourced' };
+  const LINE_NAMES = { member: 'member fees', retail: 'retail energy margin', toll: 'the utility toll', arb: 'energy arbitrage', anc: 'ancillary services' };
+  // Where each revenue line's default comes from. The toll, retail margin and ancillary services are placeholders.
+  const LINE_BASIS = { member: 'sourced', retail: 'assumption', toll: 'assumption', arb: 'sourced', anc: 'assumption' };
 
   /* Plain-words summary of what carries the debt and what limits it. Each line matches
      r.binding, so the text never says cash flow is too small when it is not. */
@@ -234,7 +253,7 @@
       return out;
     }
     if (r.netCapex <= 0) {
-      out.push(`Nothing is left to finance: the member pays ${usd(r.upfront)} and the tax credit is worth ${usd(r.itc)}, which together cover the ${usd(r.capex)} installed cost.`);
+      out.push(`Nothing is left to finance: the member pays ${usd(r.upfront)} and the tax credit sells for ${usd(r.itc)}, which together cover the ${usd(r.capex)} installed cost.`);
       return out;
     }
     if (r.binding === 'none') {
@@ -249,8 +268,12 @@
     driver();
     const ds = r.debtService;
     out.push(`Energy arbitrage alone, in this zone, would cover ${pct(r.full.arb / ds)} of the yearly loan payment${r.counted.arb > 0 ? '' : ' (it does not count in this revenue case)'}.`);
+    if (r.counted.arb > 0) out.push('The zone arbitrage value discharges at up to full battery power from 7 to 9 PM, more than a home uses, so most of it is export. Export earns the load-zone price only if the battery is in an ERCOT ADER aggregation or the retail provider buys it back at that price.');
     out.push(`Member fees alone cover ${pct(r.full.member / ds)} of it.`);
-    if (r.itc > 0) out.push(`The tax credit, ${pct(r.itcRate)} of cost (${usd(r.itc)}), lowers what debt and equity must fund. It adds no yearly cash, so it does not raise the debt that cash flow can carry.`);
+    if (r.itc > 0) {
+      const sale = r.itcPrice < 1 ? `, sold at ${centsText(r.itcPrice)} cents per dollar for ${usd(r.itc)} in cash` : ', sold at face value';
+      out.push(`The tax credit, ${pct(r.itcRate)} of cost (${usd(r.itcFace)} face value)${sale}, lowers what debt and equity must fund. It adds no yearly cash, so it does not raise the debt that cash flow can carry.`);
+    }
     if (r.binding === 'dscr') out.push(`Cash flow limits the loan, not the asset value. The loan is ${pct(r.debtPctCapex)} of cost, below the advance cap.`);
     else if (r.binding === 'advance') out.push('The advance rate limits the loan. Cash flow could support more, so more revenue does not raise the debt here.');
     else if (r.binding === 'cost') out.push('The loan already covers the full net cost after the member payment and the tax credit.');
@@ -262,6 +285,7 @@
     if (x > 10) return 'more than 1,000%';
     return `${Math.round(x * 100)}%`;
   }
+  function centsText(f) { return String(Math.round(f * 1000) / 10); }
   function usd(x) { return Number.isFinite(x) ? `${x < 0 ? '-' : ''}$${Math.round(Math.abs(x)).toLocaleString('en-US')}` : 'n/a'; }
   function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
@@ -277,17 +301,22 @@
     const cases = Object.keys(CASES);
     let pairs;
     const data = parsed && parsed.data;
-    if (Array.isArray(data)) pairs = data.map((r, i) => ({ key: r && has(r, 'key') ? r.key : null, value: r && has(r, 'value') ? r.value : null, line: i + 2 }));
+    // CSV headers (and JSON row keys) match case-insensitively and trimmed: Key,Value works.
+    const col = (r, name) => (r && typeof r === 'object' ? Object.keys(r).find((k) => k.trim().toLowerCase() === name) : undefined);
+    if (Array.isArray(data)) pairs = data.map((r, i) => { const k = col(r, 'key'), v = col(r, 'value'); return { key: k != null ? r[k] : null, value: v != null ? r[v] : null, line: i + 2 }; });
     else if (data && typeof data === 'object') {
       const src = has(data, 'inputs') && data.inputs && typeof data.inputs === 'object' ? data.inputs : data;
       pairs = Object.keys(src).map((key) => ({ key, value: src[key] }));
     } else pairs = [];
     if (!pairs.length) errors.push('No rows found. The file needs key and value columns (CSV) or a key: value object (JSON).');
     let revenueCase = null, zone = null, arbPerYear = null;
+    const firstAt = new Map(); // key -> where it first appeared, so a repeated row is an error, not "last row wins"
     for (const p of pairs) {
       const where = p.line ? 'Row ' + p.line + ': ' : '';
       const key = String(p.key == null ? '' : p.key).trim();
       if (!key) { errors.push(where + 'missing key.'); continue; }
+      if (firstAt.has(key)) { errors.push(where + key + ' appears again (first at ' + firstAt.get(key) + '). Keep one row per key.'); continue; }
+      firstAt.set(key, p.line ? 'Row ' + p.line : 'an earlier entry');
       const isSpecial = key === 'revenueCase' || key === 'zone' || key === 'arbPerYear';
       if (!isSpecial && !byKey.has(key)) { errors.push(where + 'unknown key "' + key + '". Download the template for the full list.'); continue; }
       if (p.value !== null && typeof p.value === 'object') { errors.push(where + key + ' must be a single value, not a list or object.'); continue; }
@@ -298,12 +327,19 @@
         continue;
       }
       if (key === 'zone') {
-        if (!zoneIds.includes(String(p.value).trim())) errors.push(where + 'zone must be one of ' + zoneIds.join(', ') + '.');
-        else zone = String(p.value).trim();
+        // Any case: lz_north is LZ_NORTH, the same as the market page's zone file.
+        const z = String(p.value).trim().toUpperCase();
+        if (!zoneIds.includes(z)) errors.push(where + 'zone must be one of ' + zoneIds.join(', ') + ' (any case), got "' + String(p.value).trim() + '".');
+        else zone = z;
         continue;
       }
       const v = parseDecimal(p.value);
-      if (!Number.isFinite(v)) { errors.push(where + key + ' is not a number: "' + p.value + '". Use plain decimal digits.'); continue; }
+      if (!Number.isFinite(v)) {
+        const range = key === 'arbPerYear' ? ' Allowed: 0 to ' + ARB_MAX + '.' : rangeText(byKey.get(key));
+        if (isHuge(p.value)) errors.push(where + key + ' is out of range: ' + (typeof p.value === 'string' ? '"' + p.value.trim() + '"' : 'the number') + ' is too large.' + range);
+        else errors.push(where + key + ' is not a number: "' + p.value + '". Use plain decimal digits.');
+        continue;
+      }
       if (key === 'arbPerYear') {
         if (v < 0) errors.push(where + 'arbPerYear cannot be negative.');
         else if (v > ARB_MAX) errors.push(where + 'arbPerYear must be at most ' + ARB_MAX + '.');
@@ -321,6 +357,7 @@
     }
     if (revenueCase) d.revenueCaseDefault = revenueCase;
     if (zone) d.zoneDefault = zone;
+    if (zone && arbPerYear != null) warnings.push('arbPerYear replaces the zone value, so zone ' + zone + ' is not used. Leave arbPerYear blank to use the zone.');
     return { defaults: d, errors, warnings, changed, arbPerYear };
   }
 
@@ -333,7 +370,7 @@
     return rows;
   }
 
-  const api = { applyOverrides, templateRows, validateFields, parseDecimal, fieldError, bindingText, PERCENT_FIELDS, CASES, ARB_MAX, annuityFactor, annuityPayment, normalize, cashFlows, sizeDebt, fleet, batteriesForMw, sensitivity, explain };
+  const api = { applyOverrides, templateRows, validateFields, parseDecimal, isHuge, fieldError, bindingText, PERCENT_FIELDS, CASES, ARB_MAX, annuityFactor, annuityPayment, normalize, cashFlows, sizeDebt, fleet, batteriesForMw, sensitivity, explain };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   root.FinanceCore = api;
 })(typeof window !== 'undefined' ? window : globalThis);

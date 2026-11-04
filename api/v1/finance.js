@@ -24,13 +24,14 @@ function usage() {
       json_body: {
         inputs: '{ key: value } for any input key below (optional; omitted keys keep the public value)',
         revenueCase: 'toll | merchant | stacked (optional, default ' + DEFAULTS.revenueCaseDefault + ')',
-        zone: 'ERCOT zone for the arbitrage value (optional, default ' + DEFAULTS.zoneDefault + '): ' + ZONE_IDS.join(', '),
-        arbPerYear: 'your own arbitrage value, $ per battery per year; replaces the zone (optional)',
+        zone: 'ERCOT zone for the arbitrage value, any case (optional, default ' + DEFAULTS.zoneDefault + '): ' + ZONE_IDS.join(', '),
+        arbPerYear: 'your own arbitrage value, $ per battery per year, 0 to ' + F.ARB_MAX + '; replaces the zone, with a warning when you send both (optional)',
         fleetCount: 'batteries in your fleet roll-up, a whole number from 1 to 10,000,000 (optional, same as inputs.fleetCount)',
+        conflicts: 'revenueCase, zone, arbPerYear and fleetCount may be sent at the top level or inside inputs. Sent in both places with different values is a 422.',
       },
-      csv_body: 'The page\'s "Use your own data" file: key,value columns, one row per input. Same keys, including revenueCase, zone and arbPerYear.',
+      csv_body: 'The page\'s "Use your own data" file: key,value columns (header in any case), one row per input. Same keys, including revenueCase, zone and arbPerYear. A key on two rows is a 422. JSON sent as text/csv is a 422 that says to use application/json.',
       input_keys: fields(DEFAULTS).map((f) => ({ key: f.key, unit: f.unit, public_value: f.value, min: f.min, max: f.max, integer: !!f.integer, basis: f.kind })),
-      numbers: 'Plain decimal numbers only (12, 8.5, 1e3). Hex such as 0x10, Infinity and out-of-range values are 422 errors.',
+      numbers: 'Plain decimal numbers only (12, 8.5, 1e3). Hex such as 0x10, Infinity and out-of-range values are 422 errors. A number too large to store (1e400) is reported as out of range.',
     },
     example: { inputs: { capexPerKwh: 280, itcPct: 30, tollPerKwYear: 90, ratePct: 8.5 }, revenueCase: 'toll', zone: 'LZ_NORTH' },
     returns: 'debt, equity, CFADS by year, DSCR, binding limit, plain-English explain lines, the fleet and 100 MW roll-up, and a toll x rate sensitivity grid.',
@@ -39,9 +40,18 @@ function usage() {
   };
 }
 
+// Two ways of writing one input that mean the same thing: 100 and "100", LZ_NORTH and lz_north.
+function sameValue(key, a, b) {
+  const x = F.parseDecimal(a), y = F.parseDecimal(b);
+  if (Number.isFinite(x) && Number.isFinite(y)) return x === y;
+  const t = (v) => String(v).trim();
+  return key === 'zone' ? t(a).toUpperCase() === t(b).toUpperCase() : t(a) === t(b);
+}
+
 // Body to the parsed-file shape finance-core's applyOverrides reads.
 function toOverrides(parsed) {
   if (!parsed) return { parsed: null, warnings: [] };
+  if (L.looksLikeJsonCsv(parsed)) throw L.jsonAsCsvError();
   if (parsed.kind === 'csv') return { parsed, warnings: [] };
   const b = L.objectBody(parsed);
   const warnings = L.unknownKeys(b, KNOWN);
@@ -51,7 +61,18 @@ function toOverrides(parsed) {
   const flat = Object.create(null);
   const own = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
   if (b.inputs != null) for (const k of Object.keys(b.inputs)) flat[k] = b.inputs[k];
-  for (const k of SPECIAL.concat('fleetCount')) if (own(b, k) && b[k] != null) flat[k] = b[k];
+  // A key sent both at the top level and inside inputs must agree. Different values are a
+  // 422, never a silent pick of one of them.
+  const conflicts = [];
+  for (const k of SPECIAL.concat('fleetCount')) {
+    if (!own(b, k) || b[k] == null) continue;
+    if (b.inputs != null && own(b.inputs, k) && b.inputs[k] != null && !sameValue(k, b[k], b.inputs[k])) {
+      conflicts.push(k + ' is ' + JSON.stringify(b[k]) + ' at the top level but ' + JSON.stringify(b.inputs[k]) + ' in inputs. Send it once, or the same value in both places.');
+      continue;
+    }
+    flat[k] = b[k];
+  }
+  if (conflicts.length) throw L.invalid(conflicts);
   return { parsed: Object.keys(flat).length ? { kind: 'json', data: flat } : null, warnings };
 }
 
@@ -66,7 +87,7 @@ function readInputs(d, arbOverride) {
 }
 
 function fleetRow(a) {
-  return { batteries: a.count, capex: a.capex, upfront: a.upfront, itc: a.itc, debt: a.debt, equity: a.equity, debt_service: a.debtService, year1_cfads: a.year1Cfads };
+  return { batteries: a.count, capex: a.capex, upfront: a.upfront, itc_face: a.itcFace, itc: a.itc, debt: a.debt, equity: a.equity, debt_service: a.debtService, year1_cfads: a.year1Cfads };
 }
 
 async function post(parsed) {
@@ -92,8 +113,10 @@ async function post(parsed) {
     capex: r.capex,
     upfront: r.upfront,
     itc_rate: r.itcRate,
+    itc_face: r.itcFace,
+    itc_price: r.itcPrice,
     itc: r.itc,
-    itc_treatment: 'IRC 48E storage credit, sold for cash at face value when the battery goes into service (IRC 6418 transfer). It lowers net_capex. Left out: the transfer discount, timing, recapture, basis reduction and bonus adders.',
+    itc_treatment: 'IRC 48E storage credit, sold for cash when the battery goes into service (IRC 6418 transfer) at itc_price per dollar of credit (input itcPriceCents; public default 89.5 cents, Crux 2026-vintage ITC average). itc = itc_face x itc_price, and it lowers net_capex. Left out: timing, recapture, basis reduction and bonus adders.',
     net_capex: r.netCapex,
     year1_revenue_lines: { counted: r.counted, full: r.full, opex: r.opex },
     year1_cfads: r.year1Cfads,
@@ -113,7 +136,7 @@ async function post(parsed) {
     binding: r.binding,
     binding_text: F.bindingText(r),
     explain,
-    cfads_by_year: r.years.map((y) => ({ year: y.year, member: y.member, retail: y.retail, toll: y.toll, arb: y.arb, opex: y.opex, revenue: y.revenue, cfads: y.cfads, in_tenor: y.year <= r.tenor })),
+    cfads_by_year: r.years.map((y) => ({ year: y.year, member: y.member, retail: y.retail, toll: y.toll, arb: y.arb, anc: y.anc, opex: y.opex, revenue: y.revenue, cfads: y.cfads, in_tenor: y.year <= r.tenor })),
     fleet: {
       input: Object.assign({ mw: F.fleet(r, inp.fleetCount).count * inp.kw / 1000 }, fleetRow(F.fleet(r, inp.fleetCount))),
       mw_100: Object.assign({ mw: mwCount * inp.kw / 1000 }, fleetRow(F.fleet(r, mwCount))),

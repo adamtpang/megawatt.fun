@@ -121,7 +121,8 @@ test('page defaults load, normalize, and produce a sane result', () => {
   const r = F.sizeDebt(F.normalize(raw));
   near(r.capex, 350 * 39.2, 1e-9);
   assert.ok(r.debt > 0 && r.debt <= r.cap);
-  near(r.itc, 0.3 * r.capex, 1e-9);
+  near(r.itcFace, 0.3 * r.capex, 1e-9);
+  near(r.itc, 0.3 * r.capex * 0.895, 1e-9);
   near(r.equity, r.capex - 695 - r.itc - r.debt, 1e-6);
 });
 
@@ -287,4 +288,56 @@ test('the largest allowed inputs still give finite numbers', () => {
   const r = F.sizeDebt(F.normalize(raw));
   for (const k of ['capex', 'debt', 'equity', 'debtService', 'year1Cfads', 'minCfads']) assert.ok(Number.isFinite(r[k]), k);
   for (const line of F.explain(r)) assert.doesNotMatch(line, /e\+|Infinity|NaN/);
+});
+
+// ---------- energy-expert review ----------
+
+test('credit sale price: cash = credit x price, face value when the price is not given', () => {
+  const face = F.sizeDebt({ ...base, tollPerKwYear: 130, itc: 0.3 });
+  assert.equal(face.itcPrice, 1);
+  assert.equal(face.itc, 3000);
+  const sold = F.sizeDebt({ ...base, tollPerKwYear: 130, itc: 0.3, itcPriceCents: 90 });
+  assert.equal(sold.itcFace, 3000);
+  near(sold.itc, 2700, 1e-9);
+  near(sold.netCapex, 10000 - 2700, 1e-9);
+  // The discount does not change cash flow, so DSCR-bound debt is the same and equity carries it.
+  near(sold.debt, face.debt, 1e-9);
+  near(sold.equity, face.equity + 300, 1e-9);
+  assert.match(F.explain(sold).join(' '), /\$3,000 face value\), sold at 90 cents per dollar for \$2,700/);
+  const f = field('itcPriceCents');
+  assert.equal(f.value, 89.5);
+  assert.equal(f.kind, 'sourced');
+  assert.match(f.source, /crux\.com/);
+  assert.match(f.note, /\$0\.895/);
+});
+
+test('ancillary services: counted in merchant and stacked, not toll; fades; default 0 assumption', () => {
+  const inp = { ...base, tollPerKwYear: 60, arbPerYear: 100, ancPerKwYear: 20, availability: 0.5 };
+  // 20 $/kW-yr x 10 kW x 50% availability = 100
+  assert.equal(F.cashFlows({ ...inp, revenueCase: 'toll' }).year1Cfads, 300);
+  assert.equal(F.cashFlows({ ...inp, revenueCase: 'merchant' }).year1Cfads, 50 + 100);
+  assert.equal(F.cashFlows({ ...inp, revenueCase: 'stacked' }).year1Cfads, 300 + 50 + 100);
+  const cf = F.cashFlows({ ...inp, revenueCase: 'merchant', degradation: 0.1 });
+  near(cf.years[1].anc, 90, 1e-9);
+  const f = field('ancPerKwYear');
+  assert.equal(f.value, 0);
+  assert.equal(f.kind, 'assumption');
+  assert.match(f.source, /ercot\.com\/mktrules\/pilots\/ader/);
+  for (const re of [/ADER/, /Non-Spin/, /ECRS/, /cannot also discharge/]) assert.match(f.note, re);
+  // Default 0 leaves the default answer unchanged.
+  near(F.sizeDebt(defaultInputs()).debt, F.sizeDebt(defaultInputs({ ancPerKwYear: 0 })).debt, 1e-9);
+  assert.ok(F.sizeDebt(defaultInputs({ ancPerKwYear: 20 })).debt > F.sizeDebt(defaultInputs()).debt);
+});
+
+test('copy: cost basis label, location pricing, export and ADER, depreciation', () => {
+  const cap = field('capexPerKwh');
+  assert.match(cap.label, /cost basis/);
+  assert.match(cap.note, /may include Base's margin/);
+  assert.match(field('upfront').note, /vary by address/);
+  const html = fs.readFileSync(path.join(__dirname, '../finance.html'), 'utf8');
+  assert.match(html, /ercot\.com\/mktrules\/pilots\/ader/);
+  assert.match(html, /export earns the load-zone price only if/);
+  assert.match(html, /<strong>Depreciation<\/strong> is not modeled/);
+  assert.doesNotMatch(html, /at face value/);
+  assert.match(F.explain(F.sizeDebt(defaultInputs())).join(' '), /ADER aggregation/);
 });

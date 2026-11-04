@@ -132,7 +132,7 @@
       kpi('Installed cost', usd(r.capex), inp.kwh > 0 ? `${usd(r.capex / inp.kwh)}/kWh` : 'no energy capacity'),
       kpi('CFADS, year 1', usd(r.year1Cfads), `weakest year in term ${usd(r.minCfads)}`),
       kpi('Debt', usd(r.debt), `${pct(r.debtPctCapex)} of cost`),
-      kpi('Equity', usd(r.equity), `after ${usd(r.upfront)} from the member and ${usd(r.itc)} tax credit`),
+      kpi('Equity', usd(r.equity), `after ${usd(r.upfront)} from the member and ${usd(r.itc)} from selling the tax credit`),
     );
     const b = $('binding');
     b.textContent = F.bindingText(r);
@@ -159,6 +159,7 @@
       row('Retail energy margin', r.counted.retail, null),
       row('Utility toll', r.counted.toll, off('toll')),
       row('Energy arbitrage', r.counted.arb, off('arb')),
+      row('Ancillary services (ADER)', r.counted.anc, off('anc')),
       row('Operating cost', -r.opex, null, 'neg'),
       row('CFADS', r.year1Cfads, null, 'total'),
       row('Yearly loan payment', -r.debtService, r.debt > 0 ? `${r.tenor} years at ${(r.rate * 100).toFixed(2)}%` : null, 'neg'),
@@ -202,7 +203,7 @@
     li(`Weakest CFADS in the ${r.tenor}-year term: `, el('b', { class: 'mono', text: usd(r.minCfads) }), '.');
     li(`Divide by target DSCR ${r.dscrTarget.toFixed(2)}x: the loan can cost at most `, el('b', { class: 'mono', text: `${usd(r.allowedPayment)}/yr` }), '.');
     li(`Present value at ${(r.rate * 100).toFixed(2)}% over ${r.tenor} years (factor ${F.annuityFactor(r.rate, r.tenor).toFixed(3)}): cash flow supports `, el('b', { class: 'mono', text: usd(r.dscrDebt) }), '.');
-    li(`Tax credit at ${pct(r.itcRate)} of cost: `, el('b', { class: 'mono', text: usd(r.itc) }), ', treated as cash when the battery goes into service.');
+    li(`Tax credit at ${pct(r.itcRate)} of cost: ${usd(r.itcFace)} face value, sold at ${(r.itcPrice * 100).toFixed(1)} cents per dollar = `, el('b', { class: 'mono', text: usd(r.itc) }), ' in cash when the battery goes into service.');
     li(`Cap: advance rate x cost = `, el('b', { class: 'mono', text: usd(r.advanceCap) }), `; cost minus member payment minus tax credit = `, el('b', { class: 'mono', text: usd(r.netCapex) }), '.');
     li('Debt is the lowest of these: ', el('b', { class: 'mono', text: usd(r.debt) }), `. Equity fills the rest: `, el('b', { class: 'mono', text: usd(r.equity) }), '.');
   }
@@ -221,7 +222,7 @@
         row('Power', a.count * inp.kw / 1000, b.count * inp.kw / 1000, (x) => `${Math.round(x).toLocaleString('en-US')} MW`),
         row('Installed cost', a.capex, b.capex),
         row('Member upfront payments', a.upfront, b.upfront),
-        row('Tax credit', a.itc, b.itc),
+        row('Tax credit, cash from sale', a.itc, b.itc),
         row('Debt', a.debt, b.debt),
         row('Equity', a.equity, b.equity),
         row('Yearly loan payment', a.debtService, b.debtService),
@@ -261,7 +262,7 @@
     t.append(el('thead', {}, el('tr', {}, ...['Input', 'Default', 'Type', 'Where it comes from'].map((h) => el('th', { scope: 'col', text: h })))));
     const body = el('tbody');
     const add = (name, val, kind, ...src) => body.append(el('tr', {}, el('th', { scope: 'row', text: name }), el('td', { class: 'mono', text: val }), el('td', {}, tag(kind)), el('td', {}, ...src)));
-    add('Revenue case', F.CASES[publicDefaults.revenueCaseDefault].label, 'assumption', 'Merchant by default: it counts only public numbers (member fees and ERCOT arbitrage), not the toll placeholder. A utility toll is a private contract with no public price.');
+    add('Revenue case', F.CASES[publicDefaults.revenueCaseDefault].label, 'assumption', 'Merchant by default: it counts only public numbers (member fees and ERCOT arbitrage), not the toll placeholder. A utility toll is a private contract with no public price. Ancillary services count in merchant and stacked but default to $0.');
     add('Energy arbitrage zone', defaults.zoneDefault, 'sourced', 'ERCOT prices, our fixed-clock simulation. ', el('a', { href: '/data/zone-value.json', text: 'zone-value.json' }));
     for (const f of fields()) {
       const link = sourceLink(f);

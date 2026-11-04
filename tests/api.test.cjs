@@ -229,7 +229,13 @@ test('finance default: merchant case, tax credit applied, toll placeholder not c
   const j = (await post('finance', undefined, {})).json();
   assert.equal(j.result.revenue_case, 'merchant');
   assert.equal(j.result.itc_rate, 0.3);
-  near(j.result.itc, 0.3 * j.result.capex);
+  near(j.result.itc_face, 0.3 * j.result.capex);
+  assert.equal(j.result.itc_price, 0.895);
+  near(j.result.itc, 0.3 * j.result.capex * 0.895);
+  assert.equal(j.result.year1_revenue_lines.counted.anc, 0);
+  const anc = (await post('finance', { inputs: { ancPerKwYear: 20 } })).json();
+  near(anc.result.year1_revenue_lines.counted.anc, 20 * 20 * 0.96);
+  near(anc.result.debt, F.sizeDebt(pageInputs({ ancPerKwYear: 20 })).debt);
   near(j.result.net_capex, j.result.capex - j.result.upfront - j.result.itc);
   near(j.result.equity, j.result.net_capex - j.result.debt);
   assert.equal(j.result.year1_revenue_lines.counted.toll, 0);
@@ -421,7 +427,7 @@ test('market with homes weighted 0 matches the published re-ranking: Michigan 72
 
 test('market adds your own metrics and zones', async () => {
   const r = await post('market', {
-    metrics: 'state,install_cost_usd (lower is better)\nTX,11500\nFL,13200\nGeorgia,12800\n',
+    metrics: 'state,install_cost_usd (lower is better)\nTX,11500\nFL,13200\nGeorgia,12800\nAZ,12100\nNC,13900\n',
     zones: { LZ_WEST: 500 },
     weights: { yours_install_cost_usd: 3 },
   });
@@ -433,7 +439,7 @@ test('market adds your own metrics and zones', async () => {
   assert.equal(tx.factors.yours_install_cost_usd.rank, 1);
   assert.equal(j.result.texas_zones.zones[0].id, 'LZ_WEST');
   assert.equal(j.result.texas_zones.zones[0].yours, true);
-  assert.ok(j.warnings.some((w) => w.startsWith('metrics: "install_cost_usd" has no value for 48 states')));
+  assert.ok(j.warnings.some((w) => w.startsWith('metrics: "install_cost_usd" has no value for 46 states')));
 });
 
 test('market CSV body is detected as a zone file', async () => {
@@ -674,7 +680,7 @@ test('hardening market: reserved names in your metrics are clean errors', async 
   assert.ok(e.includes('metrics: Row 2: unknown state "constructor". Use a two-letter code such as TX, or the full name.'), e.join(' | '));
   assert.ok(e.includes('metrics: Row 3: unknown state "__proto__". Use a two-letter code such as TX, or the full name.'));
   // A metric named "constructor" that a state leaves out is just missing, not a function.
-  const ok = await post('market', { metrics: { states: { TX: { constructor: 5 }, FL: { other: 1 } } } });
+  const ok = await post('market', { metrics: { states: { TX: { constructor: 5 }, FL: { other: 1 }, GA: { constructor: 1, other: 1 }, AZ: { constructor: 2, other: 2 }, NC: { constructor: 3, other: 3 }, OH: { constructor: 4, other: 4 } } } });
   assert.equal(ok.statusCode, 200, ok.body);
 });
 
@@ -705,7 +711,7 @@ test('pitch for a wires-only utility: no capacity offer, sourced explanation, no
   // Texas ranking: the six wires-only utilities are listed, not ranked; the top 10 is pitchable utilities.
   const wiresTx = cnp.result.who_to_call_first.wires_only_in_state.map((x) => x.id).sort();
   assert.deepEqual(wiresTx, ['11292-TX', '20404-TX', '3278-TX', '40051-TX', '44372-TX', '8901-TX'].sort());
-  assert.equal(cnp.result.who_to_call_first.ranked_in_state, cnp.result.who_to_call_first.utilities_in_state - 6);
+  assert.equal(cnp.result.who_to_call_first.ranked_in_state, cnp.result.who_to_call_first.utilities_in_state - 6 - cnp.result.who_to_call_first.base_partners_in_state.length);
   assert.ok(cnp.result.who_to_call_first.rows.filter((x) => !x.current).every((x) => !x.wires_only));
   // Co-ops and city utilities keep a real offer, with the ERCOT 4CP sources.
   for (const utility of ['CoServ Electric', 'Austin Energy', '7752-TX', '14626-TX']) {
@@ -775,4 +781,283 @@ test('pitch: terms [], largeLoads "maybe", a mismatched state and bad numbers ar
   assert.equal(big.statusCode, 200, big.body);
   assert.ok(!/Infinity|NaN/.test(big.body));
   assert.equal(big.json().result.program.batteries, 5000000);
+});
+
+// ---------- pitch: Base partners, ERCOT-first Texas ranking, 12CP citation ----------
+
+test('pitch for an existing Base partner: labeled, framed as expansion, sourced, not ranked cold', async () => {
+  for (const [utility, id] of [['7752-TX', '7752-TX'], ['Bandera Electric Coop, Inc', '1175-TX'], ['6182-TX', '6182-TX'], ['El Paso Electric Co, TX', '5701-TX'], ['3248-GA', '3248-GA']]) {
+    const r = await post('pitch', { utility });
+    assert.equal(r.statusCode, 200, r.body);
+    const j = r.json();
+    const res = j.result;
+    assert.equal(res.utility.id, id);
+    assert.equal(res.base_partner.status, 'Already a Base partner', utility);
+    assert.match(res.base_partner.framing, /not a cold pitch/);
+    assert.ok(j.sources.some((s) => s.url === res.base_partner.source), utility + ': partner source listed');
+    assert.match(res.questions[0], /^Existing program:/);
+    const row = res.who_to_call_first.rows.find((x) => x.id === id);
+    assert.ok(row && row.base_partner && row.rank === null && row.status === 'Already a Base partner', utility);
+    assert.ok(res.who_to_call_first.base_partners_in_state.some((x) => x.id === id));
+  }
+  const cold = (await post('pitch', { utility: '14626-TX' })).json().result;
+  assert.equal(cold.base_partner, null);
+  assert.ok(cold.who_to_call_first.rows.every((x) => !x.base_partner || x.rank === null));
+});
+
+test('pitch Texas ranking: ERCOT first, non-ERCOT labeled, partners after the cold top 10', async () => {
+  const w = (await post('pitch', { utility: '55937-TX' })).json().result.who_to_call_first;
+  assert.equal(w.preferred_market, 'ERCOT');
+  assert.match(w.method, /ERCOT/);
+  assert.match(w.method, /Existing Base partners are not ranked as cold prospects/);
+  const ranked = w.rows.filter((x) => x.rank !== null);
+  assert.deepEqual(ranked.slice(0, 5).map((x) => x.id), ['16604-TX', '14626-TX', '11501-TX', '19159-TX', '7559-TX']);
+  assert.ok(ranked.slice(0, 10).every((x) => !x.outside_preferred_market && x.market === 'ERCOT'));
+  const entergy = w.rows.find((x) => x.id === '55937-TX');
+  assert.ok(entergy.current && entergy.outside_preferred_market && entergy.rank > 10);
+  assert.match(entergy.market_note, /^Outside ERCOT \(MISO\)/);
+  assert.deepEqual(w.base_partners_in_state.map((x) => x.id).sort(), ['1015-TX', '1175-TX', '5078-TX', '5701-TX', '6182-TX', '7752-TX'].sort());
+  const firstPartner = w.rows.findIndex((x) => x.base_partner);
+  assert.ok(firstPartner >= 10 && w.rows.slice(0, firstPartner).every((x) => !x.base_partner));
+  assert.equal(w.ranked_in_state, w.utilities_in_state - w.wires_only_in_state.length - w.base_partners_in_state.length);
+});
+
+test('pitch ERCOT sources cite PUCT Project No. 58000 for 4CP to 12CP', async () => {
+  const j = (await post('pitch', { utility: '14626-TX' })).json();
+  const k = j.sources.map((s) => s.key);
+  assert.ok(k.includes('tcos12') && k.includes('tcos58000'), k.join(','));
+  assert.match(j.sources.find((s) => s.key === 'tcos12').title, /Project No\. 58000/);
+  assert.match(j.sources.find((s) => s.key === 'tcos58000').url, /ControlNumber=58000/);
+  assert.ok(!j.sources.some((s) => /Project 58484\b/.test(s.title) && s.key === 'tcos12'));
+  assert.ok(j.result.offer.reason.includes('Project No. 58000') || j.result.offer.rule !== 3);
+});
+
+// ---------- pitch: break-test fixes (long names, short names, conflicts, text types, CSV headers) ----------
+
+test('pitch: a huge utility name is refused fast, before any matching, and never echoed whole', async () => {
+  for (const n of [50000, 200000]) {
+    const t = Date.now();
+    const r = await post('pitch', { utility: 'A'.repeat(n) });
+    assert.ok(Date.now() - t < 500, n + ' chars took ' + (Date.now() - t) + ' ms');
+    assert.equal(r.statusCode, 422);
+    assert.ok(r.body.length < 400, 'error does not echo the name: ' + r.body.length + ' bytes');
+    assert.match(r.json().errors[0], new RegExp('^utility is ' + n + ' characters\\. The limit is 200'));
+  }
+  // Same cap in the query string, and a 200-character miss echoes only a clipped copy.
+  assert.equal((await post('pitch', '', JSON_CT, '/api/v1/pitch?utility=' + 'B'.repeat(5000))).statusCode, 422);
+  const near = await post('pitch', { utility: 'A'.repeat(200) });
+  assert.equal(near.statusCode, 422);
+  assert.match(near.json().errors[0], /\.\.\. \(200 characters\)/);
+});
+
+test('pitch: target lists are capped at 500 rows and each name at 200 characters', async () => {
+  const many = await post('pitch', { utility: '5078-TX', targets: Array.from({ length: 501 }, () => ({ utility: '1015-TX' })) });
+  assert.equal(many.statusCode, 422);
+  assert.deepEqual(many.json().errors, ['targets has 501 items. The limit is 500 per request; split the list.']);
+  const csv = 'utility,status\n' + Array.from({ length: 501 }, () => '1015-TX,target').join('\n') + '\n';
+  const c = await post('pitch', csv, CSV_CT, '/api/v1/pitch?utility=5078-TX');
+  assert.equal(c.statusCode, 422);
+  assert.match(c.json().errors[0], /target list has 501 rows\. The limit is 500/);
+  const long = await post('pitch', { utility: '5078-TX', targets: [{ utility: 'Z'.repeat(100000) }] });
+  assert.equal(long.statusCode, 422);
+  assert.deepEqual(long.json().errors, ['targets item 1: utility is 100000 characters. The limit is 200.']);
+  // 500 near-miss names, all just under the cap: still quick, every row reported, no row echoed whole.
+  const t = Date.now();
+  const slow = await post('pitch', { utility: '5078-TX', targets: Array.from({ length: 500 }, (_, i) => ({ utility: 'Q'.repeat(190) + i })) });
+  assert.ok(Date.now() - t < 3000, '500 unmatched targets took ' + (Date.now() - t) + ' ms');
+  assert.equal(slow.statusCode, 200);
+  const w = slow.json().warnings.filter((x) => /no utility called/.test(x));
+  assert.equal(w.length, 500);
+  assert.ok(w.every((x) => x.length < 200), w[0]);
+});
+
+test('pitch: common short names and names without Co / Inc resolve on the API', async () => {
+  const cases = { Oncor: '44372-TX', ComEd: '4110-IL', CoServ: '5078-TX', 'coserv electric': '5078-TX', 'Austin Energy': '1015-TX', '5078-tx': '5078-TX',
+    'Commonwealth Edison': '4110-IL', 'Georgia Power': '7140-GA', 'PG&E': '14328-CA', 'Con Edison': '4226-NY', CenterPoint: '8901-TX', 'Oncor, TX': '44372-TX' };
+  for (const [utility, id] of Object.entries(cases)) {
+    const r = await post('pitch', { utility });
+    assert.equal(r.statusCode, 200, utility + ': ' + r.body);
+    assert.equal(r.json().inputs_used.utility, id, utility);
+  }
+  const aep = await post('pitch', { utility: 'AEP Texas' });
+  assert.equal(aep.statusCode, 422);
+  assert.match(aep.json().errors[0], /matches 2 utilities \(3278-TX .*20404-TX/);
+  assert.equal((await post('pitch', { utility: 'Pepco', state: 'MD' })).json().inputs_used.utility, '15270-MD');
+  // Exact legal names still win over a looser key.
+  assert.equal((await post('pitch', { utility: 'Oncor Electric Delivery Company LLC' })).json().inputs_used.utility, '44372-TX');
+  // Short names also work in a target list.
+  const t = (await post('pitch', { utility: '5078-TX', targets: [{ utility: 'Oncor', status: 'in talks' }, { utility: 'ComEd' }] })).json();
+  assert.deepEqual(t.inputs_used.targets.sort(), ['4110-IL', '44372-TX']);
+});
+
+test('pitch: a program smaller than one battery says it was rounded up, with real precision', async () => {
+  const j = (await post('pitch', { utility: '5078-TX', mw: 0.0001 })).json();
+  const p = j.result.program;
+  assert.equal(p.mw, 0.0001);
+  assert.equal(p.batteries, 1);
+  assert.equal(p.nameplate_mw, 0.02);
+  assert.equal(p.rounded_up, true);
+  near(p.mwh, 0.0392);
+  assert.match(p.note, /You asked for 0\.1 kW\. Batteries come whole, so this is 1 battery at 20 kW each: 20 kW nameplate, rounded up\./);
+  const even = (await post('pitch', { utility: '5078-TX', mw: 100 })).json().result.program;
+  assert.equal(even.rounded_up, false);
+  assert.ok(!/rounded up/.test(even.note));
+  assert.equal(P.fmtPower(0.0001), '0.1 kW');
+  assert.equal(P.fmtPower(0.02), '20 kW');
+  assert.equal(P.fmtPower(100), '100 MW');
+  assert.equal(P.fmtPower(2.5), '2.5 MW');
+  assert.equal(P.fmtEnergy(0.0392), '39.2 kWh');
+  assert.equal(P.fmtEnergy(196), '196 MWh');
+});
+
+test('pitch: body and query string must agree, and mw must agree with terms.programMw', async () => {
+  const u = await post('pitch', { utility: '5078-TX' }, JSON_CT, '/api/v1/pitch?utility=1015-TX');
+  assert.equal(u.statusCode, 422);
+  assert.deepEqual(u.json().errors, ['utility is "5078-TX" in the body but "1015-TX" in the query string. Send it in one place.']);
+  // Same value, or the same utility by another name, is fine.
+  assert.equal((await post('pitch', { utility: '5078-TX' }, JSON_CT, '/api/v1/pitch?utility=5078-tx')).statusCode, 200);
+  assert.equal((await post('pitch', { utility: 'CoServ Electric' }, JSON_CT, '/api/v1/pitch?utility=5078-TX')).statusCode, 200);
+  const s = await post('pitch', { utility: '5078-TX', state: 'TX' }, JSON_CT, '/api/v1/pitch?state=GA');
+  assert.equal(s.statusCode, 422);
+  assert.match(s.json().errors[0], /^state is "TX" in the body but "GA" in the query string/);
+  assert.equal((await post('pitch', { utility: '5078-TX', mw: 50 }, JSON_CT, '/api/v1/pitch?mw=60')).statusCode, 422);
+  assert.equal((await post('pitch', { utility: '5078-TX', mw: 50 }, JSON_CT, '/api/v1/pitch?mw=50.0')).statusCode, 200);
+  assert.equal((await post('pitch', { utility: '5078-TX', largeLoads: true }, JSON_CT, '/api/v1/pitch?largeLoads=no')).statusCode, 422);
+  assert.equal((await post('pitch', { utility: '5078-TX', largeLoads: true }, JSON_CT, '/api/v1/pitch?largeLoads=yes')).statusCode, 200);
+  // A repeated query parameter is ambiguous too.
+  const rep = await call('pitch', 'POST', { utility: '5078-TX' }, JSON_CT, '/api/v1/pitch');
+  assert.equal(rep.statusCode, 200);
+  const res = mockRes();
+  await H.pitch({ method: 'POST', headers: JSON_CT, body: {}, url: '/api/v1/pitch', query: { utility: ['5078-TX', '1015-TX'] } }, res);
+  assert.equal(res.statusCode, 422);
+  assert.match(res.json().errors[0], /^utility appears more than once/);
+  // mw vs programMw.
+  const c = await post('pitch', { utility: '5078-TX', mw: 50, terms: { programMw: 80 } });
+  assert.equal(c.statusCode, 422);
+  assert.deepEqual(c.json().errors, ['mw is 50 but programMw in your offer terms is 80. Send the program size in one place.']);
+  assert.equal((await post('pitch', { utility: '5078-TX', mw: 80, terms: { programMw: 80 } })).statusCode, 200);
+  assert.equal((await post('pitch', { utility: '5078-TX', terms: { programMw: 80 } })).json().inputs_used.mw, 80);
+  assert.equal((await post('pitch', { utility: '5078-TX', mw: 50, terms: { programMw: 100 } })).statusCode, 422, 'programMw at its public value still counts as sent');
+  const csv = await post('pitch', 'key,value\nprogramMw,80\n', CSV_CT, '/api/v1/pitch?utility=5078-TX&mw=50');
+  assert.equal(csv.statusCode, 422);
+  assert.match(csv.json().errors[0], /^mw is 50 but programMw/);
+});
+
+test('pitch: text fields must be text, with the row named', async () => {
+  const o = await post('pitch', { utility: '5078-TX', targets: [{ utility: { a: 1 } }] });
+  assert.equal(o.statusCode, 422);
+  assert.deepEqual(o.json().errors, ['targets item 1: utility must be text, got an object.']);
+  assert.ok(!o.body.includes('[object Object]'));
+  const s = await post('pitch', { utility: '5078-TX', targets: [{ utility: '1015-TX' }, { utility: '1015-TX', status: ['x'] }] });
+  assert.equal(s.statusCode, 422);
+  assert.deepEqual(s.json().errors, ['targets item 2: status must be text, got a list.']);
+  for (const k of ['owner', 'note', 'state']) {
+    const r = await post('pitch', { utility: '5078-TX', targets: [{ utility: '1015-TX', [k]: { x: 1 } }] });
+    assert.equal(r.statusCode, 422, k);
+    assert.match(r.json().errors[0], new RegExp('^targets item 1: ' + k + ' must be text'));
+  }
+  assert.equal((await post('pitch', { utility: '5078-TX', targets: [5078] })).statusCode, 422);
+  assert.match((await post('pitch', { utility: '5078-TX', state: ['TX'] })).json().errors[0], /^state must be text/);
+  assert.match((await post('pitch', { utility: '5078-TX', terms: { tollPerKwYear: { a: 1 } } })).json().errors[0], /tollPerKwYear is not a number: an object\./);
+  // A status that is a number is fine (it is shown as text).
+  assert.equal((await post('pitch', { utility: '5078-TX', targets: [{ utility: '1015-TX', status: 2 }] })).statusCode, 200);
+});
+
+test('pitch: CSV headers in any case and spacing; unknown columns are a warning', async () => {
+  const csv = ' Utility , STATUS,Owner,Extra Notes\n1015-TX,in talks,Ben,x\n';
+  const r = await post('pitch', csv, CSV_CT, '/api/v1/pitch?utility=5078-TX');
+  assert.equal(r.statusCode, 200, r.body);
+  const j = r.json();
+  assert.deepEqual(j.inputs_used.targets, ['1015-TX']);
+  const row = j.result.who_to_call_first.rows.find((x) => x.id === '1015-TX');
+  assert.equal(row.your_target.status, 'in talks');
+  assert.equal(row.your_target.owner, 'Ben');
+  assert.ok(j.warnings.some((w) => /^Ignored unknown column "Extra Notes"/.test(w)), j.warnings.join(' | '));
+  const terms = await post('pitch', 'KEY,Value\ntollPerKwYear,85\n', CSV_CT, '/api/v1/pitch?utility=5078-TX');
+  assert.equal(terms.statusCode, 200, terms.body);
+  assert.equal(terms.json().inputs_used.terms.tollPerKwYear, 85);
+});
+
+test('pitch: a JSON body sent as text/csv says to use application/json', async () => {
+  for (const body of ['{"utility":"5078-TX"}', '[{"utility":"5078-TX"}]', '  {"utility": "5078-TX", "mw": 10}']) {
+    const r = await post('pitch', body, CSV_CT, '/api/v1/pitch');
+    assert.equal(r.statusCode, 422);
+    assert.match(r.json().errors[0], /looks like JSON but was sent as CSV\. Send it with Content-Type: application\/json/);
+  }
+});
+
+// ==========================================================================================
+// Break-test fixes, 2026-11-04: market, finance and supply. Self-contained block.
+// ==========================================================================================
+
+test('break-test market: one or two states for your metric never earn full marks', async () => {
+  const one = await post('market', { metrics: { factors: [{ key: 'install_cost_usd', higherIsBetter: false }], states: { TX: { install_cost_usd: 999999 } } } });
+  assert.equal(one.statusCode, 422);
+  assert.ok(one.json().errors.includes('metrics: No metric has values for at least 5 states, so nothing can be ranked. Fill in at least 5 states for a metric.'), one.body);
+  const two = await post('market', { metrics: 'state,thin,good\nTX,999999,1\nFL,1,2\nGA,,3\nAZ,,4\nNC,,5\n' });
+  assert.equal(two.statusCode, 200, two.body);
+  const j = two.json();
+  assert.deepEqual(j.inputs_used.your_factors, ['yours_good']);
+  assert.ok(j.warnings.some((w) => /^metrics: "thin" has values for only 2 states, so it is left out of the score/.test(w)), j.warnings.join(' | '));
+});
+
+test('break-test market: zones are capped like arbPerYear and accept any case; zero weights give no rank', async () => {
+  const big = await post('market', { zones: { LZ_NORTH: 1e12 } });
+  assert.equal(big.statusCode, 422);
+  assert.match(big.json().errors[0], /^zones: zones\.LZ_NORTH: LZ_NORTH must be at most 100,000/);
+  const low = await post('market', { zones: { lz_north: 500 } });
+  assert.equal(low.statusCode, 200, low.body);
+  assert.deepEqual(low.json().inputs_used.your_zones, ['LZ_NORTH']);
+  const ids = MAP.factors.map((f) => f.id);
+  const zero = (await post('market', { weights: Object.fromEntries(ids.map((id) => [id, 0])) })).json();
+  assert.ok(zero.result.states.every((s) => s.rank === null && s.score === null));
+});
+
+test('break-test finance: top-level and inputs values that disagree are 422; equal ones are fine', async () => {
+  const r = await post('finance', { fleetCount: 100, inputs: { fleetCount: 200 }, zone: 'LZ_NORTH', revenueCase: 'toll' });
+  assert.equal(r.statusCode, 422);
+  assert.deepEqual(r.json().errors, ['fleetCount is 100 at the top level but 200 in inputs. Send it once, or the same value in both places.']);
+  const z = await post('finance', { zone: 'LZ_NORTH', inputs: { zone: 'LZ_WEST' } });
+  assert.equal(z.statusCode, 422);
+  assert.match(z.json().errors[0], /^zone is "LZ_NORTH" at the top level but "LZ_WEST" in inputs/);
+  const same = await post('finance', { fleetCount: 100, inputs: { fleetCount: '100' }, zone: 'lz_west', revenueCase: 'merchant' });
+  assert.equal(same.statusCode, 200, same.body);
+  assert.equal(same.json().inputs_used.zone, 'LZ_WEST');
+  assert.equal(same.json().inputs_used.fleetCount, 100);
+  const sameZone = await post('finance', { zone: 'LZ_WEST', inputs: { zone: 'lz_west' } });
+  assert.equal(sameZone.statusCode, 200, sameZone.body);
+});
+
+test('break-test finance: arbPerYear over a zone is a warning; duplicate CSV keys and JSON-as-CSV are 422', async () => {
+  const both = (await post('finance', { zone: 'LZ_WEST', arbPerYear: 150 })).json();
+  assert.equal(both.ok, true);
+  assert.equal(both.inputs_used.arbPerYear, 150);
+  assert.ok(both.warnings.includes('arbPerYear replaces the zone value, so zone LZ_WEST is not used. Leave arbPerYear blank to use the zone.'), both.warnings.join(' | '));
+  const dup = await post('finance', 'key,value\ncapexPerKwh,300\ncapexPerKwh,310\n', CSV_CT);
+  assert.equal(dup.statusCode, 422);
+  assert.deepEqual(dup.json().errors, ['Row 3: capexPerKwh appears again (first at Row 2). Keep one row per key.']);
+  const mixed = await post('finance', 'Key,Value\ncapexPerKwh,300\n', CSV_CT);
+  assert.equal(mixed.statusCode, 200, mixed.body);
+  assert.deepEqual(mixed.json().inputs_used.yours, ['capexPerKwh']);
+  const asCsv = await post('finance', JSON.stringify({ inputs: { capexPerKwh: 300 } }), CSV_CT);
+  assert.equal(asCsv.statusCode, 422);
+  assert.match(asCsv.json().errors[0], /looks like JSON .*Content-Type: application\/json/);
+});
+
+test('break-test finance: 1e400 is out of range, not "Infinity is not a number"', async () => {
+  const r = await post('finance', '{"inputs":{"capexPerKwh":1e400}}', JSON_CT);
+  assert.equal(r.statusCode, 422);
+  assert.match(r.json().errors[0], /^capexPerKwh is out of range: the number is too large\. Allowed: /);
+  const c = await post('finance', 'key,value\ncapexPerKwh,1e400\n', CSV_CT);
+  assert.match(c.json().errors[0], /^Row 2: capexPerKwh is out of range: "1e400" is too large\./);
+  assert.ok(!r.body.includes('Infinity') && !c.body.includes('Infinity'));
+});
+
+test('break-test supply: duplicate columns warn; tiny gaps and the tariff hint read right', async () => {
+  const dup = (await post('supply', 'part,category,lead_time_weeks,lead_time_weeks\nA,cells,5,9\n', CSV_CT)).json();
+  assert.equal(dup.ok, true);
+  assert.ok(dup.warnings.some((w) => w.startsWith('Column "lead_time_weeks" appears more than once')), dup.warnings.join(' | '));
+  const tiny = (await post('supply', { parts: [{ part: 'A', category: 'cells', lead_time_weeks: 0.0001, on_hand_weeks: 0.00005, tariff_pct: 30 }] })).json();
+  assert.match(tiny.result.summary, /^1 of 1 part will run short\. Longest gap: A, under 0\.1 wk\. Add unit_cost_usd and qty_per_unit to see tariff cost per battery/);
+  assert.doesNotMatch(tiny.result.summary, /tariff_pct to see/);
 });

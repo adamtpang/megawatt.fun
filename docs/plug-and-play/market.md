@@ -11,11 +11,15 @@ Page: `/market`. Adds your own per-state metrics to the expansion score, or swap
 
 Each metric becomes a factor in the score, ranked as a percentile across the states that have a value, the same way as the public factors. It gets its own weight slider (default 1) under **Yours** in Score weights, and it can color the map.
 
-**Texas zone values file:** CSV with `zone,usd_per_year`, or JSON `{ "zones": [{ "zone", "usd_per_year" }] }` (also accepted: `{ "zones": { "LZ_NORTH": 150 } }`). Zone ids must match the public list of ERCOT load zones (`LZ_AEN`, `LZ_CPS`, `LZ_HOUSTON`, `LZ_LCRA`, `LZ_NORTH`, `LZ_RAYBN`, `LZ_SOUTH`, `LZ_WEST`). Trading hubs (`HB_` ids) are not accepted: homes settle at load zone prices, so a hub is not a place one battery earns. Your numbers replace the public ones in "Where one battery earns most (Texas)" and are tagged **Yours**. The template lists every load zone with its public value.
+**At least 5 states per metric.** A percentile rank among very few values means nothing: one state alone would get full marks, and with two the lower one would get 0 and score below states with no data at all. A metric with values for fewer than 5 states is left out of the score, with a warning naming it. Five gives ranks in steps of a quarter, the same quarters the map legend colors by. If no metric in the file reaches 5 states, the file does not load.
+
+**Texas zone values file:** CSV with `zone,usd_per_year`, or JSON `{ "zones": [{ "zone", "usd_per_year" }] }` (also accepted: `{ "zones": { "LZ_NORTH": 150 } }`). Zone ids must match the public list of ERCOT load zones (`LZ_AEN`, `LZ_CPS`, `LZ_HOUSTON`, `LZ_LCRA`, `LZ_NORTH`, `LZ_RAYBN`, `LZ_SOUTH`, `LZ_WEST`), in any case (`lz_north` works, the same as on `/finance`). Each value is 0 to 100,000 $ per battery per year, the same cap `/finance` puts on `arbPerYear`. Trading hubs (`HB_` ids) are not accepted: homes settle at load zone prices, so a hub is not a place one battery earns. Your numbers replace the public ones in "Where one battery earns most (Texas)" and are tagged **Yours**. The template lists every load zone with its public value.
 
 **How the public zone values are made:** one Base Core (20 kW / 39.2 kWh, 88% round trip, 20% reserve) on one fixed daily clock, charge 10 AM to 2 PM and discharge 7 to 9 PM Central, at each load zone's real-time price over the latest 12 complete months. About 31 kWh is usable, so it sells 20 kWh from 7 to 8 PM and about 9 kWh from 8 to 9 PM. The clock was chosen from how ERCOT prices move (cheap midday solar, a net-load peak after sunset), not by searching the prices it is scored on. Energy arbitrage only. Method and numbers: `/data/zone-value.json`.
 
-**Rules:** a blank cell means no value. For a metric, that state is scored on the other factors, the same as missing public data, and a warning lists the states. For a zone, the public value stays. Unknown states or zones, a state or zone listed twice, non-numbers (named by row and column), negative zone values, and a file with no number columns stop the load and are listed by row. "Back to public data" removes your file.
+**Rules:** a blank cell means no value. For a metric, that state is scored on the other factors, the same as missing public data, and a warning lists the states. For a zone, the public value stays. Unknown states or zones, a state or zone listed twice, a column name written twice, non-numbers (named by row and column), zone values below 0 or above 100,000, and a file with no number columns stop the load and are listed by row. "Back to public data" removes your file.
+
+**Link to a state:** `/market?state=Texas`, `?state=TX` and `?state=tx` all open Texas. With every weight at 0 no state has a score, so the detail shows no rank.
 
 **Example:**
 
@@ -24,4 +28,6 @@ state,install_cost_usd (lower is better),permit_days (lower is better),pipeline_
 TX,11500,9,4200
 FL,13200,21,800
 Georgia,12800,14,350
+AZ,12100,11,1600
+NC,13900,18,500
 ```
