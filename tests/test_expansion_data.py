@@ -39,19 +39,43 @@ class ExpansionDataTests(unittest.TestCase):
         joined = json.dumps(DATA["factors"])
         self.assertNotIn("volatility", joined)
 
-    def test_launch_path_is_a_labeled_proxy(self):
-        self.assertEqual(state("TX")["values"]["launch_path"], 1)
-        self.assertEqual(state("OH")["values"]["launch_path"], 1)
-        self.assertEqual(state("MI")["values"]["launch_path"], 0)
-        self.assertEqual(state("GA")["values"]["launch_path"], 0)
-        self.assertLess(state("IL")["values"]["retail"], 0.30)
-        self.assertEqual(state("IL")["values"]["launch_path"], 0)
+    def test_launch_path_is_a_sourced_legal_flag(self):
+        # Open residential retail choice by state law, not a delivery-share cut.
+        for abbr in ("TX", "OH", "IL", "PA", "MD", "NY", "NJ", "MA", "CT", "DC"):
+            self.assertEqual(state(abbr)["values"]["launch_path"], 1, abbr)
+            choice = state(abbr)["detail"]["retail_choice"]
+            self.assertTrue(choice["open"], abbr)
+            self.assertTrue(choice["url"].startswith("https://"), abbr)
+            self.assertEqual(choice["checked"], "2026-11-04")
+        # Capped or closed for homes: California (Direct Access, CCAs) and Michigan (10% cap).
+        for abbr in ("CA", "MI", "VA", "OR", "GA", "CO"):
+            self.assertEqual(state(abbr)["values"]["launch_path"], 0, abbr)
+            self.assertFalse(state(abbr)["detail"]["retail_choice"]["open"], abbr)
+        self.assertGreater(state("CA")["values"]["retail"], 0.30)  # a share cut would have scored it 1
+        self.assertIn("cpuc.ca.gov", state("CA")["detail"]["retail_choice"]["url"])
+        self.assertEqual(sum(1 for s in DATA["states"] if s["values"]["launch_path"] == 1), 14)
+        self.assertNotIn("30%", next(f for f in DATA["factors"] if f["id"] == "launch_path")["help"])
+        # Utility rows: co-ops and city utilities in a choice state, with no delivery customers, stay 0.
+        comed = next(u for u in DATA["utilities"] if u["id"] == "4110-IL")
+        self.assertEqual(comed["values"]["launch_path"], 1)
+        coserv = next(u for u in DATA["utilities"] if u["id"] == "5078-TX")
+        self.assertEqual(coserv["values"]["launch_path"], 0)
 
     def test_footprints_are_labeled(self):
         self.assertEqual(state("TX")["footprint"]["status"], "operating")
         self.assertEqual(state("IL")["footprint"]["status"], "operating")
         self.assertEqual(state("GA")["footprint"]["status"], "announced")
-        self.assertFalse(state("CT").get("footprint"))  # job posts are not published as a footprint
+        for abbr in ("CO", "CT"):
+            mark = state(abbr)["footprint"]
+            self.assertEqual(mark["status"], "equipment")
+            self.assertEqual(mark["label"], "Equipment and installation")
+            self.assertIn("Base offers home battery equipment and installation", mark["detail"])
+            self.assertEqual(mark["source"]["url"], "https://www.basepowercompany.com/")
+            self.assertNotIn("ashbyhq", json.dumps(mark))  # no job post behind a mark
+
+    def test_ercot_section_is_congestion_context(self):
+        self.assertIn("not what a home battery earns", DATA["ercot"]["summary"])
+        self.assertTrue(any(p.startswith("Grid-congestion context, not battery value") for p in DATA["narrative"]))
 
 
 if __name__ == "__main__":

@@ -135,3 +135,25 @@ test('core: every short name points at a real row, and the matcher caps input le
   P.matchUtility(idx, 'Q'.repeat(200));
   assert.ok(Date.now() - t < 200, 'a 200-character miss is quick');
 });
+
+test('page: ComEd shows the Illinois VPP route with cited sources, every sheet shows a labeled accredited MW, and the intro is neutral', async () => {
+  const pg = await page();
+  pg.build('ComEd');
+  const html = pg.$.sheet.innerHTML;
+  assert.match(html, /pt-vpp/);
+  assert.match(html, /16-107\.9/);
+  assert.ok(!/Wires-only utility\./.test(html));
+  assert.match(html, /ilga\.gov\/documents\/legislation\/PublicActs\/104\/104-0458\.htm/);
+  assert.match(html, /pt-accredited/);
+  assert.match(html, /Illustration, not this utility&#39;s rule|Illustration, not this utility's rule/);
+  assert.match(html, /nyiso\.com/);
+  assert.match(html, /6 utility partners/);
+  // Every [n] reference points at a listed source.
+  const refs = [...html.matchAll(/href="#src-(\d+)"/g)].map((m) => Number(m[1]));
+  const listed = [...html.matchAll(/id="src-(\d+)"/g)].map((m) => Number(m[1]));
+  assert.ok(refs.length && refs.every((n) => listed.includes(n)));
+  pg.build('PECO');
+  assert.match(pg.$.sheet.innerHTML, /House Bill 2264/);
+  const pageHtml = fs.readFileSync(path.join(ROOT, 'pitch.html'), 'utf8');
+  assert.ok(!/in the shape Base Power sells/.test(pageHtml));
+});

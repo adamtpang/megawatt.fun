@@ -405,14 +405,17 @@ test('supply bad input is 422 with row-named errors', async () => {
 
 // Expected values are the equal-weight score with the retail-choice path included,
 // the same ranking the expansion-map narrative publishes in data/expansion-map.json.
-test('market default weights match the published score: Texas 74, Michigan 73, California 71', async () => {
+test('market default weights match the published score: Texas 73, Michigan 73, Maryland 71', async () => {
   const j = (await post('market', {})).json().result;
   assert.equal(j.states.length, 51);
-  assert.deepEqual(j.states.slice(0, 3).map((s) => [s.name, s.points, s.tier]), [['Texas', 74, 'S'], ['Michigan', 73, 'S'], ['California', 71, 'S']]);
+  assert.deepEqual(j.states.slice(0, 3).map((s) => [s.name, s.points, s.tier]), [['Texas', 73, 'S'], ['Michigan', 73, 'S'], ['Maryland', 71, 'S']]);
   const at = (n) => j.states.find((s) => s.name === n);
-  assert.deepEqual([at('Illinois').rank, at('Illinois').points], [9, 58]);
-  assert.deepEqual([at('Georgia').rank, at('Georgia').points], [30, 47]);
-  assert.deepEqual([at('Connecticut').rank, at('Connecticut').points], [21, 53]);
+  assert.deepEqual([at('Illinois').rank, at('Illinois').points], [7, 62]);
+  assert.deepEqual([at('Pennsylvania').rank, at('Pennsylvania').points], [6, 63]);
+  assert.deepEqual([at('California').rank, at('California').points], [4, 66]);
+  assert.deepEqual([at('Georgia').rank, at('Georgia').points], [32, 46]);
+  assert.deepEqual([at('Connecticut').rank, at('Connecticut').points], [13, 57]);
+  assert.equal(at('Colorado').footprint.status, 'equipment');
   assert.match(at('Michigan').why, /^Leads on outage duration/);
   assert.equal(j.texas_zones.zones[0].id, 'LZ_WEST');
   assert.ok(j.texas_zones.zones.every((z) => z.kind === 'load zone' && z.id.startsWith('LZ_')));
@@ -420,9 +423,9 @@ test('market default weights match the published score: Texas 74, Michigan 73, C
   assert.doesNotMatch(j.texas_zones.about, /5 to 9 PM|at night/);
 });
 
-test('market with homes weighted 0 matches the published re-ranking: Michigan 72, Texas 71, California 68', async () => {
+test('market with homes weighted 0 matches the published re-ranking: Maryland 72, Michigan 71, Texas 70', async () => {
   const j = (await post('market', { weights: { homes: 0 } })).json().result;
-  assert.deepEqual(j.states.slice(0, 3).map((s) => [s.name, s.points]), [['Michigan', 72], ['Texas', 71], ['California', 68]]);
+  assert.deepEqual(j.states.slice(0, 3).map((s) => [s.name, s.points]), [['Maryland', 72], ['Michigan', 71], ['Texas', 70]]);
 });
 
 test('market adds your own metrics and zones', async () => {
@@ -687,7 +690,7 @@ test('hardening market: reserved names in your metrics are clean errors', async 
 // ---------- pitch: wires-only utilities and break tests ----------
 
 test('pitch for a wires-only utility: no capacity offer, sourced explanation, not ranked', async () => {
-  for (const [utility, src] of [['CenterPoint Energy', 'pura'], ['Oncor Electric Delivery Company LLC', 'pura'], ['4110-IL', 'il'], ['PECO Energy Co', 'pa'], ['14715-PA', 'pa']]) {
+  for (const [utility, src] of [['CenterPoint Energy', 'pura'], ['Oncor Electric Delivery Company LLC', 'pura'], ['PECO Energy Co', 'pa'], ['14715-PA', 'pa']]) {
     const r = await post('pitch', { utility });
     assert.equal(r.statusCode, 200, r.body);
     const j = r.json();
@@ -1060,4 +1063,71 @@ test('break-test supply: duplicate columns warn; tiny gaps and the tariff hint r
   const tiny = (await post('supply', { parts: [{ part: 'A', category: 'cells', lead_time_weeks: 0.0001, on_hand_weeks: 0.00005, tariff_pct: 30 }] })).json();
   assert.match(tiny.result.summary, /^1 of 1 part will run short\. Longest gap: A, under 0\.1 wk\. Add unit_cost_usd and qty_per_unit to see tariff cost per battery/);
   assert.doesNotMatch(tiny.result.summary, /tariff_pct to see/);
+});
+
+// Finance settlement, retail margin and tax-credit bridge, 2026-11-04. Self-contained block.
+test('finance API: derived retail margin default, export settlement text, and $0 margin note', async () => {
+  const d = (await post('finance', undefined, {})).json();
+  assert.equal(d.inputs_used.retailMarginMonthly, 22);
+  near(d.result.year1_revenue_lines.counted.retail, 264);
+  near(d.result.debt_pct_capex, 0.2673, 0.0005);
+  assert.equal(d.result.export_settlement, F.EXPORT_TEXT);
+  assert.match(d.result.export_settlement, /11\.4\.4\.3/);
+  assert.match(d.result.itc_treatment, /bridge loan/);
+  const z = (await post('finance', { inputs: { retailMarginMonthly: 0 } })).json();
+  assert.ok(z.result.explain.some((l) => /leaves out what a retail provider normally earns/.test(l)));
+  assert.ok(z.result.debt < d.result.debt);
+  const usage = (await call('finance', 'GET')).json();
+  assert.equal(usage.post.input_keys.find((k) => k.key === 'retailMarginMonthly').public_value, 22);
+});
+
+test('finance API: equity at $0 always comes with a note', async () => {
+  const j = (await post('finance', { inputs: { retailMarginMonthly: 300 } })).json();
+  assert.equal(j.result.binding, 'cost');
+  assert.equal(j.result.equity, 0);
+  assert.match(j.result.binding_text, /equity is \$0/);
+  assert.ok(j.result.explain.some((l) => l.includes(F.EQUITY_ZERO_TEXT)));
+});
+
+// ---------- pitch: Illinois VPP route, accredited MW example, partner count (2026-11-04) ----------
+
+test('pitch for ComEd: Illinois VPP tariff route, ranked, statute sourced', async () => {
+  const r = await post('pitch', { utility: 'ComEd' });
+  assert.equal(r.statusCode, 200, r.body);
+  const j = r.json(), res = j.result;
+  assert.equal(res.wires_only, null);
+  assert.equal(res.offer.rule, 0);
+  assert.equal(res.offer.variant, 'vpp');
+  assert.equal(res.offer.capacity_offer, true);
+  assert.equal(res.state_program.statute, '220 ILCS 5/16-107.9 (Public Act 104-0458)');
+  assert.equal(res.state_program.file_by, '31 December 2027');
+  const keys = res.state_program.sources.map((n) => j.sources.find((s) => s.n === n).key);
+  assert.deepEqual(keys, ['pa104458', 'sb25', 'ipaplan']);
+  const me = res.who_to_call_first.rows.find((x) => x.id === '4110-IL');
+  assert.ok(me && me.rank !== null && !me.wires_only);
+  assert.equal((await post('pitch', { utility: 'PECO Energy Co' })).json().result.state_program, null);
+});
+
+test('pitch program carries an illustrative accredited MW, labeled an assumption', async () => {
+  const j = (await post('pitch', { utility: 'CoServ Electric' })).json();
+  const a = j.result.program.accredited_example;
+  assert.equal(a.basis, 'assumption');
+  assert.equal(a.factor_pct, 64.65);
+  assert.ok(Math.abs(a.accredited_mw - 5000 * 15.68 / 1000 * 0.6465) < 1e-9);
+  assert.ok(a.sources.length === 2 && a.sources.every((n) => j.sources.some((s) => s.n === n)));
+  const mine = (await post('pitch', { utility: 'CoServ Electric', terms: { memberReservePct: 50 } })).json().result.program.accredited_example;
+  assert.equal(mine.reserve_pct, 50);
+  assert.equal(mine.reserve_from_your_file, true);
+  assert.match(j.result.who_to_call_first.method, /6 utility partners/);
+});
+
+test('market: Colorado and Connecticut carry equipment-only marks; the retail-choice flag is legal, not a share cut', async () => {
+  const j = (await post('market', {})).json().result;
+  for (const a of ['CO', 'CT']) {
+    const s = j.states.find((x) => x.abbr === a);
+    assert.equal(s.footprint.status, 'equipment');
+    assert.equal(s.footprint.source.url, 'https://www.basepowercompany.com/');
+  }
+  const lp = (a) => j.states.find((x) => x.abbr === a).factors.launch_path.value;
+  assert.deepEqual(['TX', 'IL', 'PA', 'CA', 'MI', 'GA'].map(lp), [1, 1, 1, 0, 0, 0]);
 });

@@ -203,7 +203,7 @@
         : 'No debt: the advance rate is 0%, so the lender lends nothing.';
     }
     return r.netCapex > 0
-      ? 'Binding limit: net cost. The loan covers everything the member payment and the tax credit do not.'
+      ? 'Binding limit: net cost. The loan covers everything the member payment and the tax credit do not, so equity is $0. That rests on counting the tax-credit cash on day one; see the tax credit line below.'
       : 'No debt needed: the member payment and the tax credit cover the whole installed cost.';
   }
 
@@ -228,8 +228,29 @@
     }));
   }
 
+  /* Who keeps the arbitrage value, per the current ERCOT Nodal Protocols (read 2026-11-04).
+     Section 2: a Distributed Generator includes an Energy Storage System, and one of 1 MW or less
+     not registered for Settlement is an Unregistered Distributed Generator (UDG). Section 11.4.4.3:
+     the Adjusted Metered Load (AML) of a premise with a UDG is reduced by its metered outflow
+     (15-minute AMS data when available). Section 6.6.3.2(1)(g): a QSE's AML at a Load Zone settles
+     at the real-time Load Zone price. So outflow lowers the cost of whichever provider serves the home. */
+  const EXPORT_TEXT = "Most of the 7 to 9 PM discharge is more than a home uses, so it is export. In ERCOT, outflow from an unregistered battery of 1 MW or less is settled as a cut to the settlement load of the home's retail provider, at the real-time load-zone price (Nodal Protocols 11.4.4.3 and 6.6.3.2), and charging adds to that load. So the arbitrage value lands with the home's retail provider. An owner that is that provider keeps it, with no ADER aggregation. A third-party owner gets it only by contract with the provider or by registering the battery with ERCOT. ADER is the route to ancillary services, not needed for this energy value.";
+
+  const BRIDGE_TEXT = 'Simplification: the model nets the credit cash out of cost on day one. Real lenders usually fund the credit separately, with a bridge loan repaid when the credit sells, and size the term loan on cash flow and an advance rate on the full cost. The advance cap here already uses the full cost, so the credit changes the debt only when the net-cost cap binds.';
+
+  const EQUITY_ZERO_TEXT = 'That only holds if the tax-credit cash is in hand on day one. In a real deal it arrives when the credit sells, so a bridge loan or equity carries it until then, and a term lender rarely funds all of what is left.';
+
+  // Retail margin: what the number means, or plainly that it is left out.
+  function retailText(r) {
+    const yr = r.counted.retail;
+    if (yr > 0) return `Retail energy margin adds ${usd(yr)} a year (${pct(yr / r.debtService)} of the loan payment). It belongs only to an owner that is also the home's retail provider. The default is derived from a published energy charge, a measured wholesale price and one labeled cost assumption (see the input note). Set it to 0 for a third-party owner.`;
+    if (yr < 0) return `Retail energy margin is negative: the provider loses ${usd(-yr)} a year selling power to this home, and the loan has to carry that.`;
+    return 'Retail energy margin is $0 here, so this answer leaves out what a retail provider normally earns on the power it sells, often its main revenue line. Try the derived default, $22 a month, or your own number.';
+  }
+
   const LINE_NAMES = { member: 'member fees', retail: 'retail energy margin', toll: 'the utility toll', arb: 'energy arbitrage', anc: 'ancillary services' };
-  // Where each revenue line's default comes from. The toll, retail margin and ancillary services are placeholders.
+  // Where each revenue line's default comes from. The toll and ancillary services are placeholders; the
+  // retail margin is derived from public numbers plus one labeled cost assumption, so it counts as an assumption.
   const LINE_BASIS = { member: 'sourced', retail: 'assumption', toll: 'assumption', arb: 'sourced', anc: 'assumption' };
 
   /* Plain-words summary of what carries the debt and what limits it. Each line matches
@@ -259,6 +280,7 @@
     if (r.binding === 'none') {
       out.push(`On these numbers a lender would lend nothing: the weakest year in the loan term has ${usd(r.minCfads)} of cash flow after operating cost, so nothing is left to repay a loan. The whole net cost is equity.`);
       driver();
+      if (r.counted.retail <= 0) out.push(retailText(r));
       return out;
     }
     if (r.debt <= 0) {
@@ -268,15 +290,16 @@
     driver();
     const ds = r.debtService;
     out.push(`Energy arbitrage alone, in this zone, would cover ${pct(r.full.arb / ds)} of the yearly loan payment${r.counted.arb > 0 ? '' : ' (it does not count in this revenue case)'}.`);
-    if (r.counted.arb > 0) out.push('The zone arbitrage value discharges at up to full battery power from 7 to 9 PM, more than a home uses, so most of it is export. Export earns the load-zone price only if the battery is in an ERCOT ADER aggregation or the retail provider buys it back at that price.');
+    if (r.counted.arb > 0) out.push(EXPORT_TEXT);
     out.push(`Member fees alone cover ${pct(r.full.member / ds)} of it.`);
+    out.push(retailText(r));
     if (r.itc > 0) {
       const sale = r.itcPrice < 1 ? `, sold at ${centsText(r.itcPrice)} cents per dollar for ${usd(r.itc)} in cash` : ', sold at face value';
-      out.push(`The tax credit, ${pct(r.itcRate)} of cost (${usd(r.itcFace)} face value)${sale}, lowers what debt and equity must fund. It adds no yearly cash, so it does not raise the debt that cash flow can carry.`);
+      out.push(`The tax credit, ${pct(r.itcRate)} of cost (${usd(r.itcFace)} face value)${sale}, lowers what debt and equity must fund. It adds no yearly cash, so it does not raise the debt that cash flow can carry. ${BRIDGE_TEXT}`);
     }
     if (r.binding === 'dscr') out.push(`Cash flow limits the loan, not the asset value. The loan is ${pct(r.debtPctCapex)} of cost, below the advance cap.`);
     else if (r.binding === 'advance') out.push('The advance rate limits the loan. Cash flow could support more, so more revenue does not raise the debt here.');
-    else if (r.binding === 'cost') out.push('The loan already covers the full net cost after the member payment and the tax credit.');
+    else if (r.binding === 'cost') out.push(`The loan already covers the full net cost after the member payment and the tax credit, so equity is $0.${r.itc > 0 ? ' ' + EQUITY_ZERO_TEXT : ''}`);
     return out;
   }
 
@@ -370,7 +393,7 @@
     return rows;
   }
 
-  const api = { applyOverrides, templateRows, validateFields, parseDecimal, isHuge, fieldError, bindingText, PERCENT_FIELDS, CASES, ARB_MAX, annuityFactor, annuityPayment, normalize, cashFlows, sizeDebt, fleet, batteriesForMw, sensitivity, explain };
+  const api = { EXPORT_TEXT, BRIDGE_TEXT, EQUITY_ZERO_TEXT, applyOverrides, templateRows, validateFields, parseDecimal, isHuge, fieldError, bindingText, PERCENT_FIELDS, CASES, ARB_MAX, annuityFactor, annuityPayment, normalize, cashFlows, sizeDebt, fleet, batteriesForMw, sensitivity, explain };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   root.FinanceCore = api;
 })(typeof window !== 'undefined' ? window : globalThis);

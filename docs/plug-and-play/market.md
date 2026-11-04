@@ -19,6 +19,8 @@ Each metric becomes a factor in the score, ranked as a percentile across the sta
 
 **Rules:** a blank cell means no value. For a metric, that state is scored on the other factors, the same as missing public data, and a warning lists the states. For a zone, the public value stays. Unknown states or zones, a state or zone listed twice, a column name written twice, non-numbers (named by row and column), zone values below 0 or above 100,000, and a file with no number columns stop the load and are listed by row. "Back to public data" removes your file.
 
+**Public factors you rank against:** the retail-choice path is a per-state legal flag (1 where state law opens residential retail choice today, each state sourced in its detail and checked 2026-11-04), not a delivery-share cut. The ERCOT congestion section is resource-node basis, context on grid congestion, not battery value: homes settle at load zone prices, which is what your zone values file replaces.
+
 **Link to a state:** `/market?state=Texas`, `?state=TX` and `?state=tx` all open Texas. With every weight at 0 no state has a score, so the detail shows no rank.
 
 **Example:**

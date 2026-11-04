@@ -1,5 +1,5 @@
 {
-  "generated": "2026-11-01",
+  "generated": "2026-11-04",
   "base_public": [
     {
       "claim": "Base Core is a 20 kW / 39.2 kWh residential battery.",
@@ -11,22 +11,22 @@
     {
       "claim": "Base Core capacity is 39.2 kWh per unit, 78.4 kWh for two units.",
       "quote": "one of the largest home batteries on the market at 39.2 kWh / 78.4 kWh",
-      "url": "https://www.01net.it/base-power-announces-1b-series-d-and-launches-base-core-first-of-its-kind-home-battery-built-in-the-united-states/",
-      "publisher": "Base Power press release (Business Wire), republished by 01net",
+      "url": "https://www.businesswire.com/news/home/20260803203117/en/Base-Power-Announces-%241B-Series-D-and-Launches-Base-Core-First-of-its-Kind-Home-Battery-Built-in-the-United-States",
+      "publisher": "Base Power press release (Business Wire)",
       "date": "2026-08-03"
     },
     {
       "claim": "Base Core is built at Base Factory 1 in Austin.",
       "quote": "now in production at Base Factory 1 in Austin.",
-      "url": "https://www.01net.it/base-power-announces-1b-series-d-and-launches-base-core-first-of-its-kind-home-battery-built-in-the-united-states/",
-      "publisher": "Base Power press release (Business Wire), republished by 01net",
+      "url": "https://www.businesswire.com/news/home/20260803203117/en/Base-Power-Announces-%241B-Series-D-and-Launches-Base-Core-First-of-its-Kind-Home-Battery-Built-in-the-United-States",
+      "publisher": "Base Power press release (Business Wire)",
       "date": "2026-08-03"
     },
     {
       "claim": "Factory 1 output is thousands of systems per month (company claim).",
-      "quote": "Base's Factory 1 is now producing thousands of systems a month",
-      "url": "https://www.01net.it/base-power-announces-1b-series-d-and-launches-base-core-first-of-its-kind-home-battery-built-in-the-united-states/",
-      "publisher": "Base Power press release (Business Wire), republished by 01net",
+      "quote": "Base’s Factory 1 is now producing thousands of systems a month",
+      "url": "https://www.businesswire.com/news/home/20260803203117/en/Base-Power-Announces-%241B-Series-D-and-Launches-Base-Core-First-of-its-Kind-Home-Battery-Built-in-the-United-States",
+      "publisher": "Base Power press release (Business Wire)",
       "date": "2026-08-03"
     },
     {
@@ -37,26 +37,18 @@
       "date": "2026-08-03"
     },
     {
-      "claim": "Base framed the factory as a storage and power electronics hub, and is planning a second factory.",
-      "quote": "the company is building its first factory, an energy storage and power electronics manufacturing hub",
-      "url": "https://electrek.co/2025/10/08/base-power-raises-1b-to-reinvent-texas-grid-with-home-batteries/",
-      "publisher": "Electrek",
+      "claim": "Base described its first factory, in Austin, as an energy storage and power electronics factory.",
+      "quote": "Base is building its first energy storage and power electronics factory at the site of the former Austin American-Statesman printing press in the heart of downtown Austin.",
+      "url": "https://www.businesswire.com/news/home/20251008106005/en/Base-Power-Raises-%241-Billion-Series-C-to-Build-the-Future-of-American-Power",
+      "publisher": "Base Power press release (Business Wire)",
       "date": "2025-10-08"
     },
     {
       "claim": "Base said it is already planning a second factory.",
-      "quote": "This factory in Austin is our first, and we're already planning for our second.",
-      "url": "https://electrek.co/2025/10/08/base-power-raises-1b-to-reinvent-texas-grid-with-home-batteries/",
-      "publisher": "Electrek",
+      "quote": "This factory in Austin is our first, and we’re already planning for our second.",
+      "url": "https://www.businesswire.com/news/home/20251008106005/en/Base-Power-Raises-%241-Billion-Series-C-to-Build-the-Future-of-American-Power",
+      "publisher": "Base Power press release (Business Wire), quoting COO Justin Lopas",
       "date": "2025-10-08"
-    },
-    {
-      "claim": "Earlier Base batteries were made in China and the CEO expected a tariff impact (pre-Base Core).",
-      "quote": "However, the batteries are made in China, and Dell said he expects to see an impact from tariffs.",
-      "url": "https://newsio.com/2025/04/29/why-lennar-is-betting-on-a-startup-building-backup-batteries-for-texas-homes",
-      "publisher": "CNBC (republished by News IO)",
-      "date": "2025-04-29",
-      "stale": true
     }
   ],
   "parts": [
@@ -81,10 +73,10 @@
         "context": [
           {
             "value": "2025 baseline: stationary storage pack price fell 45% to $70/kWh",
-            "quote": "Battery pack costs for stationary storage fell 45% year-on-year to $70/kWh in 2025",
+            "quote": "Battery pack prices for stationary storage dropped to $70/kWh in 2025, 45% lower than in 2024.",
             "url": "https://about.bnef.com/insights/clean-energy/lithium-ion-battery-pack-prices-fall-to-108-per-kilowatt-hour-despite-rising-metal-prices-bloombergnef/",
-            "publisher": "BloombergNEF (quote as returned by search summary; verify on page)",
-            "date": "2025-12"
+            "publisher": "BloombergNEF",
+            "date": "2025-12-09"
           },
           {
             "value": "China cut the battery export VAT rebate from 9% to 6% on 2026-04-01 and ends it 2027-01-01",
@@ -108,29 +100,56 @@
           "status": "in effect since 2026-01-01 (scheduled in 2024)",
           "value": "7.5% raised to 25%",
           "quote": "Increase rate to 25% in 2026",
-          "url": "https://www.mcguirewoods.com/client-resources/alerts/2024/10/final-increased-tariffs-announced-in-response-to-u-s-trade-representative-review-of-chinese-imports/",
-          "publisher": "McGuireWoods (summarizing USTR final action)",
-          "date": "2024-10-22",
+          "url": "https://www.govinfo.gov/content/pkg/FR-2024-09-18/pdf/2024-21217.pdf",
+          "publisher": "USTR, Notice of Modification, 89 FR (Federal Register doc. 2024-21217)",
+          "date": "2024-09-18",
           "stale": true,
-          "stale_note": "Source is old but describes the 2026 step that is now in force."
+          "stale_note": "Source is old but sets the 2026 step that is now in force."
         },
         {
-          "name": "New Section 301 regime replacing Section 122 (after the Supreme Court struck down IEEPA tariffs on 2026-02-20)",
+          "name": "Supreme Court ends tariffs under IEEPA (Learning Resources v. Trump)",
+          "status": "decided 2026-02-20",
+          "value": "The emergency-powers (IEEPA) tariffs, including the 2025 reciprocal tariffs, were held unlawful. Tariffs under other laws (Section 301, Section 232) were not affected.",
+          "quote": "Held: IEEPA does not authorize the President to impose tariffs.",
+          "url": "https://www.supremecourt.gov/opinions/25pdf/24-1287_4gcj.pdf",
+          "publisher": "Supreme Court of the United States, slip opinion No. 24-1287",
+          "date": "2026-02-20"
+        },
+        {
+          "name": "Section 122 import surcharge (temporary bridge)",
+          "status": "in effect 2026-02-24 to 2026-07-24, then expired at its 150-day limit",
+          "value": "10% on most imports",
+          "quote": "shall continue in effect through 12:01 a.m. eastern daylight time on July 24, 2026",
+          "url": "https://www.whitehouse.gov/presidential-actions/2026/02/imposing-a-temporary-import-surcharge-to-address-fundamental-international-payments-problems/",
+          "publisher": "White House proclamation, Imposing a Temporary Import Surcharge",
+          "date": "2026-02-20"
+        },
+        {
+          "name": "New Section 301 tariffs on 60 economies (forced labor investigations), replacing the Section 122 surcharge",
           "status": "in effect since 2026-07-24",
-          "value": "10% or 12.5% depending on country; China's tier and stacking with older China 301 duties not confirmed",
-          "quote": "Effective July 24, USTR is imposing new Section 301 tariffs on 60 economies.",
-          "url": "https://uhy-us.com/insights/news/2026/july/tariff-reset-section-122-expires-as-section-301-duties-expand",
-          "publisher": "UHY",
-          "date": "2026-07-24"
+          "value": "China is in the 12.5% tier. Lithium-ion batteries (HTS 8507.60) are not on the general exemption list, and the notice says these duties apply on top of other duties in the same subchapter, which also holds the older China Section 301 duties (our reading). So Chinese LFP cells and packs pay 12.5% plus the 25% China Section 301 rate plus the normal duty.",
+          "quote": "the Trade Representative has determined to impose 12.5 percent tariffs on products of China",
+          "quote_more": "shall also be subject to any additional duty provided for in this subchapter",
+          "url": "https://ustr.gov/sites/default/files/files/Press/Releases/2026/FLIP%20301%20Investigation%20Final%20Action%20FRN%207-23-26%20FINAL.pdf",
+          "publisher": "USTR, Notice of Actions in the forced labor Section 301 investigations (Federal Register doc. 2026-15181, published 2026-07-28)",
+          "date": "2026-07-23"
         },
         {
-          "name": "IRS Notice 2026-15 (primary)",
-          "status": "issued",
-          "value": "interim PFE material assistance rules",
-          "quote": "any Section 45Y or 48E qualified facility or energy storage technology the construction of which begins after Dec. 31, 2025",
-          "url": "https://www.irs.gov/newsroom/treasury-irs-provide-guidance-for-certain-energy-tax-credits-regarding-material-assistance-provided-by-prohibited-foreign-entities-under-the-one-big-beautiful-bill",
-          "publisher": "IRS (IR-2026-23)",
-          "date": "2026-02-12"
+          "name": "IRS Notice 2026-15 (primary): foreign-content test for the storage tax credit",
+          "status": "issued; applies to storage that begins construction after 2025-12-31",
+          "value": "For storage that begins construction in 2026, at least 55% of its direct costs must come from outside prohibited foreign entities (the material assistance cost ratio), or the 48E credit is lost. The law raises the bar to 60% for 2027, 65% for 2028, 70% for 2029 and 75% after 2029.",
+          "quote": "in the case of an EST which begins construction during calendar year 2026, the Clean Electricity MACR cannot be less than 55%.",
+          "url": "https://www.irs.gov/pub/irs-drop/n-26-15.pdf",
+          "publisher": "IRS, Notice 2026-15 (IR-2026-23)",
+          "date": "2026-02-12",
+          "more": [
+            {
+              "quote": "(V) after December 31, 2029, 75 percent.",
+              "url": "https://www.law.cornell.edu/uscode/text/26/7701",
+              "publisher": "26 U.S.C. 7701(a)(52)(B)(ii), via Cornell LII",
+              "date": "2025-07-04 (enacted)"
+            }
+          ]
         },
         {
           "name": "AD/CVD on Chinese active anode material (graphite)",
@@ -170,7 +189,7 @@
     {
       "id": "power_electronics",
       "name": "Inverter and power electronics (IGBT, Si MOSFET, SiC MOSFET)",
-      "what_it_does": "Converts battery DC to home AC and back, and does the grid-forming switching. Base describes its Austin plant as a power electronics hub.",
+      "what_it_does": "Converts battery DC to home AC and back, and does the grid-forming switching. Base describes its Austin plant as an energy storage and power electronics factory.",
       "lead_time": {
         "value": "beyond 30 weeks generally, some 52 weeks",
         "unit": "weeks",
@@ -200,10 +219,19 @@
           "status": "in effect",
           "value": "50%",
           "quote": "Increase rate to 50% in 2025",
-          "url": "https://www.mcguirewoods.com/client-resources/alerts/2024/10/final-increased-tariffs-announced-in-response-to-u-s-trade-representative-review-of-chinese-imports/",
-          "publisher": "McGuireWoods",
-          "date": "2024-10-22",
+          "url": "https://www.govinfo.gov/content/pkg/FR-2024-09-18/pdf/2024-21217.pdf",
+          "publisher": "USTR, Notice of Modification (Federal Register doc. 2024-21217)",
+          "date": "2024-09-18",
           "stale": true
+        },
+        {
+          "name": "New Section 301 tariffs on 60 economies (forced labor investigations)",
+          "status": "in effect since 2026-07-24",
+          "value": "Does not apply to discrete semiconductors and chips: HTS 8541 (IGBTs, MOSFETs, diodes) and 8542 are on the general exemption list. Finished static converters (HTS 8504.40) are not exempt.",
+          "quote": "shall not apply to articles that are classifiable in the following provisions of the HTSUS",
+          "url": "https://ustr.gov/sites/default/files/files/Press/Releases/2026/FLIP%20301%20Investigation%20Final%20Action%20FRN%207-23-26%20FINAL.pdf",
+          "publisher": "USTR, Notice of Actions in the forced labor Section 301 investigations (Federal Register doc. 2026-15181, published 2026-07-28)",
+          "date": "2026-07-23"
         }
       ],
       "alternatives": [
@@ -214,9 +242,10 @@
         },
         {
           "name": "Chinese IGBT makers (MacMic, JieJie)",
-          "note": "Also raising 10-20%, and carry 50% Section 301 duty.",
-          "url": null,
-          "basis": "secondary search summary, not fetched"
+          "note": "MacMic planned a 10% IGBT price rise and JieJie 10-20% on MOSFETs and IGBTs (TrendForce, citing Commercial Times). Chinese-origin chips also carry the 50% Section 301 duty.",
+          "url": "https://www.trendforce.com/news/?p=58267",
+          "quote": "MacMic is planning a 10% increase in IGBT (Insulated-Gate Bipolar Transistor) prices",
+          "date": "2026-05-27"
         }
       ],
       "risk_note": "Power semiconductors are on 30 to 52 week lead times with three rounds of 2026 price hikes, so inverter builds need parts ordered most of a year ahead.",
@@ -228,19 +257,19 @@
     },
     {
       "id": "bms_memory",
-      "name": "Battery management system and control electronics (MCU, DRAM, NAND/eMMC)",
-      "what_it_does": "Measures cell voltages and temperatures, balances cells, runs the controller and stores firmware and logs. Uses small, mostly legacy memory parts (DDR4, LPDDR4, eMMC) plus microcontrollers.",
+      "name": "Memory in the battery controller and gateway (MCU flash, DRAM, eMMC/NAND)",
+      "what_it_does": "The battery management microcontrollers keep their firmware in on-chip flash. A gateway that runs Linux (app, fleet dispatch, over-the-air updates) pairs an applications processor with separate DRAM (DDR4 or LPDDR4) and eMMC flash for the operating system, firmware images and logs. The cellular modem carries its own memory. Base has not published its parts; the list below shows typical parts for this class of device.",
       "lead_time": {
         "value": "32-40+ weeks for standard DDR4 and DDR5 modules in some cases, under allocation",
         "unit": "weeks",
-        "quote": "lead times on standard DDR4 and DDR5 modules have already stretched to 32-40+ weeks in some cases",
+        "quote": "Lead times on standard DDR4 and DDR5 modules have already stretched to 32–40+ weeks in some cases",
         "url": "https://www.assured-systems.com/ai-is-driving-memory-prices-through-the-roof-and-industrial-computing-isnt-immune/",
         "publisher": "Assured Systems (industrial PC vendor blog)",
-        "date": null,
-        "source_quality": "vendor blog behind a bot check; quote not verified by us"
+        "date": "2026-07-16",
+        "source_quality": "vendor blog, not an independent survey"
       },
       "price_trend": {
-        "value": "Conventional DRAM contract prices +45-50% QoQ in 4Q25, forecast +90-95% QoQ in 1Q26, +13-18% in 3Q26, +10-15% in 4Q26. NAND +10-15% in 3Q26 and +15-20% in 4Q26.",
+        "value": "Conventional DRAM contract prices +45-50% QoQ in 4Q25, forecast +90-95% QoQ in 1Q26, +13-18% in 3Q26, +10-15% in 4Q26. NAND +15-20% in 4Q26. DDR4 heads to record per-gigabit prices in 2026 as supply drops; 64Gb MLC NAND spot prices more than tripled from end-2025.",
         "quote": "Conventional DRAM contract prices rose 45-50% QoQ",
         "url": "https://www.trendforce.com/presscenter/news/20260226-12937.html",
         "publisher": "TrendForce",
@@ -259,10 +288,10 @@
             "date": "2026-07-03"
           },
           {
-            "quote": "Contract prices for conventional DRAM are expected to rise by 10-15% QoQ in the fourth quarter of 2026",
-            "url": "https://evertiq.com/news/2026-10-02-ai-keeps-memory-prices-climbing-in-q4-as-consumer-demand-weakens",
-            "publisher": "Evertiq, reporting TrendForce",
-            "date": "2026-10-02"
+            "quote": "Conventional DRAM contract prices are projected to grow 10–15% QoQ in 4Q26, while NAND Flash contract prices are expected to increase 15–20%",
+            "url": "https://www.trendforce.com/presscenter/news/20260930-13258.html",
+            "publisher": "TrendForce",
+            "date": "2026-09-30"
           },
           {
             "quote": "July consumer DDR4 contract prices have already risen by more than 60-85%.",
@@ -275,9 +304,21 @@
             "url": "https://www.theregister.com/2025/12/18/micron_q1_2026/",
             "publisher": "The Register, quoting Micron CEO Sanjay Mehrotra",
             "date": "2025-12-18"
+          },
+          {
+            "quote": "DDR4 supply is set to drop sharply in 2026, pushing per-gigabit prices to record highs.",
+            "url": "https://www.trendforce.com/news/2026/01/19/news-out-with-the-old-memory-giants-map-their-2025-26-exit-strategy-amid-supply-crunch/",
+            "publisher": "TrendForce News",
+            "date": "2026-01-19"
+          },
+          {
+            "quote": "64Gb MLC NAND spot prices have surged more than 300% from end-2025 levels",
+            "url": "https://www.trendforce.com/news/2026/05/13/news-mlc-nand-spot-prices-reportedly-triple-since-late-2025-as-samsung-kioxia-exit-supply/",
+            "publisher": "TrendForce News, citing Chosun Ilbo",
+            "date": "2026-05-13"
           }
         ],
-        "conflict": "One secondary report (StockHub, 2026-10-20) says TrendForce later put 4Q26 DRAM near +20%; not verified on TrendForce."
+        "conflict": "TrendForce News (2026-10-20), citing Commercial Times, reported 4Q26 DRAM contract prices rising about 20% QoQ. TrendForce's own press release (2026-09-30) says 10-15% for conventional DRAM; the page uses the press release."
       },
       "concentration": {
         "value": "Allocation goes to AI and server first; industrial and consumer DDR4 users rank last",
@@ -302,9 +343,9 @@
           "status": "in effect since 2025",
           "value": "50%",
           "quote": "Increase rate to 50% in 2025",
-          "url": "https://www.mcguirewoods.com/client-resources/alerts/2024/10/final-increased-tariffs-announced-in-response-to-u-s-trade-representative-review-of-chinese-imports/",
-          "publisher": "McGuireWoods (summarizing USTR)",
-          "date": "2024-10-22",
+          "url": "https://www.govinfo.gov/content/pkg/FR-2024-09-18/pdf/2024-21217.pdf",
+          "publisher": "USTR, Notice of Modification (Federal Register doc. 2024-21217)",
+          "date": "2024-09-18",
           "stale": true
         },
         {
@@ -315,6 +356,15 @@
           "url": "https://www.thomsonreuters.com/en-us/help/onesource-global-trade/regulatory-insights/2026/january-15th/trump-admin-tariffs-advanced-ai-chips-232.html",
           "publisher": "Thomson Reuters ONESOURCE",
           "date": "2026-01-15"
+        },
+        {
+          "name": "New Section 301 tariffs on 60 economies (forced labor investigations)",
+          "status": "in effect since 2026-07-24",
+          "value": "Does not apply to memory chips: HTS 8542.32 (memories) and other 8542 integrated circuits are on the general exemption list.",
+          "quote": "shall not apply to articles that are classifiable in the following provisions of the HTSUS",
+          "url": "https://ustr.gov/sites/default/files/files/Press/Releases/2026/FLIP%20301%20Investigation%20Final%20Action%20FRN%207-23-26%20FINAL.pdf",
+          "publisher": "USTR, Notice of Actions in the forced labor Section 301 investigations (Federal Register doc. 2026-15181, published 2026-07-28)",
+          "date": "2026-07-23"
         }
       ],
       "alternatives": [
@@ -330,12 +380,143 @@
           "basis": "inference"
         }
       ],
-      "risk_note": "The memory in a battery controller is cheap in dollars but sits at the back of the allocation line behind AI servers, so the risk is a missing part, not a big cost hit.",
+      "risk_note": "Memory is a small share of the bill, but the parts a controller and gateway use (DDR4, LPDDR4, low-capacity NAND) are the ones the three biggest makers are retiring in 2025-2026, while prices hit records and supply goes to AI servers first. The risk is a gateway line stopping for one missing chip, or a forced board redesign when a part goes end of life.",
       "our_read": {
-        "label": "Allocation",
+        "label": "Allocation and end of life",
         "rank": 3,
-        "why": "Small and cheap, and many battery controllers use microcontrollers with memory built in. Where a design does need separate memory chips, they are last in line behind AI servers."
-      }
+        "why": "Cheap per unit but not safe: the legacy DDR4, LPDDR4 and NAND these boards use are being retired by the biggest makers. Plan last-time buys, second sources and long-life parts now."
+      },
+      "memory_parts": [
+        {
+          "part": "Microcontroller flash and SRAM (battery management)",
+          "note": "Firmware and working memory sit inside the microcontroller, so no separate memory chip is bought. Example: NXP S32K146, the microcontroller in an NXP battery management reference design.",
+          "quote": "1 MB Flash, 128 K static random-access memory (SRAM)",
+          "url": "https://www.nxp.com/design/design-center/development-boards-and-designs/MR-BMS771",
+          "publisher": "NXP, MR-BMS771 reference design page",
+          "date": "2025-06-25"
+        },
+        {
+          "part": "DRAM for a Linux gateway (DDR4, LPDDR4, DDR3L)",
+          "note": "An applications processor needs external DRAM. Example: NXP i.MX 8M Mini, an industrial IoT processor.",
+          "quote": "The DRAM controller supports 32-bit/16-bit LPDDR4, DDR4, and DDR3L memory.",
+          "url": "https://www.nxp.com/docs/en/data-sheet/IMX8MMIEC.pdf",
+          "publisher": "NXP, i.MX 8M Mini industrial datasheet, Rev. 2",
+          "date": "2022-11"
+        },
+        {
+          "part": "eMMC or raw NAND for the operating system, firmware and logs",
+          "note": "The same processor boots and stores data from eMMC or raw SLC/MLC NAND.",
+          "quote": "eMMC 5.1 Flash (2 interfaces, uSDHC1 and uSDHC3)",
+          "url": "https://www.nxp.com/docs/en/data-sheet/IMX8MMIEC.pdf",
+          "publisher": "NXP, i.MX 8M Mini industrial datasheet, Rev. 2",
+          "date": "2022-11"
+        },
+        {
+          "part": "Memory inside the cellular module",
+          "note": "Module makers pass memory costs through. Berg Insight found price pressure rather than shortages, with 4G LTE modules on legacy memory less exposed than 5G.",
+          "quote": "The most immediate impact on the module market revealed in the report has been price pressure rather than shortages",
+          "url": "https://www.computerweekly.com/news/366645256/Cellular-IoT-gains-new-heights-in-2025",
+          "publisher": "Computer Weekly, citing Berg Insight",
+          "date": "2026-06-29"
+        }
+      ],
+      "eol": [
+        {
+          "who": "Micron, DDR4 and LPDDR4",
+          "value": "End-of-life notices sent to PC and data center customers in 2025. Micron reportedly keeps supplying long-term automotive, industrial and networking customers.",
+          "quote": "Micron will reportedly continue supplying DDR4 and LPDDR4 memory to long-term customers in the automotive, industrial, and networking sectors",
+          "url": "https://www.trendforce.com/news/2025/06/13/news-micron-confirms-ddr4-phase-out-with-eol-notices-reportedly-hints-at-price-hikes-ahead/",
+          "publisher": "TrendForce News, citing Nikkei",
+          "date": "2025-06-13"
+        },
+        {
+          "who": "Samsung, DDR4",
+          "value": "Sticking to its DDR4 end-of-life plan despite high prices.",
+          "quote": "TrendForce notes that Samsung is sticking firmly to its end-of-life plan.",
+          "url": "https://www.trendforce.com/news/2026/01/19/news-out-with-the-old-memory-giants-map-their-2025-26-exit-strategy-amid-supply-crunch/",
+          "publisher": "TrendForce News",
+          "date": "2026-01-19"
+        },
+        {
+          "who": "SK hynix, DDR4",
+          "value": "Plans to phase DDR4 out by 2026; converted its Wuxi fab to a newer node.",
+          "quote": "Like Samsung, SK hynix has signaled plans to phase out DDR4 by 2026.",
+          "url": "https://www.trendforce.com/news/2026/01/19/news-out-with-the-old-memory-giants-map-their-2025-26-exit-strategy-amid-supply-crunch/",
+          "publisher": "TrendForce News",
+          "date": "2026-01-19"
+        },
+        {
+          "who": "Samsung and others, MLC NAND",
+          "value": "Samsung's last MLC NAND shipments were due June 2026; world MLC NAND capacity forecast down 41.7% in 2026. Demand comes mostly from industrial control, automotive, medical and networking.",
+          "quote": "the worldwide MLC NAND Flash capacity is expected to decrease by 41.7% YOY in 2026",
+          "url": "https://www.trendforce.com/presscenter/news/20260107-12866.html",
+          "publisher": "TrendForce",
+          "date": "2026-01-07"
+        },
+        {
+          "who": "Kioxia, 2D (floating-gate) NAND and BiCS FLASH gen 3",
+          "value": "End-of-life notice of 2026-03-31: final orders by end of September 2026, last shipments by December 2028.",
+          "quote": "the company plans to take final orders by end-September this year, complete last shipments by December 2028",
+          "url": "https://www.trendforce.com/news/2026/05/13/news-mlc-nand-spot-prices-reportedly-triple-since-late-2025-as-samsung-kioxia-exit-supply/",
+          "publisher": "TrendForce News, citing Chosun Ilbo",
+          "date": "2026-05-13"
+        },
+        {
+          "who": "Micron, Manassas (Virginia) fab",
+          "value": "Counter-trend: Micron started 1-alpha DRAM in Manassas for long-lifecycle DDR4 and LPDDR4, will quadruple DDR4 wafer supply there, and expects qualified output by end of 2026.",
+          "quote": "Micron expects qualified 1α DRAM production from the Manassas fab by the end of calendar year 2026.",
+          "url": "https://investors.micron.com/news/press-release/2026/Micron-Advances-Made-in-America-Memory-With-Manufacturing-Expansion-in-Virginia/default.aspx",
+          "publisher": "Micron press release",
+          "date": "2026-05-22"
+        }
+      ],
+      "mitigations": [
+        {
+          "name": "Last-time buy inside the final-order window",
+          "note": "End-of-life notices give a fixed last order date. Buy enough DDR4, LPDDR4 or NAND for the product's remaining builds and spares before it closes; for Kioxia 2D NAND that date was end of September 2026.",
+          "url": "https://www.trendforce.com/news/2026/05/13/news-mlc-nand-spot-prices-reportedly-triple-since-late-2025-as-samsung-kioxia-exit-supply/",
+          "publisher": "TrendForce News",
+          "date": "2026-05-13"
+        },
+        {
+          "name": "Design in parts with a written longevity commitment",
+          "note": "Processors and microcontrollers in NXP's longevity program are guaranteed for 10 to 15 years from launch; ST commits 10 years for STM32, renewed each year; Micron says Manassas will make long-lifecycle DDR4 and LPDDR4.",
+          "quote": "guaranteed product availability for a minimum of 10 to 15 years from the product’s launch date",
+          "url": "https://www.nxp.com/docs/en/fact-sheet/IMXMEMORYFS.pdf",
+          "publisher": "NXP, i.MX memory fact sheet",
+          "date": null,
+          "more": [
+            {
+              "quote": "ST’s product longevity program ensures a long-term availability of 10 years for STM32 microcontrollers, with a commitment renewed annually.",
+              "url": "https://community.st.com/stm32-mcus-60/how-to-check-stm32-part-numbers-longevity-160444",
+              "publisher": "STMicroelectronics community knowledge base",
+              "date": "2025-12-19"
+            }
+          ]
+        },
+        {
+          "name": "Qualify a second memory source",
+          "note": "Processor makers publish lists of DRAM parts validated on their chips. Qualify parts from two makers (for DDR4, Winbond or Nanya as well as Micron) so one allocation cut does not stop the line.",
+          "quote": "They also include a list of NXP and vendor-validated memory part numbers.",
+          "url": "https://www.nxp.com/docs/en/fact-sheet/IMXMEMORYFS.pdf",
+          "publisher": "NXP, i.MX memory fact sheet",
+          "date": null
+        },
+        {
+          "name": "Commit volumes early",
+          "note": "Open-market memory is sold under allocation, and buyers expect DRAM to stay tight in 2027. Agreed quarterly volumes get served first.",
+          "quote": "PC OEMs continue to procure aggressively amid expectations that DRAM supply will remain tight in 2027",
+          "url": "https://www.trendforce.com/presscenter/news/20260930-13258.html",
+          "publisher": "TrendForce",
+          "date": "2026-09-30"
+        },
+        {
+          "name": "Keep discrete memory off the battery controller",
+          "note": "Battery management on a microcontroller with on-chip flash and SRAM needs no DRAM; keep the Linux gateway as the only board that does.",
+          "url": null,
+          "basis": "inference"
+        }
+      ]
     },
     {
       "id": "cellular",
@@ -355,8 +536,8 @@
         "value": "Top five module makers (Quectel, Fibocom, Telit Cinterion, MeiG, China Mobile IoT) held 73% of revenue in 2025; China-based suppliers lead on volume",
         "quote": "These held a collective market share of 73% in terms of revenues.",
         "url": "https://www.computerweekly.com/news/366645256/Cellular-IoT-gains-new-heights-in-2025",
-        "publisher": "Computer Weekly, citing Counterpoint Research",
-        "date": null
+        "publisher": "Computer Weekly, citing Berg Insight",
+        "date": "2026-06-29"
       },
       "policy": [
         {
@@ -399,7 +580,7 @@
         "quote": "Distribution lead times averaged 30 weeks in Q2 compared to a 100+ week peak in 2023.",
         "url": "https://eepower.com/market-insights/transformer-supply-chain-woes-persist-as-energy-demand-grows/",
         "publisher": "EE Power, citing Wood Mackenzie Q2 2025 survey",
-        "date": null,
+        "date": "2025-08-27",
         "more": [
           {
             "quote": "while switchgear edged down to an average of 44 weeks.",
@@ -442,7 +623,15 @@
         "quote": "a supply shortage for power and distribution transformers to hit 30% and 10%, respectively, in 2025.",
         "url": "https://www.woodmac.com/press-releases/power-transformers-and-distribution-transformers-will-face-supply-deficits-of-30-and-10-in-2025/",
         "publisher": "Wood Mackenzie",
-        "date": "2025-08-14"
+        "date": "2025-08-14",
+        "more": [
+          {
+            "quote": "Imports represent about 80% of all U.S. power transformer supply and half of the distribution.",
+            "url": "https://eepower.com/market-insights/transformer-supply-chain-woes-persist-as-energy-demand-grows/",
+            "publisher": "EE Power, citing Wood Mackenzie",
+            "date": "2025-08-27"
+          }
+        ]
       },
       "policy": [
         {
@@ -517,8 +706,7 @@
             "quote": "rose to $6.8795 per pound in August, another all-time high",
             "url": "https://www.barchart.com/story/news/4323062/is-copper-going-to-trade-7-per-pound",
             "publisher": "Barchart",
-            "date": "2026-08",
-            "source_quality": "quote from search summary, exact date not verified"
+            "date": "2026-08-28"
           }
         ]
       },
@@ -560,16 +748,15 @@
     }
   ],
   "gaps": [
-    "Base's cell supplier and cell origin: not found. The April 2025 CNBC piece said earlier batteries were made in China; no source names the Base Core cell maker.",
-    "Several pages returned 403 (energy-storage.news, eepower, computerweekly, climatebase, techspot, solarbuildermag); their quotes come from search snippets and are marked.",
-    "Whether China is in the 10% or 12.5% tier of the July 24, 2026 Section 301 regime, and whether it stacks on the older China 301 duties: not confirmed.",
+    "Base Core's cell supplier and cell origin: not found in public sources.",
+    "Base's own controller and gateway memory parts are not public; the memory card shows typical parts for this class of device.",
+    "energy-storage.news returned 403, so the LG Energy Solution capacity target is not quoted.",
     "LFP cell lead time in weeks: not found; only order backlog language from SMM.",
     "No dated 2026 distribution transformer lead time in weeks from WoodMac/NREL/DOE/NEMA found; latest is the Q2 2025 survey. NREL and DOE figures not collected.",
     "Cellular module lead times: not found.",
     "Steel price trend (HRC) for enclosures: not collected.",
     "DRAM vendor concentration share numbers: not collected.",
-    "BNEF and some price quotes come from search summaries rather than fetched pages; verify wording before publishing.",
-    "The 2026 foreign-content threshold for storage tax credits was left out: only a low-credibility source gave a number. See IRS Notice 2026-15 for the rule itself."
+    "Industrial-grade DDR4 and eMMC contract prices are not published; the price figures shown are market-wide."
   ],
   "about": "One home battery, part by part: how long each part takes to get, where prices are heading, where it comes from, and which 2026 US rules touch it. Every number links to a dated public source. \"Our read\" is this site's judgment, not a source. Independent, not affiliated with Base Power."
 }

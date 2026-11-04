@@ -132,14 +132,13 @@ test('no em dashes in the new files', () => {
 const byId = (id) => data.utilities.find((u) => u.id === id);
 const pickFor = (u, opts) => P.pickOffer(u, P.signalPercentiles(u, data.utilities), opts);
 
-test('wires-only detection: Texas TDSPs, ComEd, PECO, PPL; co-ops and city utilities stay pitchable', () => {
+test('wires-only detection: Texas TDSPs, PECO, PPL; co-ops and city utilities stay pitchable', () => {
   const wires = {
     '44372-TX': 'eia-retail-share', // Oncor
     '8901-TX': 'eia-retail-share', // CenterPoint
     '3278-TX': 'eia-retail-share', // AEP Texas Central
     '20404-TX': 'eia-retail-share', // AEP Texas North
     '40051-TX': 'eia-retail-share', // TNMP
-    '4110-IL': 'state-default-supply', // ComEd
     '14940-PA': 'state-default-supply', // PECO
     '14715-PA': 'state-default-supply', // PPL
   };
@@ -163,12 +162,12 @@ test('wires-only detection: Texas TDSPs, ComEd, PECO, PPL; co-ops and city utili
   assert.match(cnp.reason, /PURA chapter 39/);
   assert.match(cnp.baseRetail, /retail electric provider.*CenterPoint area.*10338/);
   assert.deepEqual(P.extraSources(byId('8901-TX'), pickFor(byId('8901-TX'))).map((s) => s.key), ['pura', 'agents']);
-  // Illinois: the IPA source and Base's own supplier license for ComEd homes.
-  const comed = P.wiresOnly(byId('4110-IL'));
-  assert.deepEqual(comed.sources, ['eia', 'il']);
-  assert.match(comed.reason, /Illinois Power Agency/);
-  assert.match(comed.baseRetail, /supplier license/);
+  // Illinois: ComEd and Ameren Illinois have a VPP tariff route in law (220 ILCS 5/16-107.9), so they are not wires-only.
+  assert.equal(P.wiresOnly(byId('4110-IL')), null);
+  assert.equal(P.wiresOnly(byId('56697-IL')), null);
   assert.match(P.wiresOnly(byId('14940-PA')).reason, /Pennsylvania PUC/);
+  assert.match(P.wiresOnly(byId('14940-PA')).reason, /House Bill 2264/);
+  assert.deepEqual(P.wiresOnly(byId('14940-PA')).sources, ['eia', 'pa', 'pahb2264']);
   assert.equal(P.wiresOnly(byId('14715-PA')).baseRetail, null, 'Base does not sell in Pennsylvania');
 
   for (const id of ['5078-TX', '1015-TX', '7752-TX', '14626-TX', '3248-GA']) { // CoServ, Austin Energy, GVEC, Pedernales, Central Georgia EMC
@@ -178,7 +177,59 @@ test('wires-only detection: Texas TDSPs, ComEd, PECO, PPL; co-ops and city utili
   }
   // Every wires-only row in the file, so a data change that adds or drops one is seen here.
   assert.deepEqual(data.utilities.filter(P.wiresOnly).map((u) => u.id).sort(),
-    ['11292-TX', '14715-PA', '14940-PA', '19390-PA', '20404-TX', '3278-TX', '40051-TX', '44372-TX', '4110-IL', '5487-PA', '56697-IL', '66101-PA', '8901-TX'].sort());
+    ['11292-TX', '14715-PA', '14940-PA', '19390-PA', '20404-TX', '3278-TX', '40051-TX', '44372-TX', '5487-PA', '66101-PA', '8901-TX'].sort());
+});
+
+test('Illinois VPP tariff: ComEd and Ameren Illinois are pitchable, with the statute cited', () => {
+  for (const id of ['4110-IL', '56697-IL']) {
+    const u = byId(id);
+    const pick = pickFor(u);
+    assert.equal(pick.rule, 0, id);
+    assert.equal(pick.variant, 'vpp', id);
+    assert.equal(pick.offer.id, 'bulk', id);
+    assert.ok(!pick.wires, id);
+    assert.match(pick.reason, /16-107\.9/);
+    assert.match(pick.reason, /31 December 2027/);
+    assert.match(pick.reason, /capacity and transmission obligations/);
+    assert.equal(pickFor(u, { largeLoads: true }).offer.id, 'speed');
+    assert.deepEqual(P.extraSources(u, pick).map((s) => s.key), ['pa104458', 'sb25', 'ipaplan']);
+    assert.ok(P.extraSources(u, pick).every((s) => /^https:\/\/(www\.)?(ilga\.gov|ipa\.illinois\.gov)\//.test(s.url)));
+    const q = P.questions(u, pick);
+    assert.ok(q.some((x) => /^Tariff timeline:/.test(x)), id);
+    assert.ok(!q.some((x) => /^Accreditation:/.test(x)), id);
+  }
+  // ComEd's capacity is bought in PJM's auction, not by the IPA.
+  assert.match(pickFor(byId('4110-IL')).reason, /capacity itself in PJM/);
+  const il = P.rankState(data.utilities, 'IL', 10);
+  assert.ok(il.some((x) => x.id === '4110-IL' && x.rank !== null && !x.wires));
+  assert.ok(il.some((x) => x.id === '56697-IL' && x.rank !== null && !x.wires));
+  // Pennsylvania has no such law yet, so PECO and PPL stay wires-only.
+  assert.equal(P.ilVpp(byId('14940-PA')), null);
+});
+
+test('illustrative accredited MW: derated for the home reserve, NYISO 2-hour factor, labeled', () => {
+  const prog = P.sizeProgram(100, 1e6);
+  const a = P.accreditedExample(prog, P.publicTerms());
+  assert.equal(a.pct, 64.65);
+  assert.equal(a.reservePct, 20);
+  assert.equal(a.reserveYours, false);
+  assert.ok(Math.abs(a.kwFor2h - 39.2 * 0.8 / 2) < 1e-9);
+  assert.ok(Math.abs(a.accreditedMw - 5000 * 15.68 / 1000 * 0.6465) < 1e-9);
+  assert.match(a.text, /^Illustration, not this utility's rule/);
+  assert.match(a.text, /PJM has no 2-hour class/);
+  assert.match(a.source.url, /^https:\/\/www\.nyiso\.com\//);
+  // Your reserve replaces the assumed 20%. With none, 39.2 kWh holds 19.6 kW for 2 hours, just under the 20 kW nameplate.
+  const mine = P.accreditedExample(prog, Object.assign(P.publicTerms(), { memberReservePct: 0 }));
+  assert.equal(mine.reserveYours, true);
+  assert.ok(Math.abs(mine.kwFor2h - 19.6) < 1e-9);
+  assert.equal(P.accreditedExample(null, P.publicTerms()), null);
+});
+
+test('partner count note reconciles 7 sourced partners with Base\'s "6 utility partners"', () => {
+  assert.match(P.PARTNER_COUNT_NOTE, /3 metro areas, 6 utility partners/);
+  assert.match(P.PARTNER_COUNT_NOTE, /Central Georgia EMC/);
+  assert.match(P.PARTNER_COUNT_NOTE, /not confirmed/);
+  assert.equal(Object.keys(P.KNOWN).filter((id) => P.partnerOf(id)).length, 7);
 });
 
 test('wires-only fallback list holds when the EIA retail share is missing', () => {
@@ -219,7 +270,7 @@ test('who to call first: wires-only utilities are labeled and not ranked', () =>
   const ranked = tx.filter((x) => !x.wires && !x.partner);
   assert.deepEqual(ranked.map((x) => x.rank), ranked.map((_, i) => i + 1));
   assert.ok(P.rankState(data.utilities, 'TX', 10).every((x) => !x.wires), 'top 10 is pitchable utilities only');
-  assert.ok(!P.rankState(data.utilities, 'IL', 10).some((x) => x.id === '4110-IL'));
+  assert.ok(P.rankState(data.utilities, 'IL', 10).some((x) => x.id === '4110-IL' && x.rank !== null));
 });
 
 test('user text never resolves built-in object properties', () => {

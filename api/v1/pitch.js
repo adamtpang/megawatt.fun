@@ -30,7 +30,7 @@ function usage() {
       terms: P.TERMS.map((t) => ({ key: t.key, label: t.label, unit: t.unit, public_value: t.value, min: t.min, max: t.max, basis: t.basis })),
     },
     example: { utility: 'CoServ Electric', state: 'TX', terms: { tollPerKwYear: 85, termYears: 10 }, targets: [{ utility: 'Austin Energy', status: 'in talks', owner: 'Ben' }] },
-    returns: 'utility, headline signal and percentile, recommended offer and the rule that picked it, program size, landed cost range, deal structure, questions to ask, and who to call first in that state (utilities in the main market of the state first; existing Base partners listed after the ranking as expansion conversations, never as cold prospects).',
+    returns: 'utility, headline signal and percentile, recommended offer and the rule that picked it, a state program route where law sets one (Illinois VPP tariff at ComEd and Ameren Illinois), program size with an illustrative accredited MW (labeled assumption), landed cost range, deal structure, questions to ask, and who to call first in that state (utilities in the main market of the state first; existing Base partners listed after the ranking as expansion conversations, never as cold prospects).',
     docs: L.docsUrl('pitch'),
     page: L.SITE + '/pitch',
   };
@@ -64,6 +64,9 @@ function sourcesFor(u, pick) {
     { key: 'base', title: P.BASE_SOURCE.title, url: P.BASE_SOURCE.url, date: 'retrieved ' + P.BASE_SOURCE.retrieved },
   ];
   if (pick.source) list.push({ key: 'ercot', title: pick.source.title, url: pick.source.url, date: 'retrieved ' + pick.source.retrieved });
+  const acc = P.ACCREDITATION_EXAMPLE;
+  list.push({ key: 'nyisocaf', title: acc.source.title, url: acc.source.url, date: 'retrieved ' + acc.source.retrieved });
+  list.push({ key: 'pjmelcc', title: acc.pjm.source.title, url: acc.pjm.source.url, date: 'retrieved ' + acc.pjm.source.retrieved });
   P.extraSources(u, pick).forEach((s) => list.push({ key: s.key, title: s.title, url: s.url, date: 'retrieved ' + s.retrieved }));
   const k = P.known(u.id);
   if (k && k.aliasSource) list.push({ key: 'alias', title: k.aliasSource.title, url: k.aliasSource.url, date: 'retrieved ' + k.aliasSource.retrieved });
@@ -210,6 +213,11 @@ async function post(parsed, req) {
     base_partner: partner ? { status: partner.label, program: partner.program, since: partner.since, framing: partner.framing, note: known.note, source: known.source.url } : null,
     your_target: P.own(targets, u.id) || null,
     offer: { id: pick.offer.id, name: pick.offer.name, variant: pick.variant, quote: pick.offer.quote, rule: pick.rule, reason: pick.reason, also_on_menu: others, capacity_offer: pick.offer.id === 'bulk' },
+    state_program: pick.vpp ? {
+      kind: 'virtual power plant tariff', statute: pick.vpp.statute, file_by: pick.vpp.fileBy, approve_by: pick.vpp.approveBy,
+      what: pick.vpp.what, how: pick.vpp.how, capacity_today: pick.vpp.capacity,
+      sources: src.filter((s) => pick.vpp.sources.includes(s.key)).map((s) => s.n),
+    } : null,
     wires_only: pick.wires ? {
       what: pick.wires.what + ' It is not a buyer for a capacity program.',
       why: pick.wires.reason, detected_by: pick.wires.basis,
@@ -221,6 +229,12 @@ async function post(parsed, req) {
       mw: prog.mw, nameplate_mw: prog.nameplateMw, rounded_up: prog.roundedUp, batteries: prog.batteries, kw_per_battery: prog.kw, kwh_per_battery: prog.kwh, mwh: prog.mwh, hours_at_full_output: prog.hours,
       share_of_residential_customers: prog.share, dispatchable_mwh: P.isNum(prog.dispatchMwh) ? prog.dispatchMwh : null,
       note: (prog.roundedUp ? P.roundedUpNote(prog) + ' ' : '') + 'Nameplate is not accredited capacity, and each home keeps a backup reserve.' + (P.isNum(prog.share) && prog.share > 1 ? ' This program needs more batteries than the utility has residential customers.' : ''),
+      accredited_example: (() => {
+        const a = P.accreditedExample(prog, T);
+        return { basis: 'assumption', accredited_mw: a.accreditedMw, share_of_nameplate: a.shareOfNameplate, reserve_pct: a.reservePct, reserve_from_your_file: a.reserveYours,
+          kw_per_battery_for_2h: a.kwFor2h, mw_for_2h: a.mwFor2h, factor_pct: a.pct, factor: a.label, text: a.text,
+          sources: src.filter((s) => s.key === 'nyisocaf' || s.key === 'pjmelcc').map((s) => s.n) };
+      })(),
     } : null,
     landed_cost: { about: 'Base\'s own comparison table (Base attributes it to EnergySage, Lazard and Wood Mackenzie), times this program\'s MWh. Arithmetic on a claim, not a quote.', rows: claims },
     your_offer: tv ? { toll_per_kw_year: T.tollPerKwYear, per_year_usd: tv.perYear, term_years: P.isNum(T.termYears) ? T.termYears : null, total_usd: tv.total } : null,
@@ -232,7 +246,7 @@ async function post(parsed, req) {
     questions: P.questions(u, pick, T),
     who_to_call_first: {
       state: u.state,
-      method: 'Ranked by residential customers x SAIDI minutes (EIA-861 2025), a stand-in for customer minutes interrupted. ' + market.reason + ' Existing Base partners are not ranked as cold prospects; they are listed after the ranking as an expansion conversation. Wires-only utilities, which deliver power but do not buy it, are not ranked.' + (nMine ? ' Your ' + nMine + ' target' + (nMine === 1 ? '' : 's') + ' in this state come first, still in public rank order.' : ''),
+      method: 'Ranked by residential customers x SAIDI minutes (EIA-861 2025), a stand-in for customer minutes interrupted. ' + market.reason + ' ' + P.PARTNER_COUNT_NOTE + ' Existing Base partners are not ranked as cold prospects; they are listed after the ranking as an expansion conversation. Wires-only utilities, which deliver power but do not buy it, are not ranked.' + (nMine ? ' Your ' + nMine + ' target' + (nMine === 1 ? '' : 's') + ' in this state come first, still in public rank order.' : ''),
       preferred_market: market.market,
       market_reason: market.reason,
       utilities_in_state: all.length,

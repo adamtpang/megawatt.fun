@@ -7,6 +7,8 @@ Usage:
 
 Downloads are cached in analysis/cache/. Re-running reuses them.
 Pass --skip-ercot to rebuild the national score without the Texas price window.
+Pass --patch to re-apply the retail-choice flags, footprint marks, factor text, sources and narrative
+to the published data/expansion-map.json without downloading anything.
 """
 
 from __future__ import annotations
@@ -49,15 +51,70 @@ NRI_FIELDS = (
 )
 STORM_FIELDS = ["HRCN_RISKS", "TRND_RISKS", "HAIL_RISKS", "ISTM_RISKS", "SWND_RISKS", "WNTW_RISKS", "LTNG_RISKS"]
 SKIP_STATES = {"PR", "VI", "GU", "AS", "MP"}
-# A label for this page, not a statutory definition of retail choice.
-# At least 30% of residential customers on delivery service.
-LAUNCH_RETAIL_SHARE = 0.30
+# Open residential retail choice, by state law, checked on RETAIL_CHOICE_CHECKED.
+# 1 means a home can buy energy from a competitive supplier today. Capped, closed or
+# non-residential-only programs are 0 (California, Michigan, Virginia, Oregon and the rest).
+# Each entry names a primary or authoritative source for that state. States not listed are 0
+# with the general source below. Filled from RETAIL_CHOICE_SOURCES so the factor is reproducible.
+RETAIL_CHOICE_CHECKED = "2026-11-04"
+RETAIL_CHOICE_DEFAULT = {
+    "open": False,
+    "source": "EIA Today in Energy, 8 Nov 2018 (map corrected 17 Jan 2019): residential retail choice participation has declined since 2014 peak",
+    "url": "https://www.eia.gov/todayinenergy/detail.php?id=37452",
+    "note": "Not among the 13 states and DC that EIA lists with active, statewide residential retail choice, and not one of the four (MI, NV, OR, VA) it lists with limited, mostly non-residential choice. EIA's count is from 2018; no newer statewide program was found on 2026-11-04.",
+}
 
 
-def launch_path(retail):
+def _open(source, url, note):
+    return {"open": True, "source": source, "url": url, "note": note}
+
+
+def _closed(source, url, note):
+    return {"open": False, "source": source, "url": url, "note": note}
+
+
+RETAIL_CHOICE = {
+    "CT": _open("Connecticut Office of Consumer Counsel, Where can I compare electricity suppliers? (1 July 2025)", "https://portal.ct.gov/occ/knowledge-base/articles/electricity/electricity-suppliers", "Homes can compare and pick a supplier on the state's EnergizeCT rate board."),
+    "DE": _open("Delaware PSC, Customer Electric Choice", "https://depsc.delaware.gov/customer-electric-choice/", "Open to Delmarva Power customers; the supplier list covers residential customers."),
+    "DC": _open("DC PSC, Retail Choice", "https://dcpsc.org/Consumers-Corner/Service-Providers/Retail-Choice.aspx", "District residents can select their electricity supplier."),
+    "IL": _open("Illinois Commerce Commission, Plug In Illinois", "https://plugin.illinois.gov/", "About 1.13 million residential customers buy from an Alternative Retail Electric Supplier (ARES)."),
+    "ME": _open("Maine PUC, Electricity FAQs", "https://www.maine.gov/mpuc/regulated-utilities/electricity/electric-faqs", "Competitive electricity providers licensed by the PUC supply Maine residences."),
+    "MD": _open("Maryland PSC, Maryland Electric Choice", "https://www.mdelectricchoice.com/", "Homes can buy electricity from a retail energy supplier. Fewer suppliers serve homes since the 2024 supplier law."),
+    "MA": _open("Massachusetts Attorney General, Competitive Electric Supply", "https://mass.gov/competitive-electric-supply", "The residential competitive supply market is live (the AG's March 2026 report covers it). A pending energy bill would change municipal programs, not statewide choice."),
+    "NH": _open("New Hampshire Department of Energy, Choosing an Energy Supplier", "https://energy.nh.gov/consumers/choosing-energy-supplier", "Customers may buy energy supply from a competitive energy supplier."),
+    "NJ": _open("New Jersey BPU, Energy shopping", "https://www.nj.gov/bpu/commercial/shopping.html", "Any electric customer in New Jersey is eligible to shop."),
+    "NY": _open("New York DPS, How to Shop for Utility Services", "https://dps.ny.gov/how-shop-utility-services", "Consumers choose who provides their energy supply (ESCOs), with limits on serving low-income customers."),
+    "OH": _open("PUCO, Energy Choice Ohio", "https://www.energychoice.ohio.gov/", "Customers from manufacturers to residential homeowners can shop for electricity."),
+    "PA": _open("Pennsylvania PUC, PAPowerSwitch", "https://www.papowerswitch.com/", "The PUC's shopping site for homes; offers vary by utility area."),
+    "RI": _open("Rhode Island PUC, Competitive supply FAQ", "https://ripuc.ri.gov/utilityinfo/electric/compfaq.html", "Customers can obtain electricity from a competitive supplier; the PUC lists suppliers serving residential customers."),
+    "TX": _open("Public Utility Commission of Texas, Power to Choose", "https://www.powertochoose.org/", "Open in the ERCOT competitive areas. City utilities, co-ops and areas outside ERCOT are not open."),
+    "CA": _closed("CPUC, Direct Access", "https://www.cpuc.ca.gov/consumer-support/consumer-programs-and-services/electrical-energy-and-energy-efficiency/community-choice-aggregation-and-direct-access-/direct-access", "Direct Access is capped and reopened only to non-residential load. Homes cannot newly choose a supplier; most homes on delivery service are in community choice aggregators, which are local government programs, not a supplier a home picks."),
+    "MI": _closed("Michigan PSC, Electric Choice, and MCL 460.10a", "https://www.michigan.gov/mpsc/consumer/electricity/choice", "Choice is capped at 10% of each utility's sales and the cap is full; the PSC says no licensed supplier is enrolling residential customers."),
+    "VA": _closed("Code of Virginia sec. 56-577", "https://law.lis.virginia.gov/vacode/title56/chapter23/section56-577/", "Choice is for large non-residential customers; a home may buy 100% renewable supply only where the utility has no approved 100% renewable tariff."),
+    "OR": _closed("Oregon PUC, Direct Access", "https://www.oregon.gov/puc/utilities/Pages/Direct-Access.aspx", "Direct access is for nonresidential consumers only."),
+    "NV": _closed("NRS 704B.080", "https://law.justia.com/codes/nevada/chapter-704b/statute-704b-080/", "Only commercial, industrial or government customers with 1 MW or more of load are eligible."),
+    "MT": _closed("MCA 69-8-201", "https://leg.mt.gov/bills/mca/title_0690/chapter_0080/part_0020/section_0010/0690-0080-0020-0010.html", "Montana reintegrated supply in 2007; no new residential choice."),
+}
+
+
+def retail_choice(abbr):
+    return RETAIL_CHOICE.get(abbr, RETAIL_CHOICE_DEFAULT)
+
+
+def choice_detail(abbr):
+    choice = retail_choice(abbr)
+    return {"open": choice["open"], "source": choice["source"], "url": choice["url"], "note": choice["note"], "checked": RETAIL_CHOICE_CHECKED}
+
+
+def launch_path(abbr, retail=None, utility=False):
+    """State: 1 when state law opens residential retail choice. Utility: also needs EIA delivery customers,
+    because co-ops and city utilities inside a choice state are usually exempt (Texas, Ohio, Illinois)."""
+    open_ = 1.0 if retail_choice(abbr)["open"] else 0.0
+    if not utility:
+        return open_
     if retail is None:
         return None
-    return 1.0 if retail >= LAUNCH_RETAIL_SHARE else 0.0
+    return open_ if retail > 0 else 0.0
 
 FACTORS = [
     {
@@ -134,7 +191,7 @@ FACTORS = [
         "id": "launch_path",
         "group": "Time to launch",
         "label": "Retail-choice path",
-        "help": "Proxy, not a permit clock. 1 when EIA-861 2025 residential delivery share is at least 30%, otherwise 0. A 1 means a large share of homes can be served without a new utility contract. A 0 means the public path is a utility or co-op partnership. The 30% cut is a label for this page, not a legal definition of retail choice. DSIRE, SolarAPP+, and a full state interconnection-time table are not in this factor.",
+        "help": "Proxy, not a permit clock. 1 when state law lets residential customers buy energy from a competitive supplier today (open residential retail choice), otherwise 0. Each state's flag cites its commission or statute and was checked " + RETAIL_CHOICE_CHECKED + ". Capped or closed programs count as 0: California (Direct Access capped, homes mostly on community choice aggregators) and Michigan (10% cap with a waiting list). A utility row also needs EIA-861 2025 delivery customers, since co-ops and city utilities in a choice state are usually exempt. A 1 means a licensed retail supplier can sell a battery plan without a new utility contract. A 0 means the public path is a utility or co-op partnership. DSIRE, SolarAPP+, and a full state interconnection-time table are not in this factor.",
         "weight": 1,
     },
 ]
@@ -155,6 +212,25 @@ FOOTPRINT = {
         "label": "Announced",
         "detail": "Base Power and Central Georgia EMC announced a residential battery program on 13 Oct 2026 (Business Wire), for up to 50 MW with installations planned to begin in 2027. The mark is not part of the score.",
     },
+}
+# Equipment and installation only: not retail supply and not a utility program. Source: Base's own site footer,
+# read from the raw homepage HTML on the date below. Job posts are not used as a source for any mark.
+BASE_FOOTER = {
+    "title": "Base Power website footer (basepowercompany.com)",
+    "url": "https://www.basepowercompany.com/",
+    "retrieved": "2026-11-04",
+}
+FOOTPRINT["CO"] = {
+    "status": "equipment",
+    "label": "Equipment and installation",
+    "detail": "Base's site footer: \"In Colorado, Base offers home battery equipment and installation. Base is not an electric utility or a retail electric supplier in Colorado.\" Not a retail plan and not a utility program. The mark is not part of the score.",
+    "source": BASE_FOOTER,
+}
+FOOTPRINT["CT"] = {
+    "status": "equipment",
+    "label": "Equipment and installation",
+    "detail": "Base's site footer: \"In Connecticut, Base offers home battery equipment and installation. Base is not an electric utility or a retail electric supplier in Connecticut.\" The footer gives Base Power Development, LLC's Connecticut home improvement contractor registration, HIC.0707034. Not a retail plan and not a utility program. The mark is not part of the score.",
+    "source": BASE_FOOTER,
 }
 
 
@@ -655,7 +731,7 @@ def build_states(shapes, homes, nri_version, counties, reliability, customers, b
             "batteries": per_thousand(battery_count, residential, abbr in programs["battery_seen"]),
             "demand_response": per_thousand(demand_count, residential, abbr in programs["demand_seen"]),
             "dynamic_pricing": per_thousand(dynamic_count, residential, abbr in programs["dynamic_seen"]),
-            "launch_path": launch_path((delivery / residential) if residential else None),
+            "launch_path": launch_path(abbr),
         }
         note = (
             f"SAIDI and SAIFI use EIA's 2025 state total ({rel.get('method', 'not published')}"
@@ -663,6 +739,7 @@ def build_states(shapes, homes, nri_version, counties, reliability, customers, b
             + "). Retail choice is delivery customers divided by bundled plus delivery customers. "
             "Program rates use that same residential customer count."
         )
+
         if known and residential and known < residential * 0.9:
             note += f" Balancing-authority coverage is {known / residential * 100:.0f}% of residential customers."
         states.append({
@@ -679,6 +756,7 @@ def build_states(shapes, homes, nri_version, counties, reliability, customers, b
                 "residential_customers": int(residential) if residential else None,
                 "battery_installs": None if battery_count is None else int(battery_count),
                 "nri_version": nri_version,
+                "retail_choice": choice_detail(abbr),
             },
         })
     return states
@@ -760,7 +838,7 @@ def build_utilities(customers, utility_ba, iso_names, names, utility_reliability
                 "batteries": clean(per_thousand(draft["battery_count"], residential, draft["battery_count"] is not None)),
                 "demand_response": clean(per_thousand(draft["demand_count"], residential, draft["demand_count"] is not None)),
                 "dynamic_pricing": clean(per_thousand(draft["dynamic_count"], residential, draft["dynamic_count"] is not None)),
-                "launch_path": launch_path(clean(draft["retail"])),
+                "launch_path": launch_path(draft["abbr"], clean(draft["retail"]), utility=True),
             },
             "detail": {
                 "rtos": draft["rtos"],
@@ -824,22 +902,22 @@ def narrative(states, utilities):
     home_leader = max(states, key=lambda record: record["values"]["homes"] or -1)
     lines = [
         (
-            f"At equal weights, {brief(ranked[0])}, {brief(ranked[1])}, and {brief(ranked[2])} lead the 51 geographies. "
-            f"{leader['name']}'s strongest public signals on this scale are {strongest(leader['id'])[0]} and {strongest(leader['id'])[1]}. "
+            f"At equal weights, including the retail-choice path, {brief(ranked[0])}, {brief(ranked[1])}, and {brief(ranked[2])} lead the 51 geographies. "
             "Read the score as a stack of percentiles. A high score means the public series line up. It is an outside view, with no Base install times, permit outcomes, or crew plan in it."
         ),
         (
             f"The home-count factor rewards size. {home_leader['name']} has the most owner-occupied single-family homes, "
-            f"{home_leader['values']['homes']:,.0f}. With that weight set to zero, the top three become "
+            f"{home_leader['values']['homes']:,.0f}. With that weight set to zero, and every other factor including the launch path left on, the top three become "
             f"{brief(ranked_nosize[0])}, {brief(ranked_nosize[1])}, and {brief(ranked_nosize[2])}."
         ),
     ]
     footprints = []
-    for abbr in ("TX", "IL", "GA", "CT"):
+    for abbr in ("TX", "IL", "GA", "CO", "CT"):
         index, score = place(abbr)
         record = by_id[abbr]
+        mark = (record.get("footprint") or {}).get("label")
         footprints.append(
-            f"{record['name']} ranks {index} (score {round(score * 100)}), with SAIDI {record['values']['saidi']:.0f} minutes, "
+            f"{record['name']}{' (' + mark[0].lower() + mark[1:] + ')' if mark else ''} ranks {index}{' at equal weights' if not footprints else ''} (score {round(score * 100)}), with SAIDI {record['values']['saidi']:.0f} minutes, "
             f"retail delivery share {record['values']['retail'] * 100:.1f}%, and wholesale mix {record['detail']['rtos']}"
         )
     lines.append("Base's public footprint, marked on the map and kept out of the weights: " + ". ".join(footprints) + ".")
@@ -864,7 +942,7 @@ def narrative(states, utilities):
         extra += f" Central Georgia ({georgia['name']}) reports {georgia['values']['homes']:,.0f} residential customers and {saidi}."
     lines.append(extra)
     lines.append(
-        "Install friction and a national price-volatility series sit outside the score. The Texas section is a short public day-ahead window, a congestion example rather than a yearly value of the nodes."
+        "Install friction and a national price-volatility series sit outside the score. The ERCOT congestion section is a short public day-ahead window of resource-node prices against their load zones: grid-congestion context, not battery value, because homes settle at load zone prices."
     )
     return lines
 
@@ -961,6 +1039,12 @@ def quantile(values, p):
     return ordered[low] * (high - pos) + ordered[high] * (pos - low)
 
 
+ERCOT_HOMES_NOTE = (
+    "Resource nodes are where generators settle. Homes settle at load zone prices, "
+    "so this is grid-congestion context, not what a home battery earns. "
+)
+
+
 def build_ercot():
     folder = CACHE / "ercot"
     folder.mkdir(parents=True, exist_ok=True)
@@ -1040,6 +1124,7 @@ def build_ercot():
         "summary": (
             f"Day-ahead settlement point prices, ERCOT report NP4-190-CD (12331), {len(dates)} delivery dates ({window}). "
             f"Basis is the resource-node price minus its settlement load zone in the same hour. "
+            + ERCOT_HOMES_NOTE +
             f"{len(nodes)} resource nodes had at least 100 comparable hours. The settlement-point file is {mapping_name}. "
             "The public price file has no coordinates, so the nodes are a table."
         ),
@@ -1089,7 +1174,8 @@ def build_constraints(folder, dates):
     ], "Shadow prices are ERCOT report NP4-191-CD, DAM Shadow Prices. Hours count rows with a positive shadow price on the same delivery dates. One constraint can bind under more than one contingency, so the hour count can run past the length of the window."
 
 
-def sources(nri_version):
+def sources(nri_version, queried=None):
+    queried = queried or TODAY
     return [
         {
             "title": "Census ACS 2024 5-year, table B25032",
@@ -1104,7 +1190,7 @@ def sources(nri_version):
         {
             "title": "FEMA National Risk Index, counties",
             "url": "https://hazards.fema.gov/nri/data-resources",
-            "detail": f"County feature service queried {TODAY}. File version {nri_version or 'not labeled'}. Storm is the unweighted mean of the hazard risk scores a county actually has.",
+            "detail": f"County feature service queried {queried}. File version {nri_version or 'not labeled'}. Storm is the unweighted mean of the hazard risk scores a county actually has.",
         },
         {
             "title": "Census cartographic state boundaries, 2024 1:20,000,000",
@@ -1127,9 +1213,19 @@ def sources(nri_version):
             "detail": "Help center page edited 17 June 2026: offer available as of 15 June 2026 for the first 2,000 Illinois installations.",
         },
         {
+            "title": BASE_FOOTER["title"],
+            "url": BASE_FOOTER["url"],
+            "detail": "Checked " + BASE_FOOTER["retrieved"] + " in the raw page HTML. Source of the Colorado and Connecticut marks: \"In Colorado, Base offers home battery equipment and installation\" and \"In Connecticut, Base offers home battery equipment and installation\", each followed by \"Base is not an electric utility or a retail electric supplier\" in that state.",
+        },
+        {
+            "title": "Retail-choice path: state sources",
+            "url": RETAIL_CHOICE_DEFAULT["url"],
+            "detail": "Checked " + RETAIL_CHOICE_CHECKED + ". Open residential choice: " + ", ".join(sorted(k for k, v in RETAIL_CHOICE.items() if v["open"])) + ", each with its commission page in the state detail. Capped or closed for homes: " + ", ".join(sorted(k for k, v in RETAIL_CHOICE.items() if not v["open"])) + ". EIA's 2018 count (13 states and DC with active statewide residential choice) is the fallback for the rest.",
+        },
+        {
             "title": "Base Connecticut operations manager posting",
             "url": "https://jobs.ashbyhq.com/base-power/6874d333-86da-465b-a2f8-f14ee397e460",
-            "detail": "Published 10 Sep 2026. North Haven electrical supervisor posting describes expansion beyond Texas.",
+            "detail": "Published 10 Sep 2026. North Haven electrical supervisor posting describes expansion beyond Texas. Context only: no footprint mark uses a job post.",
         },
         {
             "title": "Grid & Generation, Georgia partnership report",
@@ -1179,6 +1275,9 @@ def inject_narrative(paragraphs):
 
 
 def main():
+    if "--patch" in sys.argv:
+        patch_existing()
+        return
     skip_ercot = "--skip-ercot" in sys.argv
     print("shapes")
     shapes = load_shapes()
@@ -1203,22 +1302,7 @@ def main():
     except Exception as exc:
         ercot = {"available": False, "summary": f"The ERCOT extract failed and was left out: {exc}"}
         print("ERCOT failed:", exc)
-    paragraphs = narrative(states, utilities)
-    if ercot.get("nodes"):
-        top = ercot["nodes"][0]
-        houston = next((zone for zone in ercot.get("zones", []) if zone["name"] == "LZ_HOUSTON"), None)
-        constraint = ercot["constraints"][0]["name"] if ercot.get("constraints") else None
-        houston_bit = (
-            f" The median resource node in LZ_HOUSTON had a 95th-percentile basis of ${houston['median_p95']:.2f}/MWh."
-            if houston else ""
-        )
-        constraint_bit = f" The constraint with the most positive shadow-price rows was {constraint}." if constraint else ""
-        paragraphs.append(
-            f"From {ercot['window']['start']} through {ercot['window']['end']}, {top['name']} in {top['zone']} "
-            f"(substation {top['substation']}) had a 95th-percentile day-ahead basis of ${top['p95_basis']:.2f}/MWh "
-            f"across {top['hours']} hours, and {top['share_ge_20'] * 100:.0f}% of those hours cleared at least $20/MWh above the zone."
-            + houston_bit + constraint_bit
-        )
+    paragraphs = narrative(states, utilities) + ercot_paragraph(ercot)
     payload = {
         "generated": TODAY,
         "vintage": (
@@ -1235,12 +1319,69 @@ def main():
         "sources": sources(nri_version),
         "utility_nri": utility_nri,
     }
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps(payload, indent=1))
+    write_out(payload)
     inject_narrative(paragraphs)
     print("wrote", OUT, "states", len(states), "utilities", len(utilities))
-    for item in rank(states, {factor["id"]: 1 for factor in FACTORS})[:10]:
-        print(f"  {item['name']:20} {round(item['score']*100):3}  homes={item['record']['values']['homes']}")
+    print_top(states)
+
+
+def write_out(payload):
+    OUT.parent.mkdir(parents=True, exist_ok=True)
+    OUT.write_text(json.dumps(payload, indent=2, ensure_ascii=True) + "\n", encoding="utf-8", newline="")
+
+
+def print_top(states, n=10):
+    ranked = rank(states, {factor["id"]: 1 for factor in FACTORS})
+    for index, item in enumerate(ranked[:n], start=1):
+        print(f"  {index:2} {item['name']:20} {round(item['score']*100):3}")
+    for abbr in ("TX", "IL", "PA", "CA", "GA", "MI", "CO", "CT"):
+        index = next(i for i, item in enumerate(ranked, start=1) if item["id"] == abbr)
+        print(f"  {abbr} rank {index} score {round(ranked[index - 1]['score'] * 100)}")
+
+
+def ercot_paragraph(ercot):
+    if not ercot.get("nodes"):
+        return []
+    top = ercot["nodes"][0]
+    houston = next((zone for zone in ercot.get("zones", []) if zone["name"] == "LZ_HOUSTON"), None)
+    constraint = ercot["constraints"][0]["name"] if ercot.get("constraints") else None
+    houston_bit = (
+        f" The median resource node in LZ_HOUSTON had a 95th-percentile basis of ${houston['median_p95']:.2f}/MWh."
+        if houston else ""
+    )
+    constraint_bit = f" The constraint with the most positive shadow-price rows was {constraint}." if constraint else ""
+    return [
+        f"Grid-congestion context, not battery value: from {ercot['window']['start']} through {ercot['window']['end']}, the generator resource node {top['name']} in {top['zone']} "
+        f"(substation {top['substation']}) had a 95th-percentile day-ahead basis of ${top['p95_basis']:.2f}/MWh "
+        f"across {top['hours']} hours, and {top['share_ge_20'] * 100:.0f}% of those hours cleared at least $20/MWh above the zone."
+        + houston_bit + constraint_bit + " Homes settle at the load zone price, so a home battery does not earn this spread."
+    ]
+
+
+def patch_existing():
+    """Re-apply the hand-checked parts (retail-choice flags, footprint marks, factor text, ERCOT framing,
+    sources and narrative) to the published data/expansion-map.json without downloading anything.
+    Every other number in the file is left as the last full build wrote it."""
+    payload = json.loads(OUT.read_text(encoding="utf-8"))
+    states, utilities = payload["states"], payload["utilities"]
+    for record in states:
+        abbr = record["id"]
+        record["values"]["launch_path"] = launch_path(abbr)
+        record["footprint"] = FOOTPRINT.get(abbr)
+        record["detail"]["retail_choice"] = choice_detail(abbr)
+    for record in utilities:
+        record["values"]["launch_path"] = launch_path(record["state"], record["values"]["retail"], utility=True)
+    payload["factors"] = FACTORS
+    ercot = payload["ercot"]
+    if ercot.get("available") and ERCOT_HOMES_NOTE not in ercot["summary"]:
+        marker = "in the same hour. "
+        ercot["summary"] = ercot["summary"].replace(marker, marker + ERCOT_HOMES_NOTE, 1)
+    nri_version = next((s["detail"]["nri_version"] for s in states if s["detail"].get("nri_version")), None)
+    payload["sources"] = sources(nri_version, queried=payload["generated"])
+    payload["narrative"] = narrative(states, utilities) + ercot_paragraph(ercot)
+    write_out(payload)
+    print("patched", OUT)
+    print_top(states)
 
 
 if __name__ == "__main__":

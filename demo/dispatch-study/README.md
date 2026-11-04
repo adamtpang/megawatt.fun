@@ -10,7 +10,7 @@ A small extension to Megawatt's existing Go planner. **Synthetic stress experime
 4. Read `dispatch/replay.go` for accounting and `dispatch/replay_test.go` for the partial-cycle regression and independent exhaustive oracle.
 5. Read the limitations before interpreting a dollar value.
 
-The decision this supports: **does a forecast-committed schedule improve on a simple clock schedule, and how much downside does it retain when reserve and losses are enforced?** This could be a small evaluation fixture for Base's Markets/Algorithms team, with market infrastructure engineering as an adjacent audience. It is not a recommendation for live dispatch.
+The decision this supports: **does a forecast-committed schedule improve on a simple clock schedule, and how much downside does it retain when reserve and losses are enforced?** It is an evaluation fixture, not a recommendation for live dispatch.
 
 ## Reproducible result
 
@@ -60,4 +60,4 @@ Hourly single closed cycles exclude receding-horizon decisions, cross-day invent
 
 Before real use: replay a timestamped, held-out public price history against forecasts genuinely available before each decision, preserve load/price dependence, validate an AC/DC battery envelope, and compare a reserve-aware rolling controller with identical terminal assumptions. The present credible contribution is the small auditable evaluator and correction of overclaims, not a profitable strategy.
 
-See the [audit](AUDIT.md). Base's products combine backup and grid support; the relevance is an inference from its public material, not a claim that Base needs or uses this design.
+Base's products combine backup and grid support; the relevance is an inference from its public material, not a claim that Base needs or uses this design.

@@ -155,7 +155,11 @@
     const st = data(name), it = scored.get(name); selected = name;
     svg.querySelectorAll('.st').forEach((p) => p.classList.toggle('sel', p.dataset.name === name));
     document.querySelectorAll('.mm-chip').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.state === name)));
-    const fp = st.footprint ? `<p class="notice mm-flag ${st.footprint.status === 'operating' ? 'notice-green' : 'mm-flag-planned'}"><b>${esc(st.footprint.label)}.</b> ${esc(st.footprint.detail)}</p>` : '';
+    const fpCls = { operating: 'notice-green', announced: 'mm-flag-planned' }[st.footprint && st.footprint.status] || '';
+    const fpSrc = st.footprint && st.footprint.source ? ` Source: <a href="${esc(st.footprint.source.url)}">${esc(st.footprint.source.title)}</a>${st.footprint.source.retrieved ? ', checked ' + esc(st.footprint.source.retrieved) : ''}.` : '';
+    const fp = st.footprint ? `<p class="notice mm-flag ${fpCls}"><b>${esc(st.footprint.label)}.</b> ${esc(st.footprint.detail)}${fpSrc}</p>` : '';
+    const rc = st.detail.retail_choice;
+    const rcLine = rc ? `<p class="mm-small"><b>Retail choice for homes: ${rc.open ? 'open' : 'not open'}.</b> ${esc(rc.note)} Source: ${rc.url ? `<a href="${esc(rc.url)}">${esc(rc.source)}</a>` : esc(rc.source)}, checked ${esc(rc.checked)}.</p>` : '';
     const rows = allFactors().map((f) => `<dt>${esc(f.label)}${yoursTag(f)}</dt><dd>${factorFmt(f.id, val(st, f))}</dd>`).join('');
     const c = $('detail'); c.hidden = false;
     const nRanked = states.filter((x) => scored.get(x.name).rank).length;
@@ -167,7 +171,7 @@
         <dt>Power price, 2024</dt><dd>${fmt(st.cents_kwh, 2)}¢/kWh</dd>
         <dt>Monthly bill, 2024</dt><dd>$${fmt(st.bill_usd, 2)}</dd>
         <dt>Grid operators</dt><dd>${esc(st.detail.rtos || 'n/a')}</dd></dl>
-      ${st.detail.note ? `<p class="mm-small">${esc(st.detail.note)}</p>` : ''}`;
+      ${rcLine}${st.detail.note ? `<p class="mm-small">${esc(st.detail.note)}</p>` : ''}`;
     if (st.abbr === 'TX') { const s = $('sec-value'); s.open = true; c.insertAdjacentHTML('beforeend', '<p class="mm-small"><a href="#sec-value">Where one battery earns most inside Texas</a></p>'); }
     utilities(st);
     if (scroll && innerWidth <= 700) { $('ov-body').hidden = false; $('ov-toggle').setAttribute('aria-expanded', 'true'); c.scrollIntoView({ block: 'nearest' }); }
@@ -213,7 +217,8 @@
   function staticSections() {
     const er = E.ercot;
     $('ercot').innerHTML = !er || !er.available ? `<p class="mm-small">${esc((er && er.summary) || 'Not available in this build.')}</p>`
-      : `<p class="mm-small">${esc(er.summary)}</p><div class="mm-scroll"><table class="ds-table"><thead><tr><th>Node</th><th>Zone</th><th class="num">p95 $/MWh above zone</th></tr></thead><tbody>` +
+      : `<p class="notice mm-flag"><b>What this is.</b> Resource nodes are where generators settle. The table shows how far a node's day-ahead price ran above its load zone, which is a sign of grid congestion near that node. Homes settle at load zone prices, so this spread is not what a home battery earns. For battery value, see <a href="#sec-value">Where one battery earns most</a>.</p>` +
+        `<p class="mm-small">${esc(er.summary)}</p><div class="mm-scroll"><table class="ds-table"><thead><tr><th>Resource node (generator)</th><th>Load zone</th><th class="num">p95 day-ahead $/MWh above its load zone</th></tr></thead><tbody>` +
         er.nodes.slice(0, 10).map((n) => `<tr><td>${esc(n.name)}</td><td>${esc(n.zone)}</td><td class="num">${fmt(n.p95_basis, 2)}</td></tr>`).join('') + '</tbody></table></div>';
     $('omitted').innerHTML = E.omitted.map((o) => `<li><b>${esc(o.title)}.</b> ${esc(o.reason)}</li>`).join('');
     const mine = [M.sources.reliability, M.sources.price].map((s) => ({ title: s.title, url: s.url, detail: '' }));
@@ -258,7 +263,14 @@
       p.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); detail(s.name); } });
       svg.append(p);
     });
-    states.filter((s) => s.footprint).forEach((s) => svg.append(el('path', { d: s.path, class: 'fp ' + (s.footprint.status === 'operating' ? 'solid' : 'dashed') })));
+    // Operating: solid. Announced: dashed. Equipment and installation only (not retail, not a utility program): dotted.
+    // The dotted stroke is set here because market.css only styles solid and dashed.
+    states.filter((s) => s.footprint).forEach((s) => {
+      const kind = s.footprint.status === 'operating' ? 'solid' : s.footprint.status === 'equipment' ? 'dotted' : 'dashed';
+      const p = el('path', { d: s.path, class: 'fp ' + kind });
+      if (kind === 'dotted') p.style.cssText = 'stroke:var(--blue-60);stroke-dasharray:1 4;stroke-linecap:round';
+      svg.append(p);
+    });
     $('map').append(svg);
     svg.addEventListener('wheel', (e) => { e.preventDefault(); const [x, y] = toMap(e); zoomAt(e.deltaY > 0 ? 1.15 : 1 / 1.15, x, y); }, { passive: false });
     const ptr = new Map(); let last = null, moved = 0;

@@ -196,12 +196,68 @@ test('default case does not hinge on the toll placeholder', () => {
   assert.match(F.explain(t)[0], /^The utility toll is the biggest revenue line.*labeled assumption/);
 });
 
-test('retail margin stays at 0 with its math and reason shown', () => {
+test('retail margin default is derived: the shown math reproduces the value', () => {
   const f = field('retailMarginMonthly');
-  assert.equal(f.value, 0);
-  assert.equal(f.kind, 'assumption');
-  assert.match(f.note, /Left at \$0 on purpose/);
-  assert.match(f.note, /x kWh/);
+  assert.equal(f.kind, 'assumption'); // one input (other supply cost) is a labeled assumption
+  assert.match(f.source, /english-oncor-efl-core\.pdf$/);
+  // (energy charge - load-weighted wholesale - other supply cost) x kWh a month, in dollars.
+  const energy = 7.7, wholesale = 3.70, other = 2.0, kwh = 1096;
+  near((energy - wholesale - other) * kwh / 100, 21.92, 1e-9);
+  assert.equal(f.value, Math.round((energy - wholesale - other) * kwh / 100));
+  for (const re of [/7\.7 cents\/kWh/, /3\.70 cents\/kWh/, /2\.0 cents\/kWh, an assumption/, /1,096 kWh/, /EIA Table 5A/, /\$21\.92/, /passed through/, /set it to 0 for a third-party owner/]) assert.match(f.note, re);
+});
+
+test('retail margin: the default moves debt from 17% to about 27% of cost, and $0 says it is left out', () => {
+  const r = F.sizeDebt(defaultInputs());
+  near(r.counted.retail, 22 * 12, 1e-9);
+  near(r.debtPctCapex, 0.267, 0.001);
+  near(r.debt, 3666.76, 0.01);
+  near(r.equity, 5674.42, 0.01);
+  assert.match(F.explain(r).join(' '), /Retail energy margin adds \$264 a year.*only to an owner that is also the home's retail provider/);
+  const zero = F.sizeDebt(defaultInputs({ retailMarginMonthly: 0 }));
+  near(zero.debtPctCapex, 0.168, 0.001);
+  const text = F.explain(zero).join(' ');
+  assert.match(text, /Retail energy margin is \$0 here, so this answer leaves out what a retail provider normally earns/);
+  assert.match(text, /\$22 a month/);
+  // The one-click example in the copy matches the default.
+  assert.match(text, new RegExp('\\$' + field('retailMarginMonthly').value + ' a month'));
+  // No debt at all still says the margin is left out.
+  const none = F.sizeDebt(defaultInputs({ retailMarginMonthly: 0, memberFeeMonthly: 0, opexPerYear: 5000 }));
+  assert.equal(none.binding, 'none');
+  assert.match(F.explain(none).join(' '), /leaves out what a retail provider/);
+  // Negative margin is named, not hidden.
+  assert.match(F.explain(F.sizeDebt(defaultInputs({ retailMarginMonthly: -5 }))).join(' '), /Retail energy margin is negative/);
+});
+
+test('export settlement copy cites the Protocols and splits owner cases', () => {
+  const t = F.EXPORT_TEXT;
+  for (const re of [/11\.4\.4\.3/, /6\.6\.3\.2/, /1 MW or less/, /home's retail provider/, /no ADER aggregation/, /third-party owner/, /ancillary services/]) assert.match(t, re);
+  assert.doesNotMatch(t, /only if the battery is in an ERCOT ADER aggregation/);
+  const r = F.sizeDebt(defaultInputs());
+  assert.ok(F.explain(r).includes(t));
+  // Not shown when arbitrage does not count.
+  assert.ok(!F.explain(F.sizeDebt(defaultInputs({ revenueCase: 'toll' }))).includes(t));
+});
+
+test('tax credit: bridge-loan simplification is stated, and $0 equity always has a note', () => {
+  const r = F.sizeDebt(defaultInputs());
+  assert.match(F.explain(r).join(' '), /bridge loan repaid when the credit sells/);
+  assert.match(F.BRIDGE_TEXT, /advance rate on the full cost/);
+  // The advance cap uses the full installed cost, not cost net of the credit.
+  near(r.advanceCap, 0.7 * r.capex, 1e-9);
+  // Net-cost cap binds: equity 0, and both the binding line and explain say why.
+  const big = F.sizeDebt(defaultInputs({ retailMarginMonthly: 300 }));
+  assert.equal(big.binding, 'cost');
+  assert.equal(big.equity, 0);
+  assert.match(F.bindingText(big), /equity is \$0/);
+  const text = F.explain(big).join(' ');
+  assert.match(text, /so equity is \$0/);
+  assert.ok(text.includes(F.EQUITY_ZERO_TEXT));
+  // Sweep: whenever equity is 0 with something to finance, a line says so.
+  for (const m of [0, 50, 100, 200, 400, 800]) for (const adv of [50, 70, 90, 100]) {
+    const x = F.sizeDebt(defaultInputs({ retailMarginMonthly: m, advancePct: adv }));
+    if (x.equity <= 0 && x.netCapex > 0) assert.match(F.explain(x).join(' ') + F.bindingText(x), /equity is \$0/, `margin ${m} advance ${adv}`);
+  }
 });
 
 test('generic fleet: 1,000 batteries, no company valuation or member count in the copy', () => {
@@ -336,8 +392,9 @@ test('copy: cost basis label, location pricing, export and ADER, depreciation', 
   assert.match(field('upfront').note, /vary by address/);
   const html = fs.readFileSync(path.join(__dirname, '../finance.html'), 'utf8');
   assert.match(html, /ercot\.com\/mktrules\/pilots\/ader/);
-  assert.match(html, /export earns the load-zone price only if/);
+  assert.doesNotMatch(html, /export earns the load-zone price only if/);
+  for (const re of [/Who keeps the export value/, /\(a\) The owner is the home's retail provider/, /\(b\) The owner is a third party/, /\(c\) <a href="https:\/\/www\.ercot\.com\/mktrules\/pilots\/ader">/, /11\.4\.4\.3/, /6\.6\.3\.2/, /25\.217\(f\)\(2\)/, /Not settled by these sources/, /bridge loan sized on the credit/]) assert.match(html, re);
   assert.match(html, /<strong>Depreciation<\/strong> is not modeled/);
   assert.doesNotMatch(html, /at face value/);
-  assert.match(F.explain(F.sizeDebt(defaultInputs())).join(' '), /ADER aggregation/);
+  assert.match(F.explain(F.sizeDebt(defaultInputs())).join(' '), /no ADER aggregation/);
 });

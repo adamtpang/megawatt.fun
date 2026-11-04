@@ -45,10 +45,3 @@ The stored-energy and reserve limits apply to the fake actuator in both modes. A
 ## What would make it adoptable
 
 A Base maintainer must first identify a useful missing regression case and approve the actual command/receipt semantics. Substitute their adapter and incident traces, then verify restart boundaries, uncertain-result reconciliation, clock limits, cancellation/supersession, disk failures and hardware behavior. That owner and input contract are not yet established. A useful contribution is an inspectable failure test, not a promise that Base will ship this code.
-
-## 60-second demo
-
-1. Open Restart evidence on `/bench`. These are saved local checks, not live device controls.
-2. Find Action sent, receipt not saved. The baseline applies twice; durable mode applies once and reports uncertainty.
-3. Find Intent saved, action not sent. Durable mode sends nothing. Explain the missed-delivery cost.
-4. Download the source and run the two commands. Compare the report bytes and source hash.

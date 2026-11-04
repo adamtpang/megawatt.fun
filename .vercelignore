@@ -8,8 +8,9 @@
 !demo/dispatch-bench/README.md
 !demo/dispatch-bench/RESTARTS.md
 !demo/dispatch-study/README.md
-!demo/dispatch-study/DEMO.md
 !demo/texas-deployment/README.md
+!demo/texas-deployment/METHOD.md
+!demo/texas-deployment/VALIDATION.md
 !vendor/airsup/NOTICE.md
 
 # docs/ holds working notes; only the public API reference is served.

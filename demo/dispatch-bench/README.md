@@ -1,6 +1,6 @@
 # Dispatch Bench
 
-An independent, inspectable test of battery dispatch commands using public ERCOT prices and synthetic devices. Live demo: https://megawatt.fun/bench. Not affiliated with Base Power; built after the September 25–27, 2026 AITX event. No claim of entry, award, or validated customer economics.
+An independent, inspectable test of battery dispatch commands using public ERCOT prices and synthetic devices. Live demo: https://megawatt.fun/bench. Not affiliated with Base Power. The results are not validated customer economics.
 
 ## Restart evidence
 
@@ -58,11 +58,3 @@ Tests verify physical energy conservation with split losses, healthy closure at 
 There are no batteries, real network workers, durable command queues, process restarts, authentication, or utility APIs. Devices are identical; failures are constructed; a single public price day is not representative. The model excludes home loads, grid outages, tariffs, degradation, market impact, ancillary services, settlement rules, production latency distributions, and Base's private software.
 
 The new restart fixture covers actual local process death and durable receipt handling with a synthetic actuator. It still needs a maintainer-approved command contract, a device/transport adapter and observed traces from a consenting system owner. No production adoption or real transport/hardware validation is claimed.
-
-## 90-second demo script
-
-- “This is a real recorded Texas price day and a simulated fleet. The question is what happens when dispatch commands go wrong.”
-- “On clean transport, both price plans agree. The fixed-clock schedule is our simple baseline.”
-- “Now lose an acknowledgement. A retry can spend household backup if the command isn't idempotent. Select a device and read the ledger.”
-- “Turn on delays and stale telemetry. The guard preserves reserve, but misses scheduled delivery. The chart and inventory columns show that cost.”
-- “Every run uses the same seed, and you can export the exact trace. This is a test bench, not a production controller or a claim about Base's customer returns.”

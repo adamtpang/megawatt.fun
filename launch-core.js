@@ -149,7 +149,7 @@
     if (retail < 0.15) {
       return { path: 'utility', retailAllowed: true, reason: 'Only ' + pct + '% of residential customers in ' + state.name + ' buy from a competitive supplier. Retail choice exists on paper, but the market is thin. A utility partnership is likely the faster route to volume.' };
     }
-    return { path: 'retail', retailAllowed: true, reason: pct + '% of residential customers in ' + state.name + ' buy from a competitive supplier' + (wholesale > 0.5 ? ', and ' + Math.round(wholesale * 100) + '% are inside an ISO/RTO' : '') + '. A licensed retail provider can sell a battery plan directly, the way Base does in Texas and Illinois.' };
+    return { path: 'retail', retailAllowed: true, reason: pct + '% of residential customers in ' + state.name + ' buy from a competitive supplier' + (wholesale > 0.5 ? ', and ' + Math.round(wholesale * 100) + '% are inside an ISO/RTO' : '') + '. A licensed retail provider can sell a battery plan directly, as home-battery companies do in Texas and Illinois.' };
   }
 
   // Email tennis loops for the steps in a path, with state-specific round costs merged in.

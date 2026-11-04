@@ -132,7 +132,9 @@
       kpi('Installed cost', usd(r.capex), inp.kwh > 0 ? `${usd(r.capex / inp.kwh)}/kWh` : 'no energy capacity'),
       kpi('CFADS, year 1', usd(r.year1Cfads), `weakest year in term ${usd(r.minCfads)}`),
       kpi('Debt', usd(r.debt), `${pct(r.debtPctCapex)} of cost`),
-      kpi('Equity', usd(r.equity), `after ${usd(r.upfront)} from the member and ${usd(r.itc)} from selling the tax credit`),
+      kpi('Equity', usd(r.equity), r.equity <= 0 && r.netCapex > 0
+        ? 'none: the loan covers the whole net cost (see What this means)'
+        : `after ${usd(r.upfront)} from the member and ${usd(r.itc)} from selling the tax credit`),
     );
     const b = $('binding');
     b.textContent = F.bindingText(r);
@@ -156,7 +158,7 @@
     const off = (k) => (r.counted[k] === 0 && r.full[k] > 0 ? `${usd(r.full[k])} not counted in this case` : null);
     t.append(el('tbody', {},
       row('Member fees', r.counted.member, null),
-      row('Retail energy margin', r.counted.retail, null),
+      row('Retail energy margin', r.counted.retail, r.counted.retail === 0 ? 'left out (set to $0)' : 'only if the owner is the home\'s retail provider'),
       row('Utility toll', r.counted.toll, off('toll')),
       row('Energy arbitrage', r.counted.arb, off('arb')),
       row('Ancillary services (ADER)', r.counted.anc, off('anc')),

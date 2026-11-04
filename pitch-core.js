@@ -83,6 +83,8 @@
     pura: { title: 'Texas Utilities Code, chapter 39 (PURA): unbundling of generation, retail and delivery, sec. 39.051', url: 'https://statutes.capitol.texas.gov/Docs/UT/htm/UT.39.htm', retrieved: '2026-11-03' },
     agents: { title: 'Base Power, agents.md: service areas, and Base Texas REP, LLC (PUCT license 10338)', url: 'https://www.basepowercompany.com/agents.md', retrieved: '2026-11-03' },
     il: { title: 'Illinois Power Agency, petition for approval of the 2026 Electricity Procurement Plan (20 ILCS 3855/1-75)', url: 'https://ipa.illinois.gov/content/dam/soi/en/web/ipa/documents/20250929-petition-for-approval-2026-electricity-procurement-plan-29-sept-2025.pdf', retrieved: '2026-11-03' },
+    ipaplan: { title: 'Illinois Power Agency, 2026 Electricity Procurement Plan, filed 29 Sept 2025: ComEd capacity "secured by ComEd through the PJM Reliability Pricing Model"', url: 'https://ipa.illinois.gov/content/dam/soi/en/web/ipa/documents/20250929-2026-electricity-procurement-plan-filed-29-sept-2025.pdf', retrieved: '2026-11-04' },
+    pahb2264: { title: 'Pennsylvania House Bill 2264 (2025-26), virtual power plant program: passed the House 16 June 2026, in Senate committee since 24 June 2026, not law', url: 'https://www.palegis.us/legislation/bills/2025/hb2264', retrieved: '2026-11-04' },
     pa: { title: '52 Pa. Code sec. 54.186, default service procurement plans (66 Pa.C.S. sec. 2807(e))', url: 'https://www.law.cornell.edu/regulations/pennsylvania/52-Pa-Code-SS-54-186', retrieved: '2026-11-03' }
   };
   // ERCOT transmission cost allocation, for co-ops and city utilities that buy their own power.
@@ -99,9 +101,39 @@
   // States where an investor-owned utility with any retail-choice homes owns no plants and its default supply is
   // bought under a state-approved procurement plan. Only states checked here are listed.
   var DEFAULT_SUPPLY_STATES = {
-    IL: { who: 'the Illinois Power Agency, under a plan the Illinois Commerce Commission approves', source: 'il' },
-    PA: { who: 'competitive procurement under a plan the Pennsylvania PUC approves', source: 'pa' }
+    IL: { who: 'the Illinois Power Agency (energy), under a plan the Illinois Commerce Commission approves', source: 'il' },
+    PA: { who: 'competitive procurement under a plan the Pennsylvania PUC approves', source: 'pa',
+      pending: 'No Pennsylvania law yet gives utilities a home-battery or virtual power plant program: House Bill 2264, which would require one, passed the House on 16 June 2026 and sits in a Senate committee.', pendingSource: 'pahb2264' }
   };
+
+  /* Illinois Public Act 104-0458 (SB 25, signed 8 January 2026, effective 1 June 2026; called the Clean and Reliable
+     Grid Affordability Act in press, though the enacted text has no short title). Section 16-107.9 of the Public Utilities
+     Act makes each utility with more than 300,000 customers on 1 January 2023 file a virtual power plant tariff by
+     31 December 2027, for Commission approval by 31 December 2028. Customers with batteries enroll through aggregators
+     or directly; grid services include reducing the utility's capacity and transmission obligations; pay is upfront or
+     per performance, with no non-performance penalties and no aggregator collateral. That is a program pathway for
+     home batteries at ComEd and Ameren Illinois, so they are pitchable, not wires-only. The separate storage procurement
+     in 20 ILCS 3855/1-75(d-20) is for stand-alone, utility-scale storage, so it is not the home-battery route.
+     Checked on ilga.gov 2026-11-04. */
+  var IL_VPP_SOURCES = {
+    pa104458: { title: 'Illinois Public Act 104-0458 (SB 25), enrolled text: new 220 ILCS 5/16-107.9, Virtual power plant program, and 20 ILCS 3855/1-75(d-20), energy storage', url: 'https://www.ilga.gov/documents/legislation/PublicActs/104/104-0458.htm', retrieved: '2026-11-04' },
+    sb25: { title: 'Illinois General Assembly, SB 25 (104th GA) bill status: Governor approved 8 January 2026, effective 1 June 2026, Public Act 104-0458', url: 'https://www.ilga.gov/Legislation/BillStatus?DocNum=25&GAID=18&DocTypeID=SB&SessionID=114&GA=104', retrieved: '2026-11-04' },
+    ipaplan: WIRES_SOURCES.ipaplan
+  };
+  var IL_VPP = {
+    '4110-IL': { name: 'ComEd', market: 'PJM', capacity: 'ComEd buys energy for its default customers through Illinois Power Agency procurements, and secures their capacity itself in PJM\'s capacity auction (the IPA\'s 2026 plan).' },
+    '56697-IL': { name: 'Ameren Illinois', market: 'MISO', capacity: 'Ameren Illinois buys energy, and up to 75% of its default customers\' capacity, through Illinois Power Agency procurements; the rest of its capacity clears in MISO\'s auction (the IPA\'s 2026 plan).' }
+  };
+  var IL_VPP_DATES = { file: '31 December 2027', approve: '31 December 2028' };
+  function ilVpp(u) {
+    var v = u && own(IL_VPP, u.id);
+    if (!v) return null;
+    return { id: u.id, name: v.name, market: v.market, capacity: v.capacity, fileBy: IL_VPP_DATES.file, approveBy: IL_VPP_DATES.approve,
+      statute: '220 ILCS 5/16-107.9 (Public Act 104-0458)',
+      what: 'Illinois law now requires ' + v.name + ' to file a virtual power plant tariff by ' + IL_VPP_DATES.file + ', for Commission approval by ' + IL_VPP_DATES.approve + ' (220 ILCS 5/16-107.9, added by Public Act 104-0458, effective 1 June 2026).',
+      how: 'Homes with batteries enroll through an aggregator or directly with the utility. The grid services must include reducing ' + v.name + '\'s capacity and transmission obligations and daily wholesale energy arbitrage. Pay is upfront or per performance during grid events, with a 5-year performance rate, no penalties for non-performance and no aggregator collateral.',
+      sources: ['pa104458', 'sb25', 'ipaplan'] };
+  }
   var RETAIL_ALL = 0.99; // EIA-861 delivery share at or above this: every home buys energy from a retail provider
 
   // Returns null for a utility that buys power, or { basis, reason, sources, baseRetail } for a wires-only one.
@@ -124,13 +156,13 @@
       };
     }
     var ds = own(DEFAULT_SUPPLY_STATES, u.state);
-    if (ds && isNum(r) && r > 0) {
+    if (ds && isNum(r) && r > 0 && !own(IL_VPP, id)) {
       var k = own(KNOWN, id);
       return {
         basis: 'state-default-supply',
         what: name + ' delivers power but does not own plants or choose what it buys.',
-        reason: pct + ' of its residential customers already buy energy from a retail supplier (EIA-861 2025). The rest get default supply bought by ' + ds.who + '.',
-        sources: ['eia', ds.source],
+        reason: pct + ' of its residential customers already buy energy from a retail supplier (EIA-861 2025). The rest get default supply bought by ' + ds.who + '.' + (ds.pending ? ' ' + ds.pending : ''),
+        sources: ds.pendingSource ? ['eia', ds.source, ds.pendingSource] : ['eia', ds.source],
         baseRetail: k && /retail/i.test(k.note) ? k.note : null,
         baseSource: k && /retail/i.test(k.note) ? 'known' : null
       };
@@ -141,7 +173,9 @@
   // Source objects by key, for the wires-only notice and the ERCOT transmission note.
   function extraSources(u, pick) {
     var out = [];
-    if (pick && pick.wires) {
+    if (pick && pick.vpp) {
+      pick.vpp.sources.forEach(function (k) { var s = own(IL_VPP_SOURCES, k); if (s) out.push({ key: k, title: s.title, url: s.url, retrieved: s.retrieved }); });
+    } else if (pick && pick.wires) {
       pick.wires.sources.forEach(function (k) { var s = own(WIRES_SOURCES, k); if (s) out.push({ key: k, title: s.title, url: s.url, retrieved: s.retrieved }); });
       if (pick.wires.baseSource === 'agents') out.push({ key: 'agents', title: WIRES_SOURCES.agents.title, url: WIRES_SOURCES.agents.url, retrieved: WIRES_SOURCES.agents.retrieved });
     } else if (u && u.detail && isErcotOnly(u.detail.rtos)) {
@@ -187,6 +221,34 @@
       nameplateMw: nameplateMw, roundedUp: nameplateMw - mw > 1e-9 * Math.max(1, mw) };
     if (terms && inRange('memberReservePct', terms.memberReservePct)) out.dispatchMwh = mwh * (1 - terms.memberReservePct / 100);
     return out;
+  }
+
+  /* Illustrative accreditation, an assumption labeled as one. Nameplate is not what a capacity market counts. One published
+     example: NYISO's final capacity accreditation factor for its 2-Hour Energy Duration Limited class, 2026-2027 capability
+     year, Rest of State, CHPE-In case: 64.65%. NYISO counts a storage unit at the power it can hold for the class's 2 hours,
+     so a battery with a backup reserve is first derated to (usable kWh / 2 h). PJM has no 2-hour class; its smallest storage
+     class, 4-hour, is rated 59% for the 2028/2029 auction. This utility's market may count homes differently. */
+  var ACCREDITATION_EXAMPLE = {
+    pct: 64.65, hours: 2, reservePct: 20,
+    market: 'NYISO', label: 'NYISO 2-Hour Energy Duration Limited class, 2026-2027 capability year, Rest of State (CHPE-In case)',
+    source: { title: 'NYISO, Final Capacity Accreditation Factors for the 2026-2027 Capability Year', url: 'https://www.nyiso.com/documents/20142/41593818/Final-Capacity-Accreditation-Factors-for-the-2026-2027-capability-year.pdf/83685470-882d-66d2-e6d8-68ed4d449e44', retrieved: '2026-11-04' },
+    pjm: { pct: 59, label: 'PJM 4-hour storage ELCC class rating, 2028/2029 Base Residual Auction', source: { title: 'PJM, 2028/2029 BRA ELCC Class Ratings', url: 'https://www.pjm.com/-/media/DotCom/planning/res-adeq/elcc/28-29-bra-elcc-class-ratings.pdf', retrieved: '2026-11-04' } }
+  };
+  // Returns null without a program. reservePct: your memberReservePct, else the 20% assumed here (the same reserve /market's zone values use).
+  function accreditedExample(prog, terms) {
+    if (!prog) return null;
+    var A = ACCREDITATION_EXAMPLE;
+    var yoursReserve = !!(terms && inRange('memberReservePct', terms.memberReservePct));
+    var reserve = yoursReserve ? terms.memberReservePct : A.reservePct;
+    var usableKwh = prog.kwh * (1 - reserve / 100);
+    var kwFor2h = Math.min(prog.kw, usableKwh / A.hours);
+    var mwFor2h = prog.batteries * kwFor2h / 1000;
+    var accreditedMw = mwFor2h * A.pct / 100;
+    return { pct: A.pct, hours: A.hours, reservePct: reserve, reserveYours: yoursReserve, usableKwh: usableKwh, kwFor2h: kwFor2h, mwFor2h: mwFor2h,
+      accreditedMw: accreditedMw, shareOfNameplate: prog.nameplateMw > 0 ? accreditedMw / prog.nameplateMw : null, label: A.label, source: A.source, pjm: A.pjm,
+      text: 'Illustration, not this utility\'s rule: with ' + trimDigits(reserve, 1) + '% of each battery held back for the home' + (yoursReserve ? ' (your file)' : ' (assumed)') + ', about ' + trimDigits(usableKwh, 1) + ' kWh is usable, so a battery can hold ' +
+        trimDigits(kwFor2h, 1) + ' kW for ' + A.hours + ' hours. That is ' + fmtPower(mwFor2h) + ' of 2-hour capacity. At the ' + A.label + ' factor of ' + A.pct + '%, it would count as about ' + fmtPower(accreditedMw) + ', ' +
+        Math.round(accreditedMw / prog.nameplateMw * 100) + '% of nameplate. PJM has no 2-hour class; its 4-hour storage class is rated ' + A.pjm.pct + '% for 2028/2029.' };
   }
 
   // Share of utilities with a published value strictly below v. Null in, null out.
@@ -240,6 +302,13 @@
       var name = shortName(u);
       return { offer: opts.largeLoads ? OFFERS.speed : OFFERS.distribution, variant: 'wires', rule: 0, wires: w,
         reason: w.what + ' ' + w.reason + ' In its area a home-battery company reaches homes as a retail provider, so the useful conversation with ' + name + ' is about interconnection and distribution-level value' + (opts.largeLoads ? ', including how batteries can help large loads connect' : '') + ', not a capacity purchase.' };
+    }
+    // Rule 0, second case: state law sets a utility program for home batteries (Illinois VPP tariff). Pitch into that program.
+    var vpp = ilVpp(u);
+    if (vpp) {
+      return { offer: opts.largeLoads ? OFFERS.speed : OFFERS.bulk, variant: 'vpp', rule: 0, vpp: vpp,
+        reason: vpp.what + ' ' + vpp.how + ' So the offer is to enroll a home-battery fleet in that program as an aggregator, sized for peak reduction that cuts ' + vpp.name + '\'s capacity and transmission obligations. ' + vpp.capacity +
+          (opts.largeLoads ? ' You also marked a large-load queue, so the lead is Speed to power, with the VPP tariff as the payment route.' : '') };
     }
     if (opts.largeLoads) {
       return { offer: OFFERS.speed, variant: null, rule: 1, reason: 'You marked that large loads are waiting to connect. That is your input, not public data.' };
@@ -317,6 +386,9 @@
   // An existing Base partner (KNOWN with partner: true): an expansion conversation, never a cold prospect.
   function partnerOf(id) { var k = own(KNOWN, id); return k && k.partner === true ? k : null; }
   var PARTNER_LABEL = 'Already a Base partner';
+  /* Base's Utilities page (checked 2026-11-04, no date on the page) says "3 metro areas, 6 utility partners" and
+     "Across 3 metros and 6 utilities in the last 12 months". This page lists 7, each with its own dated source. */
+  var PARTNER_COUNT_NOTE = 'This page lists 7 Base utility partners, each with a dated public source. Base\'s Utilities page says "3 metro areas, 6 utility partners" and "Across 3 metros and 6 utilities in the last 12 months", with no date on the page (checked 4 November 2026), and names only CoServ. The counts can differ without either being wrong: Base\'s figure is about deployments in the last 12 months, and Central Georgia EMC (announced 13 October 2026, first installs in 2027) has nothing deployed yet; a pilot such as El Paso Electric\'s may also be counted differently. Base does not list its six, so which one is left out is not confirmed.';
   function partnerFrame(u) {
     var k = u && partnerOf(u.id);
     if (!k) return null;
@@ -413,6 +485,14 @@
       q.push('Retail side: homes here buy energy from a retail provider. Which retail providers already offer a battery plan in this area, and how does ' + nm + ' work with them?');
       q.push('Approval path: what does ' + nm + "'s regulator need to see before it treats batteries as a distribution resource, and on what timeline?");
       return q;
+    }
+    if (pick.vpp) {
+      var vn = pick.vpp.name;
+      q.push('Tariff timeline: ' + vn + ' must file its virtual power plant tariff by ' + pick.vpp.fileBy + '. Is a draft or a stakeholder process open now, and can a pilot enroll homes before approval?');
+      q.push('Aggregator terms: what will the tariff require of an aggregator (telemetry, dispatch notice, minimum fleet size), given the statute bars aggregator collateral and direct utility dispatch of aggregated homes?');
+      q.push('Payment: upfront or per performance, and how is the 5-year performance rate per kW of peak reduction set against ' + vn + '\'s ' + pick.vpp.market + ' capacity and transmission costs?');
+      q.push('Grid events: which hours and seasons will ' + vn + ' call, and how is average capacity during an event measured?');
+      q.push('Customer relationship: many homes here buy energy from a retail supplier. Can they enroll their battery in ' + vn + '\'s program no matter who supplies their energy?');
     }
     var pf = partnerFrame(u);
     if (pf) {
@@ -756,7 +836,8 @@
     signalPercentiles: signalPercentiles, strongestSignal: strongestSignal, pickOffer: pickOffer, headline: headline,
     WIRES_SOURCES: WIRES_SOURCES, TCOS_SOURCES: TCOS_SOURCES, KNOWN_TDSP: KNOWN_TDSP, DEFAULT_SUPPLY_STATES: DEFAULT_SUPPLY_STATES, ERCOT_PEAK_VALUE: ERCOT_PEAK_VALUE,
     wiresOnly: wiresOnly, extraSources: extraSources, known: function (id) { return own(KNOWN, id); }, own: own, inRange: inRange,
-    partnerOf: partnerOf, partnerFrame: partnerFrame, PARTNER_LABEL: PARTNER_LABEL, stateMarket: stateMarket, marketNote: marketNote, MARKET_MAJORITY: MARKET_MAJORITY, isAdjustment: isAdjustment,
+    partnerOf: partnerOf, partnerFrame: partnerFrame, PARTNER_LABEL: PARTNER_LABEL, PARTNER_COUNT_NOTE: PARTNER_COUNT_NOTE,
+    IL_VPP: IL_VPP, IL_VPP_SOURCES: IL_VPP_SOURCES, ilVpp: ilVpp, ACCREDITATION_EXAMPLE: ACCREDITATION_EXAMPLE, accreditedExample: accreditedExample, stateMarket: stateMarket, marketNote: marketNote, MARKET_MAJORITY: MARKET_MAJORITY, isAdjustment: isAdjustment,
     callScore: callScore, rankState: rankState, landedCost: landedCost, questions: questions, fmtNum: fmtNum,
     TERMS: TERMS, TERMS_BY_KEY: TERMS_BY_KEY, TARGET_COLUMNS: TARGET_COLUMNS, TEMPLATE_COLUMNS: TEMPLATE_COLUMNS, publicTerms: publicTerms,
     loadYourData: loadYourData, orderWithTargets: orderWithTargets, templateRows: templateRows, tollValue: tollValue, utilityIndex: utilityIndex, matchUtility: matchUtility,

@@ -76,7 +76,7 @@
       "id": "launch_path",
       "group": "Time to launch",
       "label": "Retail-choice path",
-      "help": "Proxy, not a permit clock. 1 when EIA-861 2025 residential delivery share is at least 30%, otherwise 0. A 1 means a large share of homes can be served without a new utility contract. A 0 means the public path is a utility or co-op partnership. The 30% cut is a label for this page, not a legal definition of retail choice. DSIRE, SolarAPP+, and a full state interconnection-time table are not in this factor.",
+      "help": "Proxy, not a permit clock. 1 when state law lets residential customers buy energy from a competitive supplier today (open residential retail choice), otherwise 0. Each state's flag cites its commission or statute and was checked 2026-11-04. Capped or closed programs count as 0: California (Direct Access capped, homes mostly on community choice aggregators) and Michigan (10% cap with a waiting list). A utility row also needs EIA-861 2025 delivery customers, since co-ops and city utilities in a choice state are usually exempt. A 1 means a licensed retail supplier can sell a battery plan without a new utility contract. A 0 means the public path is a utility or co-op partnership. DSIRE, SolarAPP+, and a full state interconnection-time table are not in this factor.",
       "weight": 1
     }
   ],
@@ -110,7 +110,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 13,600,080 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 13099623,
         "battery_installs": 5670,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": true,
+          "source": "Public Utility Commission of Texas, Power to Choose",
+          "url": "https://www.powertochoose.org/",
+          "note": "Open in the ERCOT competitive areas. City utilities, co-ops and areas outside ERCOT are not open.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -130,7 +137,7 @@
         "batteries": 22.515354,
         "demand_response": 46.066702,
         "dynamic_pricing": 471.723377,
-        "launch_path": 1.0
+        "launch_path": 0.0
       },
       "detail": {
         "rtos": "CAISO 82%",
@@ -138,7 +145,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 15,912,615 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 14839873,
         "battery_installs": 334125,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": false,
+          "source": "CPUC, Direct Access",
+          "url": "https://www.cpuc.ca.gov/consumer-support/consumer-programs-and-services/electrical-energy-and-energy-efficiency/community-choice-aggregation-and-direct-access-/direct-access",
+          "note": "Direct Access is capped and reopened only to non-residential load. Homes cannot newly choose a supplier; most homes on delivery service are in community choice aggregators, which are local government programs, not a supplier a home picks.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -166,7 +180,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 2,339,673 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 2088933,
         "battery_installs": 564,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": false,
+          "source": "EIA Today in Energy, 8 Nov 2018 (map corrected 17 Jan 2019): residential retail choice participation has declined since 2014 peak",
+          "url": "https://www.eia.gov/todayinenergy/detail.php?id=37452",
+          "note": "Not among the 13 states and DC that EIA lists with active, statewide residential retail choice, and not one of the four (MI, NV, OR, VA) it lists with limited, mostly non-residential choice. EIA's count is from 2018; no newer statewide program was found on 2026-11-04.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -198,7 +219,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 4,934,925 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 4850811,
         "battery_installs": 491,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": false,
+          "source": "EIA Today in Energy, 8 Nov 2018 (map corrected 17 Jan 2019): residential retail choice participation has declined since 2014 peak",
+          "url": "https://www.eia.gov/todayinenergy/detail.php?id=37452",
+          "note": "Not among the 13 states and DC that EIA lists with active, statewide residential retail choice, and not one of the four (MI, NV, OR, VA) it lists with limited, mostly non-residential choice. EIA's count is from 2018; no newer statewide program was found on 2026-11-04.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -226,7 +254,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 2,998,862 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 2867572,
         "battery_installs": 800,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": false,
+          "source": "EIA Today in Energy, 8 Nov 2018 (map corrected 17 Jan 2019): residential retail choice participation has declined since 2014 peak",
+          "url": "https://www.eia.gov/todayinenergy/detail.php?id=37452",
+          "note": "Not among the 13 states and DC that EIA lists with active, statewide residential retail choice, and not one of the four (MI, NV, OR, VA) it lists with limited, mostly non-residential choice. EIA's count is from 2018; no newer statewide program was found on 2026-11-04.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -254,7 +289,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 1,363,788 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 1869344,
         "battery_installs": 2493,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": false,
+          "source": "Oregon PUC, Direct Access",
+          "url": "https://www.oregon.gov/puc/utilities/Pages/Direct-Access.aspx",
+          "note": "Direct access is for nonresidential consumers only.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -282,7 +324,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 1,472,695 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 2953515,
         "battery_installs": 848,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": false,
+          "source": "EIA Today in Energy, 8 Nov 2018 (map corrected 17 Jan 2019): residential retail choice participation has declined since 2014 peak",
+          "url": "https://www.eia.gov/todayinenergy/detail.php?id=37452",
+          "note": "Not among the 13 states and DC that EIA lists with active, statewide residential retail choice, and not one of the four (MI, NV, OR, VA) it lists with limited, mostly non-residential choice. EIA's count is from 2018; no newer statewide program was found on 2026-11-04.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -310,7 +359,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 3,829,887 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 3684498,
         "battery_installs": 902,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": false,
+          "source": "Code of Virginia sec. 56-577",
+          "url": "https://law.lis.virginia.gov/vacode/title56/chapter23/section56-577/",
+          "note": "Choice is for large non-residential customers; a home may buy 100% renewable supply only where the utility has no approved 100% renewable tariff.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -338,7 +394,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 2,808,089 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 3199487,
         "battery_installs": 39,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": false,
+          "source": "EIA Today in Energy, 8 Nov 2018 (map corrected 17 Jan 2019): residential retail choice participation has declined since 2014 peak",
+          "url": "https://www.eia.gov/todayinenergy/detail.php?id=37452",
+          "note": "Not among the 13 states and DC that EIA lists with active, statewide residential retail choice, and not one of the four (MI, NV, OR, VA) it lists with limited, mostly non-residential choice. EIA's count is from 2018; no newer statewide program was found on 2026-11-04.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -366,7 +429,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 2,199,505 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 2156711,
         "battery_installs": 4,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": false,
+          "source": "EIA Today in Energy, 8 Nov 2018 (map corrected 17 Jan 2019): residential retail choice participation has declined since 2014 peak",
+          "url": "https://www.eia.gov/todayinenergy/detail.php?id=37452",
+          "note": "Not among the 13 states and DC that EIA lists with active, statewide residential retail choice, and not one of the four (MI, NV, OR, VA) it lists with limited, mostly non-residential choice. EIA's count is from 2018; no newer statewide program was found on 2026-11-04.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -386,7 +456,7 @@
         "batteries": 0.661314,
         "demand_response": 19.752698,
         "dynamic_pricing": 19.067632,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "NYISO 99%, PJM 0%, ISO-NE 0%",
@@ -394,7 +464,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 8,269,059 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 7494166,
         "battery_installs": 4956,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": true,
+          "source": "New York DPS, How to Shop for Utility Services",
+          "url": "https://dps.ny.gov/how-shop-utility-services",
+          "note": "Consumers choose who provides their energy supply (ESCOs), with limits on serving low-income customers.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -422,7 +499,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 902,180 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 887745,
         "battery_installs": 705,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": false,
+          "source": "EIA Today in Energy, 8 Nov 2018 (map corrected 17 Jan 2019): residential retail choice participation has declined since 2014 peak",
+          "url": "https://www.eia.gov/todayinenergy/detail.php?id=37452",
+          "note": "Not among the 13 states and DC that EIA lists with active, statewide residential retail choice, and not one of the four (MI, NV, OR, VA) it lists with limited, mostly non-residential choice. EIA's count is from 2018; no newer statewide program was found on 2026-11-04.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -450,7 +534,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 11,746,244 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 10682973,
         "battery_installs": 5297,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": false,
+          "source": "EIA Today in Energy, 8 Nov 2018 (map corrected 17 Jan 2019): residential retail choice participation has declined since 2014 peak",
+          "url": "https://www.eia.gov/todayinenergy/detail.php?id=37452",
+          "note": "Not among the 13 states and DC that EIA lists with active, statewide residential retail choice, and not one of the four (MI, NV, OR, VA) it lists with limited, mostly non-residential choice. EIA's count is from 2018; no newer statewide program was found on 2026-11-04.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -474,7 +565,7 @@
         "batteries": 0.005493,
         "demand_response": 73.55805,
         "dynamic_pricing": 100.920409,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "PJM 71%, MISO 29%",
@@ -482,7 +573,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 5,867,360 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 5461700,
         "battery_installs": 30,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": true,
+          "source": "Illinois Commerce Commission, Plug In Illinois",
+          "url": "https://plugin.illinois.gov/",
+          "note": "About 1.13 million residential customers buy from an Alternative Retail Electric Supplier (ARES).",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -510,7 +608,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 528,002 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 565902,
         "battery_installs": 395,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": false,
+          "source": "MCA 69-8-201",
+          "url": "https://leg.mt.gov/bills/mca/title_0690/chapter_0080/part_0020/section_0010/0690-0080-0020-0010.html",
+          "note": "Montana reintegrated supply in 2007; no new residential choice.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -538,7 +643,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 2,606,624 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 2605558,
         "battery_installs": 130,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": false,
+          "source": "EIA Today in Energy, 8 Nov 2018 (map corrected 17 Jan 2019): residential retail choice participation has declined since 2014 peak",
+          "url": "https://www.eia.gov/todayinenergy/detail.php?id=37452",
+          "note": "Not among the 13 states and DC that EIA lists with active, statewide residential retail choice, and not one of the four (MI, NV, OR, VA) it lists with limited, mostly non-residential choice. EIA's count is from 2018; no newer statewide program was found on 2026-11-04.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -558,7 +670,7 @@
         "batteries": 0.299307,
         "demand_response": 413.647857,
         "dynamic_pricing": 677.511065,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "PJM 100%",
@@ -566,7 +678,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 2,487,326 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 2519150,
         "battery_installs": 754,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": true,
+          "source": "Maryland PSC, Maryland Electric Choice",
+          "url": "https://www.mdelectricchoice.com/",
+          "note": "Homes can buy electricity from a retail energy supplier. Fewer suppliers serve homes since the 2024 supplier law.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -594,7 +713,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 1,472,397 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 1460591,
         "battery_installs": 23,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": false,
+          "source": "EIA Today in Energy, 8 Nov 2018 (map corrected 17 Jan 2019): residential retail choice participation has declined since 2014 peak",
+          "url": "https://www.eia.gov/todayinenergy/detail.php?id=37452",
+          "note": "Not among the 13 states and DC that EIA lists with active, statewide residential retail choice, and not one of the four (MI, NV, OR, VA) it lists with limited, mostly non-residential choice. EIA's count is from 2018; no newer statewide program was found on 2026-11-04.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -614,7 +740,7 @@
         "batteries": null,
         "demand_response": 116.571018,
         "dynamic_pricing": 0.0,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "PJM 100%",
@@ -622,7 +748,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 347,904 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 325321,
         "battery_installs": null,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": true,
+          "source": "DC PSC, Retail Choice",
+          "url": "https://dcpsc.org/Consumers-Corner/Service-Providers/Retail-Choice.aspx",
+          "note": "District residents can select their electricity supplier.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -650,7 +783,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 5,608,569 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 5149883,
         "battery_installs": 1944,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": true,
+          "source": "PUCO, Energy Choice Ohio",
+          "url": "https://www.energychoice.ohio.gov/",
+          "note": "Customers from manufacturers to residential homeowners can shop for electricity.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -678,7 +818,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 846,400 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 915758,
         "battery_installs": 14,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": false,
+          "source": "EIA Today in Energy, 8 Nov 2018 (map corrected 17 Jan 2019): residential retail choice participation has declined since 2014 peak",
+          "url": "https://www.eia.gov/todayinenergy/detail.php?id=37452",
+          "note": "Not among the 13 states and DC that EIA lists with active, statewide residential retail choice, and not one of the four (MI, NV, OR, VA) it lists with limited, mostly non-residential choice. EIA's count is from 2018; no newer statewide program was found on 2026-11-04.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -706,7 +853,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 3,514,750 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 3407725,
         "battery_installs": 3892,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": false,
+          "source": "EIA Today in Energy, 8 Nov 2018 (map corrected 17 Jan 2019): residential retail choice participation has declined since 2014 peak",
+          "url": "https://www.eia.gov/todayinenergy/detail.php?id=37452",
+          "note": "Not among the 13 states and DC that EIA lists with active, statewide residential retail choice, and not one of the four (MI, NV, OR, VA) it lists with limited, mostly non-residential choice. EIA's count is from 2018; no newer statewide program was found on 2026-11-04.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -734,7 +888,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 406,209 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 446014,
         "battery_installs": 0,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": false,
+          "source": "EIA Today in Energy, 8 Nov 2018 (map corrected 17 Jan 2019): residential retail choice participation has declined since 2014 peak",
+          "url": "https://www.eia.gov/todayinenergy/detail.php?id=37452",
+          "note": "Not among the 13 states and DC that EIA lists with active, statewide residential retail choice, and not one of the four (MI, NV, OR, VA) it lists with limited, mostly non-residential choice. EIA's count is from 2018; no newer statewide program was found on 2026-11-04.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -762,7 +923,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 1,488,684 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 1491030,
         "battery_installs": 46,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": false,
+          "source": "EIA Today in Energy, 8 Nov 2018 (map corrected 17 Jan 2019): residential retail choice participation has declined since 2014 peak",
+          "url": "https://www.eia.gov/todayinenergy/detail.php?id=37452",
+          "note": "Not among the 13 states and DC that EIA lists with active, statewide residential retail choice, and not one of the four (MI, NV, OR, VA) it lists with limited, mostly non-residential choice. EIA's count is from 2018; no newer statewide program was found on 2026-11-04.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -790,7 +958,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 1,245,238 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 1347948,
         "battery_installs": 11,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": false,
+          "source": "EIA Today in Energy, 8 Nov 2018 (map corrected 17 Jan 2019): residential retail choice participation has declined since 2014 peak",
+          "url": "https://www.eia.gov/todayinenergy/detail.php?id=37452",
+          "note": "Not among the 13 states and DC that EIA lists with active, statewide residential retail choice, and not one of the four (MI, NV, OR, VA) it lists with limited, mostly non-residential choice. EIA's count is from 2018; no newer statewide program was found on 2026-11-04.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -798,7 +973,16 @@
       "fips": "08",
       "name": "Colorado",
       "abbr": "CO",
-      "footprint": null,
+      "footprint": {
+        "status": "equipment",
+        "label": "Equipment and installation",
+        "detail": "Base's site footer: \"In Colorado, Base offers home battery equipment and installation. Base is not an electric utility or a retail electric supplier in Colorado.\" Not a retail plan and not a utility program. The mark is not part of the score.",
+        "source": {
+          "title": "Base Power website footer (basepowercompany.com)",
+          "url": "https://www.basepowercompany.com/",
+          "retrieved": "2026-11-04"
+        }
+      },
       "values": {
         "homes": 1416681.0,
         "saidi": 273.6,
@@ -818,7 +1002,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 2,798,653 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 2602500,
         "battery_installs": 1723,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": false,
+          "source": "EIA Today in Energy, 8 Nov 2018 (map corrected 17 Jan 2019): residential retail choice participation has declined since 2014 peak",
+          "url": "https://www.eia.gov/todayinenergy/detail.php?id=37452",
+          "note": "Not among the 13 states and DC that EIA lists with active, statewide residential retail choice, and not one of the four (MI, NV, OR, VA) it lists with limited, mostly non-residential choice. EIA's count is from 2018; no newer statewide program was found on 2026-11-04.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -846,7 +1037,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 5,515,892 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 5162893,
         "battery_installs": 430,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": false,
+          "source": "EIA Today in Energy, 8 Nov 2018 (map corrected 17 Jan 2019): residential retail choice participation has declined since 2014 peak",
+          "url": "https://www.eia.gov/todayinenergy/detail.php?id=37452",
+          "note": "Not among the 13 states and DC that EIA lists with active, statewide residential retail choice, and not one of the four (MI, NV, OR, VA) it lists with limited, mostly non-residential choice. EIA's count is from 2018; no newer statewide program was found on 2026-11-04.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -874,7 +1072,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 235,168 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 1305508,
         "battery_installs": 12315,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": false,
+          "source": "EIA Today in Energy, 8 Nov 2018 (map corrected 17 Jan 2019): residential retail choice participation has declined since 2014 peak",
+          "url": "https://www.eia.gov/todayinenergy/detail.php?id=37452",
+          "note": "Not among the 13 states and DC that EIA lists with active, statewide residential retail choice, and not one of the four (MI, NV, OR, VA) it lists with limited, mostly non-residential choice. EIA's count is from 2018; no newer statewide program was found on 2026-11-04.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -902,7 +1107,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 1,994,795 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 1897462,
         "battery_installs": 447,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": false,
+          "source": "EIA Today in Energy, 8 Nov 2018 (map corrected 17 Jan 2019): residential retail choice participation has declined since 2014 peak",
+          "url": "https://www.eia.gov/todayinenergy/detail.php?id=37452",
+          "note": "Not among the 13 states and DC that EIA lists with active, statewide residential retail choice, and not one of the four (MI, NV, OR, VA) it lists with limited, mostly non-residential choice. EIA's count is from 2018; no newer statewide program was found on 2026-11-04.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -930,7 +1142,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 130,526 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 292568,
         "battery_installs": 190,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": false,
+          "source": "EIA Today in Energy, 8 Nov 2018 (map corrected 17 Jan 2019): residential retail choice participation has declined since 2014 peak",
+          "url": "https://www.eia.gov/todayinenergy/detail.php?id=37452",
+          "note": "Not among the 13 states and DC that EIA lists with active, statewide residential retail choice, and not one of the four (MI, NV, OR, VA) it lists with limited, mostly non-residential choice. EIA's count is from 2018; no newer statewide program was found on 2026-11-04.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -958,7 +1177,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 1,005,288 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 866816,
         "battery_installs": 724,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": false,
+          "source": "EIA Today in Energy, 8 Nov 2018 (map corrected 17 Jan 2019): residential retail choice participation has declined since 2014 peak",
+          "url": "https://www.eia.gov/todayinenergy/detail.php?id=37452",
+          "note": "Not among the 13 states and DC that EIA lists with active, statewide residential retail choice, and not one of the four (MI, NV, OR, VA) it lists with limited, mostly non-residential choice. EIA's count is from 2018; no newer statewide program was found on 2026-11-04.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -986,7 +1212,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 3,080,728 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 3084075,
         "battery_installs": 718,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": false,
+          "source": "EIA Today in Energy, 8 Nov 2018 (map corrected 17 Jan 2019): residential retail choice participation has declined since 2014 peak",
+          "url": "https://www.eia.gov/todayinenergy/detail.php?id=37452",
+          "note": "Not among the 13 states and DC that EIA lists with active, statewide residential retail choice, and not one of the four (MI, NV, OR, VA) it lists with limited, mostly non-residential choice. EIA's count is from 2018; no newer statewide program was found on 2026-11-04.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -1014,7 +1247,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 3,083,562 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 2919186,
         "battery_installs": 3114,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": true,
+          "source": "Massachusetts Attorney General, Competitive Electric Supply",
+          "url": "https://mass.gov/competitive-electric-supply",
+          "note": "The residential competitive supply market is live (the AG's March 2026 report covers it). A pending energy bill would change municipal programs, not statewide choice.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -1042,7 +1282,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 1,565,800 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 1367093,
         "battery_installs": 3639,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": false,
+          "source": "NRS 704B.080",
+          "url": "https://law.justia.com/codes/nevada/chapter-704b/statute-704b-080/",
+          "note": "Only commercial, industrial or government customers with 1 MW or more of load are eligible.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -1070,7 +1317,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 435,943 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 400162,
         "battery_installs": 0,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": false,
+          "source": "EIA Today in Energy, 8 Nov 2018 (map corrected 17 Jan 2019): residential retail choice participation has declined since 2014 peak",
+          "url": "https://www.eia.gov/todayinenergy/detail.php?id=37452",
+          "note": "Not among the 13 states and DC that EIA lists with active, statewide residential retail choice, and not one of the four (MI, NV, OR, VA) it lists with limited, mostly non-residential choice. EIA's count is from 2018; no newer statewide program was found on 2026-11-04.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -1090,7 +1344,7 @@
         "batteries": 0.266978,
         "demand_response": 7.673563,
         "dynamic_pricing": 1.540965,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "PJM 100%, NYISO 0%",
@@ -1098,7 +1352,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 5,972,803 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 5565993,
         "battery_installs": 1486,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": true,
+          "source": "Pennsylvania PUC, PAPowerSwitch",
+          "url": "https://www.papowerswitch.com/",
+          "note": "The PUC's shopping site for homes; offers vary by utility area.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -1126,7 +1387,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 3,003,390 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 2629290,
         "battery_installs": 1100,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": false,
+          "source": "EIA Today in Energy, 8 Nov 2018 (map corrected 17 Jan 2019): residential retail choice participation has declined since 2014 peak",
+          "url": "https://www.eia.gov/todayinenergy/detail.php?id=37452",
+          "note": "Not among the 13 states and DC that EIA lists with active, statewide residential retail choice, and not one of the four (MI, NV, OR, VA) it lists with limited, mostly non-residential choice. EIA's count is from 2018; no newer statewide program was found on 2026-11-04.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -1146,7 +1414,7 @@
         "batteries": 0.152003,
         "demand_response": 0.728016,
         "dynamic_pricing": 13.320284,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "ISO-NE 94%",
@@ -1154,7 +1422,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 864,575 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 749984,
         "battery_installs": 114,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": true,
+          "source": "Maine PUC, Electricity FAQs",
+          "url": "https://www.maine.gov/mpuc/regulated-utilities/electricity/electric-faqs",
+          "note": "Competitive electricity providers licensed by the PUC supply Maine residences.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -1182,7 +1457,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 508,128 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 469921,
         "battery_installs": 20472,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": false,
+          "source": "EIA Today in Energy, 8 Nov 2018 (map corrected 17 Jan 2019): residential retail choice participation has declined since 2014 peak",
+          "url": "https://www.eia.gov/todayinenergy/detail.php?id=37452",
+          "note": "Not among the 13 states and DC that EIA lists with active, statewide residential retail choice, and not one of the four (MI, NV, OR, VA) it lists with limited, mostly non-residential choice. EIA's count is from 2018; no newer statewide program was found on 2026-11-04.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -1202,7 +1484,7 @@
         "batteries": 3.003009,
         "demand_response": null,
         "dynamic_pricing": 0.072619,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "ISO-NE 100%",
@@ -1210,7 +1492,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 514,651 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 468197,
         "battery_installs": 1406,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": true,
+          "source": "Rhode Island PUC, Competitive supply FAQ",
+          "url": "https://ripuc.ri.gov/utilityinfo/electric/compfaq.html",
+          "note": "Customers can obtain electricity from a competitive supplier; the PUC lists suppliers serving residential customers.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -1218,7 +1507,16 @@
       "fips": "09",
       "name": "Connecticut",
       "abbr": "CT",
-      "footprint": null,
+      "footprint": {
+        "status": "equipment",
+        "label": "Equipment and installation",
+        "detail": "Base's site footer: \"In Connecticut, Base offers home battery equipment and installation. Base is not an electric utility or a retail electric supplier in Connecticut.\" The footer gives Base Power Development, LLC's Connecticut home improvement contractor registration, HIC.0707034. Not a retail plan and not a utility program. The mark is not part of the score.",
+        "source": {
+          "title": "Base Power website footer (basepowercompany.com)",
+          "url": "https://www.basepowercompany.com/",
+          "retrieved": "2026-11-04"
+        }
+      },
       "values": {
         "homes": 846922.0,
         "saidi": 211.1,
@@ -1230,7 +1528,7 @@
         "batteries": 0.034992,
         "demand_response": 25.315412,
         "dynamic_pricing": 44.784047,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "ISO-NE 100%",
@@ -1238,7 +1536,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 1,410,597 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 1600369,
         "battery_installs": 56,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": true,
+          "source": "Connecticut Office of Consumer Counsel, Where can I compare electricity suppliers? (1 July 2025)",
+          "url": "https://portal.ct.gov/occ/knowledge-base/articles/electricity/electricity-suppliers",
+          "note": "Homes can compare and pick a supplier on the state's EnergizeCT rate board.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -1266,7 +1571,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 4,988,617 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 4538580,
         "battery_installs": 4884,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": false,
+          "source": "Michigan PSC, Electric Choice, and MCL 460.10a",
+          "url": "https://www.michigan.gov/mpsc/consumer/electricity/choice",
+          "note": "Choice is capped at 10% of each utility's sales and the cap is full; the PSC says no licensed supplier is enrolling residential customers.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -1294,7 +1606,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 303,398 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 301478,
         "battery_installs": null,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": false,
+          "source": "EIA Today in Energy, 8 Nov 2018 (map corrected 17 Jan 2019): residential retail choice participation has declined since 2014 peak",
+          "url": "https://www.eia.gov/todayinenergy/detail.php?id=37452",
+          "note": "Not among the 13 states and DC that EIA lists with active, statewide residential retail choice, and not one of the four (MI, NV, OR, VA) it lists with limited, mostly non-residential choice. EIA's count is from 2018; no newer statewide program was found on 2026-11-04.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -1314,7 +1633,7 @@
         "batteries": 0.089248,
         "demand_response": 211.556223,
         "dynamic_pricing": 545.129628,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "PJM 100%",
@@ -1322,7 +1641,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 143,029 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 481801,
         "battery_installs": 43,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": true,
+          "source": "Delaware PSC, Customer Electric Choice",
+          "url": "https://depsc.delaware.gov/customer-electric-choice/",
+          "note": "Open to Delmarva Power customers; the supplier list covers residential customers.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -1350,7 +1676,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 1,002,229 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 946309,
         "battery_installs": 133,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": false,
+          "source": "EIA Today in Energy, 8 Nov 2018 (map corrected 17 Jan 2019): residential retail choice participation has declined since 2014 peak",
+          "url": "https://www.eia.gov/todayinenergy/detail.php?id=37452",
+          "note": "Not among the 13 states and DC that EIA lists with active, statewide residential retail choice, and not one of the four (MI, NV, OR, VA) it lists with limited, mostly non-residential choice. EIA's count is from 2018; no newer statewide program was found on 2026-11-04.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -1378,7 +1711,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 2,053,126 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 2422981,
         "battery_installs": null,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": false,
+          "source": "EIA Today in Energy, 8 Nov 2018 (map corrected 17 Jan 2019): residential retail choice participation has declined since 2014 peak",
+          "url": "https://www.eia.gov/todayinenergy/detail.php?id=37452",
+          "note": "Not among the 13 states and DC that EIA lists with active, statewide residential retail choice, and not one of the four (MI, NV, OR, VA) it lists with limited, mostly non-residential choice. EIA's count is from 2018; no newer statewide program was found on 2026-11-04.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -1406,7 +1746,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 1,305,052 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 1326779,
         "battery_installs": 2,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": false,
+          "source": "EIA Today in Energy, 8 Nov 2018 (map corrected 17 Jan 2019): residential retail choice participation has declined since 2014 peak",
+          "url": "https://www.eia.gov/todayinenergy/detail.php?id=37452",
+          "note": "Not among the 13 states and DC that EIA lists with active, statewide residential retail choice, and not one of the four (MI, NV, OR, VA) it lists with limited, mostly non-residential choice. EIA's count is from 2018; no newer statewide program was found on 2026-11-04.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -1434,7 +1781,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 339,892 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 313956,
         "battery_installs": null,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": false,
+          "source": "EIA Today in Energy, 8 Nov 2018 (map corrected 17 Jan 2019): residential retail choice participation has declined since 2014 peak",
+          "url": "https://www.eia.gov/todayinenergy/detail.php?id=37452",
+          "note": "Not among the 13 states and DC that EIA lists with active, statewide residential retail choice, and not one of the four (MI, NV, OR, VA) it lists with limited, mostly non-residential choice. EIA's count is from 2018; no newer statewide program was found on 2026-11-04.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -1454,7 +1808,7 @@
         "batteries": 0.771854,
         "demand_response": 10.228441,
         "dynamic_pricing": 3.793613,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "PJM 100%, NYISO 0%",
@@ -1462,7 +1816,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 4,375,060 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 3807716,
         "battery_installs": 2939,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": true,
+          "source": "New Jersey BPU, Energy shopping",
+          "url": "https://www.nj.gov/bpu/commercial/shopping.html",
+          "note": "Any electric customer in New Jersey is eligible to shop.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -1490,7 +1851,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 769,440 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 658104,
         "battery_installs": 900,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": true,
+          "source": "New Hampshire Department of Energy, Choosing an Energy Supplier",
+          "url": "https://energy.nh.gov/consumers/choosing-energy-supplier",
+          "note": "Customers may buy energy supply from a competitive energy supplier.",
+          "checked": "2026-11-04"
+        }
       }
     },
     {
@@ -1518,7 +1886,14 @@
         "note": "SAIDI and SAIFI use EIA's 2025 state total (any reporting method, with major events, 2,972,803 customers). Retail choice is delivery customers divided by bundled plus delivery customers. Program rates use that same residential customer count.",
         "residential_customers": 3290049,
         "battery_installs": 18636,
-        "nri_version": "December 2025"
+        "nri_version": "December 2025",
+        "retail_choice": {
+          "open": false,
+          "source": "EIA Today in Energy, 8 Nov 2018 (map corrected 17 Jan 2019): residential retail choice participation has declined since 2014 peak",
+          "url": "https://www.eia.gov/todayinenergy/detail.php?id=37452",
+          "note": "Not among the 13 states and DC that EIA lists with active, statewide residential retail choice, and not one of the four (MI, NV, OR, VA) it lists with limited, mostly non-residential choice. EIA's count is from 2018; no newer statewide program was found on 2026-11-04.",
+          "checked": "2026-11-04"
+        }
       }
     }
   ],
@@ -2229,7 +2604,7 @@
         "batteries": null,
         "demand_response": null,
         "dynamic_pricing": null,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "PJM",
@@ -2344,7 +2719,7 @@
         "batteries": null,
         "demand_response": 588.271437,
         "dynamic_pricing": 965.384666,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "PJM",
@@ -2390,7 +2765,7 @@
         "batteries": 0.827052,
         "demand_response": null,
         "dynamic_pricing": null,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "ISO-NE",
@@ -3770,7 +4145,7 @@
         "batteries": null,
         "demand_response": 12.756507,
         "dynamic_pricing": 5.927415,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "NYISO",
@@ -3862,7 +4237,7 @@
         "batteries": null,
         "demand_response": null,
         "dynamic_pricing": 17.090931,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "ISO-NE",
@@ -4874,7 +5249,7 @@
         "batteries": null,
         "demand_response": 103.848932,
         "dynamic_pricing": 101.828114,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "PJM",
@@ -4989,7 +5364,7 @@
         "batteries": null,
         "demand_response": 25.379928,
         "dynamic_pricing": 0.511905,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "ISO-NE",
@@ -5012,7 +5387,7 @@
         "batteries": 0.236646,
         "demand_response": 20.350929,
         "dynamic_pricing": null,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "NYISO",
@@ -5725,7 +6100,7 @@
         "batteries": null,
         "demand_response": 303.790089,
         "dynamic_pricing": 860.123989,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "PJM",
@@ -5748,7 +6123,7 @@
         "batteries": null,
         "demand_response": 218.482115,
         "dynamic_pricing": 687.808151,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "PJM",
@@ -6162,7 +6537,7 @@
         "batteries": null,
         "demand_response": null,
         "dynamic_pricing": 2.670287,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "PJM",
@@ -9589,7 +9964,7 @@
         "batteries": 2.014915,
         "demand_response": 10.909747,
         "dynamic_pricing": 12.295657,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "PJM",
@@ -10946,7 +11321,7 @@
         "batteries": 2.29639,
         "demand_response": 9.428663,
         "dynamic_pricing": 9.428663,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "NYISO",
@@ -12717,7 +13092,7 @@
         "batteries": 3.068703,
         "demand_response": null,
         "dynamic_pricing": null,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "ISO-NE",
@@ -12970,7 +13345,7 @@
         "batteries": null,
         "demand_response": 47.025556,
         "dynamic_pricing": 2.867902,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "ISO-NE",
@@ -13039,7 +13414,7 @@
         "batteries": 0.962578,
         "demand_response": 26.50995,
         "dynamic_pricing": 155.364356,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "NYISO",
@@ -13154,7 +13529,7 @@
         "batteries": null,
         "demand_response": 18.502911,
         "dynamic_pricing": 0.0,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "NYISO",
@@ -14120,7 +14495,7 @@
         "batteries": 4.529304,
         "demand_response": 31.216998,
         "dynamic_pricing": null,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "NYISO",
@@ -14511,7 +14886,7 @@
         "batteries": 35.147272,
         "demand_response": 21.869602,
         "dynamic_pricing": 130.379527,
-        "launch_path": 1.0
+        "launch_path": 0.0
       },
       "detail": {
         "rtos": "CAISO",
@@ -15178,7 +15553,7 @@
         "batteries": null,
         "demand_response": null,
         "dynamic_pricing": 2.623144,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "PJM",
@@ -15408,7 +15783,7 @@
         "batteries": 1.493097,
         "demand_response": 11.318142,
         "dynamic_pricing": 8.513749,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "PJM",
@@ -15454,7 +15829,7 @@
         "batteries": null,
         "demand_response": 116.771307,
         "dynamic_pricing": null,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "PJM",
@@ -15477,7 +15852,7 @@
         "batteries": null,
         "demand_response": 482.721288,
         "dynamic_pricing": 707.005435,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "PJM",
@@ -15776,7 +16151,7 @@
         "batteries": 0.332475,
         "demand_response": 12.214218,
         "dynamic_pricing": null,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "PJM",
@@ -16121,7 +16496,7 @@
         "batteries": 0.35349,
         "demand_response": 44.839473,
         "dynamic_pricing": 9.756318,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "NYISO",
@@ -16167,7 +16542,7 @@
         "batteries": 2.084646,
         "demand_response": 33.069378,
         "dynamic_pricing": null,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "NYISO, PJM",
@@ -16512,7 +16887,7 @@
         "batteries": 7.520684,
         "demand_response": 84.579587,
         "dynamic_pricing": 870.594466,
-        "launch_path": 1.0
+        "launch_path": 0.0
       },
       "detail": {
         "rtos": "CAISO",
@@ -17386,7 +17761,7 @@
         "batteries": 2.251439,
         "demand_response": 62.783342,
         "dynamic_pricing": 9.103646,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "PJM",
@@ -19042,7 +19417,7 @@
         "batteries": 0.072489,
         "demand_response": null,
         "dynamic_pricing": null,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "PJM",
@@ -19180,7 +19555,7 @@
         "batteries": 0.177829,
         "demand_response": 32.456996,
         "dynamic_pricing": 225.65249,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "ISO-NE",
@@ -22584,7 +22959,7 @@
         "batteries": 0.819264,
         "demand_response": null,
         "dynamic_pricing": 1.063053,
-        "launch_path": 0.0
+        "launch_path": 1.0
       },
       "detail": {
         "rtos": "PJM",
@@ -23960,7 +24335,7 @@
   ],
   "ercot": {
     "available": true,
-    "summary": "Day-ahead settlement point prices, ERCOT report NP4-190-CD (12331), 32 delivery dates (2026-09-27 through 2026-10-28). Basis is the resource-node price minus its settlement load zone in the same hour. 1043 resource nodes had at least 100 comparable hours. The settlement-point file is CIM_Oct_ML3_1_10272026_SP_List_and_EB_Mapping. The public price file has no coordinates, so the nodes are a table.",
+    "summary": "Day-ahead settlement point prices, ERCOT report NP4-190-CD (12331), 32 delivery dates (2026-09-27 through 2026-10-28). Basis is the resource-node price minus its settlement load zone in the same hour. Resource nodes are where generators settle. Homes settle at load zone prices, so this is grid-congestion context, not what a home battery earns. 1043 resource nodes had at least 100 comparable hours. The settlement-point file is CIM_Oct_ML3_1_10272026_SP_List_and_EB_Mapping. The public price file has no coordinates, so the nodes are a table.",
     "window": {
       "start": "2026-09-27",
       "end": "2026-10-28",
@@ -24181,13 +24556,13 @@
     }
   ],
   "narrative": [
-    "At equal weights, including the retail-choice path, Texas (74), Michigan (73), and California (71) lead the 51 geographies. Read the score as a stack of percentiles. A high score means the public series line up. It is an outside view, with no Base install times, permit outcomes, or crew plan in it.",
-    "The home-count factor rewards size. California has the most owner-occupied single-family homes, 6,771,188. With that weight set to zero, and every other factor including the launch path left on, the top three become Michigan (72), Texas (71), and California (68).",
-    "Base's public footprint, marked on the map and kept out of the weights: Texas ranks 1 at equal weights (score 74), with SAIDI 225 minutes, retail delivery share 56.2%, and wholesale mix ERCOT 88%, MISO 5%, SPP 5%. Illinois ranks 9 (score 58), with SAIDI 144 minutes, retail delivery share 22.1%, and wholesale mix PJM 71%, MISO 29%. Georgia ranks 30 (score 47), with SAIDI 270 minutes, retail delivery share 0.0%, and wholesale mix No ISO balancing authority. Connecticut ranks 21 (score 53), with SAIDI 211 minutes, retail delivery share 15.8%, and wholesale mix ISO-NE 100%.",
+    "At equal weights, including the retail-choice path, Texas (73), Michigan (73), and Maryland (71) lead the 51 geographies. Read the score as a stack of percentiles. A high score means the public series line up. It is an outside view, with no Base install times, permit outcomes, or crew plan in it.",
+    "The home-count factor rewards size. California has the most owner-occupied single-family homes, 6,771,188. With that weight set to zero, and every other factor including the launch path left on, the top three become Maryland (72), Michigan (71), and Texas (70).",
+    "Base's public footprint, marked on the map and kept out of the weights: Texas (operating) ranks 1 at equal weights (score 73), with SAIDI 225 minutes, retail delivery share 56.2%, and wholesale mix ERCOT 88%, MISO 5%, SPP 5%. Illinois (operating in ComEd) ranks 7 (score 62), with SAIDI 144 minutes, retail delivery share 22.1%, and wholesale mix PJM 71%, MISO 29%. Georgia (announced) ranks 32 (score 46), with SAIDI 270 minutes, retail delivery share 0.0%, and wholesale mix No ISO balancing authority. Colorado (equipment and installation) ranks 14 (score 57), with SAIDI 274 minutes, retail delivery share 0.0%, and wholesale mix SPP 0%. Connecticut (equipment and installation) ranks 13 (score 57), with SAIDI 211 minutes, retail delivery share 15.8%, and wholesale mix ISO-NE 100%.",
     "Georgia's largest balancing authority in this file is Southern Company Services, Inc. - Trans. EIA reports no residential delivery service there. A utility contract, the shape of the reported Central Georgia EMC project, does not appear in the retail-choice factor, so Georgia's rank is a weak guide to that path.",
     "The longest state SAIDI in this file is West Virginia at 1013 minutes. The highest residential delivery share is Massachusetts at 61.5%. Commonwealth Edison reports 3,753,924 residential customers, SAIDI 77 minutes, and wholesale tag PJM. Central Georgia (Central Georgia El Member Corp) reports 62,546 residential customers and SAIDI 168 minutes.",
-    "Install friction and a national price-volatility series sit outside the score. The Texas section is a short public day-ahead window, a congestion example rather than a yearly value of the nodes.",
-    "From 2026-09-27 through 2026-10-28, KNAPP_RN in LZ_WEST (substation KNAPP) had a 95th-percentile day-ahead basis of $196.68/MWh across 768 hours, and 53% of those hours cleared at least $20/MWh above the zone. The median resource node in LZ_HOUSTON had a 95th-percentile basis of $6.36/MWh. The constraint with the most positive shadow-price rows was 6437__F."
+    "Install friction and a national price-volatility series sit outside the score. The ERCOT congestion section is a short public day-ahead window of resource-node prices against their load zones: grid-congestion context, not battery value, because homes settle at load zone prices.",
+    "Grid-congestion context, not battery value: from 2026-09-27 through 2026-10-28, the generator resource node KNAPP_RN in LZ_WEST (substation KNAPP) had a 95th-percentile day-ahead basis of $196.68/MWh across 768 hours, and 53% of those hours cleared at least $20/MWh above the zone. The median resource node in LZ_HOUSTON had a 95th-percentile basis of $6.36/MWh. The constraint with the most positive shadow-price rows was 6437__F. Homes settle at the load zone price, so a home battery does not earn this spread."
   ],
   "sources": [
     {
@@ -24226,9 +24601,19 @@
       "detail": "Help center page edited 17 June 2026: offer available as of 15 June 2026 for the first 2,000 Illinois installations."
     },
     {
+      "title": "Base Power website footer (basepowercompany.com)",
+      "url": "https://www.basepowercompany.com/",
+      "detail": "Checked 2026-11-04 in the raw page HTML. Source of the Colorado and Connecticut marks: \"In Colorado, Base offers home battery equipment and installation\" and \"In Connecticut, Base offers home battery equipment and installation\", each followed by \"Base is not an electric utility or a retail electric supplier\" in that state."
+    },
+    {
+      "title": "Retail-choice path: state sources",
+      "url": "https://www.eia.gov/todayinenergy/detail.php?id=37452",
+      "detail": "Checked 2026-11-04. Open residential choice: CT, DC, DE, IL, MA, MD, ME, NH, NJ, NY, OH, PA, RI, TX, each with its commission page in the state detail. Capped or closed for homes: CA, MI, MT, NV, OR, VA. EIA's 2018 count (13 states and DC with active statewide residential choice) is the fallback for the rest."
+    },
+    {
       "title": "Base Connecticut operations manager posting",
       "url": "https://jobs.ashbyhq.com/base-power/6874d333-86da-465b-a2f8-f14ee397e460",
-      "detail": "Published 10 Sep 2026. North Haven electrical supervisor posting describes expansion beyond Texas."
+      "detail": "Published 10 Sep 2026. North Haven electrical supervisor posting describes expansion beyond Texas. Context only: no footprint mark uses a job post."
     },
     {
       "title": "Grid & Generation, Georgia partnership report",

@@ -202,6 +202,9 @@
       { key: 'base', title: P.BASE_SOURCE.title, url: P.BASE_SOURCE.url, date: 'retrieved ' + P.BASE_SOURCE.retrieved }
     ];
     if (pick.source) list.push({ key: 'ercot', title: pick.source.title, url: pick.source.url, date: 'retrieved ' + pick.source.retrieved });
+    var acc = P.ACCREDITATION_EXAMPLE;
+    list.push({ key: 'nyisocaf', title: acc.source.title, url: acc.source.url, date: 'retrieved ' + acc.source.retrieved });
+    list.push({ key: 'pjmelcc', title: acc.pjm.source.title, url: acc.pjm.source.url, date: 'retrieved ' + acc.pjm.source.retrieved });
     P.extraSources(u, pick).forEach(function (s) { list.push({ key: s.key, title: s.title, url: s.url, date: 'retrieved ' + s.retrieved }); });
     var k = P.known(u.id);
     if (k && k.aliasSource) list.push({ key: 'alias', title: k.aliasSource.title, url: k.aliasSource.url, date: 'retrieved ' + k.aliasSource.retrieved });
@@ -251,20 +254,27 @@
         '<p>In its area a home-battery company reaches homes as a retail provider.' + (wires.baseRetail ? ' ' + esc(wires.baseRetail) + r(wires.baseSource) : '') +
         ' So the useful conversation with ' + esc(name) + ' is about interconnection and distribution-level value, not a capacity purchase.</p></div>');
     }
+    if (pick.vpp) {
+      h.push('<div class="notice notice-green pt-vpp" role="note"><p><strong>A program route set by state law.</strong> ' + esc(pick.vpp.what) + r('pa104458') + r('sb25') + '</p>' +
+        '<p>' + esc(pick.vpp.how) + r('pa104458') + ' ' + esc(pick.vpp.capacity) + r('ipaplan') + ' So ' + esc(name) + ' is a buyer of peak reduction through that tariff, not a wires-only utility.</p></div>');
+    }
     var partner = P.partnerFrame(u);
     if (known) h.push('<p class="notice notice-green pt-known"><strong>' + (partner ? esc(partner.label) + ':' : 'Public link to Base:') + '</strong> ' + esc(known.note) + ' ' + (known.source.url === P.BASE_SOURCE.url ? r('base') : r('known')) + (known.aliasSource ? ' EIA lists CoServ under its legal name, Denton County Electric Cooperative.' + r('alias') : '') +
       (partner ? ' ' + esc(partner.framing) : '') + '</p>');
 
     // Program
     if (prog) {
+      var acc = P.accreditedExample(prog, T);
       h.push('<section class="pt-block"><h3>The program</h3><dl class="pt-stats">' +
         stat(P.fmtPower(prog.roundedUp ? prog.nameplateMw : prog.mw), prog.roundedUp ? 'nameplate, rounded up to whole batteries from your ' + esc(P.fmtPower(prog.mw)) : 'nameplate, your input' + (prog.mw === T.programMw ? yours('programMw') : '')) +
         stat(num(prog.batteries), 'home batter' + (prog.batteries === 1 ? 'y' : 'ies') + ' at ' + num(prog.kw, dec(prog.kw)) + ' kW each' + (yours('kwPerHome') || r('base'))) +
         stat(P.fmtEnergy(prog.mwh), 'at ' + num(prog.kwh, dec(prog.kwh)) + ' kWh each' + (yours('kwhPerHome') || r('base'))) +
         stat(share(prog.share), 'of residential customers would need to enroll') +
+        stat('~' + P.fmtPower(acc.accreditedMw), '<span class="badge badge-yellow">assumption</span> accredited, an illustration at one market\'s 2-hour storage factor' + r('nyisocaf')) +
         '</dl>' + (prog.roundedUp ? '<p class="pt-note pt-rounded">' + esc(P.roundedUpNote(prog)) + '</p>' : '') + '<p class="pt-note">About ' + prog.hours.toFixed(2) + ' hours at full output, derived from ' + (state.changed.kwPerHome || state.changed.kwhPerHome ? 'your battery spec' : 'Base\'s claimed spec') + '. Nameplate is not accredited capacity, and each home keeps a backup reserve, so the dispatchable share is a question below.' +
         (P.isNum(prog.dispatchMwh) ? ' With ' + num(T.memberReservePct) + '% held back for each home, about ' + P.fmtEnergy(prog.dispatchMwh) + ' is left to dispatch.' + yours('memberReservePct') : '') +
-        (P.isNum(prog.share) && prog.share > 1 ? ' <strong>This program needs more batteries than the utility has residential customers.</strong>' : '') + '</p></section>');
+        (P.isNum(prog.share) && prog.share > 1 ? ' <strong>This program needs more batteries than the utility has residential customers.</strong>' : '') + '</p>' +
+        '<p class="pt-note pt-accredited"><span class="badge badge-yellow">Assumption</span> ' + esc(acc.text) + r('nyisocaf') + r('pjmelcc') + (acc.reserveYours ? yours('memberReservePct') : '') + '</p></section>');
     } else {
       h.push('<section class="pt-block"><h3>The program</h3><p class="pt-note">Enter a program size above 0 and at most 5,000 MW.</p></section>');
     }
@@ -303,7 +313,7 @@
       (wires
         ? '<p><strong>Why, by rule 0:</strong> ' + esc(wires.what) + ' A capacity offer needs a buyer for capacity, so this pitch makes none. Batteries behind its meters can still relieve its circuits' + (pick.offer.id === 'speed' ? ' and help large loads connect' : '') + ', which is a wires question.</p>' +
           '<p class="pt-note">Not on the table here: Bulk peaking capacity, because ' + esc(name) + ' does not buy capacity. Also on Base\'s menu: ' + others.map(function (o) { return esc(o.name); }).join(' and ') + '.</p>'
-        : '<p><strong>Why, by rule ' + pick.rule + ':</strong> ' + esc(pick.reason) + ercotRefs +
+        : '<p><strong>Why, by rule ' + pick.rule + ':</strong> ' + esc(pick.reason) + ercotRefs + (pick.vpp ? r('pa104458') + r('ipaplan') : '') +
           (pick.rule === 2 ? yours('reliabilityCutoffPct') : pick.rule === 3 ? yours('wholesaleCutoffPct') : '') + '</p>' +
           '<p class="pt-note">Also on Base\'s menu: ' + others.map(function (o) { return esc(o.name); }).join(' and ') + '. Speed to power is picked only when you mark a large-load queue, because no public file here shows one.</p>') +
       '</section>');
@@ -327,7 +337,7 @@
     h.push('<section class="pt-block"><h3>Speed and cost, as Base states them</h3>' +
       '<p><span class="badge badge-white">Base\'s claim</span> The first three columns are Base\'s own comparison table, which Base attributes to EnergySage, Lazard and Wood Mackenzie' + r('base') + '. The last column multiplies those $/kWh figures by this program\'s ' + (prog ? P.fmtEnergy(prog.mwh) : 'n/a') + '. It is arithmetic on a claim, not a quote.</p>' + ct +
       (costYours || timeYours ? '<p class="pt-note">The Base row uses your own ' + (costYours && timeYours ? 'time and cost' : costYours ? 'cost' : 'time') + ' from your file. Base\'s public claim is 3 to 6 months and ~$300 to $400/kWh' + r('base') + '.</p>' : '') +
-      '<p class="pt-note">Base also claims: deployment across 3 metros and 6 utilities in the last 12 months, an in-house deployment factory, dispatch up to 500 cycles a year, 96% fleet availability, and a field-demonstrated forced outage rate under 5%' + r('base') + '.' +
+      '<p class="pt-note">Base also claims: deployment across 3 metros and 6 utilities in the last 12 months, an in-house deployment factory, dispatch up to 500 cycles a year, 96% fleet availability, and a field-demonstrated forced outage rate under 5%' + r('base') + '. ' + esc(P.PARTNER_COUNT_NOTE) +
       (state.changed.cyclesPerYear || state.changed.availabilityPct || state.changed.forcedOutagePct ? ' Your file says: up to ' + num(T.cyclesPerYear) + ' cycles a year' + yours('cyclesPerYear') + ', ' + num(T.availabilityPct, dec(T.availabilityPct)) + '% fleet availability' + yours('availabilityPct') + ', forced outage rate under ' + num(T.forcedOutagePct, dec(T.forcedOutagePct)) + '%' + yours('forcedOutagePct') + '.' : '') + '</p></section>');
 
     // Deal structure
@@ -338,9 +348,10 @@
 
     // Questions
     h.push('<section class="pt-block"><h3>Questions to answer together</h3><ol class="pt-questions">' +
-      P.questions(u, pick, T).map(function (q) { return '<li>' + esc(q) + (/^Value stack in ERCOT/.test(q) ? r('tcos') + r('tcos12') : '') + '</li>'; }).join('') + '</ol></section>');
+      P.questions(u, pick, T).map(function (q) { return '<li>' + esc(q) + (/^Value stack in ERCOT/.test(q) ? r('tcos') + r('tcos12') : '') + (/^Tariff timeline:/.test(q) ? r('pa104458') : '') + '</li>'; }).join('') + '</ol></section>');
 
     // Real vs claimed vs assumed
+    var acc0 = P.accreditedExample(prog || P.sizeProgram(T.programMw, u.values.homes, T), T) || { reservePct: P.ACCREDITATION_EXAMPLE.reservePct, reserveYours: false };
     h.push('<section class="pt-block pt-rca"><h3>Real vs claimed vs assumed</h3><div class="pt-rca-grid">' +
       '<div class="pt-rca-real"><h4><span class="badge badge-green">Real</span> Public data</h4><ul>' +
         '<li>Customers, SAIDI, SAIFI, ISO share, retail share, batteries, demand response and dynamic pricing: EIA-861 2025' + r('eia') + '.</li>' +
@@ -348,6 +359,7 @@
         '<li>US SAIDI and state prices and bills: EIA' + r('epa') + r('price') + '.</li>' +
         (known ? '<li>' + esc(known.note) + '</li>' : '') +
         (wires ? '<li>Wires-only: ' + esc(wires.what) + wires.sources.map(function (k) { return r(k); }).join('') + '</li>' : '') +
+        (pick.vpp ? '<li>Virtual power plant tariff required by Illinois law: ' + esc(pick.vpp.statute) + r('pa104458') + r('sb25') + '.</li>' : '') +
       '</ul></div>' +
       '<div class="pt-rca-claimed"><h4><span class="badge badge-white">Claimed</span> Base\'s marketing</h4><ul>' +
         '<li>20 kW / 39.2 kWh per home battery.' + (state.changed.kwPerHome || state.changed.kwhPerHome ? ' This pitch uses yours: ' + num(T.kwPerHome, dec(T.kwPerHome)) + ' kW / ' + num(T.kwhPerHome, dec(T.kwhPerHome)) + ' kWh.' + (yours('kwPerHome') || yours('kwhPerHome')) : '') + '</li>' +
@@ -361,7 +373,8 @@
         '<li>Offer cutoffs: outages higher than ' + num(T.reliabilityCutoffPct) + '% of US utilities' + yours('reliabilityCutoffPct') + '; ' + num(T.wholesaleCutoffPct) + '% of customers in an ISO or RTO' + yours('wholesaleCutoffPct') + '.</li>' +
         '<li>Large-load queue: ' + ($('largeloads').checked ? 'marked by you' : 'not marked') + '.</li>' +
         '<li>Call ranking: residential customers x SAIDI as a stand-in for customer minutes interrupted.</li>' +
-        (P.isNum(T.tollPerKwYear) ? '<li>Price per kW-year: $' + num(T.tollPerKwYear, T.tollPerKwYear % 1 ? 2 : 0) + ', from your file.' + yours('tollPerKwYear') + ' No enrollment rate or accreditation share is assumed.</li>' : '<li>No enrollment rate, accreditation share, or price per kW-year is assumed. Those are questions.</li>') +
+        '<li>Accredited MW: an illustration only, at NYISO\'s published 2-hour storage factor (' + P.ACCREDITATION_EXAMPLE.pct + '%) after a ' + num(acc0.reservePct, dec(acc0.reservePct)) + '% home reserve' + (acc0.reserveYours ? yours('memberReservePct') : ' (assumed)') + r('nyisocaf') + '. This utility\'s market may count homes differently; that is a question.</li>' +
+        (P.isNum(T.tollPerKwYear) ? '<li>Price per kW-year: $' + num(T.tollPerKwYear, T.tollPerKwYear % 1 ? 2 : 0) + ', from your file.' + yours('tollPerKwYear') + ' No enrollment rate is assumed.</li>' : '<li>No enrollment rate or price per kW-year is assumed. Those are questions.</li>') +
       '</ul></div></div></section>');
 
     // Sources

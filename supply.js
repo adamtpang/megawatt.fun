@@ -29,6 +29,26 @@
       (q.date ? ', ' + esc(q.date) : '') + (q.source_quality ? ' <span class="badge badge-white">' + esc(q.source_quality) + '</span>' : '') + '</span></li>';
   }
 
+  // A sourced list item: bold title, note or value, verbatim quote, then publisher, date and link.
+  function sourced(title, text, s) {
+    const src = s.url ? '<a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(s.publisher || 'Source') + '</a>' : esc(s.publisher || '');
+    return '<li><strong>' + esc(title) + '</strong>' + (text ? ': ' + esc(text) : '') +
+      (s.quote ? '<br><span class="sp-quote">"' + esc(s.quote) + '"</span>' : '') +
+      '<br><span class="sp-src">' + src + (s.date ? (src ? ', ' : '') + esc(s.date) : '') +
+      (s.basis === 'inference' ? ' <span class="badge badge-yellow">inference</span>' : '') + '</span>' +
+      (s.more || []).map(x => '<br><span class="sp-quote">"' + esc(x.quote) + '"</span><br><span class="sp-src">' +
+        (x.url ? '<a href="' + esc(x.url) + '" target="_blank" rel="noopener">' + esc(x.publisher || 'Source') + '</a>' : esc(x.publisher || '')) +
+        (x.date ? ', ' + esc(x.date) : '') + '</span>').join('') + '</li>';
+  }
+
+  // Optional deeper sections (used by the memory card): which parts, end-of-life notices, what to do about it.
+  function extras(p) {
+    const sec = (title, a, fn) => Array.isArray(a) && a.length ? '<h3>' + esc(title) + '</h3><ul class="sp-list">' + a.map(fn).join('') + '</ul>' : '';
+    return sec('Which parts', p.memory_parts, x => sourced(x.part, x.note, x)) +
+      sec('End of life and allocation', p.eol, x => sourced(x.who, x.value, x)) +
+      sec('What to do about it', p.mitigations, x => sourced(x.name, x.note, x));
+  }
+
   function part(p) {
     const alts = (p.alternatives || []).map(a => '<li><strong>' + esc(a.name) + '</strong>: ' + esc(a.note) +
       (a.url ? ' <a href="' + esc(a.url) + '" target="_blank" rel="noopener">Source</a>' : '') + '</li>').join('');
@@ -37,6 +57,7 @@
       '<p class="sp-what">' + esc(p.what_it_does) + '</p>' +
       '<p class="sp-risk">' + esc(p.risk_note) + '</p>' +
       '<div class="sp-grid">' + row('Lead time', p.lead_time) + row('Price trend', p.price_trend) + row('Where it comes from', p.concentration) + '</div>' +
+      extras(p) +
       (p.policy && p.policy.length ? '<h3>US rules in 2026</h3><ul class="sp-list">' + p.policy.map(policy).join('') + '</ul>' : '') +
       (alts ? '<h3>Other suppliers or ways around it</h3><ul class="sp-list">' + alts + '</ul>' : '') +
       '</article>';
