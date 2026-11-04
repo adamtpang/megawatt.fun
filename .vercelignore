@@ -17,6 +17,8 @@ docs/**
 !docs/api.md
 
 # Source and tooling the site does not serve.
+repos.yaml
+scripts/
 .github/
 tests/
 analysis/
