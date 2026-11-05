@@ -259,7 +259,8 @@ async function post(parsed, req) {
   };
 
   return {
-    inputs_used: { utility: u.id, mw: mwIn, largeLoads, terms: T, yours: changed, targets: Object.keys(targets) },
+    // terms as used: programMw is the program size this pitch was built on (mw when sent).
+    inputs_used: { utility: u.id, mw: mwIn, largeLoads, terms: Object.assign({}, T, { programMw: mwIn }), yours: changed, targets: Object.keys(targets) },
     result,
     warnings,
     sources: src.map((s) => ({ n: s.n, key: s.key, title: s.title, url: s.url, date: s.date })),

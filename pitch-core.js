@@ -685,13 +685,21 @@
     var isCsv = parsed && parsed.kind === 'csv';
     function rowName(i) { return isCsv ? 'Row ' + (i + 2) + ': ' : 'Item ' + (i + 1) + ': '; }
     // Column names are matched trimmed and in any case ("Utility", " STATUS "). Unknown columns are a warning, once each.
-    var KNOWN_COLS = dict(), unknownCols = [];
+    var KNOWN_COLS = dict(), unknownCols = [], dupCols = [];
     TEMPLATE_COLUMNS.forEach(function (c) { KNOWN_COLS[c] = true; });
+    // A column written twice (Key and key, or the same name twice) is an error, as on every tool.
+    if (Array.isArray(data)) (data.duplicateHeaders || []).forEach(function (h) { dupCols.push('Column "' + clip(h, 40) + '" appears more than once. Keep one.'); });
     function columns(r) {
-      var o = dict();
+      var o = dict(), from = dict();
       Object.keys(r).forEach(function (k) {
         var c = String(k).trim().toLowerCase();
         if (!own(KNOWN_COLS, c)) { if (unknownCols.indexOf(k) < 0 && unknownCols.length < 20) unknownCols.push(k); return; }
+        if (own(from, c)) {
+          var m = 'Columns "' + clip(from[c], 40) + '" and "' + clip(k, 40) + '" are the same column (names match in any case). Keep one.';
+          if (dupCols.indexOf(m) < 0) dupCols.push(m);
+          return;
+        }
+        from[c] = k;
         o[c] = r[k];
       });
       return o;
@@ -736,6 +744,7 @@
         });
       }
     }
+    if (dupCols.length) return { terms: publicTerms(), changed: [], given: [], targets: dict(), targetCount: 0, unmatched: 0, termRows: 0, errors: dupCols, warnings: [] };
     if (unknownCols.length) warnings.push('Ignored unknown column' + (unknownCols.length === 1 ? '' : 's') + ' ' + unknownCols.map(function (c) { return '"' + clip(c, 40) + '"'; }).join(', ') + '. Known columns: ' + TEMPLATE_COLUMNS.join(', ') + '.');
     if (targetRows.length > MAX_TARGETS) { errors.push('The target list has ' + targetRows.length + ' rows. The limit is ' + MAX_TARGETS + '; split the file.'); targetRows = []; }
     if (!termRows.length && !targetRows.length && !errors.length) errors.push('No rows found. Offer terms need key and value columns; a target list needs a utility column. Download a template for the shape.');
@@ -744,9 +753,18 @@
     var terms = publicTerms(), changed = [], seen = dict();
     termRows.forEach(function (p) {
       if (p.key != null && typeof p.key !== 'string') { errors.push(p.where + 'key must be text.'); return; }
-      var key = String(p.key).trim();
+      // Keys match in any case ("tollperkwyear" is tollPerKwYear); an unknown key names the closest one.
+      var written = String(p.key).trim();
+      var key = TERM_KEY_LOWER[written.toLowerCase()] || written;
       var t = own(TERMS_BY_KEY, key);
-      if (!t) { errors.push(p.where + 'unknown key "' + clip(key, 40) + '". Download the template for the full list.'); return; }
+      if (!t) {
+        var near = closestKey(written);
+        errors.push(p.where + 'unknown key "' + clip(written, 40) + '".' + (near ? ' Did you mean ' + near + '?' : '') + ' Download the template for the full list.');
+        return;
+      }
+      // A key on two rows is an error, never "the later value wins".
+      if (seen[key]) { errors.push(p.where + key + ' appears again (first at ' + seen[key] + '). Keep one row per key.'); return; }
+      seen[key] = p.where ? p.where.replace(/: $/, '') : 'an earlier entry';
       if (blank(p.value)) {
         if (t.value != null) warnings.push(p.where + key + ' is blank, so the public value stays.');
         return;
@@ -754,8 +772,6 @@
       var v = cellNum(p.value);
       if (!isFinite(v)) { errors.push(p.where + key + ' is not a number: ' + (typeof p.value === 'string' ? '"' + clip(p.value, 40) + '"' : Array.isArray(p.value) ? 'a list' : typeof p.value === 'object' ? 'an object' : String(p.value)) + '.'); return; }
       if (v < t.min || v > t.max) { errors.push(p.where + key + ' must be between ' + t.min + ' and ' + t.max + ' ' + t.unit + '. Got ' + v + '.'); return; }
-      if (seen[key]) warnings.push(p.where + key + ' appears twice. The later value wins.');
-      seen[key] = true;
       terms[key] = v;
     });
     if (terms.costLowPerKwh > terms.costHighPerKwh) errors.push('costLowPerKwh (' + terms.costLowPerKwh + ') is above costHighPerKwh (' + terms.costHighPerKwh + ').');
@@ -795,7 +811,8 @@
         var status = String(r.status == null ? '' : r.status).trim();
         if (status.length > 60) { errors.push(p.where + 'status is longer than 60 characters.'); return; }
         if (!status) { status = 'target'; warnings.push(p.where + 'no status for ' + displayName(res.u) + ', so it shows as "target".'); }
-        if (own(targets, res.u.id)) warnings.push(p.where + displayName(res.u) + ' is listed twice. The later row wins.');
+        // The same utility on two rows (by any of its names) is an error, the same rule as a repeated key.
+        if (own(targets, res.u.id)) { errors.push(p.where + displayName(res.u) + ' is already listed (' + clip(targets[res.u.id].input, 40) + '). Keep one row per utility.'); return; }
         targets[res.u.id] = { id: res.u.id, status: status, owner: String(r.owner == null ? '' : r.owner).trim(), note: String(r.note == null ? '' : r.note).trim(), input: asked };
       });
     }
@@ -819,6 +836,16 @@
         public_basis: t.basis === 'claim' ? "Base's claim, " + BASE_SOURCE.url : t.basis === 'assumption' ? 'assumption on this page' : 'none: the public pitch assumes nothing here',
         min: t.min, max: t.max, utility: '', state: '', status: '', owner: '', note: '' };
     });
+  }
+  // Term keys in lower case, for matching a file's keys in any case.
+  var TERM_KEY_LOWER = (function () { var o = dict(); TERMS.forEach(function (t) { o[t.key.toLowerCase()] = t.key; }); return o; })();
+  function closestKey(word) {
+    var norm = function (s) { return String(s).toLowerCase().replace(/[\s_-]+/g, ''); };
+    var w = norm(word);
+    if (!w || w.length > 60) return null;
+    var best = null, bestD = Infinity;
+    TERMS.forEach(function (t) { var d = lev(w, norm(t.key), 3); if (d < bestD) { bestD = d; best = t.key; } });
+    return best && bestD <= Math.max(1, Math.min(3, Math.floor(w.length / 3))) ? best : null;
   }
   var TEMPLATE_COLUMNS = ['key', 'value', 'unit', 'label', 'public_basis', 'min', 'max'].concat(TARGET_COLUMNS);
 

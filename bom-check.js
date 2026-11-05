@@ -41,7 +41,7 @@
       '<td data-label="Gap" class="num">' + (r.gap_days == null ? 'unknown' : (r.gap_days > 0 ? esc(r.gap_days) + ' days short' : 'covered')) + '</td>' +
       '<td data-label="Flag">' + (r.flag ? '<span class="badge badge-red">' + esc(r.flag) + '</span>' : '<span class="sp-small">' + esc(r.sourcing_label) + '</span>') + '</td>' +
       '<td data-label="Block score" class="num"><strong>' + esc(r.block_score_display) + '</strong>' + (r.rank ? '<br><span class="sp-small">Rank ' + r.rank + '</span>' : '') + '</td></tr>').join('');
-    table.innerHTML = '<p class="sp-yd-sum"><strong>' + flagged + ' of ' + res.rows.length + ' row' + (res.rows.length === 1 ? '' : 's') + ' have no qualified second source.</strong> Block score is <code>' + esc(res.formula) + '</code>. ' + esc(res.formula_note) + ' A missing lead time stays unknown and is not counted as zero. Highest score is the row most likely to block the next install.</p>' +
+    table.innerHTML = '<p class="sp-yd-sum"><strong>' + flagged + ' of ' + res.rows.length + ' row' + (res.rows.length === 1 ? '' : 's') + (flagged === 1 ? ' has' : ' have') + ' no qualified second source.</strong> Block score is <code>' + esc(res.formula) + '</code>. ' + esc(res.formula_note) + ' A missing lead time stays unknown and is not counted as zero. Highest score is the row most likely to block the next install.</p>' +
       '<div class="sp-yd-scroll"><table class="ds-table sp-yd-table"><thead><tr><th>Part</th><th class="num">Qty</th><th>Supplier</th><th class="num">Lead time</th><th class="num">Gap</th><th>Flag</th><th class="num">Block score</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
   }
 

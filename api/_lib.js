@@ -2,7 +2,8 @@
 // start with an underscore, so this is not an endpoint itself.
 //
 // Rules every endpoint follows: CORS open to any origin, OPTIONS answers 204,
-// only GET and POST, request bodies up to 1 MB, and request bodies are never
+// only GET and POST, request bodies up to 1 MB sent as application/json or text/csv
+// (any other Content-Type is a 415), and request bodies are never
 // logged or stored. Nothing in this file writes anywhere.
 'use strict';
 
@@ -59,11 +60,35 @@ function readStream(req) {
   });
 }
 
+/* Which content types a POST body may use. JSON: any type that names json (application/json,
+   application/problem+json, text/json). CSV: any type that names csv (text/csv, application/csv).
+   No Content-Type at all: a body that starts with { or [ is read as JSON, anything else is a 415.
+   Every other type (form-urlencoded, text/plain, multipart) is a 415, so curl -d without the
+   header never silently runs the public case. */
+function bodyKind(ct) {
+  const t = String(ct || '').toLowerCase().split(';')[0].trim();
+  if (!t) return 'none';
+  if (t.includes('json')) return 'json';
+  if (t.includes('csv')) return 'csv';
+  return 'other';
+}
+function unsupported(ct) {
+  const t = clip(String(ct || '').split(';')[0].trim(), 60);
+  return new HttpError(415, [(t ? 'Content-Type "' + t + '" is not supported.' : 'The request has a body but no Content-Type.') +
+    ' Send Content-Type: application/json with a JSON body (curl -H "Content-Type: application/json" -d \'{...}\'), or Content-Type: text/csv with a CSV file.']);
+}
+// NUL bytes, or the replacement character a binary file turns into when read as UTF-8.
+function looksBinary(t) { return /[\u0000�]/.test(t); }
+function notText() {
+  return new HttpError(400, ['The body is not text. It looks like a binary file (a spreadsheet, image or zip). Save the file as CSV (UTF-8) and send that.']);
+}
+
 /* Body as { kind: 'json', data } or { kind: 'csv', data: rows, text }, or null when empty.
    Works with a Vercel request (req.body parsed lazily by content type), a plain Node
    request stream, and test mocks where req.body is an object or a string. */
 async function readBody(req) {
-  const ct = header(req, 'content-type').toLowerCase();
+  const ct = header(req, 'content-type');
+  const kind = bodyKind(ct);
   const len = Number(header(req, 'content-length'));
   if (Number.isFinite(len) && len > MAX_BYTES) throw tooBig();
 
@@ -82,13 +107,20 @@ async function readBody(req) {
     if (Buffer.byteLength(body, 'utf8') > MAX_BYTES) throw tooBig();
     const t = body.replace(/^﻿/, '').trim();
     if (!t) return null;
-    const isCsv = ct.includes('csv') || (!ct.includes('json') && !(t.startsWith('{') || t.startsWith('[')));
-    if (isCsv) return { kind: 'csv', data: YD.parseCSV(t), text: t };
+    const jsonish = t.startsWith('{') || t.startsWith('[');
+    if (kind === 'other' || (kind === 'none' && !jsonish)) throw unsupported(ct);
+    if (looksBinary(t)) throw notText();
+    if (kind === 'csv') return { kind: 'csv', data: YD.parseCSV(t), text: t };
     try { return { kind: 'json', data: JSON.parse(t) }; } catch (e) {
       throw new HttpError(400, ['Body is not valid JSON: ' + e.message + '. Send text/csv with Content-Type: text/csv for a CSV file.']);
     }
   }
   if (typeof body === 'object') {
+    // Vercel parses form-urlencoded bodies into an object. An empty one is no body; anything else is a 415.
+    if (kind === 'other' || kind === 'csv') {
+      if (!Array.isArray(body) && !Object.keys(body).length) return null;
+      throw unsupported(ct);
+    }
     let size;
     try { size = Buffer.byteLength(JSON.stringify(body), 'utf8'); } catch (e) { size = 0; }
     if (size > MAX_BYTES) throw tooBig();
@@ -112,9 +144,74 @@ function objectBody(parsed) {
   return parsed.data;
 }
 
-// Keys in an object body that the endpoint does not read, as warnings.
+// Keys in an object body that the endpoint does not read, as warnings, with the closest known field.
 function unknownKeys(obj, known) {
-  return Object.keys(obj || {}).filter((k) => !known.includes(k)).map((k) => 'Ignored unknown field "' + k + '".');
+  return Object.keys(obj || {}).filter((k) => !known.includes(k)).map((k) => {
+    const near = closest(k, known);
+    return 'Ignored unknown field "' + clip(k) + '".' + (near ? ' Did you mean "' + near + '"?' : '');
+  });
+}
+
+/* ---------- Echo, suggestions and output rounding ---------- */
+
+// Text echoed back in a message, cut to n characters so a 100 KB value never comes back as a 100 KB error.
+function clip(v, n) {
+  const max = n || 40;
+  const t = String(v == null ? '' : v);
+  return t.length > max ? t.slice(0, max) + '...' : t;
+}
+
+// Edit distance, giving up (limit + 1) once it passes limit.
+function lev(a, b, limit) {
+  if (Math.abs(a.length - b.length) > limit) return limit + 1;
+  let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) {
+    const cur = [i];
+    let best = i;
+    for (let j = 1; j <= b.length; j++) {
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      if (cur[j] < best) best = cur[j];
+    }
+    if (best > limit) return limit + 1;
+    prev = cur;
+  }
+  return prev[b.length];
+}
+// The known name closest to word (ignoring case, spaces, - and _), or null when none is close.
+function closest(word, known) {
+  const norm = (s) => String(s).toLowerCase().replace(/[\s_-]+/g, '');
+  const w = norm(word);
+  if (!w || w.length > 60) return null;
+  let best = null, bestD = Infinity;
+  for (const k of known) {
+    const d = lev(w, norm(k), 3);
+    if (d < bestD) { bestD = d; best = k; }
+  }
+  return best != null && bestD <= Math.max(1, Math.min(3, Math.floor(w.length / 3))) ? best : null;
+}
+// A known name matched in any case: "TOLL" finds "toll". Null when none matches.
+function anyCase(word, known) {
+  const w = String(word).trim().toLowerCase();
+  return known.find((k) => k.toLowerCase() === w) || null;
+}
+
+/* Output numbers rounded for reading, without touching the core math: whole numbers stay, numbers
+   of 1 or more go to 2 decimal places (dollars and cents, MW, weeks, DSCR), and numbers under 1
+   keep 4 significant digits (shares, percentile ranks, rates), so a small share never reads as 0. */
+function roundNum(x) {
+  if (typeof x !== 'number' || !Number.isFinite(x) || Number.isInteger(x)) return x;
+  const r = Math.abs(x) >= 1 ? Number(x.toFixed(2)) : Number(x.toPrecision(4));
+  return Object.is(r, -0) ? 0 : r;
+}
+function roundDeep(v) {
+  if (typeof v === 'number') return roundNum(v);
+  if (Array.isArray(v)) return v.map(roundDeep);
+  if (v && typeof v === 'object') {
+    const out = {};
+    for (const k of Object.keys(v)) out[k] = roundDeep(v[k]);
+    return out;
+  }
+  return v;
 }
 
 /* Wrap a tool: { usage: () => object, post: async (parsed, req) => { inputs_used, result, warnings, sources } }.
@@ -136,6 +233,8 @@ function endpoint(tool) {
     try {
       const parsed = await readBody(req);
       const out = await tool.post(parsed, req);
+      // result numbers are rounded for reading; inputs_used stays exactly what the tool used.
+      if (out.result) out.result = roundDeep(out.result);
       send(res, 200, Object.assign({ ok: true }, out, { warnings: out.warnings || [], sources: out.sources || [] }));
     } catch (e) {
       if (e instanceof HttpError) { send(res, e.status, { ok: false, errors: e.errors }); return; }
@@ -201,4 +300,5 @@ function jsonAsCsvError() {
 module.exports = {
   MAX_BYTES, SITE, HttpError, setCors, send, readBody, query, objectBody, unknownKeys, endpoint, invalid, docsUrl, parseCSV: YD.parseCSV,
   hasOwn, getOwn, byKey, isReservedKey, parseNumber, looksLikeJsonCsv, jsonAsCsvError,
+  clip, closest, anyCase, roundNum, roundDeep, bodyKind,
 };

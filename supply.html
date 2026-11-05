@@ -35,6 +35,7 @@
       <span class="badge badge-yellow" id="bom-demo-badge">Demo</span>
     </div>
     <p>Upload or paste a bill of materials. The file is read in this browser and never uploaded. The sample is made-up demo data, not a real company's suppliers.</p>
+    <p class="sp-small"><strong>Two boxes, two file formats.</strong> This checker takes <code>part_number, description, qty, supplier</code>, with optional <code>alt_suppliers, alt_qualified, lead_time_days, on_hand_days, unit_cost_usd</code> (times in <strong>days</strong>), and scores which part is most likely to block a build. "Use your own data" at the top of the page takes <code>part, category, lead_time_weeks</code> (times in <strong>weeks</strong>), the same file as <code>POST /api/v1/supply</code>, and shows which parts will run short against the public research. Each box tells you if you load the other one's file.</p>
     <p class="sp-small" id="bom-formula"></p>
     <div class="sp-bom-actions">
       <input id="bom-file" class="sp-bom-file" type="file" accept=".csv,text/csv">

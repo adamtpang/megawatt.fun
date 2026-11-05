@@ -34,20 +34,35 @@
     // (not enumerable, so the rows look the same) so a tool can warn instead of losing data quietly.
     const dup = head.filter((h, i) => h !== '' && head.indexOf(h) !== i).filter((h, i, a) => a.indexOf(h) === i);
     Object.defineProperty(out, 'duplicateHeaders', { value: dup, enumerable: false });
+    // The header row as written, in file order (Object.keys puts number-like names such as "9" first).
+    Object.defineProperty(out, 'headers', { value: head, enumerable: false });
     return out;
+  }
+
+  // Plain decimal numbers only: a negative number is data, not a formula.
+  const PLAIN_NUMBER = /^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$/;
+  /* One CSV cell, safe to open in a spreadsheet. Text that starts with =, +, -, @, tab or carriage
+     return could run as a formula there (CSV injection), so it gets a leading apostrophe, as OWASP
+     recommends. Numbers, and text that is a plain number such as "-5", are left alone. Every CSV the
+     site writes (templates and downloads) goes through this. */
+  function csvCell(v) {
+    let t = v == null ? '' : String(v);
+    if (typeof v !== 'number' && /^[=+\-@\t\r]/.test(t) && !PLAIN_NUMBER.test(t)) t = "'" + t;
+    return /[",\n\r]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
   }
 
   function toCSV(rows, columns) {
     const cols = columns || Object.keys(rows[0] || {});
-    const cell = (v) => {
-      const t = v == null ? '' : String(v);
-      return /[",\n\r]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
-    };
-    return [cols.join(',')].concat(rows.map((r) => cols.map((c) => cell(r[c])).join(','))).join('\n') + '\n';
+    return [cols.map(csvCell).join(',')].concat(rows.map((r) => cols.map((c) => csvCell(r[c])).join(','))).join('\n') + '\n';
   }
+
+  // A file that is not text: NUL bytes, or the replacement character a binary file (a spreadsheet,
+  // an image, a zip) turns into when read as UTF-8.
+  function looksBinary(text) { return /[\u0000\uFFFD]/.test(String(text)); }
 
   // Parse a file's text as JSON or CSV by extension, falling back on content.
   function parseText(text, name) {
+    if (looksBinary(text)) throw new Error('This file is not text. It looks like a binary file (a spreadsheet such as .xlsx, an image or a zip). Save it as CSV (UTF-8) and load that.');
     const n = String(name || '').toLowerCase();
     const t = String(text).trim();
     if (n.endsWith('.json') || (!n.endsWith('.csv') && (t.startsWith('{') || t.startsWith('[')))) {
@@ -74,7 +89,7 @@
     };
   }
 
-  const api = { parseCSV, toCSV, parseText, num, failureStatus };
+  const api = { parseCSV, toCSV, csvCell, looksBinary, parseText, num, failureStatus };
 
   if (typeof module !== 'undefined' && module.exports) { module.exports = api; return; }
 

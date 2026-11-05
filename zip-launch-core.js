@@ -8,9 +8,10 @@
 
   function text(v) { return String(v == null ? '' : v).trim(); }
 
+  // 5 digits, or ZIP+4 written 78704-1234 or 787041234: the first five digits are the ZIP.
   function normalizeZip(input) {
     const s = text(input);
-    const m = s.match(/^(\d{5})(?:-\d{4})?$/);
+    const m = s.match(/^(\d{5})(?:-?\d{4})?$/);
     return m ? m[1] : null;
   }
 
@@ -322,6 +323,8 @@
     const bad = inputError(input);
     if (bad) return { errors: [bad], warnings: [], inputs_used: { zip: null }, result: null, sources: [] };
     const raw = text(input);
+    // No ZIP at all (an empty body, null, or blank text) is "required", not 'ZIP "" is not a ZIP'.
+    if (!raw) return { errors: ['zip is required: a 5-digit US ZIP such as "78704", or ZIP+4 such as "78704-1234".'], warnings: [], inputs_used: { zip: null }, result: null, sources: [] };
     const zip = normalizeZip(raw);
     if (!zip) {
       const shown = raw.length > 20 ? raw.slice(0, 20) + '...' : raw;

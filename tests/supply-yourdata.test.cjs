@@ -120,11 +120,13 @@ test('supply bom: upper bounds on weeks, cost and quantity are row errors', () =
 });
 
 test('supply bom: headers are case-insensitive and trimmed; unknown columns warn by name', () => {
-  const v = load(' Part , CATEGORY ,Lead_Time_Weeks,Lead time weeks,Colour,Weight kg\nA,cells,4,,red,2\n');
+  const v = load(' Part , CATEGORY ,Lead_Time_Weeks,Colour,Weight kg\nA,cells,4,red,2\n');
   assert.deepEqual(v.errors, []);
   assert.equal(v.rows[0].lead_time_weeks, 4);
+  // Two spellings of one column are an error, the same as on every other tool.
+  assert.deepEqual(load('part,category,Lead_Time_Weeks,Lead time weeks\nA,cells,4,\n').errors,
+    ['Columns "Lead_Time_Weeks" and "Lead time weeks" are the same column (names match in any case). Keep one.']);
   assert.deepEqual(v.warnings, [
-    'Columns "Lead_Time_Weeks" and "Lead time weeks" are the same column; the first value that is not blank is used.',
     'Ignored unknown column "Colour". Known columns: ' + S.COLUMNS.join(', ') + '.',
     'Ignored unknown column "Weight kg". Known columns: ' + S.COLUMNS.join(', ') + '.',
   ]);
@@ -150,18 +152,28 @@ test('supply bom: text fields need text, numbers need plain decimals', () => {
 
 // ---------- break-test fixes, 2026-11-04 ----------
 
-test('supply bom: a column written twice is warned about, naming which value is used', () => {
+test('supply bom: a column written twice is an error, never a silent pick', () => {
   const v = load('part,category,lead_time_weeks,lead_time_weeks\nA,cells,5,9\n');
-  assert.deepEqual(v.errors, []);
-  assert.equal(v.rows[0].lead_time_weeks, 9);
-  assert.ok(v.warnings.includes('Column "lead_time_weeks" appears more than once; the value in the last "lead_time_weeks" column is used. Remove the extra column.'), v.warnings.join(' | '));
+  assert.deepEqual(v.errors, ['Column "lead_time_weeks" appears more than once. Keep one.']);
+  assert.deepEqual(v.rows, []);
+});
+
+test('supply bom: a BOM checker file is recognized and pointed at the checker', () => {
+  const v = load('part_number,description,qty,supplier,lead_time_days\nP1,Cell,12,Acme,45\n');
+  assert.equal(v.errors.length, 1);
+  assert.match(v.errors[0], /^This looks like a BOM checker file \(it has part_number, description, qty, lead_time_days\)\. This panel takes part, category and lead_time_weeks/);
+  assert.match(v.errors[0], /Use the BOM CSV checker on \/supply/);
 });
 
 test('supply bom: a tiny gap never reads as 0 weeks', () => {
   assert.equal(S.weeksText(0.00005), 'under 0.1 wk');
   assert.equal(S.weeksText(-0.00005), 'under 0.1 wk spare');
   assert.equal(S.weeksText(0), '0 wk');
-  assert.equal(S.weeksText(0.05), '0.1 wk');
+  // Anything under 0.1 reads "under 0.1 wk", 0.05 included (docs/api.md, docs/plug-and-play/supply.md).
+  assert.equal(S.weeksText(0.05), 'under 0.1 wk');
+  assert.equal(S.weeksText(0.0999), 'under 0.1 wk');
+  assert.equal(S.weeksText(0.1), '0.1 wk');
+  assert.equal(S.weeksText(-0.05), 'under 0.1 wk spare');
   assert.equal(S.weeksText(12.34), '12.3 wk');
   assert.equal(S.weeksText(null), '');
   const res = S.analyze(S.validate({ kind: 'json', data: [{ part: 'A', category: 'cells', lead_time_weeks: 0.0001, on_hand_weeks: 0.00005 }] }, ids).rows);

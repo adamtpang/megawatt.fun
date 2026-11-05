@@ -49,6 +49,19 @@
   const shown = (v) => (isText(v) ? String(v) : Array.isArray(v) ? 'a list' : v === null ? 'null' : typeof v === 'object' ? 'an object' : String(v));
   const keyOf = (s) => String(s).trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
 
+  // Text echoed in a message, cut so a huge cell never comes back whole.
+  const clip = (v, n) => { const t = String(v == null ? '' : v); const m = n || 40; return t.length > m ? t.slice(0, m) + '...' : t; };
+  /* higherIsBetter from a JSON factor: left out means true; true or false; or the text "true" or
+     "false" in any case. Anything else ("no", 0, null) returns null, an error: a silent "higher is
+     better" would reverse the ranking the file meant. */
+  function higherIsBetterOf(f) {
+    if (!Object.prototype.hasOwnProperty.call(f, 'higherIsBetter')) return true;
+    const v = f.higherIsBetter;
+    if (v === true || v === false) return v;
+    if (typeof v === 'string') { const t = v.trim().toLowerCase(); if (t === 'true') return true; if (t === 'false') return false; }
+    return null;
+  }
+
   // Factor from a CSV header: "install_cost_usd (lower is better)" -> lower is better.
   function factorFromHeader(h) {
     const m = String(h).match(LOWER);
@@ -79,12 +92,16 @@
   function stateRows(parsed, errors) {
     const d = parsed.data;
     if (parsed.kind === 'json' && !Array.isArray(d)) {
+      // factors is optional, but when sent it must be a list: "x" or an object is an error, never ignored.
+      if (d.factors != null && !Array.isArray(d.factors)) errors.push('factors must be a list like [{ "key": "install_cost_usd", "higherIsBetter": false }], got ' + shown(d.factors) + '.');
       const declared = Array.isArray(d.factors) ? d.factors : [];
       const factors = [];
       declared.forEach((f, i) => {
         if (!f || typeof f !== 'object' || blank(f.key)) { errors.push('factors[' + i + ']: missing key.'); return; }
         if (!isText(f.key) || (f.label != null && !isText(f.label))) { errors.push('factors[' + i + ']: key and label must be text.'); return; }
-        factors.push({ key: keyOf(f.key), label: blank(f.label) ? String(f.key) : String(f.label), higherIsBetter: f.higherIsBetter !== false, header: String(f.key) });
+        const hib = higherIsBetterOf(f);
+        if (hib === null) { errors.push('factors[' + i + ']: higherIsBetter must be true or false (or the text "true" or "false"), got ' + (typeof f.higherIsBetter === 'string' ? '"' + clip(f.higherIsBetter) + '"' : shown(f.higherIsBetter)) + '. Leave it out for higher is better.'); return; }
+        factors.push({ key: keyOf(f.key), label: blank(f.label) ? String(f.key) : String(f.label), higherIsBetter: hib, header: String(f.key) });
       });
       const states = d.states && typeof d.states === 'object' && !Array.isArray(d.states) ? d.states : {};
       const seen = new Set(factors.map((f) => f.header));
@@ -98,7 +115,7 @@
     const stateCol = head.find((h) => STATE_COLS.includes(h.trim().toLowerCase()));
     const factors = head.filter((h) => h !== stateCol && h.trim() !== '').map(factorFromHeader);
     // parseCSV keeps one value per header name, so a repeated column would lose its other values.
-    (rows.duplicateHeaders || []).forEach((h) => errors.push('Two columns are both named "' + h + '". Rename or remove one.'));
+    (rows.duplicateHeaders || []).forEach((h) => errors.push('Column "' + h + '" appears more than once. Keep one.'));
     return { factors, rows: rows.map((r, i) => ({ where: 'Row ' + (i + 2), raw: r[stateCol], cells: r })) };
   }
 
@@ -164,7 +181,11 @@
       const head = Object.keys(d[0] || {});
       const zc = head.find((h) => h.trim().toLowerCase() === ZONE_COL), vc = head.find((h) => h.trim().toLowerCase() === VALUE_COL);
       if (!vc) errors.push('Zone files need a "usd_per_year" column next to "zone".');
-      (d.duplicateHeaders || []).forEach((h) => errors.push('Two columns are both named "' + h + '". Rename or remove one.'));
+      (d.duplicateHeaders || []).forEach((h) => errors.push('Column "' + h + '" appears more than once. Keep one.'));
+      const named = (c) => head.filter((h) => h.trim().toLowerCase() === c);
+      [ZONE_COL, VALUE_COL].forEach((c) => { if (named(c).length > 1) errors.push('Columns "' + named(c).join('" and "') + '" are the same column (names match in any case). Keep one.'); });
+      head.filter((h) => h.trim() !== '' && ![ZONE_COL, VALUE_COL].includes(h.trim().toLowerCase()))
+        .forEach((h) => warnings.push('Ignored unknown column "' + clip(h) + '". Known columns: zone, usd_per_year.'));
       rows = d.map((r, i) => ({ where: 'Row ' + (i + 2), zone: r[zc], value: vc ? r[vc] : '' }));
     }
     const zones = {}, first = new Map();
@@ -216,7 +237,7 @@
     return publicZ.zones.map((x) => ({ zone: x.id, usd_per_year: x.usdPerYear }));
   }
 
-  const api = { STATES, MIN_STATES, ZONE_MAX, stateOf, detect, load, loadStates, loadZones, applyZones, rankValue, STATE_TEMPLATE_COLUMNS, stateTemplateRows, zoneTemplateRows };
+  const api = { higherIsBetterOf, STATES, MIN_STATES, ZONE_MAX, stateOf, detect, load, loadStates, loadZones, applyZones, rankValue, STATE_TEMPLATE_COLUMNS, stateTemplateRows, zoneTemplateRows };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   root.MarketCore = api;
 })(typeof window !== 'undefined' ? window : globalThis);

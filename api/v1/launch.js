@@ -45,7 +45,7 @@ function stepsParsed(steps) {
 }
 
 const OPTIONS = ['state', 'path', 'case', 'rounds'];
-const describe = (v) => (Array.isArray(v) ? 'a list' : v === null ? 'null' : typeof v === 'object' ? 'an object' : JSON.stringify(v));
+const describe = (v) => (Array.isArray(v) ? 'a list' : v === null ? 'null' : typeof v === 'object' ? 'an object' : typeof v === 'string' ? JSON.stringify(L.clip(v)) : JSON.stringify(v));
 
 /* state, path, case and rounds from the query string and a JSON body. Types are checked: in JSON,
    state, path and case are text and rounds is a number (the query string is always text). An
@@ -62,7 +62,7 @@ function readOptions(q, b) {
       if (typeof bv === 'string' && bv.trim() === '') bv = null;
     }
     if (qv != null && bv != null && String(qv).trim().toLowerCase() !== String(bv).trim().toLowerCase()) {
-      errors.push(k + ' is ' + describe(bv) + ' in the body but "' + qv + '" in the query string. Send it in one place.');
+      errors.push(k + ' is ' + describe(bv) + ' in the body but "' + L.clip(qv) + '" in the query string. Send it in one place.');
       continue;
     }
     out[k] = bv != null ? bv : (qv != null ? String(qv) : null);
@@ -86,14 +86,14 @@ async function post(parsed, req) {
 
   const errors = [];
   const abbr = opts.state == null ? 'GA' : opts.state.trim().toUpperCase();
-  if (!STATES.has(abbr)) errors.push('state "' + opts.state + '" is not a two-letter US state code in the data (50 states and DC).');
+  if (!STATES.has(abbr)) errors.push('state "' + L.clip(opts.state.trim()) + '" is not a two-letter US state code in the data (50 states and DC).');
   const kase = opts.case == null ? 'low' : opts.case.trim().toLowerCase();
   if (!['low', 'high'].includes(kase)) errors.push('case must be "low" (fast) or "high" (slow).');
   let rounds = 1;
   if (opts.rounds != null) {
     const n = L.parseNumber(opts.rounds, { integer: true, min: 0, max: MAX_ROUNDS });
     if (n.ok) rounds = n.value;
-    else errors.push('rounds must be a whole number from 0 to ' + MAX_ROUNDS + ', got ' + JSON.stringify(opts.rounds) + '.');
+    else errors.push('rounds must be a whole number from 0 to ' + MAX_ROUNDS + ', got ' + JSON.stringify(typeof opts.rounds === 'string' ? L.clip(opts.rounds) : opts.rounds) + '.');
   }
   let pathId = opts.path == null ? null : opts.path.trim().toLowerCase();
   if (pathId && !L.hasOwn(PUBLIC.paths, pathId)) errors.push('path must be one of ' + Object.keys(PUBLIC.paths).join(', ') + '.');

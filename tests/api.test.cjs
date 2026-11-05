@@ -42,7 +42,9 @@ async function call(tool, method, body, headers = JSON_CT, url = '/api/v1/' + to
   return res;
 }
 const post = (tool, body, headers, url) => call(tool, 'POST', body, headers, url);
-const near = (a, b, tol = 1e-6) => assert.ok(Math.abs(a - b) <= tol, `${a} vs ${b}`);
+// API result numbers are rounded at the boundary (api/_lib.js roundNum), so compare rounded values.
+const L = require('../api/_lib.js');
+const near = (a, b, tol = 1e-6) => assert.ok(Math.abs(L.roundNum(a) - L.roundNum(b)) <= tol, `${a} vs ${b}`);
 
 // ---------- health ----------
 
@@ -1056,10 +1058,10 @@ test('break-test finance: 1e400 is out of range, not "Infinity is not a number"'
   assert.ok(!r.body.includes('Infinity') && !c.body.includes('Infinity'));
 });
 
-test('break-test supply: duplicate columns warn; tiny gaps and the tariff hint read right', async () => {
+test('break-test supply: duplicate columns are a 422; tiny gaps and the tariff hint read right', async () => {
   const dup = (await post('supply', 'part,category,lead_time_weeks,lead_time_weeks\nA,cells,5,9\n', CSV_CT)).json();
-  assert.equal(dup.ok, true);
-  assert.ok(dup.warnings.some((w) => w.startsWith('Column "lead_time_weeks" appears more than once')), dup.warnings.join(' | '));
+  assert.equal(dup.ok, false);
+  assert.deepEqual(dup.errors, ['Column "lead_time_weeks" appears more than once. Keep one.']);
   const tiny = (await post('supply', { parts: [{ part: 'A', category: 'cells', lead_time_weeks: 0.0001, on_hand_weeks: 0.00005, tariff_pct: 30 }] })).json();
   assert.match(tiny.result.summary, /^1 of 1 part will run short\. Longest gap: A, under 0\.1 wk\. Add unit_cost_usd and qty_per_unit to see tariff cost per battery/);
   assert.doesNotMatch(tiny.result.summary, /tariff_pct to see/);
@@ -1113,7 +1115,7 @@ test('pitch program carries an illustrative accredited MW, labeled an assumption
   const a = j.result.program.accredited_example;
   assert.equal(a.basis, 'assumption');
   assert.equal(a.factor_pct, 64.65);
-  assert.ok(Math.abs(a.accredited_mw - 5000 * 15.68 / 1000 * 0.6465) < 1e-9);
+  assert.equal(a.accredited_mw, L.roundNum(5000 * 15.68 / 1000 * 0.6465));
   assert.ok(a.sources.length === 2 && a.sources.every((n) => j.sources.some((s) => s.n === n)));
   const mine = (await post('pitch', { utility: 'CoServ Electric', terms: { memberReservePct: 50 } })).json().result.program.accredited_example;
   assert.equal(mine.reserve_pct, 50);

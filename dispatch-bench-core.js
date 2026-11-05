@@ -108,7 +108,15 @@
   function compare(prices, input) { return POLICIES.map(p => run(prices, input, p)); }
   function csv(result) {
     const keys = ['device','hourEnding','commandHourEnding','commandId','attempt','requestedKwh','chargeKwh','dischargeKwh','socBefore','socAfter','telemetryAgeHours','reason','price'];
-    return keys.join(',') + '\n' + result.trace.map(r => keys.map(k => typeof r[k] === 'number' ? Number(r[k].toFixed(8)) : r[k]).join(',')).join('\n') + '\n';
+    // Text cells are escaped the same way as yourdata.js csvCell: quotes, and a leading apostrophe
+    // on text that starts with = + - @ (CSV injection). Numbers are written as numbers.
+    const cell = v => {
+      if (typeof v === 'number') return String(Number(v.toFixed(8)));
+      let t = v == null ? '' : String(v);
+      if (/^[=+\-@\t\r]/.test(t) && !/^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$/.test(t)) t = "'" + t;
+      return /[",\n\r]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
+    };
+    return keys.join(',') + '\n' + result.trace.map(r => keys.map(k => cell(r[k])).join(',')).join('\n') + '\n';
   }
   const api = { DEFAULTS, POLICIES, config, forecast, schedule, applyCommand, run, compare, csv };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

@@ -16,6 +16,8 @@
   const YD = (typeof module !== 'undefined' && module.exports) ? require('./yourdata.js') : null;
   const COLUMNS = ['part_number', 'description', 'qty', 'supplier', 'alt_suppliers', 'alt_qualified', 'lead_time_days', 'on_hand_days', 'unit_cost_usd'];
   const REQUIRED = ['part_number', 'description', 'qty', 'supplier'];
+  // Columns only the supply panel's own-data file (supply-core.js) uses, to recognize it here.
+  const PANEL_COLUMNS = ['category', 'lead_time_weeks', 'on_hand_weeks', 'second_source', 'tariff_pct', 'qty_per_unit'];
   const HEADER = {
     part_number: 'part_number', part: 'part_number', sku: 'part_number', pn: 'part_number',
     description: 'description', desc: 'description',
@@ -111,8 +113,14 @@
     return { value: n };
   }
 
+  // Plain decimal numbers only, for the formula check below (a negative number is data, not a formula).
+  const PLAIN_NUMBER = /^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$/;
+  /* One CSV cell. A text cell that starts with =, +, -, @, tab or carriage return could run as a
+     formula when the file is opened in a spreadsheet (CSV injection), so it gets a leading
+     apostrophe, as OWASP recommends. Plain numbers such as -5 are left alone. */
   function csvCell(v) {
-    const t = v == null ? '' : String(v);
+    let t = v == null ? '' : String(v);
+    if (typeof v !== 'number' && /^[=+\-@\t\r]/.test(t) && !PLAIN_NUMBER.test(t)) t = "'" + t;
     return /[",\n\r]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
   }
 
@@ -141,16 +149,25 @@
     const original = Object.keys(table[0]);
     const mapped = [];
     const seen = new Set();
+    // A column written twice is an error on every tool: which value to use is the file's call.
+    (table.duplicateHeaders || []).forEach((h) => errors.push('Column "' + h + '" appears more than once. Keep one.'));
+    const ignored = [];
     for (const h of original) {
       const key = HEADER[normHeader(h)];
-      if (!key) { warnings.push('Ignored column "' + h + '".'); continue; }
-      if (seen.has(key)) { errors.push('Duplicate column "' + h + '" maps to ' + key + '.'); continue; }
+      if (!key) { if (cellText(h)) ignored.push(h); continue; }
+      if (seen.has(key)) { errors.push('Columns "' + mapped.find((p) => p[1] === key)[0] + '" and "' + h + '" are the same column (' + key + '). Keep one.'); continue; }
       seen.add(key);
       mapped.push([h, key]);
     }
-    for (const req of REQUIRED) {
-      if (!seen.has(req)) errors.push('Missing column ' + req + '. Required columns: ' + REQUIRED.join(', ') + '.');
+    const missing = REQUIRED.filter((req) => !seen.has(req));
+    // The supply panel's file (part, category, lead_time_weeks) is a different format. Say so,
+    // instead of listing every BOM column it lacks.
+    const panelCols = original.map(normHeader).filter((h) => PANEL_COLUMNS.includes(h));
+    if (missing.length && panelCols.length) {
+      return fail(['This looks like the supply panel format (it has ' + panelCols.join(', ') + '). Load that file with "Use your own data" at the top of this page. This checker takes part_number, description, qty and supplier, with lead times in days.'], []);
     }
+    if (missing.length) errors.push('Missing column' + (missing.length === 1 ? ' ' : 's ') + missing.join(', ') + '. Required columns: ' + REQUIRED.join(', ') + '.');
+    ignored.forEach((h) => warnings.push('Ignored unknown column "' + h + '". Known columns: ' + COLUMNS.join(', ') + '.'));
     if (!seen.has('lead_time_days')) warnings.push('No lead_time_days column. Every score is unknown until lead times are added.');
     if (!seen.has('on_hand_days')) warnings.push('No on_hand_days column. Stock on hand counts as 0 days, so each gap equals the full lead time.');
     if (!seen.has('alt_suppliers')) warnings.push('No alt_suppliers column. A row with a supplier is treated as a single supplier.');
@@ -272,7 +289,7 @@
     return { errors, warnings, rows, ranked, flagged_csv, formula: FORMULA, formula_note: FORMULA_NOTE, demo_note: null };
   }
 
-  const api = { COLUMNS, REQUIRED, MAX, FORMULA, FORMULA_NOTE, SINGLE_SOURCE_MULTIPLIER, SOURCING_LABEL, DEMO_CSV, DEMO_NOTE, check, splitAlts, toCSV };
+  const api = { COLUMNS, REQUIRED, PANEL_COLUMNS, csvCell, MAX, FORMULA, FORMULA_NOTE, SINGLE_SOURCE_MULTIPLIER, SOURCING_LABEL, DEMO_CSV, DEMO_NOTE, check, splitAlts, toCSV };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   root.BomCheck = api;
 })(typeof window !== 'undefined' ? window : globalThis);

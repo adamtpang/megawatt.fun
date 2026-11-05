@@ -198,9 +198,9 @@ test('zone values are capped at the /finance arbPerYear cap and zone ids take an
 
 test('a CSV column written twice is an error, not a silent last-value-wins', () => {
   const r = MC.load(csv('state,cac,cac\nTX,1,2\n'), zoneIds);
-  assert.ok(r.errors.includes('Two columns are both named "cac". Rename or remove one.'), r.errors.join(' | '));
+  assert.ok(r.errors.includes('Column "cac" appears more than once. Keep one.'), r.errors.join(' | '));
   const z = MC.load(csv('zone,usd_per_year,usd_per_year\nLZ_WEST,1,2\n'), zoneIds);
-  assert.deepEqual(z.errors, ['Two columns are both named "usd_per_year". Rename or remove one.']);
+  assert.deepEqual(z.errors, ['Column "usd_per_year" appears more than once. Keep one.']);
 });
 
 test('market page: own-key state lookups, abbreviations in any case, no rank when nothing is scored', () => {

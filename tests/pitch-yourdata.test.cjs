@@ -33,15 +33,18 @@ test('offer terms: valid CSV and JSON change the pitch numbers', () => {
 });
 
 test('target list: matches by id, name, Name, ST and alias; targets go first in public order', () => {
-  const r = P.loadYourData(csv('utility,status,owner,note\n5078-TX,signed,Ana,"Pilot, 50 MW"\nCoServ Electric,in talks,Ben,\n"A & N Electric Coop, VA",not contacted,,\nAustin Energy,in talks,,\nNot A Real Utility Co,in talks,,'), data.utilities);
+  const r = P.loadYourData(csv('utility,status,owner,note\n5078-TX,signed,Ana,"Pilot, 50 MW"\n"A & N Electric Coop, VA",not contacted,,\nAustin Energy,in talks,,\nNot A Real Utility Co,in talks,,'), data.utilities);
   assert.deepEqual(r.errors, [], 'unmatched names never fail the file');
   assert.equal(r.targetCount, 3);
-  assert.equal(r.targets['5078-TX'].status, 'in talks', 'later row wins');
+  assert.equal(r.targets['5078-TX'].status, 'signed');
   assert.equal(r.targets['84-VA'].status, 'not contacted');
   assert.ok(r.targets['1015-TX']);
   assert.equal(r.unmatched, 1);
-  assert.ok(r.warnings.some((w) => /^Row 3: .*listed twice/.test(w)));
-  assert.ok(r.warnings.some((w) => /^Row 6: no utility called "Not A Real Utility Co"/.test(w)));
+  assert.ok(r.warnings.some((w) => /^Row 5: no utility called "Not A Real Utility Co"/.test(w)));
+  // One utility on two rows, by id and by alias, is a row error, never "the later row wins".
+  const twice = P.loadYourData(csv('utility,status\n5078-TX,signed\nCoServ Electric,in talks'), data.utilities);
+  assert.equal(twice.errors.length, 1);
+  assert.match(twice.errors[0], /^Row 3: .* is already listed \(5078-TX\)\. Keep one row per utility\.$/);
 
   const typo = P.loadYourData(csv('utility,status\nAustin Enrgy,in talks'), data.utilities);
   assert.deepEqual(typo.errors, []);

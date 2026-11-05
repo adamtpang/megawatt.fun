@@ -92,11 +92,14 @@ async function post(parsed, req) {
 
   const factorIds = MS.allFactors(E, yours).map((f) => f.id);
   const weights = {};
-  for (const [id, w] of Object.entries(weightsIn)) {
+  for (const [written, w] of Object.entries(weightsIn)) {
     // A weight is a JSON number (or decimal text) from 0 to MAX_WEIGHT; "" and null are not 0.
+    // Factor ids match in any case (HOMES is homes); an unknown id names the closest one.
     const n = L.parseNumber(w, { min: 0, max: MAX_WEIGHT });
-    if (!factorIds.includes(id)) errors.push('weights: unknown factor "' + id + '". Use one of ' + factorIds.join(', ') + '.');
-    else if (!n.ok) errors.push('weights: ' + id + ' must be a number from 0 to ' + MAX_WEIGHT + ' (the page slider runs 0 to 3), got ' + JSON.stringify(w) + '.');
+    const id = L.anyCase(written, factorIds);
+    if (!id) { const near = L.closest(written, factorIds); errors.push('weights: unknown factor "' + L.clip(written) + '".' + (near ? ' Did you mean "' + near + '"?' : '') + ' Use one of ' + factorIds.join(', ') + '.'); }
+    else if (L.hasOwn(weights, id)) errors.push('weights: ' + id + ' is sent twice (as "' + L.clip(written) + '" too). Send it once.');
+    else if (!n.ok) errors.push('weights: ' + id + ' must be a number from 0 to ' + MAX_WEIGHT + ' (the page slider runs 0 to 3), got ' + JSON.stringify(typeof w === 'string' ? L.clip(w) : w) + '.');
     else weights[id] = n.value;
   }
   if (errors.length) throw L.invalid(errors);

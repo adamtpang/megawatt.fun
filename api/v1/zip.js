@@ -15,7 +15,7 @@ function usage() {
     what: 'For one US ZIP: the wires utility, the permit office (city or county), the interconnection path, and a days-to-first-install total. Every figure is sourced, or the word unknown. Nothing is guessed.',
     post: {
       content_types: ['application/json'],
-      json_body: { zip: '5-digit US ZIP, or ZIP+4 (optional in the query string instead, ?zip=78704)' },
+      json_body: { zip: 'required: a 5-digit US ZIP as text, or ZIP+4 as 78704-1234 or 787041234 (the first five digits are used). May go in the query string instead, ?zip=78704' },
       coverage: DATA.coverage.note,
       formula: DATA.formula.expression,
     },

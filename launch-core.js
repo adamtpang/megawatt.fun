@@ -25,18 +25,34 @@
         if (!byId.has(d)) throw new Error('Step ' + s.id + ' depends on unknown step ' + d);
       }
     }
-    const state = new Map(); // 1 = visiting, 2 = done
+    // Depth-first, with an explicit stack: linear time, and no recursion limit on a long chain.
+    // The stack is the current trail, so a cycle is reported as the loop itself.
+    const state = new Map(); // 1 = on the stack, 2 = done
     const order = [];
-    function visit(id, trail) {
-      const st = state.get(id);
-      if (st === 2) return;
-      if (st === 1) throw new Error('Cycle in launch steps: ' + trail.concat(id).join(' -> '));
-      state.set(id, 1);
-      for (const d of byId.get(id).depends_on || []) visit(d, trail.concat(id));
-      state.set(id, 2);
-      order.push(id);
+    for (const s of steps) {
+      if (state.get(s.id)) continue;
+      const stack = [[s.id, 0]];
+      state.set(s.id, 1);
+      while (stack.length) {
+        const top = stack[stack.length - 1];
+        const deps = byId.get(top[0]).depends_on || [];
+        if (top[1] < deps.length) {
+          const d = deps[top[1]++];
+          const st = state.get(d);
+          if (st === 2) continue;
+          if (st === 1) {
+            const trail = stack.map(x => x[0]);
+            throw new Error('Cycle in launch steps: ' + trail.slice(trail.indexOf(d)).concat(d).join(' -> '));
+          }
+          state.set(d, 1);
+          stack.push([d, 0]);
+        } else {
+          state.set(top[0], 2);
+          order.push(top[0]);
+          stack.pop();
+        }
+      }
     }
-    for (const s of steps) visit(s.id, []);
     return order;
   }
 
@@ -51,22 +67,47 @@
   // Forward and backward pass. key is 'low', 'high', or a function step -> weeks.
   // Returns earliest/latest start and finish, slack, critical flags, total weeks,
   // and one critical chain from start to finish.
-  function schedule(steps, key) {
-    key = key || 'low';
+  // The step graph, checked and ordered once: reused when only durations change.
+  function graph(steps) {
     const order = topoOrder(steps);
     const byId = new Map(steps.map(s => [s.id, s]));
+    const succ = new Map(order.map(id => [id, []]));
+    for (const s of steps) for (const d of s.depends_on || []) succ.get(d).push(s.id);
+    return { order, byId, succ };
+  }
+
+  // Forward pass only: earliest finish of every step and the total. dur(step) -> weeks.
+  function forward(g, dur) {
+    const ef = new Map();
+    let total = 0;
+    for (const id of g.order) {
+      const s = g.byId.get(id);
+      let es = 0;
+      for (const d of s.depends_on || []) es = Math.max(es, ef.get(d));
+      const f = es + dur(s);
+      ef.set(id, f);
+      if (f > total) total = f;
+    }
+    return { ef, total };
+  }
+
+  function schedule(steps, key) {
+    key = key || 'low';
+    return scheduleGraph(graph(steps), (s) => durationOf(s, key));
+  }
+
+  function scheduleGraph(g, dur) {
+    const { order, byId, succ } = g;
     const out = Object.create(null); // keyed by step id
     for (const id of order) {
       const s = byId.get(id);
-      const dur = durationOf(s, key);
+      const d0 = dur(s);
       let es = 0;
       for (const d of s.depends_on || []) es = Math.max(es, out[d].ef);
-      out[id] = { id, dur, es, ef: es + dur };
+      out[id] = { id, dur: d0, es, ef: es + d0 };
     }
     let total = 0;
     for (const id of order) total = Math.max(total, out[id].ef);
-    const succ = new Map(order.map(id => [id, []]));
-    for (const s of steps) for (const d of s.depends_on || []) succ.get(d).push(s.id);
     for (let i = order.length - 1; i >= 0; i--) {
       const r = out[order[i]];
       let lf = total;
@@ -108,15 +149,18 @@
 
   // For each critical step, how many weeks would the launch save if that step
   // took `factor` of its time (default half)? Returns the best one and the list.
+  // Only critical steps can shorten the launch, and the graph is ordered once: each trial is one
+  // forward pass, so a 300-step chain is 300 linear passes, not 300 full reschedules.
   function bestShortening(steps, key, factor) {
     key = key || 'low';
     factor = factor == null ? 0.5 : factor;
-    const base = schedule(steps, key);
+    const g = graph(steps);
+    const dur = (s) => durationOf(s, key);
+    const base = scheduleGraph(g, dur);
     const options = [];
     for (const id of base.order) {
       if (!base.steps[id].critical || base.steps[id].dur === 0) continue;
-      const trial = steps.map(s => s.id === id ? Object.assign({}, s, { [key]: durationOf(s, key) * factor }) : s);
-      const t = schedule(trial, key).total;
+      const t = forward(g, (s) => (s.id === id ? dur(s) * factor : dur(s))).total;
       options.push({ id, saved: round1(base.total - t), cutWeeks: round1(base.steps[id].dur * (1 - factor)) });
     }
     options.sort((a, b) => b.saved - a.saved || b.cutWeeks - a.cutWeeks);
@@ -167,6 +211,7 @@
   }
 
   const MAX_WEEKS = 260;
+  const MAX_STEPS = 300; // per path, in a company's own file
   const STEP_COLUMNS = ['path', 'id', 'name', 'owner', 'low', 'high', 'depends_on', 'round_weeks', 'note'];
 
   // Text cells: strings, or numbers written as text. Objects, lists and true/false are not text.
@@ -242,8 +287,18 @@
       if (raw.tennis != null && !Array.isArray(raw.tennis)) errors.push('"tennis" must be a list of { step, round_weeks }.');
       else (raw.tennis || []).forEach((t, i) => tennisIn.push({ where: 'tennis ' + (i + 1) + ': ', t: t || {} }));
     }
-    for (const [a, b] of dupeCols.values()) warnings.push('Columns "' + a + '" and "' + b + '" are the same column; the first value that is not blank is used.');
+    // A column written twice is an error on every tool: which value to use is the file's call, not ours.
+    if (Array.isArray(raw)) (raw.duplicateHeaders || []).forEach(h => errors.push('Column "' + h + '" appears more than once. Keep one.'));
+    for (const [a, b] of dupeCols.values()) errors.push('Columns "' + a + '" and "' + b + '" are the same column (names match in any case). Keep one.');
     for (const k of unknownCols.keys()) warnings.push('Ignored unknown column "' + k + '". Known columns: ' + STEP_COLUMNS.join(', ') + '.');
+    // Step cap per path, checked before any row is read: a launch plan is tens of steps, and a
+    // file of thousands is a mistake (or a test of the server), not a plan.
+    const perPath = new Map();
+    for (const e of entries) if (pathIds.includes(e.pid)) perPath.set(e.pid, (perPath.get(e.pid) || 0) + 1);
+    const over = Array.from(perPath).filter(([, n]) => n > MAX_STEPS);
+    if (over.length) {
+      return { data: d, errors: over.map(([pid, n]) => pid + ': ' + n + ' steps is over the limit of ' + MAX_STEPS + ' steps per path. Merge small steps into larger ones, or split the plan into phases.'), warnings: [], summary: '', paths: [] };
+    }
     if (!entries.length && !errors.length) errors.push('No steps found. Use the CSV columns ' + STEP_COLUMNS.join(', ') + ', or JSON { "paths": { "retail": { "steps": [...] } } }.');
 
     // Validate each row and group it by path.
@@ -384,22 +439,23 @@
   // then reschedule. Returns the new schedule and the weeks it added.
   function tennisCost(steps, loops, rounds, key) {
     key = key || 'low';
-    const base = schedule(steps, key);
+    const g = graph(steps);
+    const dur = (s) => durationOf(s, key);
+    const base = scheduleGraph(g, dur);
     const extra = new Map(loops.map(t => [t.step, t.round_weeks * rounds]));
-    const trial = steps.map(s => extra.get(s.id) ? Object.assign({}, s, { [key]: durationOf(s, key) + extra.get(s.id) }) : s);
-    const after = schedule(trial, key);
+    const after = scheduleGraph(g, (s) => dur(s) + (extra.get(s.id) || 0));
     const first = r => r.steps.first_installs ? r.steps.first_installs.ef : r.total;
-    // Which single loop, if it took one round, delays first install most?
+    const firstF = r => (r.ef.has('first_installs') ? r.ef.get('first_installs') : r.total);
+    // Which single loop, if it took one round, delays first install most? One forward pass each.
     const worst = loops.map(t => {
-      const one = steps.map(s => s.id === t.step ? Object.assign({}, s, { [key]: durationOf(s, key) + t.round_weeks }) : s);
-      return { step: t.step, delay: round1(first(schedule(one, key)) - first(base)) };
+      return { step: t.step, delay: round1(firstF(forward(g, (s) => (s.id === t.step ? dur(s) + t.round_weeks : dur(s)))) - first(base)) };
     }).sort((a, b) => b.delay - a.delay)[0] || null;
     return { schedule: after, addedFirst: round1(first(after) - first(base)), addedTotal: round1(after.total - base.total), worst };
   }
 
   function weeksToMonths(w) { return round1(w * 7 / 30.4375); }
 
-  const api = { topoOrder, schedule, applyEdits, bestShortening, resolveSteps, suggestPath, weeksToMonths, resolveTennis, tennisCost, applyOverrides, templateRows, isReserved, STEP_COLUMNS, MAX_WEEKS };
+  const api = { topoOrder, schedule, applyEdits, bestShortening, resolveSteps, suggestPath, weeksToMonths, resolveTennis, tennisCost, applyOverrides, templateRows, isReserved, STEP_COLUMNS, MAX_WEEKS, MAX_STEPS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (typeof window !== 'undefined') window.LaunchCore = api;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -23,13 +23,13 @@ function usage() {
       content_types: ['application/json', 'text/csv'],
       json_body: {
         inputs: '{ key: value } for any input key below (optional; omitted keys keep the public value)',
-        revenueCase: 'toll | merchant | stacked (optional, default ' + DEFAULTS.revenueCaseDefault + ')',
+        revenueCase: 'toll | merchant | stacked, any case (optional, default ' + DEFAULTS.revenueCaseDefault + ')',
         zone: 'ERCOT zone for the arbitrage value, any case (optional, default ' + DEFAULTS.zoneDefault + '): ' + ZONE_IDS.join(', '),
         arbPerYear: 'your own arbitrage value, $ per battery per year, 0 to ' + F.ARB_MAX + '; replaces the zone, with a warning when you send both (optional)',
         fleetCount: 'batteries in your fleet roll-up, a whole number from 1 to 10,000,000 (optional, same as inputs.fleetCount)',
         conflicts: 'revenueCase, zone, arbPerYear and fleetCount may be sent at the top level or inside inputs. Sent in both places with different values is a 422.',
       },
-      csv_body: 'The page\'s "Use your own data" file: key,value columns (header in any case), one row per input. Same keys, including revenueCase, zone and arbPerYear. A key on two rows is a 422. JSON sent as text/csv is a 422 that says to use application/json.',
+      csv_body: 'The page\'s "Use your own data" file: key,value columns (header in any case), one row per input. Same keys, including revenueCase, zone and arbPerYear. Keys and their text values match in any case (ratepct is ratePct, TOLL is toll); an unknown key is a 422 that names the closest key. A key on two rows, a column written twice, or a file without the key,value header row is a 422. Columns other than key, value, unit, label and public_basis are ignored with a warning. JSON sent as text/csv is a 422 that says to use application/json.',
       input_keys: fields(DEFAULTS).map((f) => ({ key: f.key, unit: f.unit, public_value: f.value, min: f.min, max: f.max, integer: !!f.integer, basis: f.kind })),
       numbers: 'Plain decimal numbers only (12, 8.5, 1e3). Hex such as 0x10, Infinity and out-of-range values are 422 errors. A number too large to store (1e400) is reported as out of range.',
     },
@@ -40,12 +40,12 @@ function usage() {
   };
 }
 
-// Two ways of writing one input that mean the same thing: 100 and "100", LZ_NORTH and lz_north.
+// Two ways of writing one input that mean the same thing: 100 and "100", LZ_NORTH and lz_north, toll and TOLL.
 function sameValue(key, a, b) {
   const x = F.parseDecimal(a), y = F.parseDecimal(b);
   if (Number.isFinite(x) && Number.isFinite(y)) return x === y;
   const t = (v) => String(v).trim();
-  return key === 'zone' ? t(a).toUpperCase() === t(b).toUpperCase() : t(a) === t(b);
+  return key === 'zone' || key === 'revenueCase' ? t(a).toUpperCase() === t(b).toUpperCase() : t(a) === t(b);
 }
 
 // Body to the parsed-file shape finance-core's applyOverrides reads.
@@ -80,7 +80,7 @@ function toOverrides(parsed) {
 function readInputs(d, arbOverride) {
   const raw = { revenueCase: d.revenueCaseDefault };
   for (const f of fields(d)) raw[f.key] = Number(f.value);
-  const zoneId = ZONES.some((z) => z.id === d.zoneDefault) ? d.zoneDefault : (ZONES[0] && ZONES[0].id);
+  const zoneId = F.pickZone(ZONE_IDS, d.zoneDefault); // the same pick as the page's setDefaults()
   const z = ZONES.find((x) => x.id === zoneId);
   raw.arbPerYear = arbOverride != null ? arbOverride : (z ? z.usdPerYear : 0);
   return { raw, zone: arbOverride != null ? null : zoneId, inp: F.normalize(raw) };

@@ -58,6 +58,40 @@
   }
 
   const fieldList = (defaults) => defaults.groups.flatMap((g) => g.fields);
+  // Keys a file may set that are not fields in finance-defaults.json.
+  const SPECIAL_KEYS = ['revenueCase', 'zone', 'arbPerYear'];
+  // Columns of the CSV template. Others are ignored with a warning.
+  const FILE_COLUMNS = ['key', 'value', 'unit', 'label', 'public_basis'];
+
+  // Text echoed in a message, cut so a huge cell never comes back whole.
+  function clip(v, n) { const t = String(v == null ? '' : v); const m = n || 40; return t.length > m ? t.slice(0, m) + '...' : t; }
+  // NUL bytes or the replacement character: a binary file read as text.
+  function looksBinary(t) { return /[\u0000\uFFFD]/.test(t); }
+  // Edit distance with an early stop, for "Did you mean" on an unknown key.
+  function lev(a, b, limit) {
+    if (Math.abs(a.length - b.length) > limit) return limit + 1;
+    let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+    for (let i = 1; i <= a.length; i++) {
+      const cur = [i];
+      let best = i;
+      for (let j = 1; j <= b.length; j++) {
+        cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+        if (cur[j] < best) best = cur[j];
+      }
+      if (best > limit) return limit + 1;
+      prev = cur;
+    }
+    return prev[b.length];
+  }
+  // The known key closest to word (ignoring case, spaces, - and _), or null when none is close.
+  function closest(word, known) {
+    const norm = (s) => String(s).toLowerCase().replace(/[\s_-]+/g, '');
+    const w = norm(word);
+    if (!w || w.length > 60) return null;
+    let best = null, bestD = Infinity;
+    for (const k of known) { const dd = lev(w, norm(k), 3); if (dd < bestD) { bestD = dd; best = k; } }
+    return best != null && bestD <= Math.max(1, Math.min(3, Math.floor(w.length / 3))) ? best : null;
+  }
 
   /* The page's form check, the same rules the API applies to a file.
      raw: { key: string as typed }. A blank keeps the field's current default.
@@ -322,12 +356,38 @@
     const byKey = new Map(fieldList(d).map((f) => [f.key, f]));
     const publicValue = new Map(fieldList(defaults).map((f) => [f.key, f.value]));
     const cases = Object.keys(CASES);
+    // Keys match in any case ("ratepct" is ratePct), the same as zone, state and case values.
+    const KEYS = Array.from(byKey.keys()).concat(SPECIAL_KEYS);
+    const canon = new Map(KEYS.map((k) => [k.toLowerCase(), k]));
     let pairs;
     const data = parsed && parsed.data;
-    // CSV headers (and JSON row keys) match case-insensitively and trimmed: Key,Value works.
-    const col = (r, name) => (r && typeof r === 'object' ? Object.keys(r).find((k) => k.trim().toLowerCase() === name) : undefined);
-    if (Array.isArray(data)) pairs = data.map((r, i) => { const k = col(r, 'key'), v = col(r, 'value'); return { key: k != null ? r[k] : null, value: v != null ? r[v] : null, line: i + 2 }; });
-    else if (data && typeof data === 'object') {
+    // A one-line CSV has no data rows, but its only line may be a data row with no header above it.
+    if (Array.isArray(data) && !data.length && Array.isArray(data.headers) && data.headers.length && !data.headers.some((h) => h.trim().toLowerCase() === 'key')) {
+      errors.push('No "key" column. The first line must be the header row key,value (download the template); this file\'s first line is "' + clip(data.headers.join(','), 60) + '".');
+      return { defaults: d, errors, warnings, changed, arbPerYear: null, zone: null };
+    }
+    if (Array.isArray(data)) {
+      // CSV headers (and JSON row keys) match case-insensitively and trimmed: Key,Value works.
+      const head = Array.isArray(data.headers) ? data.headers : Object.keys(data.find((r) => r && typeof r === 'object') || {});
+      const named = (name) => head.filter((h) => h.trim().toLowerCase() === name);
+      const text = head.join(',') + ' ' + data.slice(0, 5).map((r) => (r && typeof r === 'object' ? Object.values(r).join(',') : '')).join(' ');
+      if (looksBinary(text)) {
+        errors.push('This file is not text. It looks like a binary file (a spreadsheet such as .xlsx, an image or a zip). Save it as CSV (UTF-8) with key and value columns.');
+        return { defaults: d, errors, warnings, changed, arbPerYear: null, zone: null };
+      }
+      const dup = (data.duplicateHeaders || []).map((h) => 'Column "' + clip(h) + '" appears more than once. Keep one.');
+      ['key', 'value'].forEach((c) => { const n = named(c); if (n.length > 1) dup.push('Columns "' + n.map((x) => clip(x)).join('" and "') + '" are the same column (names match in any case). Keep one.'); });
+      if (dup.length) return { defaults: d, errors: dup, warnings, changed, arbPerYear: null, zone: null };
+      if (data.length && (!named('key').length || !named('value').length)) {
+        const missing = ['key', 'value'].filter((c) => !named(c).length);
+        errors.push('No ' + missing.map((c) => '"' + c + '"').join(' or ') + ' column. The first line must be the header row key,value (download the template); this file\'s first line is "' + clip(head.join(','), 60) + '".');
+        return { defaults: d, errors, warnings, changed, arbPerYear: null, zone: null };
+      }
+      head.filter((h) => h.trim() !== '' && !FILE_COLUMNS.includes(h.trim().toLowerCase()))
+        .forEach((h) => warnings.push('Ignored unknown column "' + clip(h) + '". Known columns: ' + FILE_COLUMNS.join(', ') + '.'));
+      const k = named('key')[0], v = named('value')[0];
+      pairs = data.map((r, i) => ({ key: r && typeof r === 'object' ? r[k] : null, value: r && typeof r === 'object' ? r[v] : null, line: i + 2 }));
+    } else if (data && typeof data === 'object') {
       const src = has(data, 'inputs') && data.inputs && typeof data.inputs === 'object' ? data.inputs : data;
       pairs = Object.keys(src).map((key) => ({ key, value: src[key] }));
     } else pairs = [];
@@ -336,31 +396,38 @@
     const firstAt = new Map(); // key -> where it first appeared, so a repeated row is an error, not "last row wins"
     for (const p of pairs) {
       const where = p.line ? 'Row ' + p.line + ': ' : '';
-      const key = String(p.key == null ? '' : p.key).trim();
-      if (!key) { errors.push(where + 'missing key.'); continue; }
+      const written = String(p.key == null ? '' : p.key).trim();
+      if (!written) { errors.push(where + 'missing key.'); continue; }
+      const key = canon.get(written.toLowerCase()) || written;
       if (firstAt.has(key)) { errors.push(where + key + ' appears again (first at ' + firstAt.get(key) + '). Keep one row per key.'); continue; }
       firstAt.set(key, p.line ? 'Row ' + p.line : 'an earlier entry');
-      const isSpecial = key === 'revenueCase' || key === 'zone' || key === 'arbPerYear';
-      if (!isSpecial && !byKey.has(key)) { errors.push(where + 'unknown key "' + key + '". Download the template for the full list.'); continue; }
+      const isSpecial = SPECIAL_KEYS.includes(key);
+      if (!isSpecial && !byKey.has(key)) {
+        const near = closest(written, KEYS);
+        errors.push(where + 'unknown key "' + clip(written) + '".' + (near ? ' Did you mean ' + near + '?' : '') + ' Download the template for the full list.');
+        continue;
+      }
       if (p.value !== null && typeof p.value === 'object') { errors.push(where + key + ' must be a single value, not a list or object.'); continue; }
       if (String(p.value == null ? '' : p.value).trim() === '') { warnings.push(where + key + ' is blank, so the public value stays.'); continue; }
       if (key === 'revenueCase') {
-        if (!cases.includes(String(p.value).trim())) errors.push(where + 'revenueCase must be one of ' + cases.join(', ') + '.');
-        else revenueCase = String(p.value).trim();
+        // Any case: TOLL is toll, the same as zone.
+        const c = String(p.value).trim().toLowerCase();
+        if (!cases.includes(c)) errors.push(where + 'revenueCase must be one of ' + cases.join(', ') + ' (any case), got "' + clip(String(p.value).trim()) + '".');
+        else revenueCase = c;
         continue;
       }
       if (key === 'zone') {
         // Any case: lz_north is LZ_NORTH, the same as the market page's zone file.
         const z = String(p.value).trim().toUpperCase();
-        if (!zoneIds.includes(z)) errors.push(where + 'zone must be one of ' + zoneIds.join(', ') + ' (any case), got "' + String(p.value).trim() + '".');
+        if (!zoneIds.includes(z)) errors.push(where + 'zone must be one of ' + zoneIds.join(', ') + ' (any case), got "' + clip(String(p.value).trim()) + '".');
         else zone = z;
         continue;
       }
       const v = parseDecimal(p.value);
       if (!Number.isFinite(v)) {
         const range = key === 'arbPerYear' ? ' Allowed: 0 to ' + ARB_MAX + '.' : rangeText(byKey.get(key));
-        if (isHuge(p.value)) errors.push(where + key + ' is out of range: ' + (typeof p.value === 'string' ? '"' + p.value.trim() + '"' : 'the number') + ' is too large.' + range);
-        else errors.push(where + key + ' is not a number: "' + p.value + '". Use plain decimal digits.');
+        if (isHuge(p.value)) errors.push(where + key + ' is out of range: ' + (typeof p.value === 'string' ? '"' + clip(p.value.trim()) + '"' : 'the number') + ' is too large.' + range);
+        else errors.push(where + key + ' is not a number: "' + clip(p.value) + '". Use plain decimal digits.');
         continue;
       }
       if (key === 'arbPerYear') {
@@ -381,7 +448,19 @@
     if (revenueCase) d.revenueCaseDefault = revenueCase;
     if (zone) d.zoneDefault = zone;
     if (zone && arbPerYear != null) warnings.push('arbPerYear replaces the zone value, so zone ' + zone + ' is not used. Leave arbPerYear blank to use the zone.');
-    return { defaults: d, errors, warnings, changed, arbPerYear };
+    // zone: the file's zone, or null when the file does not set one (the page then keeps the zone on screen).
+    return { defaults: d, errors, warnings, changed, arbPerYear, zone };
+  }
+
+  /* The zone the /finance page shows after a file loads or is cleared, so the page and the API agree.
+     zoneIds: zones on the page. current: the zone selected now. fileZone: the file's zone (applyOverrides
+     .zone) or null. reset: true for "Back to public data", which restores the public default zone. */
+  function pickZone(zoneIds, wanted, fallback) {
+    return zoneIds.includes(wanted) ? wanted : zoneIds.includes(fallback) ? fallback : (zoneIds[0] || null);
+  }
+  function zoneAfterLoad(o) {
+    if (o.reset) return pickZone(o.zoneIds, o.publicZone);
+    return pickZone(o.zoneIds, o.fileZone || o.current, o.publicZone);
   }
 
   // Template rows: every field with its public value, plus the special keys.
@@ -393,7 +472,7 @@
     return rows;
   }
 
-  const api = { EXPORT_TEXT, BRIDGE_TEXT, EQUITY_ZERO_TEXT, applyOverrides, templateRows, validateFields, parseDecimal, isHuge, fieldError, bindingText, PERCENT_FIELDS, CASES, ARB_MAX, annuityFactor, annuityPayment, normalize, cashFlows, sizeDebt, fleet, batteriesForMw, sensitivity, explain };
+  const api = { SPECIAL_KEYS, FILE_COLUMNS, pickZone, zoneAfterLoad, closest, EXPORT_TEXT, BRIDGE_TEXT, EQUITY_ZERO_TEXT, applyOverrides, templateRows, validateFields, parseDecimal, isHuge, fieldError, bindingText, PERCENT_FIELDS, CASES, ARB_MAX, annuityFactor, annuityPayment, normalize, cashFlows, sizeDebt, fleet, batteriesForMw, sensitivity, explain };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   root.FinanceCore = api;
 })(typeof window !== 'undefined' ? window : globalThis);

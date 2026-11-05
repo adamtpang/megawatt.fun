@@ -8,6 +8,8 @@
   const CATEGORIES = ['power_electronics', 'bms_memory', 'cells', 'cellular', 'grid_equipment', 'labor', 'metals'];
   const COLUMNS = ['part', 'category', 'supplier', 'country', 'lead_time_weeks', 'on_hand_weeks', 'second_source', 'tariff_pct', 'unit_cost_usd', 'qty_per_unit', 'note'];
   const REQUIRED = ['part', 'category', 'lead_time_weeks'];
+  // Columns only the BOM CSV checker (bom-check-core.js) uses, to recognize its file here.
+  const BOM_COLUMNS = ['part_number', 'description', 'qty', 'quantity', 'lead_time_days', 'on_hand_days', 'alt_suppliers', 'alt_qualified'];
   const NUMBERS = ['lead_time_weeks', 'on_hand_weeks', 'tariff_pct', 'unit_cost_usd', 'qty_per_unit'];
   const TEXTS = ['part', 'category', 'supplier', 'country', 'note'];
   const TARIFF_MAX = 500;
@@ -65,6 +67,18 @@
       return { rows, errors, warnings };
     }
     const seen = new Map(), unknown = new Map(), dupes = new Map();
+    // The BOM CSV checker on /supply takes a different file (part_number, description, qty,
+    // supplier, *_days). Say so when that file lands here, instead of listing every missing column.
+    const first = list.find((r) => r && typeof r === 'object' && !Array.isArray(r));
+    if (first) {
+      const cols = Object.keys(first).map(colKey);
+      const mine = cols.some((c) => c === 'category' || c === 'lead_time_weeks');
+      const bom = cols.filter((c) => BOM_COLUMNS.includes(c));
+      if (!mine && bom.length) {
+        errors.push('This looks like a BOM checker file (it has ' + bom.join(', ') + '). This panel takes part, category and lead_time_weeks, with lead times in weeks. Use the BOM CSV checker on /supply for a part_number, description, qty, supplier file, or download this panel\'s template.');
+        return { rows, errors, warnings };
+      }
+    }
     list.forEach((raw, i) => {
       const where = isCsv ? 'Row ' + (i + 2) + ': ' : 'Part ' + (i + 1) + ': ';
       if (!raw || typeof raw !== 'object' || Array.isArray(raw)) { errors.push(where + 'not an object.'); return; }
@@ -104,12 +118,13 @@
       }
       if (!bad) rows.push(out);
     });
+    // A column written twice is an error on every tool: which value to use is the file's call, not ours.
+    const dupErr = [];
+    if (isCsv && Array.isArray(data)) (data.duplicateHeaders || []).forEach((h) => dupErr.push('Column "' + h + '" appears more than once. Keep one.'));
+    for (const [a, b] of dupes.values()) dupErr.push('Columns "' + a + '" and "' + b + '" are the same column (names match in any case). Keep one.');
     const head = [];
-    // A header written twice with the same spelling: parseCSV keeps only the last value.
-    if (isCsv && Array.isArray(data)) (data.duplicateHeaders || []).forEach((h) => head.push('Column "' + h + '" appears more than once; the value in the last "' + h + '" column is used. Remove the extra column.'));
-    for (const [a, b] of dupes.values()) head.push('Columns "' + a + '" and "' + b + '" are the same column; the first value that is not blank is used.');
     for (const k of unknown.keys()) head.push('Ignored unknown column "' + k + '". Known columns: ' + COLUMNS.join(', ') + '.');
-    return { rows, errors, warnings: head.concat(warnings) };
+    return { rows: dupErr.length ? [] : rows, errors: dupErr.concat(errors), warnings: head.concat(warnings) };
   }
 
   // Rows sorted by gap (lead time minus weeks of cover, biggest first), with flags and totals.
@@ -140,10 +155,11 @@
   }
 
   // Weeks as shown on the page and in the API. A value that is not zero never reads as 0:
-  // a part that is 0.00005 weeks short is "under 0.1 wk", so it matches its "Will run short" flag.
+  // anything above 0 and under 0.1 weeks is "under 0.1 wk" (0.05 too, never a rounded-up "0.1 wk"),
+  // so a tiny gap matches its "Will run short" flag.
   function weeksText(n) {
     if (n == null) return '';
-    if (n !== 0 && Math.abs(n) < 0.05) return n < 0 ? 'under 0.1 wk spare' : 'under 0.1 wk'; // only a gap goes below 0
+    if (n !== 0 && Math.abs(n) < 0.1) return n < 0 ? 'under 0.1 wk spare' : 'under 0.1 wk'; // only a gap goes below 0
     return (Math.round(n * 10) / 10) + ' wk';
   }
   const money = (n) => '$' + (Math.round(n * 100) / 100).toLocaleString('en-US', { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 });
@@ -189,7 +205,7 @@
     });
   }
 
-  const api = { CATEGORIES, COLUMNS, REQUIRED, validate, analyze, templateRows, weeksText, summary };
+  const api = { CATEGORIES, COLUMNS, REQUIRED, BOM_COLUMNS, validate, analyze, templateRows, weeksText, summary };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   root.SupplyCore = api;
 })(typeof window !== 'undefined' ? window : globalThis);

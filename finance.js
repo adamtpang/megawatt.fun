@@ -93,7 +93,7 @@
   function setDefaults() {
     for (const f of fields()) $(`in-${f.key}`).value = String(f.value);
     $('revenueCase').value = defaults.revenueCaseDefault;
-    if (zones.length) $('zone').value = zones.some((z) => z.id === defaults.zoneDefault) ? defaults.zoneDefault : zones[0].id;
+    if (zones.length) $('zone').value = F.pickZone(zones.map((z) => z.id), defaults.zoneDefault);
   }
 
   // Model inputs from the form, or null when any field is invalid. A blank field keeps
@@ -287,14 +287,21 @@
     renderSens(inp);
   }
 
-  // Plug in a company's own inputs (yourdata.js). The public defaults stay untouched.
-  function useDefaults(d, arb) {
+  /* Plug in a company's own inputs (yourdata.js). The public defaults stay untouched.
+     fileZone: the file's zone, or null when it sets none. reset: "Back to public data".
+     buildZones() rebuilds the zone list, so the zone is chosen after it (FinanceCore.zoneAfterLoad):
+     the file's zone if it has one, else the zone on screen; reset restores the public default. */
+  function useDefaults(d, arb, fileZone, reset) {
+    const current = $('zone').value;
     defaults = d;
     arbOverride = arb;
     buildInputs();
-    setDefaults();
     renderLedger();
     buildZones();
+    setDefaults();
+    if (zones.length) {
+      $('zone').value = F.zoneAfterLoad({ zoneIds: zones.map((z) => z.id), current, fileZone, publicZone: publicDefaults.zoneDefault, reset: !!reset });
+    }
     if (arb != null) $('zone-note').textContent = `Using your arbitrage value, $${Math.round(arb)} per battery per year. The zone list is ignored.`;
     update();
   }
@@ -313,10 +320,10 @@
           errors: r.errors,
           warnings: r.warnings,
           summary: `${r.changed.length} input${r.changed.length === 1 ? '' : 's'} changed${r.arbPerYear != null ? ', plus your arbitrage value' : ''}. Changed inputs are tagged Yours.`,
-          apply: () => useDefaults(r.defaults, r.arbPerYear),
+          apply: () => useDefaults(r.defaults, r.arbPerYear, r.zone, false),
         };
       },
-      reset: () => useDefaults(publicDefaults, null),
+      reset: () => useDefaults(publicDefaults, null, null, true),
     });
   }
 

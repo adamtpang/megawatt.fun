@@ -2,7 +2,7 @@
 
 Page: `/finance`. Swaps the public cost, tax credit, revenue and loan inputs for your own. The page is a generic model of one leased home battery, not any company's books.
 
-**File:** CSV with `key,value` columns (headers in any case, so `Key,Value` works), or JSON `{ "key": value }` (also accepted: `{ "inputs": { ... } }` or `[{ "key", "value" }]`). Extra columns such as `unit` and `label` are ignored. Download the template from the page: it lists every key with its public value.
+**File:** CSV with `key,value` columns (headers in any case, so `Key,Value` works), or JSON `{ "key": value }` (also accepted: `{ "inputs": { ... } }` or `[{ "key", "value" }]`). Keys match in any case (`ratepct` is `ratePct`), and so do text values (`TOLL` is `toll`, `lz_north` is `LZ_NORTH`). The template's other columns (`unit`, `label`, `public_basis`) are ignored; any other column is ignored with a warning that names it. Download the template from the page: it lists every key with its public value.
 
 | Key | Meaning | Unit |
 | --- | --- | --- |
@@ -17,7 +17,7 @@ Page: `/finance`. Swaps the public cost, tax credit, revenue and loan inputs for
 
 **Who keeps the arbitrage:** in ERCOT, outflow from an unregistered battery of 1 MW or less is settled as a cut to the settlement load of the home's retail provider at the real-time load-zone price (Nodal Protocols 11.4.4.3 and 6.6.3.2). If your company is the home's retail provider, keep the zone value; if not, enter in `arbPerYear` what your contract with the provider pays, and set `retailMarginMonthly` to 0. ADER is the route to ancillary services (`ancPerKwYear`), not needed for the energy value.
 
-**Rules:** blank values keep the public number (a warning says so). Unknown keys (including names such as `__proto__` or `constructor`), a key on two rows, non-numbers, hex such as `0x10`, and out-of-range values stop the load and are listed by row. A number too large to store, such as `1e400`, is reported as out of range, quoting what you wrote (a JSON number cannot be quoted back, so the message says the number is too large). Typing in the page's fields follows the same rules: an invalid field shows an error and the results wait until it is fixed. Changed inputs are tagged **Yours**, and their notes show the public value they replaced.
+**Rules:** blank values keep the public number (a warning says so). Unknown keys (including names such as `__proto__` or `constructor`; the message names the closest key, such as "Did you mean ratePct?"), a key on two rows, a column written twice, a file without the `key,value` header row (the message shows the first line it found), a binary file such as an `.xlsx` (save it as CSV), non-numbers, hex such as `0x10`, and out-of-range values stop the load and are listed by row. A number too large to store, such as `1e400`, is reported as out of range, quoting what you wrote (a JSON number cannot be quoted back, so the message says the number is too large). Typing in the page's fields follows the same rules: an invalid field shows an error and the results wait until it is fixed. Changed inputs are tagged **Yours**, and their notes show the public value they replaced. `kw` must be at least 0.1, because the 100 MW column divides by it. Loading a file keeps the zone you picked, unless the file sets `zone`; "Back to public data" returns to the public default zone, `LZ_NORTH`, so the page and `POST /api/v1/finance` agree on the same file.
 
 **Example:**
 
