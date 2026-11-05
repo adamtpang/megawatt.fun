@@ -19,7 +19,7 @@
 
 <main class="pt" id="main">
   <section class="pt-intro">
-    <p class="eyebrow">Business to government</p>
+    <p class="eyebrow">Utility programs</p>
     <h1>Utility pitch</h1>
     <p class="lede pt-lede">Many US utilities are owned by a city or by their members. Pick one. One button builds a one-page case for a home-battery company's utility program, from that utility's own public numbers. The three offers are the ones Base Power publishes for utilities, quoted and sourced.</p>
     <p class="notice pt-disclaim">Not affiliated with Base Power. This is an outside view from public data. Base's numbers are Base's claims, and are labeled that way.</p>
@@ -36,7 +36,8 @@
     </div>
     <div class="pt-field">
       <label for="mw">Program size (MW)</label>
-      <input id="mw" type="number" min="1" max="5000" step="1" value="100" inputmode="numeric">
+      <input id="mw" type="number" min="0" max="5000" step="any" value="100" inputmode="decimal" aria-describedby="mw-help">
+      <p class="pt-help" id="mw-help">Above 0 and at most 5,000. A tiny size is rounded up to whole batteries.</p>
     </div>
     <div class="pt-field pt-check">
       <input id="largeloads" type="checkbox">
@@ -61,7 +62,12 @@
     <h2 id="rules-title">How the rules work</h2>
     <h3>Program size</h3>
     <p>Batteries = MW x 1,000 / 20, rounded up. Storage MWh = batteries x 39.2 / 1,000. Share of homes = batteries / residential customers. The 20 kW and 39.2 kWh figures are Base's published spec for its home battery.</p>
-    <p>Program MW is nameplate. Next to it the pitch shows an <strong>illustrative accredited MW</strong>, labeled as an assumption: hold back 20% of each battery for the home (or your own reserve), count each battery at the power it can hold for 2 hours (about 15.7 kW), then apply NYISO's final 2026-2027 capacity accreditation factor for its 2-Hour Energy Duration Limited class, 64.65% (Rest of State). For 100 MW nameplate that is about 51 MW. PJM has no 2-hour class; its 4-hour storage class is rated 59% for the 2028/2029 auction. A utility's own market may count home batteries differently.</p>
+    <p>Program MW is nameplate. Next to it the pitch shows a capacity illustration that fits the utility's market, labeled as an assumption. Each starts the same way: hold back 20% of each battery for the home (or your own reserve) and count each battery at the power it can hold for 2 hours (about 15.7 kW).</p>
+    <ul>
+      <li><strong>In a capacity market</strong> (PJM, MISO, ISO-NE, NYISO): an <strong>illustrative accredited MW</strong>, applying NYISO's final 2026-2027 capacity accreditation factor for its 2-Hour Energy Duration Limited class, 64.65% (Rest of State). For 100 MW nameplate that is about 51 MW. PJM has no 2-hour class; its 4-hour storage class is rated 59% for the 2028/2029 auction. A utility's own market may count home batteries differently.</li>
+      <li><strong>In ERCOT</strong>, an energy-only market with no capacity accreditation: no accreditation factor. The pitch shows the MW the fleet could hold through a 2-hour peak, because being available in the peak hours (the four summer coincident peaks, 4CP, and price spikes) is what a peak kW is worth there. For 100 MW nameplate that is about 78 MW.</li>
+      <li><strong>Elsewhere</strong> (CAISO, SPP, or no ISO): there is no centralized capacity market, so the pitch shows the same 2-hour peak MW and leaves accreditation as a question for the utility's own planning rules.</li>
+    </ul>
     <h3>Percentiles</h3>
     <p>Each signal is compared with every utility in the file that publishes it. "Higher than 80% of US utilities" means 80% of those utilities report a lower value. Missing values are shown as "not published" and are never treated as zero.</p>
     <h3>Headline</h3>
@@ -78,7 +84,7 @@
     <h3>Who to call first</h3>
     <p>Score = residential customers x SAIDI minutes. That is a residential stand-in for customer minutes interrupted, the total outage time a utility's homes sit through in a year. It favors big utilities with long outages. SAIDI covers all customers, so the product is an approximation. Utilities with no published SAIDI go last. Wires-only utilities are not ranked; they are named under the table.</p>
     <p>Market first. A program's value case is built on one market's rules (capacity accreditation, peak pricing, transmission cost allocation). When one ISO or RTO holds at least 80% of a state's residential customers, utilities in it are ranked first and the rest follow, labeled "Outside" that market. In Texas that market is ERCOT (88% of homes in this file): Entergy Texas (MISO), Southwestern Public Service and SWEPCO (SPP) and El Paso Electric (no ISO) sit under different market rules, so they come after every ERCOT utility. In a split state, everyone is ranked together and each row names its market.</p>
-    <p>Existing Base partners are never ranked as a cold call. They are listed after the ranking, labeled <strong>Already a Base partner</strong>, and their pitch is framed as expanding the existing program, with questions about what that program has shown. Partners checked on 4 November 2026, each with a dated source: CoServ, Austin Energy, Bandera Electric Cooperative, Farmers Electric Cooperative, Guadalupe Valley Electric Cooperative and El Paso Electric in Texas, and Central Georgia EMC. Base's own Utilities page says "3 metro areas, 6 utility partners" (no date on the page, checked 4 November 2026) and names only CoServ. The counts can differ without either being wrong: Base's figure is about deployments in the last 12 months, and Central Georgia EMC (announced 13 October 2026, first installs in 2027) has nothing deployed yet; a pilot such as El Paso Electric's may also be counted differently. Which partner Base leaves out is not confirmed, so all 7 sourced partners stay listed. EIA adjustment rows (state totals no utility reported) are left out.</p>
+    <p>Utilities that already run a program with Base are never ranked as a cold call. They are listed after the ranking, labeled <strong>Already a Base partner</strong> (El Paso Electric: <strong>Runs a pilot with Base</strong>, as its own news release describes it), and their pitch is framed as expanding the existing program, with questions about what that program has shown. Checked on 4 November 2026, each with a public source: CoServ and Austin Energy (named on Base's Utilities page), Bandera Electric Cooperative (March 2025), Farmers Electric Cooperative (December 2025), El Paso Electric (a pilot, February 2026) and Guadalupe Valley Electric Cooperative (April 2026) in Texas, and Central Georgia EMC (October 2026). Base's own Utilities page reports "3 metro areas, 6 utility partners" over the last 12 months. EIA adjustment rows (state totals no utility reported) are left out.</p>
   </section>
   <nav class="gift-set" aria-label="Home battery company tools"><span>Five tools for a home-battery company</span><a href="/market">Where to grow</a><a href="/pitch" aria-current="page">Pitch a utility</a><a href="/supply">Supply risks</a><a href="/finance">Finance a fleet</a><a href="/launch">Launch a state</a></nav>
 </main>

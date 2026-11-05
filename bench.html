@@ -41,7 +41,7 @@
       <label>Forecast<select id="forecast"><option value="known">Recorded day known in advance</option><option value="shift">Synthetic peak 3 hours late</option></select></label>
       <label>Transport<select id="fault"><option value="none" selected>Healthy</option><option value="duplicate">Lost ACK, duplicate delivery</option><option value="stale">Telemetry stops at 4 PM</option><option value="late">Commands arrive 2 hours late</option><option value="mixed">All three failures</option></select></label>
     </div>
-    <p class="small">All batteries: assumed 25 kWh / 5 kW. Initially at reserve. Failure exposure is seeded (42), so runs repeat exactly. Failure window: 4–10 PM. These are simulated devices, not Base equipment.</p>
+    <p class="small">All batteries: assumed 25 kWh / 5 kW, a smaller generic battery than the 20 kW / 39.2 kWh unit the five tools use. Initially at reserve. Failure exposure is seeded (42), so runs repeat exactly. Failure window: 4–10 PM. These are simulated devices, not Base equipment.</p>
   </section>
   <section aria-labelledby="result-title" class="results"><div class="section-head"><h2 id="result-title">Same day. Four policies.</h2><p id="run-status" role="status">Preparing the replay…</p></div>
     <p class="small">The guard checks command identity, expiry, fresh telemetry, and local backup reserve. The unguarded comparison has physical power and capacity limits, but omits those four checks. The clock baseline also omits those checks.</p>

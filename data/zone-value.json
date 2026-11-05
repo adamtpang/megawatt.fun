@@ -1,5 +1,5 @@
 {
- "built": "2026-11-03",
+ "built": "2026-11-04",
  "period": {
   "start": "2025-10-01",
   "endExclusive": "2026-10-01",
@@ -34,54 +34,79 @@
   "https://www.basepowercompany.com/utilities",
   "/data/deployment/manifest.json"
  ],
+ "markets": {
+  "about": "market: \"retail choice\" is an ERCOT Competitive Load Zone, where a retail electric provider (or a battery owner that is one) keeps the energy arbitrage and any retail margin. \"utility or co-op\" is a Non-Opt-In Entity (NOIE) Load Zone: city utilities and co-ops that have not opted into retail choice, so the value goes to that utility and a battery company reaches it only through a utility partnership, such as a toll.",
+  "sources": [
+   "https://www.ercot.com/files/docs/2019/06/14/932NPRR-04_PRS_Report_061319.doc",
+   "https://www.ercot.com/files/docs/2025/12/04/13.2-Non-Opt-In-Entity-NOIE-Load-Zone-Changes-Request-of-Lamar-Electric-Cooperative-REVISED.pdf",
+   "https://texas.public.law/statutes/tex._util._code_section_40.051",
+   "https://texas.public.law/statutes/tex._util._code_section_41.051"
+  ]
+ },
  "zones": [
   {
    "id": "LZ_WEST",
    "kind": "load zone",
    "usdPerYear": 493.72,
-   "mwhSold": 10.74
+   "mwhSold": 10.74,
+   "market": "retail choice",
+   "who": "mostly retail choice (AEP Texas North, Oncor and TNMP areas), with some co-op territory that has not opted in"
   },
   {
    "id": "LZ_RAYBN",
    "kind": "load zone",
    "usdPerYear": 462.8,
-   "mwhSold": 10.74
+   "mwhSold": 10.74,
+   "market": "utility or co-op",
+   "who": "Rayburn Country Electric Cooperative members, co-ops without retail choice"
   },
   {
    "id": "LZ_NORTH",
    "kind": "load zone",
    "usdPerYear": 460.26,
-   "mwhSold": 10.74
+   "mwhSold": 10.74,
+   "market": "retail choice",
+   "who": "mostly retail choice (Oncor and TNMP areas), with some city and co-op territory that has not opted in"
   },
   {
    "id": "LZ_CPS",
    "kind": "load zone",
    "usdPerYear": 409.5,
-   "mwhSold": 10.74
+   "mwhSold": 10.74,
+   "market": "utility or co-op",
+   "who": "CPS Energy, the San Antonio city utility (no retail choice)"
   },
   {
    "id": "LZ_LCRA",
    "kind": "load zone",
    "usdPerYear": 409.43,
-   "mwhSold": 10.74
+   "mwhSold": 10.74,
+   "market": "utility or co-op",
+   "who": "LCRA wholesale customers, mostly cities and co-ops without retail choice"
   },
   {
    "id": "LZ_AEN",
    "kind": "load zone",
    "usdPerYear": 388.69,
-   "mwhSold": 10.74
+   "mwhSold": 10.74,
+   "market": "utility or co-op",
+   "who": "Austin Energy, a city utility (no retail choice)"
   },
   {
    "id": "LZ_SOUTH",
    "kind": "load zone",
    "usdPerYear": 344.6,
-   "mwhSold": 10.74
+   "mwhSold": 10.74,
+   "market": "retail choice",
+   "who": "mostly retail choice (AEP Texas Central and other areas), with some city and co-op territory that has not opted in"
   },
   {
    "id": "LZ_HOUSTON",
    "kind": "load zone",
    "usdPerYear": 322.57,
-   "mwhSold": 10.74
+   "mwhSold": 10.74,
+   "market": "retail choice",
+   "who": "mostly retail choice (CenterPoint area)"
   }
  ],
  "hubs": {

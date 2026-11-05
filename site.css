@@ -70,6 +70,8 @@ h2 { line-height: 1.2; }
 .intro h1 { font-size: clamp(36px,5vw,48px); line-height: 1.1; }
 .hero h1 span,h1 .fun { color: var(--lamp); }
 .eyebrow,.kicker,.tool-tag,.section-index { font-family: var(--body); text-transform: none; letter-spacing: normal; color: var(--muted); }
+/* A short note where an experiment's battery differs from the five tools' 20 kW / 39.2 kWh unit. */
+.tools-spec-note { margin: 0 0 16px; max-width: 70ch; font: var(--text-body-sm)/1.5 var(--body); color: var(--muted); }
 button,input,select,textarea { font-family: var(--body); }
 button,a,input,select,summary { -webkit-tap-highlight-color: transparent; }
 :focus-visible { outline: 3px solid var(--lamp); outline-offset: 4px; }

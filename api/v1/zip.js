@@ -28,6 +28,7 @@ function usage() {
 
 async function post(parsed, req) {
   const q = L.query(req);
+  const qWarnings = L.queryWarnings(req, ['zip'], KNOWN);
   let zip = L.getOwn(q, 'zip');
   if (Array.isArray(zip)) throw L.invalid(['zip appears more than once in the query string. Send it once.']);
   if (zip != null && String(zip).trim() === '') zip = null;
@@ -42,7 +43,9 @@ async function post(parsed, req) {
     if (typeof bz === 'string' && bz.trim() === '') bz = null;
     if (bz != null) {
       // Type errors (a number, a list, an object) come from the core with a clear message.
-      if (typeof bz === 'string' && zip != null && bz.trim() !== String(zip).trim()) {
+      // The same ZIP written two ways (78704-1234 in the body, 78704 in the query) agrees: compare the 5-digit ZIPs.
+      const five = (v) => Z.normalizeZip(v) || String(v).trim();
+      if (typeof bz === 'string' && zip != null && five(bz) !== five(zip)) {
         throw L.invalid(['zip is "' + bz.trim().slice(0, 20) + '" in the body but "' + String(zip).trim().slice(0, 20) + '" in the query string. Send it in one place.']);
       }
       if (typeof bz !== 'string' && zip != null) {
@@ -56,7 +59,7 @@ async function post(parsed, req) {
   return {
     inputs_used: out.inputs_used,
     result: out.result,
-    warnings: warnings.concat(out.warnings),
+    warnings: qWarnings.concat(warnings, out.warnings),
     sources: out.sources,
   };
 }

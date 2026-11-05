@@ -48,11 +48,13 @@ function asParsed(v, what) {
   throw L.invalid([what + ' must be an object or CSV text.']);
 }
 
-// Request checks (input hardening): this endpoint reads only the body, so say so for any query parameter.
+// Request checks (input hardening): this endpoint reads only the body, so say so for any query
+// parameter, with the closest body field.
 function queryWarnings(req) {
-  return Object.keys(L.query(req)).map((k) => k === 'weights'
+  const all = L.queryWarnings(req, [], KNOWN);
+  return Object.keys(L.query(req)).map((k, i) => k === 'weights'
     ? 'Ignored "weights" in the query string. Send weights in a JSON body, with your CSV as a string: { "weights": { "homes": 0 }, "metrics": "state,...\\n" }.'
-    : 'Ignored query string parameter "' + k + '". This endpoint reads only the request body.');
+    : all[i]);
 }
 
 async function post(parsed, req) {

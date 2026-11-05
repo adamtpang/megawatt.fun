@@ -17,6 +17,11 @@
 docs/**
 !docs/api.md
 
+# Research captures and working files: never deploy, even if present locally.
+**/sources/
+interviews/
+*.png.tmp
+
 # Source and tooling the site does not serve.
 repos.yaml
 scripts/

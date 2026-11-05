@@ -44,7 +44,7 @@ function tooBig() {
   return new HttpError(413, ['Request body is larger than 1 MB. Send fewer rows per request.']);
 }
 
-// Read the raw request stream, stopping at the size limit.
+// Read the raw request stream as bytes, stopping at the size limit.
 function readStream(req) {
   return new Promise((resolve, reject) => {
     const chunks = [];
@@ -55,9 +55,19 @@ function readStream(req) {
       if (size > MAX_BYTES) { done = true; reject(tooBig()); return; }
       chunks.push(Buffer.isBuffer(c) ? c : Buffer.from(c));
     });
-    req.on('end', () => { if (!done) { done = true; resolve(Buffer.concat(chunks).toString('utf8')); } });
+    req.on('end', () => { if (!done) { done = true; resolve(Buffer.concat(chunks)); } });
     req.on('error', (e) => { if (!done) { done = true; reject(e); } });
   });
+}
+
+/* The raw body after the platform's own JSON parser gave up (a UTF-8 byte order mark at the start
+   is the usual cause), when the stream can still be read. null when it cannot: the stream already
+   ended, or nothing arrives within a couple of seconds. */
+function rawAfterParserFailed(req) {
+  if (typeof req.on !== 'function' || req.readableEnded) return Promise.resolve(null);
+  let timer;
+  const wait = new Promise((resolve) => { timer = setTimeout(() => resolve(null), 2000); });
+  return Promise.race([readStream(req), wait]).finally(() => clearTimeout(timer));
 }
 
 /* Which content types a POST body may use. JSON: any type that names json (application/json,
@@ -77,11 +87,12 @@ function unsupported(ct) {
   return new HttpError(415, [(t ? 'Content-Type "' + t + '" is not supported.' : 'The request has a body but no Content-Type.') +
     ' Send Content-Type: application/json with a JSON body (curl -H "Content-Type: application/json" -d \'{...}\'), or Content-Type: text/csv with a CSV file.']);
 }
-// NUL bytes, or the replacement character a binary file turns into when read as UTF-8.
-function looksBinary(t) { return /[\u0000�]/.test(t); }
-function notText() {
-  return new HttpError(400, ['The body is not text. It looks like a binary file (a spreadsheet, image or zip). Save the file as CSV (UTF-8) and send that.']);
+// A body that is not UTF-8 text: binary, UTF-16 without a byte order mark, or cp1252 / Latin-1 text.
+// The messages are yourdata.js's, worded for a request instead of a file on a page.
+function notText(problem) {
+  return new HttpError(400, [String(problem).replace(/load that file\.$|load that\.$/, 'send that.').replace(/^This file/, 'The body')]);
 }
+const badJson = (extra) => new HttpError(400, ['Body is not valid JSON' + (extra || '. Check quotes, commas and brackets') + ', or send text/csv with Content-Type: text/csv for a CSV file.']);
 
 /* Body as { kind: 'json', data } or { kind: 'csv', data: rows, text }, or null when empty.
    Works with a Vercel request (req.body parsed lazily by content type), a plain Node
@@ -92,27 +103,41 @@ async function readBody(req) {
   const len = Number(header(req, 'content-length'));
   if (Number.isFinite(len) && len > MAX_BYTES) throw tooBig();
 
-  let body;
+  let body, parserFailed = false;
   try {
     body = req.body;
   } catch (e) {
-    // Vercel throws here when the body is labelled JSON but does not parse.
-    throw new HttpError(400, ['Body is not valid JSON. Check quotes, commas and brackets, or send text/csv with Content-Type: text/csv.']);
+    // Vercel throws here when the body is labelled JSON but does not parse. Read it ourselves
+    // when the stream is still there, so a leading byte order mark is not a 400.
+    parserFailed = true;
+  }
+  if (parserFailed) {
+    body = await rawAfterParserFailed(req);
+    if (body == null || !body.length) throw badJson('. Check quotes, commas and brackets');
   }
   if (body === undefined && typeof req.on === 'function') body = await readStream(req);
-  if (Buffer.isBuffer(body)) body = body.toString('utf8');
+  // JSON null is not "no body": it is a JSON value that is not an object, so a 400 like any other.
+  if (body === null && kind === 'json') return { kind: 'json', data: null };
+  let problem = '';
+  if (Buffer.isBuffer(body) || body instanceof Uint8Array) {
+    if (body.length > MAX_BYTES) throw tooBig();
+    if (!body.length) return null;
+    const d = YD.decodeBytes(body);
+    if (d.error) { problem = d.error; body = Buffer.from(body).toString('latin1'); } else body = d.text;
+  }
   if (body == null) return null;
 
   if (typeof body === 'string') {
-    if (Buffer.byteLength(body, 'utf8') > MAX_BYTES) throw tooBig();
-    const t = body.replace(/^﻿/, '').trim();
+    if (!problem && Buffer.byteLength(body, 'utf8') > MAX_BYTES) throw tooBig();
+    const t = body.replace(/^\uFEFF/, '').trim();
     if (!t) return null;
     const jsonish = t.startsWith('{') || t.startsWith('[');
     if (kind === 'other' || (kind === 'none' && !jsonish)) throw unsupported(ct);
-    if (looksBinary(t)) throw notText();
+    problem = problem || YD.textProblem(t);
+    if (problem) throw notText(problem);
     if (kind === 'csv') return { kind: 'csv', data: YD.parseCSV(t), text: t };
     try { return { kind: 'json', data: JSON.parse(t) }; } catch (e) {
-      throw new HttpError(400, ['Body is not valid JSON: ' + e.message + '. Send text/csv with Content-Type: text/csv for a CSV file.']);
+      throw badJson(': ' + e.message);
     }
   }
   if (typeof body === 'object') {
@@ -149,6 +174,21 @@ function unknownKeys(obj, known) {
   return Object.keys(obj || {}).filter((k) => !known.includes(k)).map((k) => {
     const near = closest(k, known);
     return 'Ignored unknown field "' + clip(k) + '".' + (near ? ' Did you mean "' + near + '"?' : '');
+  });
+}
+
+/* Query string parameters a POST does not read, as warnings with the closest field name.
+   reads: the parameters this endpoint does read from the query string (may be empty).
+   fields: every other field name worth suggesting (the JSON body's fields). */
+function queryWarnings(req, reads, fields) {
+  const q = query(req);
+  const r = reads || [];
+  const all = r.concat(fields || []);
+  return Object.keys(q).filter((k) => !r.includes(k)).map((k) => {
+    const near = closest(k, all);
+    const where = near && !r.includes(near) ? ' (send it in the JSON body)' : '';
+    return 'Ignored query string parameter "' + clip(k) + '".' + (near ? ' Did you mean "' + near + '"' + where + '?' : '') +
+      (r.length ? ' This endpoint reads only ' + r.join(', ') + ' from the query string.' : ' This endpoint reads only the request body.');
   });
 }
 
@@ -235,9 +275,9 @@ function endpoint(tool) {
       const out = await tool.post(parsed, req);
       // result numbers are rounded for reading; inputs_used stays exactly what the tool used.
       if (out.result) out.result = roundDeep(out.result);
-      send(res, 200, Object.assign({ ok: true }, out, { warnings: out.warnings || [], sources: out.sources || [] }));
+      send(res, 200, Object.assign({ ok: true }, out, { warnings: capList(out.warnings || []), sources: out.sources || [] }));
     } catch (e) {
-      if (e instanceof HttpError) { send(res, e.status, { ok: false, errors: e.errors }); return; }
+      if (e instanceof HttpError) { send(res, e.status, { ok: false, errors: capList(e.errors) }); return; }
       // Do not echo the request; report only that the tool failed.
       send(res, 500, { ok: false, errors: ['The tool failed on this input: ' + (e && e.message ? e.message : 'unknown error') + '. Check the request against GET on this endpoint.'] });
     }
@@ -245,6 +285,10 @@ function endpoint(tool) {
 }
 
 function invalid(errors) { return new HttpError(422, errors); }
+
+// Error and warning lists: the first 50, then "And N more like these.", so a response stays small.
+const MAX_MESSAGES = 50;
+function capList(list) { return YD.capList(list, MAX_MESSAGES); }
 
 function docsUrl(tool) { return SITE + '/plug-and-play#' + tool; }
 
@@ -273,9 +317,15 @@ function parseNumber(v, opts) {
   let n;
   if (typeof v === 'number') n = v;
   else if (typeof v === 'string') {
-    const t = (o.strip ? v.replace(o.strip, '') : v).trim();
+    let t = (o.strip ? v.replace(o.strip, '') : v).trim();
     if (t === '') return { ok: false, error: 'is blank.' };
-    if (!DECIMAL.test(t)) return { ok: false, error: 'is not a number: "' + v + '".' };
+    // The site's comma rule (yourdata.js readNumber): a comma only as a thousands separator.
+    if (t.includes(',')) {
+      const r = YD.readNumber(t, /\s/g);
+      if (r.comma) return { ok: false, error: 'is not a number: "' + clip(v) + '". ' + YD.COMMA_HINT, comma: true };
+      if (Number.isFinite(r.value)) t = String(r.value);
+    }
+    if (!DECIMAL.test(t)) return { ok: false, error: 'is not a number: "' + clip(v) + '".' };
     n = Number(t);
   } else {
     return { ok: false, error: 'must be a number, got ' + (v === null ? 'null' : Array.isArray(v) ? 'a list' : typeof v) + '.' };
@@ -301,4 +351,5 @@ module.exports = {
   MAX_BYTES, SITE, HttpError, setCors, send, readBody, query, objectBody, unknownKeys, endpoint, invalid, docsUrl, parseCSV: YD.parseCSV,
   hasOwn, getOwn, byKey, isReservedKey, parseNumber, looksLikeJsonCsv, jsonAsCsvError,
   clip, closest, anyCase, roundNum, roundDeep, bodyKind,
+  queryWarnings, capList, MAX_MESSAGES, readNumber: YD.readNumber, commaHint: YD.commaHint, COMMA_HINT: YD.COMMA_HINT, normalizeText: YD.normalizeText,
 };

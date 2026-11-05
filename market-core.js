@@ -22,8 +22,8 @@
   const NAME = new Map(STATES);
   const hasOwn = (o, k) => o != null && typeof o === 'object' && Object.prototype.hasOwnProperty.call(o, k);
   const isText = (v) => typeof v === 'string' || (typeof v === 'number' && Number.isFinite(v));
-  // Plain decimal numbers only, after dropping $ , % and spaces: no hex (0x10), Infinity, true/false or lists.
-  const DECIMAL = /^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$/;
+  // The site's number rule (yourdata.js readNumber), looked up when used: in the browser yourdata.js loads after this file.
+  const YD = () => (typeof module !== 'undefined' && module.exports ? require('./yourdata.js') : root.YourData);
   const LOWER = /\s*\((lower|higher) is better\)\s*$/i;
   const STATE_COLS = ['state', 'abbr', 'state_abbr'];
   const ZONE_COL = 'zone', VALUE_COL = 'usd_per_year';
@@ -34,15 +34,19 @@
   const MIN_STATES = 5;
   // Most one battery can earn in a year, the same cap /finance puts on arbPerYear (FinanceCore.ARB_MAX).
   const ZONE_MAX = 100000;
+  // Most metric columns one file may add. Each one is a factor in every state's answer, so 2,000 columns
+  // would make a 13 MB response.
+  const MAX_METRICS = 50;
 
-  // "$1,200" and "12%" are numbers; blank is null; anything else is NaN.
+  // "$1,200" and "12%" are numbers; blank is null; anything else is NaN, "3,5" included (a comma is
+  // only a thousands separator).
   function toNum(v) {
     if (typeof v === 'number') return v;
     if (v == null) return null;
     if (typeof v !== 'string') return NaN;
-    const t = v.replace(/[$,%\s]/g, '');
-    return t === '' ? null : DECIMAL.test(t) ? Number(t) : NaN;
+    return YD().readNumber(v).value;
   }
+  const hint = (v) => (typeof v === 'string' ? YD().commaHint(v) : '');
   const blank = (v) => v == null || (typeof v === 'string' && v.trim() === '');
   const stateOf = (v) => (isText(v) ? ABBR.get(String(v).trim().toLowerCase().replace(/\s+/g, ' ')) || null : null);
   // A cell as shown in an error message.
@@ -85,7 +89,7 @@
     if (hasState && hasZone) return { kind: null, error: 'The file has both a state column and a zone column. Load one kind per file.' };
     if (hasState) return { kind: 'states' };
     if (hasZone) return { kind: 'zones' };
-    return { kind: null, error: 'No "state" column (your metrics) or "zone" column (Texas zone values) found. Columns were: ' + Object.keys(rows[0]).join(', ') + '.' };
+    return { kind: null, error: 'No "state" column (your metrics) or "zone" column (Texas zone values) found. Columns were: ' + Object.keys(rows[0]).slice(0, 20).map((c) => clip(c)).join(', ') + (Object.keys(rows[0]).length > 20 ? ', ...' : '') + '.' };
   }
 
   // Rows to a common shape: [{ where, state, cells: { header: raw } }] plus factor list.
@@ -124,6 +128,9 @@
   function loadStates(parsed) {
     const errors = [], warnings = [];
     const { factors, rows } = stateRows(parsed, errors);
+    if (factors.length > MAX_METRICS) {
+      return { kind: 'states', factors: [], values: {}, errors: ['The file has ' + factors.length.toLocaleString('en-US') + ' metric columns. The limit is ' + MAX_METRICS + '; keep the metrics you want ranked.'], warnings };
+    }
     const ids = new Set();
     factors.forEach((f) => {
       if (!f.key) { errors.push('A metric column has no name.'); return; }
@@ -144,7 +151,7 @@
         const raw = hasOwn(r.cells, f.header) ? r.cells[f.header] : null; // own keys only
         if (blank(raw)) return;
         const v = toNum(raw);
-        if (!Number.isFinite(v)) { errors.push(r.where + ', column "' + f.header + '": "' + shown(raw) + '" is not a number.'); return; }
+        if (!Number.isFinite(v)) { errors.push(r.where + ', column "' + clip(f.header) + '": "' + clip(shown(raw)) + '" is not a number.' + hint(raw)); return; }
         out[f.id] = v;
       });
       values[abbr] = out;
@@ -165,7 +172,7 @@
       const missing = STATES.map(([a]) => a).filter((a) => !values[a] || values[a][f.id] == null);
       if (missing.length) warnings.push('"' + f.label + '" has no value for ' + missing.length + ' state' + (missing.length === 1 ? '' : 's') + ' (' + missing.join(', ') + '). They are scored on the other factors, the same as missing public data.');
     });
-    return { kind: 'states', factors: used.map(({ id, key, label, higherIsBetter }) => ({ id, key, label, higherIsBetter })), values, errors, warnings };
+    return { kind: 'states', factors: used.map(({ id, key, label, higherIsBetter }) => ({ id, key, label, higherIsBetter })), values, errors: YD().onePerColumn(errors), warnings };
   }
 
   /* Texas zone values. Returns { zones: { LZ_X: n }, errors, warnings }. */
@@ -197,7 +204,7 @@
       first.set(id, r.where);
       if (blank(r.value)) { warnings.push(r.where + ': ' + id + ' is blank, so the public value stays.'); return; }
       const v = toNum(r.value);
-      if (!Number.isFinite(v)) { errors.push(r.where + ', column "usd_per_year": "' + shown(r.value) + '" is not a number.'); return; }
+      if (!Number.isFinite(v)) { errors.push(r.where + ', column "usd_per_year": "' + clip(shown(r.value)) + '" is not a number.' + hint(r.value)); return; }
       if (v < 0) { errors.push(r.where + ': ' + id + ' cannot be negative.'); return; }
       if (v > ZONE_MAX) { errors.push(r.where + ': ' + id + ' must be at most ' + ZONE_MAX.toLocaleString('en-US') + ' $ per battery per year (the same cap as arbPerYear on /finance), got ' + shown(r.value) + '.'); return; }
       zones[id] = v;
@@ -205,7 +212,7 @@
     if (!errors.length && !Object.keys(zones).length) errors.push('No zone values found.');
     const kept = zoneIds.filter((id) => zones[id] == null);
     if (!errors.length && kept.length) warnings.push(kept.length + ' zone' + (kept.length === 1 ? '' : 's') + ' not in your file keep the public value (' + kept.join(', ') + ').');
-    return { kind: 'zones', zones, errors, warnings };
+    return { kind: 'zones', zones, errors: YD().onePerColumn(errors), warnings };
   }
 
   // One entry point: detect the kind of rows, then validate.
@@ -237,7 +244,7 @@
     return publicZ.zones.map((x) => ({ zone: x.id, usd_per_year: x.usdPerYear }));
   }
 
-  const api = { higherIsBetterOf, STATES, MIN_STATES, ZONE_MAX, stateOf, detect, load, loadStates, loadZones, applyZones, rankValue, STATE_TEMPLATE_COLUMNS, stateTemplateRows, zoneTemplateRows };
+  const api = { higherIsBetterOf, STATES, MIN_STATES, ZONE_MAX, MAX_METRICS, stateOf, detect, load, loadStates, loadZones, applyZones, rankValue, STATE_TEMPLATE_COLUMNS, stateTemplateRows, zoneTemplateRows };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   root.MarketCore = api;
 })(typeof window !== 'undefined' ? window : globalThis);

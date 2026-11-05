@@ -19,6 +19,7 @@ function usage() {
       content_types: ['application/json', 'text/csv'],
       json_body: { parts: 'list of { ' + S.COLUMNS.join(', ') + ' } (a bare list also works)' },
       csv_body: 'The page\'s "Use your own data" file: columns ' + S.COLUMNS.join(', ') + '.',
+      limits: 'At most ' + S.MAX_PARTS.toLocaleString('en-US') + ' parts per request. Numbers use a dot for decimals; a comma is only a thousands separator (1,200).',
       required: S.REQUIRED,
       categories: IDS.concat('other'),
     },
@@ -34,11 +35,15 @@ function usage() {
   };
 }
 
-async function post(parsed) {
+async function post(parsed, req) {
   if (!parsed) throw L.invalid(['No parts found. Send { "parts": [ ... ] } or CSV with part, category and lead_time_weeks columns.']);
   if (L.looksLikeJsonCsv(parsed)) throw L.jsonAsCsvError();
-  let warnings = [];
-  if (parsed.kind === 'json' && parsed.data && typeof parsed.data === 'object' && !Array.isArray(parsed.data)) warnings = L.unknownKeys(parsed.data, KNOWN);
+  // JSON null, a number or a string is not a list of parts: a 400 like other non-object JSON.
+  if (parsed.kind === 'json' && (parsed.data === null || typeof parsed.data !== 'object')) {
+    throw new L.HttpError(400, ['Body must be a JSON object { "parts": [ ... ] } or a list of parts. See GET on this endpoint for the shape.']);
+  }
+  let warnings = L.queryWarnings(req, [], KNOWN);
+  if (parsed.kind === 'json' && parsed.data && typeof parsed.data === 'object' && !Array.isArray(parsed.data)) warnings = warnings.concat(L.unknownKeys(parsed.data, KNOWN));
   const v = S.validate(parsed, IDS);
   if (v.errors.length) throw L.invalid(v.errors);
   const res = S.analyze(v.rows);
@@ -52,6 +57,8 @@ async function post(parsed) {
     return {
       part: r.part, category: r.category, supplier: r.supplier, country: r.country,
       lead_time_weeks: r.lead_time_weeks, on_hand_weeks: r.on_hand_weeks, cover_weeks: r.cover, gap_weeks: r.gap,
+      // The page's text for the gap, with enough decimals that lead time and cover read apart (3 wk against 2.99999 wk).
+      gap_text: S.weeksText(r.gap, r.digits),
       second_source: r.second_source, tariff_pct: r.tariff_pct, unit_cost_usd: r.unit_cost_usd, qty_per_unit: r.qty_per_unit,
       tariff_cost_per_battery: r.tariffCost, flags: r.flags, note: r.note, row: r.line,
       public_research: pub ? { name: pub.name, our_read: pub.our_read.label, url: L.SITE + '/supply#part-' + pub.id } : null,

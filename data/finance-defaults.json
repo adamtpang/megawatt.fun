@@ -1,6 +1,6 @@
 {
   "built": "2026-11-04",
-  "note": "Defaults for /finance. A generic model of one leased home battery, not any company's books. kind is 'sourced' (public number, link and date given) or 'assumption' (our placeholder, edit it). Every field has min and max; integer fields must be whole numbers.",
+  "note": "Defaults for /finance. A generic model of one leased home battery, not any company's books. kind is 'sourced' (public number, link and date given) or 'assumption' (our placeholder, or our math with a labeled assumption; edit it). Every field has min and max; integer fields must be whole numbers. presets holds optional figures a company has published; they load only when asked for and are that company's public claims, not its economics.",
   "zoneDefault": "LZ_NORTH",
   "revenueCaseDefault": "merchant",
   "groups": [
@@ -8,85 +8,76 @@
       "id": "battery",
       "title": "The battery",
       "fields": [
-        { "key": "capexPerKwh", "label": "Installed cost (cost basis)", "unit": "$/kWh", "value": 350, "min": 0, "max": 5000, "step": 10, "kind": "sourced",
-          "note": "Cost basis, from Base's public landed-cost range: the midpoint of \"Landed cost of storage ~$300-400 / kWh\" in the comparison table on Base's utilities page (that table cites EnergySage, Lazard and Wood Mac). That is the cost of storage as Base presents it to a utility, so it may include Base's margin and sit above what the battery costs Base to build. No public number gives the owner's own build cost. Enter yours if you have it.",
-          "source": "https://www.basepowercompany.com/utilities", "retrieved": "2026-10-29" },
-        { "key": "kwh", "label": "Energy", "unit": "kWh", "value": 39.2, "min": 0, "max": 1000, "step": 0.1, "kind": "sourced",
-          "note": "A published whole-home battery spec: 20 kW / 39.2 kWh.",
-          "source": "https://www.basepowercompany.com/utilities", "retrieved": "2026-10-29" },
-        { "key": "kw", "label": "Power", "unit": "kW", "value": 20, "min": 0.1, "max": 1000, "step": 1, "kind": "sourced",
-          "note": "Same published spec: 20 kW / 39.2 kWh. At least 0.1 kW: the 100 MW column divides 100 MW by this to count batteries, so 0 would mean no batteries at all.",
-          "source": "https://www.basepowercompany.com/utilities", "retrieved": "2026-10-29" }
+        {"key": "capexPerKwh", "label": "Installed cost (cost basis)", "unit": "$/kWh", "value": 1290, "min": 0, "max": 5000, "step": 10, "kind": "sourced", "note": "Generic installed cost, our math on a public cost study. NREL's Q1 2023 PV and storage cost benchmark (Ramasamy et al., NREL/TP-7A40-87303, Table 3, modeled market price, 2022 dollars) prices an 8 kW rooftop PV system at $2.68/W and the same system with a 5 kW / 12.5 kWh battery at $4.70/W. The difference, ($4.70 - $2.68) x 8,000 W = $16,160 for 12.5 kWh, is $1,293/kWh, rounded to $1,290. Caveats: it is the cost of adding a battery to a new solar job (a standalone battery pays some costs the solar job shares), it is from early 2023, and it is for a 12.5 kWh battery; a 39.2 kWh battery spreads fixed install costs over more kWh, so its cost per kWh is likely lower. Lawrence Berkeley National Laboratory's 2026 data update (2025 installs, mostly California) found paired PV plus storage priced $2.1/W above PV alone for cash buyers, with a median battery of 13.5 kWh. Enter your own cost if you have it.", "source": "https://static-cdn.publive.online/saur-energy/media/pdf_files/2023/10u.s.-solar-photovoltaic-system-and-energy-storage-cost-benchmarks-with-minimum-sustainable-price-analysis_-q1-2023.pdf", "retrieved": "2026-11-04"},
+        {"key": "kwh", "label": "Energy", "unit": "kWh", "value": 39.2, "min": 0, "max": 1000, "step": 0.1, "kind": "sourced", "note": "Battery size the zone arbitrage values were simulated for: a published whole-home battery spec, 20 kW / 39.2 kWh. Keep it, or enter your own size together with your own arbitrage value (arbPerYear), since the zone values assume this size.", "source": "https://www.basepowercompany.com/utilities", "retrieved": "2026-10-29"},
+        {"key": "kw", "label": "Power", "unit": "kW", "value": 20, "min": 0.1, "max": 1000, "step": 1, "kind": "sourced", "note": "Same spec, 20 kW. At least 0.1 kW: the 100 MW column divides 100 MW by this to count batteries, so 0 would mean no batteries at all.", "source": "https://www.basepowercompany.com/utilities", "retrieved": "2026-10-29"}
       ]
     },
     {
       "id": "tax",
       "title": "Tax credit",
       "fields": [
-        { "key": "itcPct", "label": "Investment tax credit", "unit": "% of cost", "value": 30, "min": 0, "max": 70, "step": 1, "kind": "sourced",
-          "note": "IRC 48E credit for energy storage technology owned by a third party (the leasing company), 30% for a battery under 1 MW without the wage and apprenticeship tests (48E(a)(2)(B)). Modeled as sold for cash when the battery goes into service (transfer under IRC 6418), at the credit sale price below, lowering what debt and equity fund. Eligibility: the homeowner credit (25D) ended for spending after 2025, but the 2025 budget law (P.L. 119-21) kept 48E for storage: full credit for construction starting through 2033, then 75%, 50%, 0. The 48E(i) lease ban covers solar water heating and small wind, not batteries. Storage that starts construction after 2025 gets no credit if it includes material assistance from a prohibited foreign entity: the non-PFE share of component cost must be at least 55% for 2026 starts, rising to 75% for 2030 (IRC 7701(a)(52), IRS Notice 2026-15, 2026-02-12). Battery cells and parts often come from China, so a project can fail this test and get 0. Bonus adders (+10 domestic content, +10 energy community) are left out; set this to 0 to test a failed claim.",
-          "source": "https://www.law.cornell.edu/uscode/text/26/48E", "retrieved": "2026-11-03" },
-        { "key": "itcPriceCents", "label": "Credit sale price", "unit": "cents per $1 of credit", "value": 89.5, "min": 50, "max": 100, "step": 0.5, "kind": "sourced",
-          "note": "Buyers of transferred credits pay less than face value. Crux, a tax credit marketplace, reports that ITC pricing for 2026-vintage credits averaged $0.895 per dollar of credit (2025 vintage: $0.909). That is a market-wide average across deal sizes and technologies, not a home-battery quote: small or lower-credit-quality portfolios can price lower, and a large investment-grade deal higher (one review put it at about 92 to 95 cents). Cash from the credit = credit percent x installed cost x this price.",
-          "source": "https://www.crux.com/blog/1q2026-market-update-qa-josh-price", "retrieved": "2026-11-04" }
+        {"key": "itcPct", "label": "Investment tax credit", "unit": "% of cost", "value": 30, "min": 0, "max": 70, "step": 1, "kind": "sourced", "note": "IRC 48E credit for energy storage technology owned by a third party (the leasing company), 30% for a battery under 1 MW without the wage and apprenticeship tests (48E(a)(2)(B)). Modeled as sold for cash when the battery goes into service (transfer under IRC 6418), at the credit sale price below, lowering what debt and equity fund. Eligibility: the homeowner credit (25D) ended for spending after 2025, but the 2025 budget law (P.L. 119-21) kept 48E for storage: full credit for construction starting through 2033, then 75%, 50%, 0. The 48E(i) lease ban covers solar water heating and small wind, not batteries. Storage that starts construction after 2025 gets no credit if it includes material assistance from a prohibited foreign entity: the non-PFE share of component cost must be at least 55% for 2026 starts, rising to 75% for 2030 (IRC 7701(a)(52), IRS Notice 2026-15, 2026-02-12). Battery cells and parts often come from China, so a project can fail this test and get 0. Bonus adders (+10 domestic content, +10 energy community) are left out; set this to 0 to test a failed claim. Risk to check, not a conclusion: the 30% rate without the wage tests rests on each battery being under 1 MW. Treas. Reg. 1.48E-3(c)(4)(ii) treats storage units as one facility for this test when they have the same or related owners, are placed in service in the same tax year, and share a point of interconnection or serve the same end user. Batteries at separate homes usually share neither, but common ownership, financing and aggregated dispatch (one ADER resource) are worth checking with tax counsel; the single-project factors IRS Notice 2018-59 uses for beginning of construction (common ownership, a common intertie or substation, common contracts and permits) are a further reference point.", "source": "https://www.law.cornell.edu/uscode/text/26/48E", "retrieved": "2026-11-03"},
+        {"key": "itcPriceCents", "label": "Credit sale price", "unit": "cents per $1 of credit", "value": 89.5, "min": 50, "max": 100, "step": 0.5, "kind": "sourced", "note": "Buyers of transferred credits pay less than face value. Crux, a tax credit marketplace, reports that ITC pricing for 2026-vintage credits averaged $0.895 per dollar of credit (2025 vintage: $0.909). That is a market-wide average across deal sizes and technologies, not a home-battery quote: small or lower-credit-quality portfolios can price lower, and a large investment-grade deal higher (one review put it at about 92 to 95 cents). Cash from the credit = credit percent x installed cost x this price.", "source": "https://www.crux.com/blog/1q2026-market-update-qa-josh-price", "retrieved": "2026-11-04"}
       ]
     },
     {
       "id": "revenue",
       "title": "Money in",
       "fields": [
-        { "key": "upfront", "label": "Member pays up front", "unit": "$", "value": 695, "min": 0, "max": 100000, "step": 5, "kind": "sourced",
-          "note": "A published home-battery offer: \"$695 and then $19/mo.\" Treated as cash that lowers what must be financed. The price is not the same everywhere: Base's site says \"Base availability, pricing, and offers vary by address\" and \"pricing vary by state\", and shows these numbers next to an Oncor-territory plan.",
-          "source": "https://www.basepowercompany.com/core", "retrieved": "2026-10-29" },
-        { "key": "memberFeeMonthly", "label": "Member fee", "unit": "$/month", "value": 19, "min": 0, "max": 1000, "step": 1, "kind": "sourced",
-          "note": "Same published offer, which Base says varies by address and by state. We assume every member pays every month (no churn).",
-          "source": "https://www.basepowercompany.com/core", "retrieved": "2026-10-29" },
-        { "key": "tollPerKwYear", "label": "Utility toll or capacity payment", "unit": "$/kW-year", "value": 60, "min": 0, "max": 1000, "step": 5, "kind": "assumption",
-          "note": "Placeholder with no public source: $60/kW-year is $5 per kW-month. It counts only in the toll and stacked revenue cases. The default (merchant) case ignores it, so the default answer does not depend on it. ERCOT has no capacity market, so a toll would be a private contract." },
-        { "key": "ancPerKwYear", "label": "Ancillary services (ADER)", "unit": "$/kW-year", "value": 0, "min": 0, "max": 500, "step": 5, "kind": "assumption",
-          "note": "Left at $0 on purpose: no public number gives what an aggregated home battery nets from ERCOT reserves. In ERCOT, home batteries reach ancillary services only as part of an aggregation in ERCOT's Aggregate Distributed Energy Resource (ADER) pilot, which qualifies aggregations for Non-Spin and ECRS (Phase 3 proposed RRS under a cap), with system-wide MW limits. Enter the extra value per kW of battery power after what the battery gives up: a kW held back as reserve in an hour cannot also discharge for arbitrage in that hour, so enter reserve value from hours outside the 7 to 9 PM discharge, or net of the arbitrage it displaces. Example math only (a made-up price, not a forecast): a $10/MW-hour reserve price x 0.001 MW per kW x 20 hours a day x 365 days = $73/kW-year, before availability. Counts in the merchant and stacked cases, not the toll case (whoever holds the toll controls dispatch). Availability and fade apply.",
-          "source": "https://www.ercot.com/mktrules/pilots/ader", "retrieved": "2026-11-04" },
-        { "key": "availabilityPct", "label": "Availability", "unit": "%", "value": 96, "min": 0, "max": 100, "step": 1, "kind": "sourced",
-          "note": "One fleet operator reports \"96% fleet availability\". Applied to the toll and to arbitrage (pay for performance).",
-          "source": "https://www.basepowercompany.com/utilities", "retrieved": "2026-10-29" },
-        { "key": "retailMarginMonthly", "label": "Retail energy margin", "unit": "$/month", "value": 22, "min": -1000, "max": 1000, "step": 1, "kind": "assumption",
-          "note": "Derived, with one labeled assumption. Margin = (energy charge - wholesale energy - other supply cost) x kWh used a month. Energy charge: 7.7 cents/kWh, from Base's Oncor battery-plan Electricity Facts Label dated 10/07/2026 ($0 base charge; Oncor delivery charges of 6.8673 cents/kWh and $4.06/month are passed through with no markup, so they are not margin; the label's all-in price is 15.0 cents/kWh at 1,000 kWh). Wholesale energy: 3.70 cents/kWh, the ERCOT LZ_NORTH real-time price from 2025-10-01 to 2026-09-30 weighted by ERCOT's hourly North Central weather-zone load (our math on ERCOT data; the plain time average is 3.37 cents). Other supply cost: 2.0 cents/kWh, an assumption with no public source, for ancillary service and ERCOT fees, losses, hedging above spot, a home load shape peakier than the zone's, and bad debt. Usage: 1,096 kWh a month, the 2024 Texas residential average (EIA Table 5A). (7.7 - 3.70 - 2.0) x 1,096 / 100 = $21.92, rounded to $22. Each 1 cent/kWh of other supply cost moves it by about $11/month. It belongs only to an owner that is also the home's retail provider: set it to 0 for a third-party owner. It uses the home's whole usage, not net of the battery, so it does not overlap the arbitrage line.",
-          "source": "https://bpc-web-static-files.s3.us-east-2.amazonaws.com/efl/english-oncor-efl-core.pdf", "retrieved": "2026-11-04" }
+        {"key": "upfront", "label": "Member pays up front", "unit": "$", "value": 0, "min": 0, "max": 100000, "step": 5, "kind": "assumption", "note": "Generic default: $0 up front, an assumption. One published Texas example: Tesla Electric's lease of two Powerwall batteries, offered with $0 installation cost (Solar Power World, 2026-08-13). Not a market average. Treated as cash that lowers what must be financed.", "source": "https://www.solarpowerworldonline.com/2026/08/texas-homeowners-can-lease-tesla-powerwall-batteries-straight-from-company/", "retrieved": "2026-11-04"},
+        {"key": "memberFeeMonthly", "label": "Member fee", "unit": "$/month", "value": 35, "min": 0, "max": 1000, "step": 1, "kind": "assumption", "note": "Generic default, an assumption: $35 a month, the lease price Tesla Electric published for two Powerwall batteries in the parts of Texas with retail choice, offered with its fixed retail electricity plan (Solar Power World, 2026-08-13). Not scaled to this battery's size and not a market average. No yearly price escalator is modeled, and we assume every member pays every month (no churn).", "source": "https://www.solarpowerworldonline.com/2026/08/texas-homeowners-can-lease-tesla-powerwall-batteries-straight-from-company/", "retrieved": "2026-11-04"},
+        {"key": "tollPerKwYear", "label": "Utility toll or capacity payment", "unit": "$/kW-year", "value": 60, "min": 0, "max": 1000, "step": 5, "kind": "assumption", "note": "Placeholder with no public source: $60/kW-year is $5 per kW-month. It counts only in the toll and stacked revenue cases. The default (merchant) case ignores it, so the default answer does not depend on it. ERCOT has no capacity market, so a toll would be a private contract."},
+        {"key": "ancPerKwYear", "label": "Ancillary services (ADER)", "unit": "$/kW-year", "value": 0, "min": 0, "max": 500, "step": 5, "kind": "assumption", "note": "Left at $0 on purpose: no public number gives what an aggregated home battery nets from ERCOT reserves. In ERCOT, home batteries reach ancillary services only as part of an aggregation in ERCOT's Aggregate Distributed Energy Resource (ADER) pilot, which qualifies aggregations for Non-Spin and ECRS. Status, from ERCOT: Phase 3.2 limits took effect on 2026-02-27 (500 MW of registered capacity system-wide, at most 100 MW of Non-Spin and 100 MW of ECRS; Phase 3.3 board item 10.1, 2026-05-22). In September 2026 ERCOT reported ECRS fully subscribed, Non-Spin about 68% used and 293 of the 500 MW taken (WMWG, 2026-09-25), so a new aggregation may find no ECRS room. Phase 4, proposed for the December 2026 ERCOT board, adds the Aggregate Distributed Energy Storage Resource (ADESR): dispatched nodally, no participation limits, but not eligible for ancillary services (WMS, 2026-10-07). Enter the extra value per kW of battery power after what the battery gives up: a kW held back as reserve in an hour cannot also discharge for arbitrage in that hour, so enter reserve value from hours outside the 7 to 9 PM discharge, or net of the arbitrage it displaces. Example math only (a made-up price, not a forecast): a $10/MW-hour reserve price x 0.001 MW per kW x 20 hours a day x 365 days = $73/kW-year, before availability. Counts in the merchant and stacked cases, not the toll case (whoever holds the toll controls dispatch). Availability and fade apply.", "source": "https://www.ercot.com/mktrules/pilots/ader", "retrieved": "2026-11-04"},
+        {"key": "availabilityPct", "label": "Availability", "unit": "%", "value": 95, "min": 0, "max": 100, "step": 1, "kind": "assumption", "note": "Placeholder: the share of the year the battery is ready to dispatch. Applied to the toll, arbitrage and ancillary services (pay for performance)."},
+        {"key": "retailMarginMonthly", "label": "Retail energy margin", "unit": "$/month", "value": 63, "min": -1000, "max": 1000, "step": 1, "kind": "assumption", "note": "Derived from public statewide data, with one labeled assumption. Margin = (retail price - delivery charge - wholesale energy - other supply cost) x kWh used a month. Retail price: 16.66 cents/kWh, what retail electric providers billed ERCOT homes in 2024 (EIA-861, retail power marketers, Texas, ERCOT: $15.27 billion for 91.6 million MWh, 6.96 million customers). Delivery charge: 5.21 cents/kWh, what the Texas wires utilities billed homes for delivery in 2024 (EIA-861 delivery companies: Oncor, CenterPoint, AEP Texas, TNMP, Lubbock). Wholesale energy: 3.70 cents/kWh, the ERCOT LZ_NORTH real-time price from 2025-10-01 to 2026-09-30 weighted by ERCOT's hourly North Central weather-zone load (our math on ERCOT data; a different year from the retail price). Other supply cost: 2.0 cents/kWh, an assumption with no public source, for ancillary service and ERCOT fees, losses, hedging above spot, a home load shape peakier than the zone's, and bad debt. Usage: 1,097 kWh a month (same EIA-861 rows). (16.66 - 5.21 - 3.70 - 2.0) x 1,097 / 100 = $63.08, rounded to $63. That is a gross margin: the provider's own cost to serve (billing, customer care, acquisition) is not subtracted, so treat it as the high end. Each 1 cent/kWh moves it by about $11/month. It belongs only to an owner that is also the home's retail provider, and only where retail choice exists: set it to 0 for a third-party owner. In a city-utility or co-op zone (LZ_AEN, LZ_CPS, LZ_LCRA, LZ_RAYBN) the model does not count it. It uses the home's whole usage, not net of the battery, so it does not overlap the arbitrage line.", "source": "https://www.eia.gov/electricity/data/eia861/", "retrieved": "2026-11-04"}
       ]
     },
     {
       "id": "costs",
       "title": "Costs and life",
       "fields": [
-        { "key": "opexPerYear", "label": "Operating cost", "unit": "$/battery/year", "value": 150, "min": 0, "max": 100000, "step": 10, "kind": "assumption",
-          "note": "Placeholder for monitoring, insurance, service visits, software and support. Not public." },
-        { "key": "degradationPct", "label": "Capacity fade", "unit": "%/year", "value": 2, "min": 0, "max": 20, "step": 0.5, "kind": "assumption",
-          "note": "Cuts toll and arbitrage value each year. Member fees do not fade." },
-        { "key": "lifeYears", "label": "Useful life", "unit": "years", "value": 12, "min": 1, "max": 30, "step": 1, "integer": true, "kind": "assumption",
-          "note": "Typical range 10 to 15 years. The loan cannot run longer than this." }
+        {"key": "opexPerYear", "label": "Operating cost", "unit": "$/battery/year", "value": 150, "min": 0, "max": 100000, "step": 10, "kind": "assumption", "note": "Placeholder for monitoring, insurance, service visits, software and support. Not public."},
+        {"key": "degradationPct", "label": "Capacity fade", "unit": "%/year", "value": 2, "min": 0, "max": 20, "step": 0.5, "kind": "assumption", "note": "Cuts toll and arbitrage value each year. Member fees do not fade."},
+        {"key": "lifeYears", "label": "Useful life", "unit": "years", "value": 12, "min": 1, "max": 30, "step": 1, "integer": true, "kind": "assumption", "note": "Typical range 10 to 15 years. The loan cannot run longer than this."}
       ]
     },
     {
       "id": "loan",
       "title": "The loan",
       "fields": [
-        { "key": "ratePct", "label": "Interest rate", "unit": "%/year", "value": 8, "min": 0, "max": 30, "step": 0.25, "kind": "assumption",
-          "note": "Placeholder all-in cost of debt." },
-        { "key": "tenorYears", "label": "Loan term", "unit": "years", "value": 10, "min": 1, "max": 30, "step": 1, "integer": true, "kind": "assumption",
-          "note": "Level payments, paid off in full by the end of the term." },
-        { "key": "dscr", "label": "Target DSCR", "unit": "x", "value": 1.3, "min": 1, "max": 3, "step": 0.05, "kind": "assumption",
-          "note": "Debt service coverage ratio. Cash flow must be at least this many times the loan payment in the weakest year." },
-        { "key": "advancePct", "label": "Advance rate cap", "unit": "% of cost", "value": 70, "min": 0, "max": 100, "step": 5, "kind": "assumption",
-          "note": "The most a lender will lend against the installed cost, whatever the cash flow." }
+        {"key": "ratePct", "label": "Interest rate", "unit": "%/year", "value": 8, "min": 0, "max": 30, "step": 0.25, "kind": "assumption", "note": "Placeholder all-in cost of debt."},
+        {"key": "tenorYears", "label": "Loan term", "unit": "years", "value": 10, "min": 1, "max": 30, "step": 1, "integer": true, "kind": "assumption", "note": "Level payments, paid off in full by the end of the term."},
+        {"key": "dscr", "label": "Target DSCR", "unit": "x", "value": 1.3, "min": 1, "max": 3, "step": 0.05, "kind": "assumption", "note": "Debt service coverage ratio. Cash flow must be at least this many times the loan payment in the weakest year."},
+        {"key": "advancePct", "label": "Advance rate cap", "unit": "% of cost", "value": 70, "min": 0, "max": 100, "step": 5, "kind": "assumption", "note": "The most a lender will lend against the installed cost, whatever the cash flow."}
+      ]
+    },
+    {
+      "id": "returns",
+      "title": "Does it pay?",
+      "fields": [
+        {"key": "discountPct", "label": "Discount rate for NPV", "unit": "%/year", "value": 10, "min": 0, "max": 30, "step": 0.5, "kind": "assumption", "note": "Placeholder hurdle rate used for both net present values (the whole battery and the equity). It is not any investor's cost of capital. IRR and payback do not use it."}
       ]
     },
     {
       "id": "fleet",
       "title": "Fleet",
       "fields": [
-        { "key": "fleetCount", "label": "Number of batteries", "unit": "batteries", "value": 1000, "min": 1, "max": 10000000, "step": 100, "integer": true, "kind": "assumption",
-          "note": "A round, generic fleet size for the roll-up. It is not any company's installed base." }
+        {"key": "fleetCount", "label": "Number of batteries", "unit": "batteries", "value": 1000, "min": 1, "max": 10000000, "step": 100, "integer": true, "kind": "assumption", "note": "A round, generic fleet size for the roll-up. It is not any company's installed base."}
       ]
     }
-  ]
+  ],
+  "presets": {
+    "base_published": {
+      "label": "Base Power's published figures",
+      "about": "Figures Base Power has published on its own website, loaded only when you ask. They are Base's public claims as of the retrieval dates, not Base's economics, costs or margins, which are not public. This site is not affiliated with Base Power.",
+      "values": [
+        {"key": "capexPerKwh", "value": 350, "note": "Base's public claim: the midpoint of \"Landed cost of storage ~$300-400 / kWh\" in the comparison table on Base's utilities page (that table cites EnergySage, Lazard and Wood Mac). That is the cost of storage as Base presents it to a utility, so it may include Base's margin and sit above what the battery costs Base to build.", "source": "https://www.basepowercompany.com/utilities", "retrieved": "2026-10-29"},
+        {"key": "upfront", "value": 695, "note": "Base's public offer: \"$695 and then $19/mo.\" Base's site says \"Base availability, pricing, and offers vary by address\" and \"pricing vary by state\", and shows these numbers next to an Oncor-territory plan.", "source": "https://www.basepowercompany.com/core", "retrieved": "2026-10-29"},
+        {"key": "memberFeeMonthly", "value": 19, "note": "Same published offer, which Base says varies by address and by state.", "source": "https://www.basepowercompany.com/core", "retrieved": "2026-10-29"},
+        {"key": "availabilityPct", "value": 96, "note": "Base's public claim: \"96% fleet availability\".", "source": "https://www.basepowercompany.com/utilities", "retrieved": "2026-10-29"},
+        {"key": "retailMarginMonthly", "value": 22, "note": "Our math from Base's published price label, not Base's margin (which is not public): (7.7 cents/kWh energy charge on Base's Oncor battery-plan Electricity Facts Label dated 10/07/2026 - 3.70 cents load-weighted LZ_NORTH wholesale - 2.0 cents other supply cost, an assumption) x 1,096 kWh a month (2024 Texas residential average, EIA Table 5A) = $21.92, rounded to $22. Oncor delivery charges are passed through on the label, so they are not margin.", "source": "https://bpc-web-static-files.s3.us-east-2.amazonaws.com/efl/english-oncor-efl-core.pdf", "retrieved": "2026-11-04"}
+      ]
+    }
+  }
 }

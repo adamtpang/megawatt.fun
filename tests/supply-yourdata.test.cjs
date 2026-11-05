@@ -29,7 +29,7 @@ test('supply bom: a valid file loads, sorts by gap, and flags', () => {
   assert.deepEqual(a.rows[3].flags, []);
   assert.equal(a.totals.atRisk, 3);
   assert.equal(a.totals.singleSource, 2);
-  assert.deepEqual(a.totals.longest, { part: 'Inverter', gap: 18 });
+  assert.deepEqual(a.totals.longest, { part: 'Inverter', gap: 18, digits: 1 });
   // 40*12*0.55 + 900*1*0.25 + 35*1*0.10 = 264 + 225 + 3.5; Harness has no tariff, so it is left out.
   assert.equal(a.totals.tariffPerBattery, 492.5);
   assert.equal(a.totals.tariffParts, 3);
@@ -180,7 +180,8 @@ test('supply bom: a tiny gap never reads as 0 weeks', () => {
   assert.deepEqual(res.rows[0].flags, ['Will run short']);
   const sum = S.summary(res);
   assert.equal(sum.head, '1 of 1 part will run short.');
-  assert.match(sum.rest, /Longest gap: A, under 0\.1 wk\./);
+  // Lead 0.0001 and cover 0.00005 round to the same tenth, so the row shows enough decimals to see the gap.
+  assert.match(sum.rest, /Longest gap: A, 0\.00005 wk\./);
   assert.doesNotMatch(sum.head + sum.rest, /\b0 wk/);
 });
 

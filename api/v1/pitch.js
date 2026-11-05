@@ -23,14 +23,14 @@ function usage() {
         state: 'two-letter state to narrow a name match (optional). If it disagrees with the utility, the request is a 422.',
         mw: 'program size in MW (optional, default terms.programMw, public 100). Sending both mw and a different terms.programMw is a 422. Batteries come whole, so a tiny size is rounded up.',
         largeLoads: 'true or false: large loads are waiting to connect; picks Speed to power (optional, default false). Anything else is a 422.',
-        terms: '{ key: value } offer terms (optional): ' + P.TERMS.map((t) => t.key).join(', '),
-        targets: 'your target list (optional, at most ' + P.MAX_TARGETS + ' items): [{ utility, state, status, owner, note }], all text',
+        terms: '{ key: value } offer terms (optional): ' + P.TERMS.map((t) => t.key).join(', ') + '. termYears is a whole number. Numbers use a dot for decimals; a comma is only a thousands separator (1,200).',
+        targets: 'your target list (optional, at most ' + P.MAX_TARGETS + ' items): [{ utility, state, status, owner, note }], all text. A target that matches no utility, several utilities, or a utility in another state is a 422 naming the row, with a "Did you mean" from the pitch\'s state first.',
       },
       csv_body: 'The page\'s "Use your own data" file: key,value rows for offer terms and utility,status,owner,note rows for targets. Put utility (and optionally state, mw, largeLoads) in the query string, for example ?utility=5078-TX.',
       terms: P.TERMS.map((t) => ({ key: t.key, label: t.label, unit: t.unit, public_value: t.value, min: t.min, max: t.max, basis: t.basis })),
     },
     example: { utility: 'CoServ Electric', state: 'TX', terms: { tollPerKwYear: 85, termYears: 10 }, targets: [{ utility: 'Austin Energy', status: 'in talks', owner: 'Ben' }] },
-    returns: 'utility, headline signal and percentile, recommended offer and the rule that picked it, a state program route where law sets one (Illinois VPP tariff at ComEd and Ameren Illinois), program size with an illustrative accredited MW (labeled assumption), landed cost range, deal structure, questions to ask, and who to call first in that state (utilities in the main market of the state first; existing Base partners listed after the ranking as expansion conversations, never as cold prospects).',
+    returns: 'utility, headline signal and percentile, recommended offer and the rule that picked it, a state program route where law sets one (Illinois VPP tariff at ComEd and Ameren Illinois), program size with a labeled capacity illustration that fits the utility\'s market (accredited MW only in PJM, MISO, ISO-NE and NYISO; in ERCOT, MW available through a 2-hour peak, since ERCOT has no capacity accreditation), landed cost range, deal structure, questions to ask, and who to call first in that state (utilities in the main market of the state first; existing Base partners listed after the ranking as expansion conversations, never as cold prospects).',
     docs: L.docsUrl('pitch'),
     page: L.SITE + '/pitch',
   };
@@ -45,11 +45,12 @@ function yesNo(v) {
   const t = String(v).trim().toLowerCase();
   return YES.includes(t) ? true : NO.includes(t) ? false : null;
 }
-const DECIMAL = /^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$/;
+// A number, or decimal text with a comma only as a thousands separator (the site's rule: "3,5" is NaN, never 35).
 function numberIn(v) {
   if (typeof v === 'number') return v;
-  if (typeof v === 'string' && DECIMAL.test(v.trim())) return Number(v.trim());
-  return NaN;
+  if (typeof v !== 'string') return NaN;
+  const r = L.readNumber(L.normalizeText(v), /\s/g);
+  return r.value == null ? NaN : r.value;
 }
 
 // pitch.js sourcesFor(), numbered the same way.
@@ -64,9 +65,12 @@ function sourcesFor(u, pick) {
     { key: 'base', title: P.BASE_SOURCE.title, url: P.BASE_SOURCE.url, date: 'retrieved ' + P.BASE_SOURCE.retrieved },
   ];
   if (pick.source) list.push({ key: 'ercot', title: pick.source.title, url: pick.source.url, date: 'retrieved ' + pick.source.retrieved });
-  const acc = P.ACCREDITATION_EXAMPLE;
-  list.push({ key: 'nyisocaf', title: acc.source.title, url: acc.source.url, date: 'retrieved ' + acc.source.retrieved });
-  list.push({ key: 'pjmelcc', title: acc.pjm.source.title, url: acc.pjm.source.url, date: 'retrieved ' + acc.pjm.source.retrieved });
+  // The NYISO and PJM accreditation sources only where the utility is in a capacity market (pitch-core capacityConcept).
+  if (P.capacityConcept(u).kind === 'accredited') {
+    const acc = P.ACCREDITATION_EXAMPLE;
+    list.push({ key: 'nyisocaf', title: acc.source.title, url: acc.source.url, date: 'retrieved ' + acc.source.retrieved });
+    list.push({ key: 'pjmelcc', title: acc.pjm.source.title, url: acc.pjm.source.url, date: 'retrieved ' + acc.pjm.source.retrieved });
+  }
   P.extraSources(u, pick).forEach((s) => list.push({ key: s.key, title: s.title, url: s.url, date: 'retrieved ' + s.retrieved }));
   const k = P.known(u.id);
   if (k && k.aliasSource) list.push({ key: 'alias', title: k.aliasSource.title, url: k.aliasSource.url, date: 'retrieved ' + k.aliasSource.retrieved });
@@ -118,6 +122,8 @@ async function post(parsed, req) {
   else {
     b = L.objectBody(parsed) || {};
     warnings = L.unknownKeys(b, KNOWN);
+    // Fullwidth text (\uFF35\uFF34...) reads as plain text, the same as the /pitch utility box.
+    for (const k of ['utility', 'state']) if (typeof L.getOwn(b, k) === 'string') b[k] = L.normalizeText(b[k]);
     const terms = L.getOwn(b, 'terms'), targets = L.getOwn(b, 'targets');
     if (terms != null || targets != null) {
       if (terms != null && (typeof terms !== 'object' || Array.isArray(terms))) throw L.invalid(['terms must be an object of { key: value }, for example { "tollPerKwYear": 85 }. Got ' + (Array.isArray(terms) ? 'a list' : typeof terms) + '.']);
@@ -125,12 +131,21 @@ async function post(parsed, req) {
       own = { kind: 'json', data: { terms: terms || {}, targets: targets == null ? undefined : targets } };
     }
   }
-  const opts = readOptions(q, b);
+  const qn = Object.create(null);
+  for (const k of Object.keys(q)) qn[k] = typeof q[k] === 'string' ? L.normalizeText(q[k]) : q[k];
+  const opts = readOptions(qn, b);
+  warnings = L.queryWarnings(req, QUERY_KNOWN, KNOWN).concat(warnings);
+  // The pitch's state, so a mistyped target's "Did you mean" comes from that state first.
+  let preferState = typeof opts.state === 'string' ? opts.state.trim().toUpperCase() : '';
+  if (!preferState && typeof opts.utility === 'string' && opts.utility.trim().length <= P.MAX_NAME) {
+    const hit = P.matchUtility(IDX, opts.utility, null, { suggest: false });
+    if (hit.u) preferState = hit.u.state;
+  }
 
   // Offer terms and targets: the page's "Use your own data" loader.
   let T = P.publicTerms(), changed = [], targets = {}, given = [];
   if (own) {
-    const r = P.loadYourData(own, D.utilities);
+    const r = P.loadYourData(own, D.utilities, { state: preferState });
     // An empty terms object with no targets is not an error here; the page needs a file, the API does not.
     const onlyEmpty = r.errors.length === 1 && /^No rows found/.test(r.errors[0]);
     if (r.errors.length && !onlyEmpty) throw L.invalid(r.errors);
@@ -152,7 +167,7 @@ async function post(parsed, req) {
 
   const mwGiven = opts.mw != null;
   const mwIn = mwGiven ? numberIn(opts.mw) : T.programMw;
-  if (!Number.isFinite(mwIn) || mwIn <= 0 || mwIn > 5000) throw L.invalid(['mw must be a number above 0 and at most 5000.']);
+  if (!Number.isFinite(mwIn) || mwIn <= 0 || mwIn > 5000) throw L.invalid(['mw must be a number above 0 and at most 5000.' + (typeof opts.mw === 'string' ? L.commaHint(opts.mw, /\s/g) : '')]);
   // mw and an offer-terms programMw are the same thing. Both set and different is a conflict, not a silent pick.
   if (mwGiven && given.includes('programMw') && mwIn !== T.programMw) throw L.invalid(['mw is ' + mwIn + ' but programMw in your offer terms is ' + T.programMw + '. Send the program size in one place.']);
   const largeLoads = yesNo(opts.largeLoads);
@@ -229,11 +244,22 @@ async function post(parsed, req) {
       mw: prog.mw, nameplate_mw: prog.nameplateMw, rounded_up: prog.roundedUp, batteries: prog.batteries, kw_per_battery: prog.kw, kwh_per_battery: prog.kwh, mwh: prog.mwh, hours_at_full_output: prog.hours,
       share_of_residential_customers: prog.share, dispatchable_mwh: P.isNum(prog.dispatchMwh) ? prog.dispatchMwh : null,
       note: (prog.roundedUp ? P.roundedUpNote(prog) + ' ' : '') + 'Nameplate is not accredited capacity, and each home keeps a backup reserve.' + (P.isNum(prog.share) && prog.share > 1 ? ' This program needs more batteries than the utility has residential customers.' : ''),
+      // Only in a capacity market (PJM, MISO, ISO-NE, NYISO). ERCOT has no capacity accreditation: see capacity_example.
       accredited_example: (() => {
-        const a = P.accreditedExample(prog, T);
-        return { basis: 'assumption', accredited_mw: a.accreditedMw, share_of_nameplate: a.shareOfNameplate, reserve_pct: a.reservePct, reserve_from_your_file: a.reserveYours,
+        const c = P.capacityExample(prog, T, u);
+        const a = c && c.accredited;
+        return a ? { basis: 'assumption', accredited_mw: a.accreditedMw, share_of_nameplate: a.shareOfNameplate, reserve_pct: a.reservePct, reserve_from_your_file: a.reserveYours,
           kw_per_battery_for_2h: a.kwFor2h, mw_for_2h: a.mwFor2h, factor_pct: a.pct, factor: a.label, text: a.text,
-          sources: src.filter((s) => s.key === 'nyisocaf' || s.key === 'pjmelcc').map((s) => s.n) };
+          sources: src.filter((s) => s.key === 'nyisocaf' || s.key === 'pjmelcc').map((s) => s.n) } : null;
+      })(),
+      // The capacity concept that fits this utility's market, labeled an assumption: accredited (capacity market),
+      // ercot (energy-only: available through a 2-hour peak, 4CP), or none (no capacity market).
+      capacity_example: (() => {
+        const c = P.capacityExample(prog, T, u);
+        const keys = c.kind === 'accredited' ? ['nyisocaf', 'pjmelcc'] : c.kind === 'ercot' ? ['ercot', 'tcos'] : [];
+        return { basis: 'assumption', kind: c.kind, markets: c.markets, label: c.label, mw_for_2h: c.mwFor2h, kw_per_battery_for_2h: c.kwFor2h,
+          reserve_pct: c.reservePct, reserve_from_your_file: c.reserveYours, accredited_mw: c.accredited ? c.accredited.accreditedMw : null, text: c.text,
+          sources: src.filter((s) => keys.includes(s.key)).map((s) => s.n) };
       })(),
     } : null,
     landed_cost: { about: 'Base\'s own comparison table (Base attributes it to EnergySage, Lazard and Wood Mackenzie), times this program\'s MWh. Arithmetic on a claim, not a quote.', rows: claims },
@@ -251,8 +277,8 @@ async function post(parsed, req) {
       market_reason: market.reason,
       utilities_in_state: all.length,
       ranked_in_state: all.filter((x) => x.rank !== null).length,
-      rows: top.map((x) => ({ rank: x.rank, id: x.id, name: x.name, wires_only: x.wires, base_partner: x.partner, status: x.partner ? P.PARTNER_LABEL : null, market: x.market, outside_preferred_market: x.inMarket === false, market_note: x.marketNote, residential_customers: x.customers, saidi_minutes: x.saidi, customer_minutes: x.score, your_target: P.own(targets, x.id) || null, current: x.id === u.id })),
-      base_partners_in_state: partnersInState.map((x) => { const k = P.partnerOf(x.id); return { id: x.id, name: x.name, status: P.PARTNER_LABEL, program: k.program, since: k.since || null, source: k.source.url }; }),
+      rows: top.map((x) => ({ rank: x.rank, id: x.id, name: x.name, wires_only: x.wires, base_partner: x.partner, status: x.partner ? P.partnerLabel(x.id) : null, market: x.market, outside_preferred_market: x.inMarket === false, market_note: x.marketNote, residential_customers: x.customers, saidi_minutes: x.saidi, customer_minutes: x.score, your_target: P.own(targets, x.id) || null, current: x.id === u.id })),
+      base_partners_in_state: partnersInState.map((x) => { const k = P.partnerOf(x.id); return { id: x.id, name: x.name, status: P.partnerLabel(x.id), program: k.program, since: k.since || null, source: k.source.url }; }),
       wires_only_in_state: wiresInState.map((x) => ({ id: x.id, name: x.name, residential_customers: x.customers })),
       your_targets_elsewhere: Object.keys(targets).map((id) => BY_ID.get(id)).filter((x) => x && x.state !== u.state).map((x) => ({ id: x.id, name: P.displayName(x), state: x.state, status: targets[x.id].status })),
     },

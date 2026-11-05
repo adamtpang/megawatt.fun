@@ -17,6 +17,11 @@
   const MAX = { lead_time_weeks: 520, on_hand_weeks: 520, tariff_pct: TARIFF_MAX, unit_cost_usd: 1000000, qty_per_unit: 10000 };
   const MAX_NOTE = { lead_time_weeks: ' (10 years)', on_hand_weeks: ' (10 years)', tariff_pct: '', unit_cost_usd: ' dollars', qty_per_unit: ' per battery' };
   const TARIFF_FLAG = 25;
+  // Most parts one file or request may hold. A real bill of materials has hundreds; 29,000 rows is a mistake
+  // and would make a 20 MB answer.
+  const MAX_PARTS = 2000;
+  // The site's number rule (yourdata.js readNumber), looked up when used: in the browser yourdata.js loads after this file.
+  const YD = () => (typeof module !== 'undefined' && module.exports ? require('./yourdata.js') : root.YourData);
   const YES = ['yes', 'y', 'true', '1'];
   const NO = ['no', 'n', 'false', '0'];
 
@@ -25,13 +30,13 @@
   const kindOf = (v) => (v === null ? 'null' : Array.isArray(v) ? 'a list' : typeof v === 'object' ? 'an object' : typeof v);
   const blank = (v) => v == null || (isText(v) && String(v).trim() === '');
   const text = (v) => (v != null && isText(v) ? String(v).trim() : '');
-  // Plain decimal numbers only, after dropping $ , % and spaces: no hex (0x10), Infinity, true/false or lists.
-  const DECIMAL = /^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$/;
+  // Plain decimal numbers only, after dropping $, % and spaces; a comma only as a thousands separator
+  // (1,200, never 3,5). No hex (0x10), Infinity, true/false or lists.
   const toNum = (v) => {
     if (typeof v === 'number') return v;
     if (typeof v !== 'string') return NaN;
-    const t = v.replace(/[$,%\s]/g, '');
-    return DECIMAL.test(t) ? Number(t) : NaN;
+    const r = YD().readNumber(v);
+    return r.value == null ? NaN : r.value;
   };
   // Header names match case-insensitively, trimmed, with spaces or hyphens read as underscores.
   const colKey = (h) => String(h).trim().toLowerCase().replace(/[\s-]+/g, '_');
@@ -64,6 +69,10 @@
     else list = [];
     if (!list.length) {
       errors.push(isCsv ? 'No rows found. The file needs a header row with part, category and lead_time_weeks, then one row per part.' : 'No parts found. The file needs { "parts": [ ... ] } with one object per part.');
+      return { rows, errors, warnings };
+    }
+    if (list.length > MAX_PARTS) {
+      errors.push((isCsv ? 'The file has ' : 'The list has ') + list.length.toLocaleString('en-US') + ' parts. The limit is ' + MAX_PARTS.toLocaleString('en-US') + ' per ' + (isCsv ? 'file' : 'request') + '; split it.');
       return { rows, errors, warnings };
     }
     const seen = new Map(), unknown = new Map(), dupes = new Map();
@@ -99,7 +108,7 @@
         if (blank(r[k])) { out[k] = null; continue; }
         if (typeof r[k] !== 'number' && typeof r[k] !== 'string') { errors.push(where + k + ' must be a number, got ' + kindOf(r[k]) + '.'); bad = true; continue; }
         const v = toNum(r[k]);
-        if (!Number.isFinite(v)) { errors.push(where + k + ' is not a number: "' + text(r[k]) + '".'); bad = true; continue; }
+        if (!Number.isFinite(v)) { errors.push(where + k + ' is not a number: "' + text(r[k]).slice(0, 40) + '".' + YD().commaHint(r[k])); bad = true; continue; }
         if (v < 0) { errors.push(where + k + ' cannot be negative.'); bad = true; continue; }
         if (v > MAX[k]) { errors.push(where + k + ' must be at most ' + MAX[k] + MAX_NOTE[k] + ', got ' + text(r[k]) + '.'); bad = true; continue; }
         out[k] = v;
@@ -124,21 +133,22 @@
     for (const [a, b] of dupes.values()) dupErr.push('Columns "' + a + '" and "' + b + '" are the same column (names match in any case). Keep one.');
     const head = [];
     for (const k of unknown.keys()) head.push('Ignored unknown column "' + k + '". Known columns: ' + COLUMNS.join(', ') + '.');
-    return { rows: dupErr.length ? [] : rows, errors: dupErr.concat(errors), warnings: head.concat(warnings) };
+    return { rows: dupErr.length ? [] : rows, errors: YD().onePerColumn(dupErr).concat(errors), warnings: head.concat(warnings) };
   }
 
   // Rows sorted by gap (lead time minus weeks of cover, biggest first), with flags and totals.
   function analyze(rows) {
     const out = rows.map((r) => {
       const cover = r.on_hand_weeks == null ? 0 : r.on_hand_weeks;
-      const gap = r.lead_time_weeks - cover;
+      // Rounded to a billionth of a week, so float noise (0.3 - 0.1 - 0.2) is no gap at all.
+      const gap = Math.round((r.lead_time_weeks - cover) * 1e9) / 1e9 || 0;
       const flags = [];
       if (gap > 0) flags.push('Will run short');
       if (r.second_source === false) flags.push('Single source');
       if (r.tariff_pct != null && r.tariff_pct >= TARIFF_FLAG) flags.push('Tariff 25%+');
       const hasCost = r.unit_cost_usd != null && r.qty_per_unit != null && r.tariff_pct != null;
       const tariffCost = hasCost ? r.unit_cost_usd * r.qty_per_unit * r.tariff_pct / 100 : null;
-      return Object.assign({}, r, { cover, gap, flags, tariffCost });
+      return Object.assign({}, r, { cover, gap, flags, tariffCost, digits: digitsFor(r.lead_time_weeks, cover, gap) });
     }).sort((a, b) => b.gap - a.gap || a.part.localeCompare(b.part));
     const priced = out.filter((r) => r.tariffCost != null);
     return {
@@ -149,18 +159,29 @@
         singleSource: out.filter((r) => r.second_source === false).length,
         tariffPerBattery: priced.reduce((s, r) => s + r.tariffCost, 0),
         tariffParts: priced.length,
-        longest: out.length ? { part: out[0].part, gap: out[0].gap } : null,
+        longest: out.length ? { part: out[0].part, gap: out[0].gap, digits: out[0].digits } : null,
       },
     };
   }
 
-  // Weeks as shown on the page and in the API. A value that is not zero never reads as 0:
-  // anything above 0 and under 0.1 weeks is "under 0.1 wk" (0.05 too, never a rounded-up "0.1 wk"),
-  // so a tiny gap matches its "Will run short" flag.
-  function weeksText(n) {
+  const roundTo = (n, d) => Math.round(n * Math.pow(10, d)) / Math.pow(10, d);
+  /* Decimal places that keep a row's lead time and cover apart: 1, or more (up to 6) when one
+     decimal would show a real gap as "3 wk / 3 wk" (lead 3, cover 2.99999). */
+  function digitsFor(lead, cover, gap) {
+    let d = 1;
+    while (d < 6 && gap !== 0 && roundTo(lead, d) === roundTo(cover, d)) d++;
+    return d;
+  }
+
+  // Weeks as shown on the page and in the API, to `digits` decimal places (default 1). A value that is
+  // not zero never reads as 0: anything above 0 and under 0.1 weeks is "under 0.1 wk" (0.05 too, never a
+  // rounded-up "0.1 wk"), so a tiny gap matches its "Will run short" flag.
+  function weeksText(n, digits) {
     if (n == null) return '';
-    if (n !== 0 && Math.abs(n) < 0.1) return n < 0 ? 'under 0.1 wk spare' : 'under 0.1 wk'; // only a gap goes below 0
-    return (Math.round(n * 10) / 10) + ' wk';
+    const d = digits || 1, step = Math.pow(10, -d);
+    const stepText = step.toFixed(d);
+    if (n !== 0 && Math.abs(n) < step) return n < 0 ? 'under ' + stepText + ' wk spare' : 'under ' + stepText + ' wk'; // only a gap goes below 0
+    return roundTo(n, d) + ' wk';
   }
   const money = (n) => '$' + (Math.round(n * 100) / 100).toLocaleString('en-US', { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 });
   const COST_COLS = ['unit_cost_usd', 'qty_per_unit', 'tariff_pct'];
@@ -173,7 +194,7 @@
     const t = res.totals;
     const head = t.atRisk + ' of ' + t.parts + ' part' + (t.parts === 1 ? '' : 's') + ' will run short.';
     let rest = t.singleSource ? ' ' + t.singleSource + ' single sourced.' : '';
-    if (t.longest && t.longest.gap > 0) rest += ' Longest gap: ' + t.longest.part + ', ' + weeksText(t.longest.gap) + '.';
+    if (t.longest && t.longest.gap > 0) rest += ' Longest gap: ' + t.longest.part + ', ' + weeksText(t.longest.gap, t.longest.digits) + '.';
     if (t.tariffParts) rest += ' Tariff cost per battery: ' + money(t.tariffPerBattery) + ' across ' + t.tariffParts + ' part' + (t.tariffParts === 1 ? '' : 's') + ' with cost, quantity and tariff.';
     else {
       const missing = COST_COLS.filter((k) => res.rows.some((r) => r[k] == null));
@@ -205,7 +226,7 @@
     });
   }
 
-  const api = { CATEGORIES, COLUMNS, REQUIRED, BOM_COLUMNS, validate, analyze, templateRows, weeksText, summary };
+  const api = { CATEGORIES, COLUMNS, REQUIRED, BOM_COLUMNS, MAX_PARTS, validate, analyze, templateRows, weeksText, digitsFor, summary };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   root.SupplyCore = api;
 })(typeof window !== 'undefined' ? window : globalThis);

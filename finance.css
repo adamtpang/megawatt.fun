@@ -16,6 +16,12 @@ body { margin: 0; overflow-x: hidden; }
 .fin-inputs, .fin-card { padding: 16px; min-width: 0; }
 .fin-inputs-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .fin-inputs-head h2 { margin: 0; }
+.fin-head-btns { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+.fin-preset-note { margin: 12px 0 0; font-size: 14px; }
+.badge-preset { background: var(--orange-5); color: var(--orange-90); }
+.fin-zone-market { margin: 8px 0; font-size: 14px; }
+.fin-returns.is-loss { box-shadow: inset 4px 0 0 var(--red-80); }
+.fin-returns .kpis { margin-bottom: 8px; }
 .fin-group { border: 0; border-top: 1px solid var(--grey-20); margin: 12px 0 0; padding: 12px 0 0; min-width: 0; }
 .fin-group legend { font-weight: 600; padding: 0 6px 0 0; color: var(--green-90); }
 .fin-field { margin: 10px 0 14px; }

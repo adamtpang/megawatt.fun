@@ -10,6 +10,9 @@
   const hasOwn = (o, k) => o != null && Object.prototype.hasOwnProperty.call(o, k);
   // Names reserved on every JavaScript object. A step id may not use them.
   function isReserved(k) { return k === '__proto__' || k === 'prototype' || k in Object.prototype; }
+  // yourdata.js: the number rule and column checks every tool shares. Looked up when used (in the
+  // browser yourdata.js loads after this file).
+  const YD = () => (typeof module !== 'undefined' && module.exports ? require('./yourdata.js') : root.YourData);
 
   // Check ids and dependencies, then return step ids in dependency order.
   // Throws on duplicate ids, unknown dependencies, bad durations, or cycles.
@@ -220,12 +223,14 @@
   function kindOf(v) { return v === null ? 'null' : Array.isArray(v) ? 'a list' : typeof v === 'object' ? 'an object' : typeof v; }
   // Plain decimal numbers only: no hex (0x10), Infinity, true/false, lists or objects.
   const DECIMAL = /^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$/;
+  // A comma only as a thousands separator (yourdata.js readNumber): "1,5" is an error, never 15.
   function cellNum(v) {
     if (typeof v === 'number') return v;
     if (typeof v !== 'string') return NaN;
-    const t = v.replace(/\s/g, '');
-    return DECIMAL.test(t) ? Number(t) : NaN;
+    const r = YD().readNumber(v, /\s/g);
+    return r.value == null ? NaN : r.value;
   }
+  const commaHint = v => (typeof v === 'string' ? YD().commaHint(v, /\s/g) : '');
   // A cell as shown in an error message.
   function shown(v) { return v == null || typeof v === 'string' || typeof v === 'number' ? cellText(v) : kindOf(v); }
   function depList(v) {
@@ -271,13 +276,15 @@
     if (Array.isArray(raw)) {
       raw.forEach((r0, i) => {
         const r = normalizeRow(r0, unknownCols, dupeCols);
-        entries.push({ pid: cellText(r && r.path), where: 'Row ' + (i + (parsed.kind === 'csv' ? 2 : 1)) + ': ', r });
+        // Paths match in any case: RETAIL is retail, the same as every other value in the file.
+        entries.push({ pid: cellText(r && r.path).toLowerCase(), where: 'Row ' + (i + (parsed.kind === 'csv' ? 2 : 1)) + ': ', r });
       });
     } else if (raw && typeof raw === 'object') {
       const ps = raw.paths;
       if (ps != null && (typeof ps !== 'object' || Array.isArray(ps))) errors.push('"paths" must be an object like { "retail": { "steps": [...] } }.');
       else {
-        for (const [pid, p] of Object.entries(ps || {})) {
+        for (const [pid0, p] of Object.entries(ps || {})) {
+          const pid = String(pid0).trim().toLowerCase();
           const list = p && Array.isArray(p.steps) ? p.steps : null;
           if (!list) { errors.push(pid + ': needs a "steps" list.'); continue; }
           if (!list.length) { errors.push(pid + ': the "steps" list is empty.'); continue; }
@@ -307,7 +314,7 @@
       if (!r || typeof r !== 'object' || Array.isArray(r)) { errors.push(where + 'each step must be an object with ' + STEP_COLUMNS.join(', ') + '.'); continue; }
       if (!isText(r.path) && Array.isArray(raw)) { errors.push(where + 'path must be text, got ' + kindOf(r.path) + '. Use ' + pathIds.join(' or ') + '.'); continue; }
       if (!pid) { errors.push(where + 'missing path. Use ' + pathIds.join(' or ') + '.'); continue; }
-      if (!pathIds.includes(pid)) { errors.push(where + 'unknown path "' + pid + '". Use ' + pathIds.join(' or ') + '.'); continue; }
+      if (!pathIds.includes(pid)) { errors.push(where + 'unknown path "' + cellText(r.path || pid).slice(0, 40) + '". Use ' + pathIds.join(' or ') + ' (any case).'); continue; }
       const id = cellText(r.id), name = cellText(r.name);
       let bad = false;
       for (const k of ['id', 'name', 'owner', 'note']) {
@@ -325,7 +332,7 @@
       for (const k of ['low', 'high']) {
         const v = cellNum(r[k]);
         if (!Number.isFinite(v)) {
-          errors.push(where + k + ' for ' + label + (r[k] == null || typeof r[k] === 'string' || typeof r[k] === 'number' ? ' is not a number: "' + cellText(r[k]) + '".' : ' must be a number, got ' + kindOf(r[k]) + '.'));
+          errors.push(where + k + ' for ' + label + (r[k] == null || typeof r[k] === 'string' || typeof r[k] === 'number' ? ' is not a number: "' + cellText(r[k]).slice(0, 40) + '".' + commaHint(r[k]) : ' must be a number, got ' + kindOf(r[k]) + '.'));
           bad = true;
         }
         else if (v < 0) { errors.push(where + k + ' for ' + label + ' cannot be negative.'); bad = true; }
@@ -336,29 +343,39 @@
       let rw = null;
       if (shown(r.round_weeks) !== '') {
         const v = cellNum(r.round_weeks);
-        if (!Number.isFinite(v) || v < 0 || v > MAX_WEEKS) { errors.push(where + 'round_weeks for ' + label + ' must be a number from 0 to ' + MAX_WEEKS + ', got "' + shown(r.round_weeks) + '".'); bad = true; }
+        if (!Number.isFinite(v) || v < 0 || v > MAX_WEEKS) { errors.push(where + 'round_weeks for ' + label + ' must be a number from 0 to ' + MAX_WEEKS + ', got "' + shown(r.round_weeks).slice(0, 40) + '".' + commaHint(r.round_weeks)); bad = true; }
         else rw = v;
       }
       let owner = cellText(r.owner);
       if (!owner && !bad) { warnings.push(where + label + ' has no owner, shown as "Owner not set".'); owner = 'Owner not set'; }
       if (bad) continue;
-      (byPath[pid] = byPath[pid] || []).push({ where, rw, step: { id, name, owner, low: dur.low, high: dur.high, depends_on: depList(r.depends_on), note: cellText(r.note), basis: 'yours' } });
+      // first_installs is the step the page reads "First install" from, so it is kept in that spelling.
+      const sid = id.toLowerCase() === 'first_installs' ? 'first_installs' : id;
+      (byPath[pid] = byPath[pid] || []).push({ where, rw, step: { id: sid, name, owner, low: dur.low, high: dur.high, depends_on: depList(r.depends_on), note: cellText(r.note), basis: 'yours' } });
     }
 
     // Per path: duplicates, unknown dependencies, then cycles via schedule().
     const filePaths = Object.keys(byPath);
     for (const pid of filePaths) {
       const rows = byPath[pid];
-      const seen = new Map();
+      /* Step ids match in any case, like every other value in the file: depends_on "A" finds step "a",
+         and two ids that differ only in case ("a" and "A") are a duplicate. */
+      const seen = new Map(); // lower-case id -> { where, id }
       let ok = true;
       for (const x of rows) {
-        if (seen.has(x.step.id)) { errors.push(x.where + 'duplicate id "' + x.step.id + '" in ' + pid + ' (also ' + seen.get(x.step.id).replace(/: $/, '') + ').'); ok = false; }
-        else seen.set(x.step.id, x.where);
+        const k = x.step.id.toLowerCase();
+        if (seen.has(k)) {
+          const first = seen.get(k);
+          errors.push(x.where + 'duplicate id "' + x.step.id + '" in ' + pid + ' (also ' + first.where.replace(/: $/, '') + (first.id !== x.step.id ? ', as "' + first.id + '"; ids match in any case' : '') + ').');
+          ok = false;
+        } else seen.set(k, { where: x.where, id: x.step.id });
       }
       for (const x of rows) {
-        for (const dep of x.step.depends_on) {
-          if (!seen.has(dep)) { errors.push(x.where + x.step.id + ' depends on unknown step "' + dep + '" in ' + pid + '.'); ok = false; }
-        }
+        x.step.depends_on = x.step.depends_on.map(dep => {
+          const hit = seen.get(dep.toLowerCase());
+          if (!hit) { errors.push(x.where + x.step.id + ' depends on unknown step "' + dep.slice(0, 40) + '" in ' + pid + '.'); ok = false; return dep; }
+          return hit.id;
+        });
       }
       if (ok) {
         try { schedule(rows.map(x => x.step), 'low'); }
@@ -383,8 +400,11 @@
     const extraTennis = new Map(); // pid -> Map(step id -> entry)
     for (const { where, t } of tennisIn) {
       if (!isText(t.step)) { errors.push(where + 'step must be text, got ' + kindOf(t.step) + '.'); continue; }
-      const sid = cellText(t.step);
-      const owners = filePaths.filter(pid => byPath[pid].some(x => x.step.id === sid));
+      const asked = cellText(t.step);
+      // Step ids match in any case here too; the entry takes the spelling the step row uses.
+      const match = pid => byPath[pid].find(x => x.step.id.toLowerCase() === asked.toLowerCase());
+      const owners = filePaths.filter(pid => match(pid));
+      const sid = owners.length ? match(owners[0]).step.id : asked;
       if (!sid) { errors.push(where + 'missing step.'); continue; }
       if (!owners.length) { errors.push(where + 'step "' + sid + '" is not one of the steps in your file.'); continue; }
       const v = cellNum(t.round_weeks);
@@ -399,7 +419,7 @@
       }
     }
 
-    if (errors.length) return { data: d, errors, warnings, summary: '', paths: [] };
+    if (errors.length) return { data: d, errors: YD().onePerColumn(errors), warnings, summary: '', paths: [] };
 
     // Apply: replace each file path's steps, drop its state overrides, scope its email tennis.
     let loops = 0;

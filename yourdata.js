@@ -56,26 +56,142 @@
     return [cols.map(csvCell).join(',')].concat(rows.map((r) => cols.map((c) => csvCell(r[c])).join(','))).join('\n') + '\n';
   }
 
+  /* ---------- Reading a file: binary, not UTF-8, UTF-16 ---------- */
+
+  const BINARY_MSG = 'This file is not text. It looks like a binary file (a spreadsheet such as .xlsx, an image or a zip). Save it as CSV (UTF-8) and load that.';
+  const NOT_UTF8_MSG = 'This file is text but not UTF-8. It looks like a Windows or Excel CSV saved as cp1252 or Latin-1, where an accented letter such as \u00E9 comes out garbled. In Excel use Save As, choose "CSV UTF-8 (Comma delimited)", and load that file.';
+  const UTF16_MSG = 'This file is UTF-16 text without a byte order mark, so it cannot be read safely. In Excel use Save As, choose "CSV UTF-8 (Comma delimited)", and load that file.';
+
   // A file that is not text: NUL bytes, or the replacement character a binary file (a spreadsheet,
-  // an image, a zip) turns into when read as UTF-8.
+  // an image, a zip) turns into when read as UTF-8. textProblem() says which.
   function looksBinary(text) { return /[\u0000\uFFFD]/.test(String(text)); }
+
+  /* What is wrong with text that was already decoded as UTF-8 (by a browser or a server), or ''
+     when nothing is. A zip or spreadsheet signature, or NUL bytes, mean binary; NUL in every other
+     character means UTF-16; replacement characters alone, among mostly readable text, mean a file
+     saved in another encoding such as cp1252, not a binary file. */
+  function textProblem(text) {
+    const t = String(text == null ? '' : text);
+    if (!/[\u0000\uFFFD]/.test(t)) return '';
+    if (/^(PK\u0003\u0004|%PDF|GIF8)/.test(t)) return BINARY_MSG;
+    const head = t.slice(0, 4000);
+    if (/\u0000/.test(head)) {
+      const start = head.slice(0, 64);
+      let even = 0, odd = 0;
+      for (let i = 0; i < start.length; i++) if (start[i] === '\u0000') { if (i % 2) odd++; else even++; }
+      const half = Math.floor(start.length / 2);
+      return half >= 4 && ((odd >= half * 0.9 && even === 0) || (even >= half * 0.9 && odd === 0)) ? UTF16_MSG : BINARY_MSG;
+    }
+    // Binary data is full of control characters; a cp1252 file only has a few bad letters.
+    const control = (head.match(/[\u0001-\u0008\u000E-\u001F\u007F]/g) || []).length;
+    return control / head.length > 0.05 ? BINARY_MSG : NOT_UTF8_MSG;
+  }
+
+  // Signatures of common binary files: zip (xlsx, docx), old Excel (xls), PDF, PNG, JPEG, GIF, gzip.
+  const MAGIC = [[0x50, 0x4B, 0x03, 0x04], [0xD0, 0xCF, 0x11, 0xE0], [0x25, 0x50, 0x44, 0x46], [0x89, 0x50, 0x4E, 0x47], [0xFF, 0xD8, 0xFF], [0x47, 0x49, 0x46, 0x38], [0x1F, 0x8B]];
+
+  /* A file's bytes (Uint8Array, ArrayBuffer or Node Buffer) to text. Returns { text } or { error }.
+     UTF-8, with or without a byte order mark, is read as is; UTF-16 with a byte order mark is
+     decoded; binary files, UTF-16 without a mark, and text in another encoding (cp1252, Latin-1)
+     are errors that say how to save the file as CSV UTF-8. The pages and the API both use this. */
+  function decodeBytes(input) {
+    const b = input instanceof Uint8Array ? input : new Uint8Array(input || []);
+    const starts = (sig) => sig.every((x, i) => b[i] === x);
+    if (MAGIC.some(starts)) return { error: BINARY_MSG };
+    let text;
+    if (starts([0xFF, 0xFE]) || starts([0xFE, 0xFF])) {
+      try { text = new TextDecoder(b[0] === 0xFF ? 'utf-16le' : 'utf-16be', { fatal: true }).decode(b.subarray(2)); } catch (e) { return { error: BINARY_MSG }; }
+      return looksBinary(text) ? { error: BINARY_MSG } : { text: text.replace(/^\uFEFF/, '') };
+    }
+    try { text = new TextDecoder('utf-8', { fatal: true }).decode(b); } catch (e) {
+      // Not valid UTF-8. Decode loosely only to tell a binary file from text in another encoding.
+      return { error: textProblem(new TextDecoder('utf-8').decode(b)) || NOT_UTF8_MSG };
+    }
+    text = text.replace(/^\uFEFF/, '');
+    const p = textProblem(text);
+    return p ? { error: p } : { text };
+  }
 
   // Parse a file's text as JSON or CSV by extension, falling back on content.
   function parseText(text, name) {
-    if (looksBinary(text)) throw new Error('This file is not text. It looks like a binary file (a spreadsheet such as .xlsx, an image or a zip). Save it as CSV (UTF-8) and load that.');
+    const problem = textProblem(text);
+    if (problem) throw new Error(problem);
     const n = String(name || '').toLowerCase();
-    const t = String(text).trim();
+    const t = String(text).replace(/^\uFEFF/, '').trim();
     if (n.endsWith('.json') || (!n.endsWith('.csv') && (t.startsWith('{') || t.startsWith('[')))) {
       try { return { kind: 'json', data: JSON.parse(t) }; } catch (e) { throw new Error('Not valid JSON: ' + e.message); }
     }
     return { kind: 'csv', data: parseCSV(text) };
   }
 
-  // Number from a cell: accepts "1,200", "$350", "12%". Returns NaN when empty or invalid.
+  /* ---------- Numbers in cells: one rule for every tool, on the pages and in the API ---------- */
+
+  // Plain decimal numbers only: 12, -3.5, .5, 1e3. No hex (0x10), Infinity or NaN.
+  const DECIMAL = /^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$/;
+  // A comma is valid only as a thousands separator: 1,200 and 1,200.5, never 3,5 or 2,80.
+  const THOUSANDS = /^-?\d{1,3}(,\d{3})+(\.\d+)?$/;
+  const COMMA_HINT = 'A comma is only a thousands separator (1,200). Use a dot for decimals: 3.5, not 3,5.';
+
+  /* One number cell. v is a number or text; strip is a regex of characters to drop first
+     (default $, % and spaces). Returns { value } (null when blank), or { value: NaN, error }.
+     A comma that is not a thousands separator sets comma: true and is never read as 3,5 = 35. */
+  function readNumber(v, strip) {
+    if (typeof v === 'number') return { value: v };
+    if (typeof v !== 'string') return { value: NaN, error: 'Not a number.' };
+    let t = v.replace(strip || /[$%\s]/g, '');
+    if (t === '') return { value: null };
+    if (t.indexOf(',') >= 0) {
+      if (!THOUSANDS.test(t)) return { value: NaN, error: COMMA_HINT, comma: true };
+      t = t.replace(/,/g, '');
+    }
+    return DECIMAL.test(t) ? { value: Number(t) } : { value: NaN, error: 'Not a plain decimal number.' };
+  }
+  // ' ' + COMMA_HINT when v is text with a comma that is not a thousands separator, else ''.
+  // Tools add it to their own "is not a number" message.
+  function commaHint(v, strip) { return readNumber(v, strip).comma ? ' ' + COMMA_HINT : ''; }
+
+  // Number from a cell: accepts "1,200", "$350", "12%". NaN when empty or invalid, "3,5" included.
   function num(v) {
-    if (typeof v === 'number') return v;
-    const t = String(v == null ? '' : v).replace(/[$,%\s]/g, '');
-    return t === '' ? NaN : Number(t);
+    const r = readNumber(v);
+    return r.value == null ? NaN : r.value;
+  }
+
+  /* ---------- Text typed into a box ---------- */
+
+  // Fullwidth and other compatibility forms (\uFF17\uFF18\uFF17 is 787) read as plain text, the
+  // same way on the pages and in the API.
+  function normalizeText(v) {
+    const t = String(v == null ? '' : v);
+    return typeof t.normalize === 'function' ? t.normalize('NFKC') : t;
+  }
+
+  /* ---------- Column written twice ---------- */
+
+  /* One message per column. A file with "high,high,High" gets "Column "high" appears more than once"
+     and "Columns "high" and "High" are the same column" from two checks; keep the first message
+     that names a column and drop later ones about the same column (names compared in any case,
+     with spaces and hyphens read as underscores). Other messages pass through untouched. */
+  function onePerColumn(messages) {
+    const key = (h) => String(h).trim().toLowerCase().replace(/[\s-]+/g, '_');
+    const seen = new Set();
+    return (messages || []).filter((m) => {
+      if (!/^Columns? "/.test(m)) return true;
+      const names = [];
+      String(m).replace(/"([^"]*)"/g, (_, n) => { names.push(key(n)); return _; });
+      if (names.some((n) => seen.has(n))) return false;
+      names.forEach((n) => seen.add(n));
+      return true;
+    });
+  }
+
+  /* ---------- Long lists ---------- */
+
+  // The first n messages, then one "And N more like these." line, so a file with 15,000 bad
+  // rows never comes back as a 3 MB error list.
+  function capList(list, n) {
+    const max = n || 50;
+    if (!Array.isArray(list) || list.length <= max) return list;
+    return list.slice(0, max).concat('And ' + (list.length - max).toLocaleString('en-US') + ' more like these.');
   }
 
   /* What the status line says when a file fails. active is the name of the file still in use
@@ -89,7 +205,10 @@
     };
   }
 
-  const api = { parseCSV, toCSV, csvCell, looksBinary, parseText, num, failureStatus };
+  const api = {
+    parseCSV, toCSV, csvCell, looksBinary, textProblem, decodeBytes, parseText, readNumber, commaHint, num,
+    normalizeText, capList, onePerColumn, failureStatus, COMMA_HINT, BINARY_MSG, NOT_UTF8_MSG, UTF16_MSG,
+  };
 
   if (typeof module !== 'undefined' && module.exports) { module.exports = api; return; }
 
@@ -180,7 +299,13 @@
       const f = input.files && input.files[0];
       if (!f) return;
       if (f.size > 5e6) { fail(f.name, [], f.name + ' is larger than 5 MB.'); return; }
-      f.text().then((t) => { use(t, f.name, false); input.value = ''; });
+      // Bytes, not f.text(): a cp1252 or UTF-16 file gets its own message instead of "binary".
+      f.arrayBuffer().then((buf) => {
+        input.value = '';
+        const d = decodeBytes(new Uint8Array(buf));
+        if (d.error) { fail(f.name, [d.error], 'Could not read ' + f.name); return; }
+        use(d.text, f.name, false);
+      });
     });
     reset.addEventListener('click', () => {
       store.del(key); opts.reset();

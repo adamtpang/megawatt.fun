@@ -33,26 +33,27 @@ test('offer terms: valid CSV and JSON change the pitch numbers', () => {
 });
 
 test('target list: matches by id, name, Name, ST and alias; targets go first in public order', () => {
-  const r = P.loadYourData(csv('utility,status,owner,note\n5078-TX,signed,Ana,"Pilot, 50 MW"\n"A & N Electric Coop, VA",not contacted,,\nAustin Energy,in talks,,\nNot A Real Utility Co,in talks,,'), data.utilities);
-  assert.deepEqual(r.errors, [], 'unmatched names never fail the file');
+  const r = P.loadYourData(csv('utility,status,owner,note\n5078-TX,signed,Ana,"Pilot, 50 MW"\n"A & N Electric Coop, VA",not contacted,,\nAustin Energy,in talks,,'), data.utilities);
+  assert.deepEqual(r.errors, []);
   assert.equal(r.targetCount, 3);
   assert.equal(r.targets['5078-TX'].status, 'signed');
   assert.equal(r.targets['84-VA'].status, 'not contacted');
   assert.ok(r.targets['1015-TX']);
-  assert.equal(r.unmatched, 1);
-  assert.ok(r.warnings.some((w) => /^Row 5: no utility called "Not A Real Utility Co"/.test(w)));
+  // An unknown target is a row error, the same rule as an unknown offer-term key (pass 3, item 12).
+  const bad = P.loadYourData(csv('utility,status\n5078-TX,signed\nNot A Real Utility Co,in talks'), data.utilities);
+  assert.equal(bad.unmatched, 1);
+  assert.ok(bad.errors.some((w) => /^Row 3: no utility called "Not A Real Utility Co"/.test(w)));
   // One utility on two rows, by id and by alias, is a row error, never "the later row wins".
   const twice = P.loadYourData(csv('utility,status\n5078-TX,signed\nCoServ Electric,in talks'), data.utilities);
   assert.equal(twice.errors.length, 1);
   assert.match(twice.errors[0], /^Row 3: .* is already listed \(5078-TX\)\. Keep one row per utility\.$/);
 
   const typo = P.loadYourData(csv('utility,status\nAustin Enrgy,in talks'), data.utilities);
-  assert.deepEqual(typo.errors, []);
-  assert.match(typo.warnings[0], /Did you mean Austin Energy, TX \(id 1015-TX\)\?/);
+  assert.match(typo.errors[0], /Did you mean Austin Energy, TX \(id 1015-TX\)\?/);
 
   const dupName = data.utilities.find((u) => data.utilities.filter((v) => v.name === u.name).length > 1);
   const amb = P.loadYourData(csv('utility,status\n"' + dupName.name + '",in talks'), data.utilities);
-  assert.match(amb.warnings[0], /matches \d utilities/);
+  assert.match(amb.errors[0], /matches \d utilities/);
   const pinned = P.loadYourData(csv('utility,state,status\n"' + dupName.name + '",' + dupName.state + ',in talks'), data.utilities);
   assert.ok(pinned.targets[dupName.id]);
 
@@ -228,10 +229,14 @@ test('illustrative accredited MW: derated for the home reserve, NYISO 2-hour fac
   assert.equal(P.accreditedExample(null, P.publicTerms()), null);
 });
 
-test('partner count note reconciles 7 sourced partners with Base\'s "6 utility partners"', () => {
-  assert.match(P.PARTNER_COUNT_NOTE, /3 metro areas, 6 utility partners/);
-  assert.match(P.PARTNER_COUNT_NOTE, /Central Georgia EMC/);
-  assert.match(P.PARTNER_COUNT_NOTE, /not confirmed/);
+test('partner count note lists the 7 sourced programs with dates and Base\'s "6 utility partners", neutrally', () => {
+  assert.match(P.PARTNER_COUNT_NOTE, /3 metro areas, 6 utility partners" over the last 12 months/);
+  assert.match(P.PARTNER_COUNT_NOTE, /Central Georgia EMC \(October 2026\)/);
+  assert.match(P.PARTNER_COUNT_NOTE, /El Paso Electric \(a pilot, February 2026\)/);
+  // No speculation about which partner Base's count leaves out (pass 3, item 17).
+  assert.doesNotMatch(P.PARTNER_COUNT_NOTE, /left out|leaves out|not confirmed|without either being wrong/);
+  assert.equal(P.partnerLabel('5701-TX'), 'Runs a pilot with Base');
+  assert.equal(P.partnerLabel('5078-TX'), 'Already a Base partner');
   assert.equal(Object.keys(P.KNOWN).filter((id) => P.partnerOf(id)).length, 7);
 });
 
@@ -297,11 +302,10 @@ test('user text never resolves built-in object properties', () => {
   assert.equal(t.unmatched, 1);
 });
 
-test('target with a state that disagrees with its id is skipped with a warning', () => {
+test('target with a state that disagrees with its id is a row error', () => {
   const r = P.loadYourData(csv('utility,state,status\n5078-TX,IL,in talks'), data.utilities);
-  assert.deepEqual(r.errors, []);
   assert.equal(r.targetCount, 0);
-  assert.match(r.warnings[0], /^Row 2: "5078-TX" is CoServ Electric .* in TX, not IL/);
+  assert.match(r.errors[0], /^Row 2: "5078-TX" is CoServ Electric .* in TX, not IL/);
   assert.ok(P.matchUtility(P.utilityIndex(data.utilities), '5078-TX', 'tx').u, 'same state in lower case still matches');
 });
 

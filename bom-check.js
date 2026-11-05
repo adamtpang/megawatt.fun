@@ -68,15 +68,21 @@
       const file = $('bom-file').files && $('bom-file').files[0];
       if (!file) return;
       const reader = new FileReader();
+      // Bytes, not text: a cp1252 or UTF-16 file, or a spreadsheet renamed .csv, gets its own message.
       reader.onload = () => {
-        const text = String(reader.result || '');
-        run(text, text.trim() === B.DEMO_CSV.trim());
+        const d = window.YourData.decodeBytes(new Uint8Array(reader.result));
+        if (d.error) {
+          setDemo(false);
+          render({ errors: [d.error], warnings: [], rows: [], ranked: [] });
+          return;
+        }
+        run(d.text, d.text.trim() === B.DEMO_CSV.trim());
       };
       reader.onerror = () => {
         $('bom-status').className = 'notice notice-red sp-status';
         $('bom-status').textContent = 'Could not read that file in the browser.';
       };
-      reader.readAsText(file);
+      reader.readAsArrayBuffer(file);
     });
     $('bom-check-btn').addEventListener('click', () => run($('bom-paste').value, $('bom-paste').value.trim() === B.DEMO_CSV.trim()));
     $('bom-sample').addEventListener('click', () => run(B.DEMO_CSV, true));

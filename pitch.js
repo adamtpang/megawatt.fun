@@ -11,10 +11,24 @@
   }
   function num(v, d) { return P.fmtNum(v, d); }
   function pctText(v) { return P.isNum(v) ? Math.round(v * 100) + '%' : 'not published'; }
+  // A share of customers. A tiny share that is not zero reads "under 0.01%", never "0.00%".
   function share(v) {
     if (!P.isNum(v)) return 'not published';
     var p = v * 100;
+    if (p > 0 && p < 0.005) return 'under 0.01%';
     return (p < 1 ? p.toFixed(2) : p.toFixed(1)) + '%';
+  }
+
+  /* The program size box, checked the way /api/v1/pitch checks mw: a number above 0 and at most 5,000, with a dot
+     for decimals (a comma only as a thousands separator). Returns { value } or { error }. */
+  var MW_ERROR = 'Program size must be a number above 0 and at most 5,000 MW.';
+  function readMw() {
+    var raw = String($('mw').value == null ? '' : $('mw').value).trim();
+    if (!raw) return { error: 'Enter a program size: a number above 0 and at most 5,000 MW.' };
+    var r = window.YourData ? window.YourData.readNumber(window.YourData.normalizeText(raw), /\s/g) : { value: Number(raw) };
+    if (r.comma) return { error: MW_ERROR + ' ' + window.YourData.COMMA_HINT };
+    if (!P.isNum(r.value) || r.value <= 0 || r.value > 5000) return { error: MW_ERROR };
+    return { value: r.value };
   }
   function money(x) {
     if (!P.isNum(x)) return 'n/a';
@@ -124,7 +138,7 @@
     });
   }
 
-  function setReady() { setStatus('Ready. Data: ' + state.data.vintage.split('.')[0] + '.'); }
+  function setReady() { setStatus('Ready. Data: ' + state.data.vintage.split('.')[0] + '.'); state.mwError = false; }
 
   function build(u) {
     setReady();
@@ -138,7 +152,8 @@
   /* The same matcher as the API: a list label, an EIA id, a name, "Name, ST", an alias or a short name
      (CoServ, Oncor, ComEd), in any case. Returns PitchCore.matchUtility's result shape. */
   function matchInput() {
-    var v = $('utility').value.trim();
+    // Fullwidth letters and digits read as plain ones, the same as the API (NFKC).
+    var v = $('utility').value.normalize('NFKC').trim();
     if (!v) return { empty: true };
     var hit = P.own(state.byLabel, v.toLowerCase());
     if (hit) return { u: hit };
@@ -202,9 +217,12 @@
       { key: 'base', title: P.BASE_SOURCE.title, url: P.BASE_SOURCE.url, date: 'retrieved ' + P.BASE_SOURCE.retrieved }
     ];
     if (pick.source) list.push({ key: 'ercot', title: pick.source.title, url: pick.source.url, date: 'retrieved ' + pick.source.retrieved });
-    var acc = P.ACCREDITATION_EXAMPLE;
-    list.push({ key: 'nyisocaf', title: acc.source.title, url: acc.source.url, date: 'retrieved ' + acc.source.retrieved });
-    list.push({ key: 'pjmelcc', title: acc.pjm.source.title, url: acc.pjm.source.url, date: 'retrieved ' + acc.pjm.source.retrieved });
+    // NYISO and PJM accreditation sources only where the utility is in a capacity market (the API does the same).
+    if (P.capacityConcept(u).kind === 'accredited') {
+      var acc = P.ACCREDITATION_EXAMPLE;
+      list.push({ key: 'nyisocaf', title: acc.source.title, url: acc.source.url, date: 'retrieved ' + acc.source.retrieved });
+      list.push({ key: 'pjmelcc', title: acc.pjm.source.title, url: acc.pjm.source.url, date: 'retrieved ' + acc.pjm.source.retrieved });
+    }
     P.extraSources(u, pick).forEach(function (s) { list.push({ key: s.key, title: s.title, url: s.url, date: 'retrieved ' + s.retrieved }); });
     var k = P.known(u.id);
     if (k && k.aliasSource) list.push({ key: 'alias', title: k.aliasSource.title, url: k.aliasSource.url, date: 'retrieved ' + k.aliasSource.retrieved });
@@ -224,7 +242,11 @@
     var d = state.data, m = state.market;
     var st = d.states.filter(function (s) { return s.abbr === u.state; })[0] || { name: u.state, values: {} };
     var ms = m.states.filter(function (s) { return s.name === st.name; })[0] || {};
-    var mw = parseFloat($('mw').value);
+    var mwIn = readMw();
+    // An out-of-range size is an error in the status line, the same check the API makes, never a quiet "Ready".
+    if (mwIn.error) { setStatus(mwIn.error, 'error'); state.mwError = true; }
+    else if (state.mwError) setReady();
+    var mw = mwIn.error ? NaN : mwIn.value;
     var T = state.terms;
     var prog = P.sizeProgram(mw, u.values.homes, T);
     var pcts = P.signalPercentiles(u, d.utilities);
@@ -264,19 +286,25 @@
 
     // Program
     if (prog) {
-      var acc = P.accreditedExample(prog, T);
+      // The capacity illustration that fits this utility's market: accredited MW only in a capacity market.
+      var cap = P.capacityExample(prog, T, u);
+      var capRefs = cap.kind === 'accredited' ? r('nyisocaf') + r('pjmelcc') : cap.kind === 'ercot' ? r('ercot') + r('tcos') : '';
+      var capStat = cap.kind === 'accredited' ? '~' + P.fmtPower(cap.accredited.accreditedMw) : '~' + P.fmtPower(cap.mwFor2h);
+      var capLabel = cap.kind === 'accredited' ? 'accredited, an illustration at one market\'s 2-hour storage factor' + r('nyisocaf')
+        : cap.kind === 'ercot' ? 'available through a 2-hour peak. ERCOT has no capacity accreditation; peak hours (4CP) are what count' + r('ercot')
+        : 'available through a 2-hour peak. No capacity market here';
       h.push('<section class="pt-block"><h3>The program</h3><dl class="pt-stats">' +
         stat(P.fmtPower(prog.roundedUp ? prog.nameplateMw : prog.mw), prog.roundedUp ? 'nameplate, rounded up to whole batteries from your ' + esc(P.fmtPower(prog.mw)) : 'nameplate, your input' + (prog.mw === T.programMw ? yours('programMw') : '')) +
         stat(num(prog.batteries), 'home batter' + (prog.batteries === 1 ? 'y' : 'ies') + ' at ' + num(prog.kw, dec(prog.kw)) + ' kW each' + (yours('kwPerHome') || r('base'))) +
         stat(P.fmtEnergy(prog.mwh), 'at ' + num(prog.kwh, dec(prog.kwh)) + ' kWh each' + (yours('kwhPerHome') || r('base'))) +
         stat(share(prog.share), 'of residential customers would need to enroll') +
-        stat('~' + P.fmtPower(acc.accreditedMw), '<span class="badge badge-yellow">assumption</span> accredited, an illustration at one market\'s 2-hour storage factor' + r('nyisocaf')) +
+        stat(capStat, '<span class="badge badge-yellow">assumption</span> ' + capLabel) +
         '</dl>' + (prog.roundedUp ? '<p class="pt-note pt-rounded">' + esc(P.roundedUpNote(prog)) + '</p>' : '') + '<p class="pt-note">About ' + prog.hours.toFixed(2) + ' hours at full output, derived from ' + (state.changed.kwPerHome || state.changed.kwhPerHome ? 'your battery spec' : 'Base\'s claimed spec') + '. Nameplate is not accredited capacity, and each home keeps a backup reserve, so the dispatchable share is a question below.' +
         (P.isNum(prog.dispatchMwh) ? ' With ' + num(T.memberReservePct) + '% held back for each home, about ' + P.fmtEnergy(prog.dispatchMwh) + ' is left to dispatch.' + yours('memberReservePct') : '') +
         (P.isNum(prog.share) && prog.share > 1 ? ' <strong>This program needs more batteries than the utility has residential customers.</strong>' : '') + '</p>' +
-        '<p class="pt-note pt-accredited"><span class="badge badge-yellow">Assumption</span> ' + esc(acc.text) + r('nyisocaf') + r('pjmelcc') + (acc.reserveYours ? yours('memberReservePct') : '') + '</p></section>');
+        '<p class="pt-note pt-accredited pt-capacity-' + cap.kind + '"><span class="badge badge-yellow">Assumption</span> ' + esc(cap.text) + capRefs + (cap.reserveYours ? yours('memberReservePct') : '') + '</p></section>');
     } else {
-      h.push('<section class="pt-block"><h3>The program</h3><p class="pt-note">Enter a program size above 0 and at most 5,000 MW.</p></section>');
+      h.push('<section class="pt-block"><h3>The program</h3><p class="pt-note">' + esc(mwIn.error || MW_ERROR) + '</p></section>');
     }
 
     // Problem
@@ -352,6 +380,8 @@
 
     // Real vs claimed vs assumed
     var acc0 = P.accreditedExample(prog || P.sizeProgram(T.programMw, u.values.homes, T), T) || { reservePct: P.ACCREDITATION_EXAMPLE.reservePct, reserveYours: false };
+    var concept = P.capacityConcept(u);
+    var reserveText = num(acc0.reservePct, dec(acc0.reservePct)) + '% home reserve' + (acc0.reserveYours ? yours('memberReservePct') : ' (assumed)');
     h.push('<section class="pt-block pt-rca"><h3>Real vs claimed vs assumed</h3><div class="pt-rca-grid">' +
       '<div class="pt-rca-real"><h4><span class="badge badge-green">Real</span> Public data</h4><ul>' +
         '<li>Customers, SAIDI, SAIFI, ISO share, retail share, batteries, demand response and dynamic pricing: EIA-861 2025' + r('eia') + '.</li>' +
@@ -373,7 +403,9 @@
         '<li>Offer cutoffs: outages higher than ' + num(T.reliabilityCutoffPct) + '% of US utilities' + yours('reliabilityCutoffPct') + '; ' + num(T.wholesaleCutoffPct) + '% of customers in an ISO or RTO' + yours('wholesaleCutoffPct') + '.</li>' +
         '<li>Large-load queue: ' + ($('largeloads').checked ? 'marked by you' : 'not marked') + '.</li>' +
         '<li>Call ranking: residential customers x SAIDI as a stand-in for customer minutes interrupted.</li>' +
-        '<li>Accredited MW: an illustration only, at NYISO\'s published 2-hour storage factor (' + P.ACCREDITATION_EXAMPLE.pct + '%) after a ' + num(acc0.reservePct, dec(acc0.reservePct)) + '% home reserve' + (acc0.reserveYours ? yours('memberReservePct') : ' (assumed)') + r('nyisocaf') + '. This utility\'s market may count homes differently; that is a question.</li>' +
+        (concept.kind === 'accredited'
+          ? '<li>Accredited MW: an illustration only, at NYISO\'s published 2-hour storage factor (' + P.ACCREDITATION_EXAMPLE.pct + '%) after a ' + reserveText + r('nyisocaf') + '. This utility\'s market (' + esc(concept.markets.join(', ')) + ') may count homes differently; that is a question.</li>'
+          : '<li>Peak MW: the power the fleet could hold through a 2-hour peak after a ' + reserveText + '. No accreditation factor: ' + (concept.kind === 'ercot' ? 'ERCOT has no capacity market' : 'there is no capacity market here') + '.</li>') +
         (P.isNum(T.tollPerKwYear) ? '<li>Price per kW-year: $' + num(T.tollPerKwYear, T.tollPerKwYear % 1 ? 2 : 0) + ', from your file.' + yours('tollPerKwYear') + ' No enrollment rate is assumed.</li>' : '<li>No enrollment rate or price per kW-year is assumed. Those are questions.</li>') +
       '</ul></div></div></section>');
 
@@ -416,7 +448,7 @@
     var mkt = P.stateMarket(state.data.utilities, u.state);
     $('ranking-title').textContent = 'Who to call first in ' + st.name;
     $('ranking-help').textContent = all.length + ' utilities in ' + st.name + ' in this file. Ranked by residential customers x SAIDI minutes (EIA-861 2025). ' + mkt.reason +
-      (partnerRows.length ? ' ' + partnerRows.length + ' already ' + (partnerRows.length === 1 ? 'is a Base partner' : 'are Base partners') + ', so ' + (partnerRows.length === 1 ? 'it is' : 'they are') + ' listed after the ranking, unranked, as an expansion conversation: ' + partnerRows.map(function (x) { return x.name; }).join(', ') + '.' : '') +
+      (partnerRows.length ? ' ' + partnerRows.length + ' already ' + (partnerRows.length === 1 ? 'runs a program with Base' : 'run programs with Base') + ', so ' + (partnerRows.length === 1 ? 'it is' : 'they are') + ' listed after the ranking, unranked, as an expansion conversation: ' + partnerRows.map(function (x) { return x.name; }).join(', ') + '.' : '') +
       (wiresRows.length ? ' ' + wiresRows.length + ' wires-only utilit' + (wiresRows.length === 1 ? 'y delivers' : 'ies deliver') + ' power but do' + (wiresRows.length === 1 ? 'es' : '') + ' not buy it, so ' + (wiresRows.length === 1 ? 'it is' : 'they are') + ' not ranked: ' + wiresRows.map(function (x) { return x.name; }).join(', ') + '.' : '') +
       (nMine ? ' Your ' + nMine + ' target' + (nMine === 1 ? '' : 's') + ' in ' + st.name + ' come first, still in public rank order.' : '') + ' Pick one to rebuild the pitch.';
     var t = '<thead><tr><th scope="col">#</th><th scope="col">Utility</th>' + (hasTargets ? '<th scope="col">Your status</th>' : '') + '<th scope="col" class="num">Residential customers</th><th scope="col" class="num">SAIDI min</th><th scope="col" class="num">Customer-minutes (millions)</th></tr></thead><tbody>';
@@ -425,8 +457,8 @@
       var cur = row.id === u.id;
       var mt = P.own(tg, row.id);
       var cls = [cur ? 'is-current' : '', mt ? 'is-target' : ''].join(' ').trim();
-      t += '<tr' + (cls ? ' class="' + cls + '"' : '') + (cur ? ' aria-current="true"' : '') + '><td data-label="#">' + (row.wires ? '<span class="badge badge-white" title="Delivers power but does not buy it">Wires only</span>' : row.partner ? '<span class="badge badge-green" title="' + esc(P.PARTNER_LABEL) + ': expand the existing program, not a cold call">Base partner</span>' : row.rank) + '</td><td data-label="Utility"><span class="pt-utilcell"><button type="button" class="pt-link" data-id="' + esc(row.id) + '">' + esc(row.name) + '</button>' +
-        (row.partner ? '<span class="pt-rowtag">' + esc(P.PARTNER_LABEL) + ': expand the program, not a cold call</span>' : '') + (row.marketNote ? '<span class="pt-rowtag pt-outside">' + esc(row.marketNote) + '</span>' : '') + '</span></td>' +
+      t += '<tr' + (cls ? ' class="' + cls + '"' : '') + (cur ? ' aria-current="true"' : '') + '><td data-label="#">' + (row.wires ? '<span class="badge badge-white" title="Delivers power but does not buy it">Wires only</span>' : row.partner ? '<span class="badge badge-green" title="' + esc(P.partnerLabel(row.id)) + ': expand the existing program, not a cold call">' + (P.partnerOf(row.id).label ? 'Base pilot' : 'Base partner') + '</span>' : row.rank) + '</td><td data-label="Utility"><span class="pt-utilcell"><button type="button" class="pt-link" data-id="' + esc(row.id) + '">' + esc(row.name) + '</button>' +
+        (row.partner ? '<span class="pt-rowtag">' + esc(P.partnerLabel(row.id)) + ': expand the program, not a cold call</span>' : '') + (row.marketNote ? '<span class="pt-rowtag pt-outside">' + esc(row.marketNote) + '</span>' : '') + '</span></td>' +
         (hasTargets ? '<td data-label="Your status">' + (mt ? '<span class="pt-statuscell"><span class="badge badge-solid pt-status-chip">' + esc(mt.status) + '</span>' + (mt.owner ? ' <span class="pt-owner">' + esc(mt.owner) + '</span>' : '') + '</span>' : '') + '</td>' : '') +
         '<td class="num" data-label="Customers">' + num(row.customers) + '</td><td class="num" data-label="SAIDI">' + num(row.saidi, 0) + '</td><td class="num" data-label="Cust-min (M)">' + (P.isNum(row.score) ? num(row.score / 1e6, 1) : 'not published') + '</td></tr>';
     });
@@ -456,7 +488,8 @@
     state.changed = {};
     if (r) r.changed.forEach(function (k) { state.changed[k] = true; });
     // Move the program size input only if it still shows the previous file or public value.
-    if (parseFloat($('mw').value) === prevMw) $('mw').value = state.terms.programMw;
+    var shown = readMw();
+    if (shown.value === prevMw) $('mw').value = state.terms.programMw;
     if (state.built) render();
   }
 
@@ -481,10 +514,11 @@
         { name: 'pitch-targets.csv', label: 'Target list template', text: targetTemplate }
       ],
       load: function (parsed) {
-        var r = P.loadYourData(parsed, state.data.utilities);
+        // The pitch's state, so a mistyped target's "Did you mean" comes from that state first (the API does the same).
+        var r = P.loadYourData(parsed, state.data.utilities, { state: state.selected ? state.selected.state : '' });
         var parts = [];
         if (r.termRows) parts.push(r.changed.length + ' offer number' + (r.changed.length === 1 ? '' : 's') + ' changed, tagged Yours');
-        if (r.targetCount || r.unmatched) parts.push(r.targetCount + ' target utilit' + (r.targetCount === 1 ? 'y' : 'ies') + ' matched' + (r.unmatched ? ', ' + r.unmatched + ' not matched (listed below)' : ''));
+        if (r.targetCount) parts.push(r.targetCount + ' target utilit' + (r.targetCount === 1 ? 'y' : 'ies') + ' matched');
         return {
           errors: r.errors,
           warnings: r.warnings,

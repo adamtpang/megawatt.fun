@@ -318,8 +318,26 @@
     const mine = z.zones.filter((x) => x.yours).length;
     const note = mine ? `<p class="notice notice-green mm-flag"><span class="badge badge-solid">Yours</span> Your file replaced ${mine} of ${z.zones.length} zone values. Zones marked Yours show your number; the rest are the public backtest below.</p>` : '';
     $('zone-value').innerHTML = note + `<p class="mm-small">${mine ? 'Public method: what' : 'What'} one Base Core (20 kW / 39.2 kWh) would have earned in each ERCOT load zone, ${esc(z.period.start)} to ${esc(z.period.endExclusive)} (12 real months), on one fixed daily clock: charge 10 AM to 2 PM, discharge 7 to 9 PM, Central, at real-time load zone prices. About 31 kWh is usable, so it sells 20 kWh from 7 to 8 PM and about 9 kWh from 8 to 9 PM. The clock was chosen from how ERCOT prices move (cheap midday solar, a peak after sunset), not by searching these prices. Energy arbitrage only: no capacity, tolling, backup or retail revenue. Not Base revenue.</p>` +
-      '<ol class="mm-bars">' + z.zones.map((x) => `<li${x.yours ? ` class="is-yours" title="Your file. Public value was $${fmt(x.publicUsdPerYear)}."` : ''}><span>${esc(x.id)}${x.yours ? ' <em class="badge badge-solid">Yours</em>' : ''}</span><i style="width:${Math.max(2, (x.usdPerYear / max) * 100)}%"></i><b>$${fmt(x.usdPerYear)}</b></li>`).join('') + '</ol>' +
+      '<ol class="mm-bars">' + z.zones.map((x) => `<li${x.yours ? ` class="is-yours" title="Your file. Public value was $${fmt(x.publicUsdPerYear)}."` : x.market ? ` title="${esc(x.market)}: ${esc(x.who || '')}"` : ''}><span>${esc(x.id)}${x.market === NO_CHOICE ? '*' : ''}${x.yours ? ' <em class="badge badge-solid">Yours</em>' : ''}</span><i style="width:${Math.max(2, (x.usdPerYear / max) * 100)}%"></i><b>$${fmt(x.usdPerYear)}</b></li>`).join('') + '</ol>' +
+      zoneMarkets(z) +
       `<p class="mm-small">Only load zones (LZ_) are ranked: homes settle at load zone prices. Trading hubs (HB_) are not places a home battery earns, so they are left out (they are in the data file for reference). Best: ${esc(z.zones[0].id)} ($${fmt(z.zones[0].usdPerYear)} a year). Worst: ${esc(z.zones[z.zones.length - 1].id)} ($${fmt(z.zones[z.zones.length - 1].usdPerYear)}). See <a href="/deploy">/deploy</a> for monthly detail and <a href="/finance">/finance</a> for what this means for debt.</p>`;
+  }
+
+  /* Who sells power to homes in each zone. In a zone without retail choice (ERCOT's NOIE load zones:
+     city utilities and co-ops) no retail provider keeps the arbitrage, so a battery company reaches
+     the value only through a utility partnership. Data and sources: zone-value.json "markets". */
+  const NO_CHOICE = 'utility or co-op';
+  function zoneMarkets(z) {
+    if (!z.zones.some((x) => x.market)) return '';
+    const how = (x) => (x.market === NO_CHOICE
+      ? 'Only through a utility partnership (for example a toll): no retail provider exists here to keep it.'
+      : 'A retail provider, or a battery owner that is one, keeps it.');
+    const label = (x) => (x.market === NO_CHOICE ? 'Utility or co-op territory' : 'Retail choice');
+    const src = ((z.markets && z.markets.sources) || []).map((u, i) => `<a href="${esc(u)}">${i + 1}</a>`).join(', ');
+    return '<div class="mm-scroll"><table class="ds-table"><thead><tr><th>Zone</th><th>Retail market</th><th>Who sells power to homes</th><th>How a battery company reaches this value</th></tr></thead><tbody>' +
+      z.zones.map((x) => `<tr><td>${esc(x.id)}${x.market === NO_CHOICE ? '*' : ''}</td><td>${esc(label(x))}</td><td>${esc(x.who || '')}</td><td>${esc(how(x))}</td></tr>`).join('') +
+      '</tbody></table></div>' +
+      `<p class="mm-small">* No retail choice. LZ_AEN, LZ_CPS, LZ_LCRA and LZ_RAYBN are ERCOT Non-Opt-In Entity load zones: Austin Energy, CPS Energy, LCRA's wholesale customers and Rayburn Country co-op members, whose city councils and co-op boards decide whether to open to retail choice (PURA 40.051 and 41.051) and have not. The value there goes to the utility and is reachable only through a utility partnership. The other zones are mostly retail choice, with some city and co-op pockets. Sources: ${src}.</p>`;
   }
 
   // ---------- your own data (yourdata.js panel, validation in market-core.js) ----------

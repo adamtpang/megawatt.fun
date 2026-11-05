@@ -66,7 +66,7 @@
   // Your bill of materials (yourdata.js + supply-core.js). Rendered above the public
   // watch list; the public research below is never changed.
   // Shared with the API, so a short part never reads as "0 wk" and the summary names only what is missing.
-  const wk = n => window.SupplyCore.weeksText(n);
+  const wk = (n, d) => window.SupplyCore.weeksText(n, d);
 
   function bomCard(res, partNames) {
     // Risk flags use the shared badge mapping: shortage and single source are risks (red), tariff is neutral.
@@ -78,9 +78,9 @@
         (pub ? '<br><a class="sp-small" href="#part-' + esc(r.category) + '">Public research: ' + esc(pub) + '</a>' : '<br><span class="sp-small">' + esc(r.category) + '</span>') +
         (r.note ? '<br><span class="sp-small">' + esc(r.note) + '</span>' : '') + '</td>' +
         '<td data-label="Supplier">' + esc(r.supplier || 'Not given') + (r.country ? '<br><span class="sp-small">' + esc(r.country) + '</span>' : '') + '</td>' +
-        '<td data-label="Lead time" class="num">' + wk(r.lead_time_weeks) + '</td>' +
-        '<td data-label="Cover" class="num">' + (r.on_hand_weeks == null ? '<span class="sp-small">none given</span>' : wk(r.on_hand_weeks)) + '</td>' +
-        '<td data-label="Gap" class="num"><strong>' + (r.gap >= 0.05 ? '+' : '') + wk(r.gap) + '</strong></td>' +
+        '<td data-label="Lead time" class="num">' + wk(r.lead_time_weeks, r.digits) + '</td>' +
+        '<td data-label="Cover" class="num">' + (r.on_hand_weeks == null ? '<span class="sp-small">none given</span>' : wk(r.on_hand_weeks, r.digits)) + '</td>' +
+        '<td data-label="Gap" class="num"><strong>' + (r.gap > 0 && !/^under/.test(wk(r.gap, r.digits)) ? '+' : '') + wk(r.gap, r.digits) + '</strong></td>' +
         '<td data-label="Flags">' + (r.flags.length ? r.flags.map(f => '<span class="badge sp-flagb' + (flagClass[f] ? ' ' + flagClass[f] : '') + '">' + esc(f) + '</span>').join(' ') : '<span class="sp-small">None</span>') + '</td></tr>';
     }).join('');
     const sum = window.SupplyCore.summary(res);

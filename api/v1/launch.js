@@ -83,6 +83,7 @@ async function post(parsed, req) {
     own = stepsParsed(b.steps);
   }
   opts = readOptions(q, b);
+  warnings = L.queryWarnings(req, OPTIONS, KNOWN).concat(warnings);
 
   const errors = [];
   const abbr = opts.state == null ? 'GA' : opts.state.trim().toUpperCase();

@@ -10,6 +10,7 @@
   let arbOverride = null;
   let zones = [];
   let zoneMeta = null;
+  const PRESET = 'base_published';
 
   const usd = (x) => (Number.isFinite(x) ? `${x < 0 ? '-' : ''}$${Math.round(Math.abs(x)).toLocaleString('en-US')}` : 'n/a');
   const big = (x) => {
@@ -32,8 +33,10 @@
     return n;
   }
 
-  function tag(kind) {
+  function tag(kind, f) {
     if (kind === 'yours') return el('span', { class: 'badge badge-solid', text: 'Yours' });
+    if (kind === 'preset') return el('span', { class: 'badge badge-preset', title: f && f.presetLabel ? f.presetLabel : '', text: 'Company claim' });
+    if (kind === 'derived') return el('span', { class: 'badge badge-yellow', text: 'Derived' });
     return el('span', { class: `badge ${kind === 'sourced' ? 'badge-green' : 'badge-yellow'}`, text: kind === 'sourced' ? 'Sourced' : 'Assumption' });
   }
 
@@ -60,7 +63,7 @@
         const link = sourceLink(f);
         if (link) note.append(' ', link, `, retrieved ${f.retrieved}.`);
         fs.append(el('div', { class: 'fin-field' },
-          el('label', { for: id }, `${f.label} `, tag(f.kind)),
+          el('label', { for: id }, `${f.label} `, tag(f.kind, f)),
           el('div', { class: 'fin-input' }, input, el('span', { class: 'fin-unit', text: f.unit })),
           err,
           note));
@@ -79,7 +82,8 @@
       return;
     }
     for (const z of zones) {
-      sel.append(el('option', { value: z.id, text: `${z.id} (${z.kind}): $${Math.round(z.usdPerYear)}/yr` }));
+      const market = z.market === F.NO_CHOICE ? 'city utility or co-op, no retail choice' : z.market || z.kind;
+      sel.append(el('option', { value: z.id, text: `${z.id} (${market}): $${Math.round(z.usdPerYear)}/yr` }));
     }
     const p = zoneMeta.period;
     const span = p ? `${p.start} to ${p.endExclusive} (end not included)` : '12 months';
@@ -118,7 +122,23 @@
     const raw = Object.assign({ revenueCase: $('revenueCase').value }, values);
     const z = zones.find((x) => x.id === $('zone').value);
     raw.arbPerYear = arbOverride != null ? arbOverride : (z ? z.usdPerYear : 0);
+    // The zone's retail market decides whether a retail margin and merchant arbitrage can be kept
+    // (the API's readInputs does the same). Your own arbitrage value replaces the zone and its market.
+    raw.zone = arbOverride != null || !z ? null : z.id;
+    raw.zoneMarket = arbOverride != null || !z ? null : z.market || null;
     return F.normalize(raw);
+  }
+
+  // The line under the zone list: who sells power to homes there.
+  function renderZoneMarket() {
+    const n = $('zone-market');
+    const z = arbOverride != null ? null : zones.find((x) => x.id === $('zone').value);
+    n.hidden = !z || !z.market;
+    if (!z || !z.market) return;
+    n.classList.toggle('notice-red', z.market === F.NO_CHOICE);
+    n.textContent = z.market === F.NO_CHOICE
+      ? `${z.id}: ${z.who}. No retail provider exists here to keep the arbitrage or a retail margin, so neither counts; the value goes to the utility. A battery company reaches it only through a utility partnership: try the toll case.`
+      : `${z.id}: ${z.who}. A retail provider (or an owner that is one) keeps the arbitrage and the retail margin.`;
   }
 
   function kpi(label, value, sub) {
@@ -144,10 +164,13 @@
     b.classList.toggle('notice-red', noDebt);
   }
 
+  const explainOpts = () => ({ basis: F.lineBasis(defaults, arbOverride), retailDefault: publicField('retailMarginMonthly').value });
+  function publicField(k) { return publicDefaults.groups.flatMap((g) => g.fields).find((f) => f.key === k); }
+
   function renderMeaning(r) {
     const ul = $('meaning');
     ul.textContent = '';
-    for (const line of F.explain(r)) ul.append(el('li', { text: line }));
+    for (const line of F.explain(r, explainOpts())) ul.append(el('li', { text: line }));
     if (r.tenorClamped) ul.append(el('li', { text: `The loan term was cut to ${r.tenor} years so it does not outlive the battery.` }));
   }
 
@@ -158,9 +181,9 @@
     const off = (k) => (r.counted[k] === 0 && r.full[k] > 0 ? `${usd(r.full[k])} not counted in this case` : null);
     t.append(el('tbody', {},
       row('Member fees', r.counted.member, null),
-      row('Retail energy margin', r.counted.retail, r.counted.retail === 0 ? 'left out (set to $0)' : 'only if the owner is the home\'s retail provider'),
+      row('Retail energy margin', r.counted.retail, r.noChoice && r.full.retail ? 'not counted: no retail choice in this zone' : r.counted.retail === 0 ? 'left out (set to $0)' : 'only if the owner is the home\'s retail provider'),
       row('Utility toll', r.counted.toll, off('toll')),
-      row('Energy arbitrage', r.counted.arb, off('arb')),
+      row('Energy arbitrage', r.counted.arb, r.noChoice && r.full.arb > 0 && F.CASES[r.caseId].arb ? `${usd(r.full.arb)} goes to the utility in this zone` : off('arb') || 'derived from public prices with assumptions'),
       row('Ancillary services (ADER)', r.counted.anc, off('anc')),
       row('Operating cost', -r.opex, null, 'neg'),
       row('CFADS', r.year1Cfads, null, 'total'),
@@ -196,6 +219,24 @@
       add('line', { x1: pad.l, x2: pad.l + r.tenor * bw, y1: y(r.debtService), y2: y(r.debtService), class: 'ds' });
     }
     host.append(svg);
+  }
+
+  // Does it pay? Unlevered and equity returns, in numbers and in words.
+  function renderReturns(r) {
+    const R = r.returns, u = R.unlevered, e = R.equity;
+    const p = (x) => (x == null || !Number.isFinite(x) ? 'not defined' : `${(Math.round(x * 1000) / 10).toFixed(1)}%`);
+    const k = $('returns-kpis');
+    k.textContent = '';
+    k.append(
+      kpi('Pays back?', u.paysBack ? `Year ${u.paybackYear}` : 'No', `${usd(u.cashTotal)} cash over ${r.life} years vs ${usd(r.netCapex)} net cost`),
+      kpi('Unlevered IRR', p(u.irr), `NPV at ${Math.round(R.discountRate * 1000) / 10}%: ${usd(u.npv)}`),
+      kpi('Equity IRR', e ? p(e.irr) : 'not defined', e ? `NPV at ${Math.round(R.discountRate * 1000) / 10}%: ${usd(e.npv)}` : 'no equity in on these numbers'),
+    );
+    const card = $('returns-card');
+    card.classList.toggle('is-loss', !u.paysBack);
+    const ul = $('returns-text');
+    ul.textContent = '';
+    for (const line of F.returnsText(r)) ul.append(el('li', { text: line }));
   }
 
   function renderSizing(r) {
@@ -264,11 +305,11 @@
     t.append(el('thead', {}, el('tr', {}, ...['Input', 'Default', 'Type', 'Where it comes from'].map((h) => el('th', { scope: 'col', text: h })))));
     const body = el('tbody');
     const add = (name, val, kind, ...src) => body.append(el('tr', {}, el('th', { scope: 'row', text: name }), el('td', { class: 'mono', text: val }), el('td', {}, tag(kind)), el('td', {}, ...src)));
-    add('Revenue case', F.CASES[publicDefaults.revenueCaseDefault].label, 'assumption', 'Merchant by default: it counts only public numbers (member fees and ERCOT arbitrage), not the toll placeholder. A utility toll is a private contract with no public price. Ancillary services count in merchant and stacked but default to $0.');
-    add('Energy arbitrage zone', defaults.zoneDefault, 'sourced', 'ERCOT prices, our fixed-clock simulation. ', el('a', { href: '/data/zone-value.json', text: 'zone-value.json' }));
+    add('Revenue case', F.CASES[publicDefaults.revenueCaseDefault].label, 'assumption', 'Merchant by default: member fees, ERCOT arbitrage and the retail margin count, not the toll placeholder. A utility toll is a private contract with no public price. Ancillary services count in merchant and stacked but default to $0. In a zone without retail choice the retail margin and merchant arbitrage do not count.');
+    add('Energy arbitrage zone', defaults.zoneDefault, 'derived', `Derived from public prices with assumptions: ERCOT real-time prices run through our fixed charge and discharge clock, 88% round trip and 20% backup reserve. Not a published number. `, el('a', { href: '/data/zone-value.json', text: 'zone-value.json' }));
     for (const f of fields()) {
       const link = sourceLink(f);
-      add(f.label, `${f.value} ${f.unit}`, f.kind, f.note, link ? ' ' : null, link, link ? `, retrieved ${f.retrieved}.` : null);
+      body.append(el('tr', {}, el('th', { scope: 'row', text: f.label }), el('td', { class: 'mono', text: `${f.value} ${f.unit}` }), el('td', {}, tag(f.kind, f)), el('td', {}, f.note, link ? ' ' : null, link, link ? `, retrieved ${f.retrieved}.` : null)));
     }
     add('Lender terms', 'generic', 'assumption', "Rate, term, DSCR and advance rate above are generic placeholders, not any company's debt terms.");
     t.append(body);
@@ -279,6 +320,8 @@
     if (!inp) return;
     const r = F.sizeDebt(inp);
     renderKpis(r, inp);
+    renderZoneMarket();
+    renderReturns(r);
     renderMeaning(r);
     renderCf(r);
     renderChart(r);
@@ -303,7 +346,26 @@
       $('zone').value = F.zoneAfterLoad({ zoneIds: zones.map((z) => z.id), current, fileZone, publicZone: publicDefaults.zoneDefault, reset: !!reset });
     }
     if (arb != null) $('zone-note').textContent = `Using your arbitrage value, $${Math.round(arb)} per battery per year. The zone list is ignored.`;
+    renderPresetState();
     update();
+  }
+
+  /* "Load Base's published figures": Base's public claims as a labeled preset, never the default.
+     The button toggles back to the generic defaults. */
+  function renderPresetState() {
+    const on = defaults && defaults.preset === PRESET;
+    const btn = $('preset-btn'), note = $('preset-note');
+    const p = publicDefaults.presets && publicDefaults.presets[PRESET];
+    btn.hidden = !p;
+    if (!p) return;
+    btn.textContent = on ? 'Back to generic defaults' : 'Load Base\'s published figures';
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    note.hidden = !on;
+    note.textContent = on ? `Showing ${p.label}. ${p.about} Inputs tagged Company claim come from it; everything else stays generic.` : '';
+  }
+  function togglePreset() {
+    const on = defaults && defaults.preset === PRESET;
+    useDefaults(on ? publicDefaults : F.applyPreset(publicDefaults, PRESET), null, null, false);
   }
 
   function mountYourData() {
@@ -319,7 +381,7 @@
         return {
           errors: r.errors,
           warnings: r.warnings,
-          summary: `${r.changed.length} input${r.changed.length === 1 ? '' : 's'} changed${r.arbPerYear != null ? ', plus your arbitrage value' : ''}. Changed inputs are tagged Yours.`,
+          summary: `${r.preset ? 'Preset ' + r.preset + ' loaded, then ' : ''}${r.changed.length} input${r.changed.length === 1 ? '' : 's'} changed${r.arbPerYear != null ? ', plus your arbitrage value' : ''}. Changed inputs are tagged Yours.`,
           apply: () => useDefaults(r.defaults, r.arbPerYear, r.zone, false),
         };
       },
@@ -344,6 +406,8 @@
       $('inputs').addEventListener('input', update);
       $('inputs').addEventListener('change', update);
       $('reset').addEventListener('click', () => { setDefaults(); update(); });
+      $('preset-btn').addEventListener('click', togglePreset);
+      renderPresetState();
       $('inputs').addEventListener('submit', (e) => e.preventDefault());
       $('status').hidden = true;
       $('app').hidden = false;

@@ -217,24 +217,34 @@
     for (const b of $(segId).querySelectorAll('button')) b.setAttribute('aria-pressed', String(b.dataset[attr] === val));
   }
 
+  // A hash that names an element on this page, such as #zip-form: a section link, not a state.
+  function isSectionLink(hash) {
+    let id = String(hash || '').slice(1);
+    try { id = decodeURIComponent(id); } catch (e) { return false; }
+    return !!id && !!document.getElementById(id) && !/^[A-Za-z]{2}(\/|$)/.test(id);
+  }
+
   function writeHash() {
     try { history.replaceState(null, '', '#' + ui.abbr + '/' + ui.path); } catch (e) { /* ignore */ }
   }
 
-  function selectState(abbr, keepPath) {
+  // keepHash: leave the URL as it is (opening the page on a section link such as #zip-form).
+  function selectState(abbr, keepPath, keepHash) {
     ui.abbr = abbr;
     if (!keepPath) ui.path = L.suggestPath(state()).path;
     $('state').value = abbr;
     setPressed('path-seg', 'path', ui.path);
-    renderWhy(); render(); writeHash();
+    renderWhy(); render();
+    if (!keepHash) writeHash();
   }
 
-  /* A deep link: #TX, #TX/retail, also #tx/RETAIL. Case does not matter. An unknown path falls back
-     to the state's suggested path; an unknown state returns null (the page then opens on GA).
-     writeHash() rewrites the hash in its canonical form with replaceState, so the page never adds
-     history entries of its own: Back leaves the page, or returns to a hash the visitor typed. */
+  /* A deep link: #TX, #TX/retail, also #tx/RETAIL. Case does not matter, and anything after the path
+     (#CA/retail/extra) is ignored. An unknown path falls back to the state's suggested path; an unknown
+     state returns null (the page then opens on GA). Whatever the page shows, writeHash() rewrites the
+     hash in its canonical form with replaceState, so the URL always matches the page and the page never
+     adds history entries of its own: Back leaves the page, or returns to a hash the visitor typed. */
   function routeFromHash(hash) {
-    const m = String(hash || '').match(/^#([A-Za-z]{2})(?:\/([A-Za-z_-]*))?\/?$/);
+    const m = String(hash || '').match(/^#([A-Za-z]{2})(?:\/([A-Za-z_-]*))?(?:\/.*)?$/);
     if (!m) return null;
     const abbr = m[1].toUpperCase();
     if (!STATES.has(abbr)) return null;
@@ -246,10 +256,13 @@
   function wire() {
     // A hash typed into the address bar, or reached with Back or Forward, selects that state.
     window.addEventListener('hashchange', () => {
+      // A link to a section on this page (#zip-form) is left alone.
+      if (isSectionLink(location.hash)) return;
       const r = routeFromHash(location.hash);
-      // A state-shaped hash with an unknown state (#zz/retail) keeps the page as it is and puts the
-      // URL back to the state on screen. Other hashes, such as a section link, are left alone.
-      if (!r) { if (/^#[A-Za-z]{2}(\/[A-Za-z_-]*)?\/?$/.test(location.hash)) writeHash(); return; }
+      // Anything else that is not a known state (#zz, #__proto__, junk) keeps the page as it is and
+      // puts the URL back to the state on screen, so the URL always says what the page shows,
+      // including after Back or Forward.
+      if (!r) { writeHash(); return; }
       if (r.abbr === ui.abbr && r.path === ui.path) { writeHash(); return; }
       ui.path = r.path;
       selectState(r.abbr, true);
@@ -335,7 +348,7 @@
       if (!wired) { wire(); wired = true; }
       const route = routeFromHash(location.hash);
       if (route) { ui.path = route.path; selectState(route.abbr, true); }
-      else selectState('GA', false);
+      else selectState('GA', false, isSectionLink(location.hash));
       mountYourData();
     } catch (e) {
       $('why').removeAttribute('aria-busy');

@@ -56,7 +56,8 @@
       source: { title: 'Utility Dive, 22 April 2026: Base Power partnership to mitigate price spikes, load peaks for South Texas co-op, CEO says', url: 'https://www.utilitydive.com/news/base-power-partnership-to-mitigate-price-spikes-load-peaks-for-south-tx-co-op-ceo-says/818221/', retrieved: '2026-11-04' }
     },
     '5701-TX': {
-      partner: true, since: '2026-02', program: 'Residential Distributed Energy Storage Pilot Program (up to 10 MW)',
+      // The source calls it a pilot. It is listed with the partners (not a cold call), labeled a pilot, never more.
+      partner: true, label: 'Runs a pilot with Base', since: '2026-02', program: 'Residential Distributed Energy Storage Pilot Program (up to 10 MW)',
       note: 'El Paso Electric and Base launched a residential battery pilot on 10 February 2026, seeking up to 10 MW before the 2026 summer peak. El Paso Electric dispatches the fleet; Base installs and maintains it. El Paso is outside ERCOT.',
       source: { title: 'El Paso Electric news release, 10 February 2026: El Paso Electric and Base Power Launch Residential Distributed Energy Storage Program', url: 'https://www.epelectric.com/news/el-paso-electric-and-base-power-launch-residential-distributed-energy-storage-program-to-strengthen-grid-reliability', retrieved: '2026-11-04' }
     },
@@ -76,6 +77,8 @@
   // Own-key lookup. Text from a request ("constructor", "__proto__") must never reach Object.prototype.
   function own(obj, key) { return obj != null && Object.prototype.hasOwnProperty.call(obj, key) ? obj[key] : undefined; }
   function dict() { return Object.create(null); }
+  // yourdata.js: the number rule and text normalization every tool shares. Looked up when used.
+  function YD() { return typeof module !== 'undefined' && module.exports ? require('./yourdata.js') : root.YourData; }
 
   /* Wires-only (delivery-only) utilities. They deliver power but do not buy it for their homes, so they
      are not a buyer for a capacity program. Detected from the data first, then a named fallback list. */
@@ -251,6 +254,37 @@
         Math.round(accreditedMw / prog.nameplateMw * 100) + '% of nameplate. PJM has no 2-hour class; its 4-hour storage class is rated ' + A.pjm.pct + '% for 2028/2029.' };
   }
 
+  /* Which capacity concept fits a utility's market. Only PJM, MISO, ISO-NE and NYISO run capacity markets that
+     accredit resources, so the NYISO-factor illustration is shown only there. ERCOT is energy-only: nothing is
+     accredited, and what a peak kW is worth is being available in the peak hours (4CP and price spikes). CAISO,
+     SPP and utilities outside any ISO have no centralized capacity market; resource adequacy is the utility's
+     own (or its state's) planning rule. */
+  var CAPACITY_MARKETS = ['PJM', 'MISO', 'ISO-NE', 'NYISO'];
+  function capacityConcept(u) {
+    var ms = marketsOf(u && u.detail && u.detail.rtos);
+    var cap = ms.filter(function (m) { return CAPACITY_MARKETS.indexOf(m) >= 0; });
+    if (cap.length) return { kind: 'accredited', markets: cap };
+    if (ms.indexOf('ERCOT') >= 0) return { kind: 'ercot', markets: ms };
+    return { kind: 'none', markets: ms };
+  }
+
+  /* The capacity illustration that fits this utility's market (capacityConcept), an assumption labeled as one.
+     kind 'accredited': accreditedExample. kind 'ercot' or 'none': the MW the fleet could hold through a 2-hour
+     peak after the home reserve, with no accreditation factor. Null without a program. */
+  function capacityExample(prog, terms, u) {
+    if (!prog) return null;
+    var c = capacityConcept(u);
+    var a = accreditedExample(prog, terms);
+    var base = { kind: c.kind, markets: c.markets, reservePct: a.reservePct, reserveYours: a.reserveYours, usableKwh: a.usableKwh, kwFor2h: a.kwFor2h, mwFor2h: a.mwFor2h };
+    if (c.kind === 'accredited') return Object.assign(base, { accredited: a, label: 'Accredited, an illustration at one market\'s 2-hour storage factor', text: a.text });
+    var hold = 'with ' + trimDigits(a.reservePct, 1) + '% of each battery held back for the home' + (a.reserveYours ? ' (your file)' : ' (assumed)') + ', a battery can hold ' + trimDigits(a.kwFor2h, 1) + ' kW for 2 hours, so the fleet could cover about ' + fmtPower(a.mwFor2h) + ' through a 2-hour peak.';
+    if (c.kind === 'ercot') return Object.assign(base, { accredited: null, label: 'Available through a 2-hour peak (ERCOT has no capacity accreditation)',
+      text: 'ERCOT runs an energy-only market, so nothing here is accredited and no accreditation factor applies. What a peak kW is worth is being available in the peak hours: the four summer coincident peaks (4CP) that set transmission cost allocation, and the highest-price hours. Illustration, not this utility\'s rule: ' + hold });
+    var where = c.markets.length ? c.markets.join(', ') : 'this area';
+    return Object.assign(base, { accredited: null, label: 'Available through a 2-hour peak (no capacity market here)',
+      text: (c.markets.length && c.markets[0] !== NO_ISO ? where + ' runs no capacity market' : 'This utility is in no ISO with a capacity market') + ', so how much of this fleet counts toward resource adequacy is the utility\'s own planning rule, a question below. Illustration, not this utility\'s rule: ' + hold });
+  }
+
   // Share of utilities with a published value strictly below v. Null in, null out.
   function percentile(values, v) {
     if (!isNum(v)) return null;
@@ -386,14 +420,16 @@
   // An existing Base partner (KNOWN with partner: true): an expansion conversation, never a cold prospect.
   function partnerOf(id) { var k = own(KNOWN, id); return k && k.partner === true ? k : null; }
   var PARTNER_LABEL = 'Already a Base partner';
+  // The label a partner row carries: the default, or the entry's own (El Paso Electric's source calls its program a pilot).
+  function partnerLabel(id) { var k = partnerOf(id); return k ? k.label || PARTNER_LABEL : null; }
   /* Base's Utilities page (checked 2026-11-04, no date on the page) says "3 metro areas, 6 utility partners" and
      "Across 3 metros and 6 utilities in the last 12 months". This page lists 7, each with its own dated source. */
-  var PARTNER_COUNT_NOTE = 'This page lists 7 Base utility partners, each with a dated public source. Base\'s Utilities page says "3 metro areas, 6 utility partners" and "Across 3 metros and 6 utilities in the last 12 months", with no date on the page (checked 4 November 2026), and names only CoServ. The counts can differ without either being wrong: Base\'s figure is about deployments in the last 12 months, and Central Georgia EMC (announced 13 October 2026, first installs in 2027) has nothing deployed yet; a pilot such as El Paso Electric\'s may also be counted differently. Base does not list its six, so which one is left out is not confirmed.';
+  var PARTNER_COUNT_NOTE = 'Utility programs with Base listed here, each with a public source: CoServ and Austin Energy (named on Base\'s Utilities page, checked 4 November 2026), Bandera Electric Cooperative (March 2025), Farmers Electric Cooperative (December 2025), El Paso Electric (a pilot, February 2026), Guadalupe Valley Electric Cooperative (April 2026) and Central Georgia EMC (October 2026). Base\'s own Utilities page reports "3 metro areas, 6 utility partners" over the last 12 months.';
   function partnerFrame(u) {
     var k = u && partnerOf(u.id);
     if (!k) return null;
     var name = shortName(u);
-    return { label: PARTNER_LABEL, program: k.program, since: k.since || null,
+    return { label: k.label || PARTNER_LABEL, program: k.program, since: k.since || null,
       framing: name + ' already runs a ' + k.program + ' with Base, so this is not a cold pitch. Treat it as expanding the existing program: the size below is extra MW on top of it, and the first questions are about what the current program has shown.' };
   }
 
@@ -534,7 +570,7 @@
     { key: 'reliabilityCutoffPct', label: 'Outage percentile that picks distribution grid support', unit: '%', value: RELIABILITY_CUTOFF * 100, min: 1, max: 100, basis: 'assumption' },
     { key: 'wholesaleCutoffPct', label: 'Share of homes in an ISO or RTO that picks accredited capacity', unit: '%', value: WHOLESALE_CUTOFF * 100, min: 1, max: 100, basis: 'assumption' },
     { key: 'tollPerKwYear', label: 'Your toll price to the utility', unit: '$/kW-year', value: null, min: 0, max: 1000, basis: 'none' },
-    { key: 'termYears', label: 'Your contract term', unit: 'years', value: null, min: 1, max: 40, basis: 'none' },
+    { key: 'termYears', label: 'Your contract term', unit: 'years', value: null, min: 1, max: 40, integer: true, basis: 'none' },
     { key: 'memberReservePct', label: 'Share of each battery held back for the home', unit: '%', value: null, min: 0, max: 99, basis: 'none' }
   ];
   var TERMS_BY_KEY = dict();
@@ -548,13 +584,13 @@
     return o;
   }
 
-  // A number cell: a finite number, or a plain decimal string after dropping $ , % and spaces. Hex, arrays and booleans are NaN.
-  var DECIMAL = /^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$/;
+  // A number cell: a finite number, or a plain decimal string after dropping $, % and spaces, with a comma only
+  // as a thousands separator (yourdata.js readNumber: "3,5" is an error, never 35). Hex, arrays and booleans are NaN.
   function cellNum(v) {
     if (typeof v === 'number') return v;
     if (typeof v !== 'string') return NaN;
-    var t = v.replace(/[$,%\s]/g, '');
-    return DECIMAL.test(t) ? Number(t) : NaN;
+    var r = YD().readNumber(v);
+    return r.value == null ? NaN : r.value;
   }
   function blank(v) { return String(v == null ? '' : v).trim() === ''; }
   function norm(s) { return String(s == null ? '' : s).toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, ' ').trim(); }
@@ -640,9 +676,10 @@
      { stateMismatch, state }, { tooLong: true }, or { suggestion } (null when nothing is close).
      opts.suggest === false skips the closest-name search. Text over MAX_NAME characters is never matched. */
   function matchUtility(idx, text, st, opts) {
-    var raw = String(text == null ? '' : text).trim();
+    // Fullwidth letters and digits read as plain ones, the same on the page and in the API.
+    var raw = String(text == null ? '' : text).normalize('NFKC').trim();
     if (raw.length > MAX_NAME) return { tooLong: true, suggestion: null };
-    var state = String(st == null ? '' : st).trim().toUpperCase();
+    var state = String(st == null ? '' : st).normalize('NFKC').trim().toUpperCase();
     var hit = own(idx.byId, raw.toLowerCase());
     if (hit) return state && hit.state !== state ? { stateMismatch: hit, state: state } : { u: hit };
     var m = /^(.*),\s*([A-Za-z]{2})$/.exec(raw);
@@ -660,10 +697,11 @@
   }
 
   // Closest public name, when one is close enough to be a likely typo.
-  function suggest(idx, raw, state) {
+  // strict: a tighter limit, for a suggestion from outside the state the user is working in.
+  function suggest(idx, raw, state, strict) {
     var q = norm(raw);
     if (!q || q.length > MAX_NAME) return null;
-    var limit = Math.max(2, q.length * 0.4);
+    var limit = strict ? Math.max(1, q.length * 0.2) : Math.max(2, q.length * 0.4);
     var best = null;
     (idx.keys || idx.names.map(function (n) { return [n, idx.byName[n]]; })).forEach(function (pair) {
       var n = pair[0];
@@ -679,7 +717,9 @@
      CSV: rows with a key are offer terms, rows with a utility are targets; one file may hold both.
      JSON: { key: value } (terms only), { terms: { key: value }, targets: [{ utility, status, owner, note }] },
      or an array of row objects shaped like the CSV. */
-  function loadYourData(parsed, utilities) {
+  function loadYourData(parsed, utilities, opts) {
+    // opts.state: the state of the pitch on screen, so a typo's "Did you mean" comes from that state first.
+    var preferState = opts && opts.state ? String(opts.state).trim().toUpperCase() : '';
     var errors = [], warnings = [], termRows = [], targetRows = [];
     var data = parsed && parsed.data;
     var isCsv = parsed && parsed.kind === 'csv';
@@ -744,7 +784,7 @@
         });
       }
     }
-    if (dupCols.length) return { terms: publicTerms(), changed: [], given: [], targets: dict(), targetCount: 0, unmatched: 0, termRows: 0, errors: dupCols, warnings: [] };
+    if (dupCols.length) return { terms: publicTerms(), changed: [], given: [], targets: dict(), targetCount: 0, unmatched: 0, termRows: 0, errors: YD().onePerColumn(dupCols), warnings: [] };
     if (unknownCols.length) warnings.push('Ignored unknown column' + (unknownCols.length === 1 ? '' : 's') + ' ' + unknownCols.map(function (c) { return '"' + clip(c, 40) + '"'; }).join(', ') + '. Known columns: ' + TEMPLATE_COLUMNS.join(', ') + '.');
     if (targetRows.length > MAX_TARGETS) { errors.push('The target list has ' + targetRows.length + ' rows. The limit is ' + MAX_TARGETS + '; split the file.'); targetRows = []; }
     if (!termRows.length && !targetRows.length && !errors.length) errors.push('No rows found. Offer terms need key and value columns; a target list needs a utility column. Download a template for the shape.');
@@ -770,8 +810,9 @@
         return;
       }
       var v = cellNum(p.value);
-      if (!isFinite(v)) { errors.push(p.where + key + ' is not a number: ' + (typeof p.value === 'string' ? '"' + clip(p.value, 40) + '"' : Array.isArray(p.value) ? 'a list' : typeof p.value === 'object' ? 'an object' : String(p.value)) + '.'); return; }
+      if (!isFinite(v)) { errors.push(p.where + key + ' is not a number: ' + (typeof p.value === 'string' ? '"' + clip(p.value, 40) + '"' : Array.isArray(p.value) ? 'a list' : typeof p.value === 'object' ? 'an object' : String(p.value)) + '.' + (typeof p.value === 'string' ? YD().commaHint(p.value) : '')); return; }
       if (v < t.min || v > t.max) { errors.push(p.where + key + ' must be between ' + t.min + ' and ' + t.max + ' ' + t.unit + '. Got ' + v + '.'); return; }
+      if (t.integer && v !== Math.floor(v)) { errors.push(p.where + key + ' must be a whole number of ' + t.unit + '. Got ' + v + '.'); return; }
       terms[key] = v;
     });
     if (terms.costLowPerKwh > terms.costHighPerKwh) errors.push('costLowPerKwh (' + terms.costLowPerKwh + ') is above costHighPerKwh (' + terms.costHighPerKwh + ').');
@@ -779,7 +820,8 @@
     if (isNum(terms.termYears) && !isNum(terms.tollPerKwYear)) warnings.push('termYears is set without tollPerKwYear, so no contract value is shown.');
     TERMS.forEach(function (t) { if (terms[t.key] !== t.value) changed.push(t.key); });
 
-    // Target list. Unmatched names are warnings, never a failed file.
+    /* Target list. A name that matches no utility, several utilities, or a utility in another state is a row
+       error, the same rule as an unknown offer-term key, so a target never silently drops off the list. */
     var targets = dict(), unmatched = 0;
     if (targetRows.length) {
       var idx = utilityIndex(utilities || []);
@@ -789,23 +831,29 @@
         var asked = String(r.utility).trim();
         if (asked.length > MAX_NAME) { errors.push(p.where + 'utility is ' + asked.length + ' characters. The limit is ' + MAX_NAME + '.'); return; }
         if (r.state != null && String(r.state).length > MAX_NAME) { errors.push(p.where + 'state is longer than ' + MAX_NAME + ' characters.'); return; }
-        var res = matchUtility(idx, asked, r.state, { suggest: suggested < MAX_SUGGEST });
+        var res = matchUtility(idx, asked, r.state, { suggest: false });
         var shown = clip(asked);
         if (res.stateMismatch) {
           unmatched++;
-          warnings.push(p.where + '"' + shown + '" is ' + displayName(res.stateMismatch) + ' in ' + res.stateMismatch.state + ', not ' + clip(res.state, 10) + '. Fix the state or leave it blank. Skipped.');
+          errors.push(p.where + '"' + shown + '" is ' + displayName(res.stateMismatch) + ' in ' + res.stateMismatch.state + ', not ' + clip(res.state, 10) + '. Fix the state or leave it blank.');
           return;
         }
         if (res.ambiguous) {
           unmatched++;
-          warnings.push(p.where + '"' + shown + '" matches ' + res.ambiguous.length + ' utilities (' + res.ambiguous.slice(0, 10).map(function (u) { return u.id; }).join(', ') + (res.ambiguous.length > 10 ? ', ...' : '') + '). Use the id or add a state. Skipped.');
+          errors.push(p.where + '"' + shown + '" matches ' + res.ambiguous.length + ' utilities (' + res.ambiguous.slice(0, 10).map(function (u) { return u.id; }).join(', ') + (res.ambiguous.length > 10 ? ', ...' : '') + '). Use the id or add a state.');
           return;
         }
         if (!res.u) {
           unmatched++;
-          suggested++;
-          var s = res.suggestion;
-          warnings.push(p.where + 'no utility called "' + shown + '"' + (s ? '. Did you mean ' + displayName(s) + ', ' + s.state + ' (id ' + s.id + ')?' : '.') + ' Skipped.');
+          // "Did you mean": the row's own state, else the pitch's state first, then anywhere.
+          var s = null;
+          if (suggested < MAX_SUGGEST) {
+            suggested++;
+            var rowState = String(r.state == null ? '' : r.state).trim().toUpperCase();
+            // Outside the pitch's state only a near-exact name is offered, so a Texas pitch never suggests a far-off Michigan name.
+            s = rowState ? suggest(idx, asked, rowState) : preferState ? suggest(idx, asked, preferState) || suggest(idx, asked, '', true) : suggest(idx, asked, '');
+          }
+          errors.push(p.where + 'no utility called "' + shown + '"' + (s ? '. Did you mean ' + displayName(s) + ', ' + s.state + ' (id ' + s.id + ')?' : '.') + ' Use an EIA id such as 5078-TX, a name, or "Name, ST".');
           return;
         }
         var status = String(r.status == null ? '' : r.status).trim();
@@ -863,7 +911,8 @@
     signalPercentiles: signalPercentiles, strongestSignal: strongestSignal, pickOffer: pickOffer, headline: headline,
     WIRES_SOURCES: WIRES_SOURCES, TCOS_SOURCES: TCOS_SOURCES, KNOWN_TDSP: KNOWN_TDSP, DEFAULT_SUPPLY_STATES: DEFAULT_SUPPLY_STATES, ERCOT_PEAK_VALUE: ERCOT_PEAK_VALUE,
     wiresOnly: wiresOnly, extraSources: extraSources, known: function (id) { return own(KNOWN, id); }, own: own, inRange: inRange,
-    partnerOf: partnerOf, partnerFrame: partnerFrame, PARTNER_LABEL: PARTNER_LABEL, PARTNER_COUNT_NOTE: PARTNER_COUNT_NOTE,
+    partnerOf: partnerOf, partnerFrame: partnerFrame, partnerLabel: partnerLabel, PARTNER_LABEL: PARTNER_LABEL, PARTNER_COUNT_NOTE: PARTNER_COUNT_NOTE,
+    CAPACITY_MARKETS: CAPACITY_MARKETS, capacityConcept: capacityConcept, capacityExample: capacityExample,
     IL_VPP: IL_VPP, IL_VPP_SOURCES: IL_VPP_SOURCES, ilVpp: ilVpp, ACCREDITATION_EXAMPLE: ACCREDITATION_EXAMPLE, accreditedExample: accreditedExample, stateMarket: stateMarket, marketNote: marketNote, MARKET_MAJORITY: MARKET_MAJORITY, isAdjustment: isAdjustment,
     callScore: callScore, rankState: rankState, landedCost: landedCost, questions: questions, fmtNum: fmtNum,
     TERMS: TERMS, TERMS_BY_KEY: TERMS_BY_KEY, TARGET_COLUMNS: TARGET_COLUMNS, TEMPLATE_COLUMNS: TEMPLATE_COLUMNS, publicTerms: publicTerms,

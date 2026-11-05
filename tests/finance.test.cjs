@@ -119,11 +119,11 @@ test('page defaults load, normalize, and produce a sane result', () => {
     raw[f.key] = f.value;
   }
   const r = F.sizeDebt(F.normalize(raw));
-  near(r.capex, 350 * 39.2, 1e-9);
+  near(r.capex, 1290 * 39.2, 1e-9);
   assert.ok(r.debt > 0 && r.debt <= r.cap);
   near(r.itcFace, 0.3 * r.capex, 1e-9);
   near(r.itc, 0.3 * r.capex * 0.895, 1e-9);
-  near(r.equity, r.capex - 695 - r.itc - r.debt, 1e-6);
+  near(r.equity, r.capex - raw.upfront - r.itc - r.debt, 1e-6);
 });
 
 test('no em dashes in the finance files', () => {
@@ -189,38 +189,39 @@ test('default case does not hinge on the toll placeholder', () => {
   assert.ok(a.debt > 0);
   assert.equal(a.debt, b.debt);
   assert.equal(a.debt, c.debt);
-  // The first explain line names the biggest line and whether it is public.
-  assert.match(F.explain(a)[0], /biggest revenue line.*public number/);
+  // The first explain line names the biggest line and where its number comes from.
+  assert.match(F.explain(a, { basis: F.lineBasis(DEF, null) })[0], /^Retail energy margin is the biggest revenue line.*derived from public data with one labeled assumption/);
   // In the toll case the toll drives it, and the text says it is an assumption.
   const t = F.sizeDebt(defaultInputs({ revenueCase: 'toll' }));
   assert.match(F.explain(t)[0], /^The utility toll is the biggest revenue line.*labeled assumption/);
 });
 
-test('retail margin default is derived: the shown math reproduces the value', () => {
+test('retail margin default is derived from public statewide data: the shown math reproduces the value', () => {
   const f = field('retailMarginMonthly');
   assert.equal(f.kind, 'assumption'); // one input (other supply cost) is a labeled assumption
-  assert.match(f.source, /english-oncor-efl-core\.pdf$/);
-  // (energy charge - load-weighted wholesale - other supply cost) x kWh a month, in dollars.
-  const energy = 7.7, wholesale = 3.70, other = 2.0, kwh = 1096;
-  near((energy - wholesale - other) * kwh / 100, 21.92, 1e-9);
-  assert.equal(f.value, Math.round((energy - wholesale - other) * kwh / 100));
-  for (const re of [/7\.7 cents\/kWh/, /3\.70 cents\/kWh/, /2\.0 cents\/kWh, an assumption/, /1,096 kWh/, /EIA Table 5A/, /\$21\.92/, /passed through/, /set it to 0 for a third-party owner/]) assert.match(f.note, re);
+  assert.match(f.source, /eia\.gov\/electricity\/data\/eia861/);
+  // (REP retail price - delivery - load-weighted wholesale - other supply cost) x kWh a month, in dollars.
+  const retail = 16.66, delivery = 5.21, wholesale = 3.70, other = 2.0, kwh = 1097;
+  near((retail - delivery - wholesale - other) * kwh / 100, 63.08, 0.01);
+  assert.equal(f.value, Math.round((retail - delivery - wholesale - other) * kwh / 100));
+  for (const re of [/16\.66 cents\/kWh/, /5\.21 cents\/kWh/, /3\.70 cents\/kWh/, /2\.0 cents\/kWh, an assumption/, /1,097 kWh/, /EIA-861/, /\$63\.08/, /gross margin/, /set it to 0 for a third-party owner/, /LZ_AEN, LZ_CPS, LZ_LCRA, LZ_RAYBN/]) assert.match(f.note, re);
+  // No Base figure in the generic default.
+  assert.doesNotMatch(f.note + f.source, /Base|bpc-web-static/);
 });
 
-test('retail margin: the default moves debt from 17% to about 27% of cost, and $0 says it is left out', () => {
+test('retail margin: counts toward debt, and $0 says it is left out', () => {
   const r = F.sizeDebt(defaultInputs());
-  near(r.counted.retail, 22 * 12, 1e-9);
-  near(r.debtPctCapex, 0.267, 0.001);
-  near(r.debt, 3666.76, 0.01);
-  near(r.equity, 5674.42, 0.01);
-  assert.match(F.explain(r).join(' '), /Retail energy margin adds \$264 a year.*only to an owner that is also the home's retail provider/);
+  near(r.counted.retail, 63 * 12, 1e-9);
+  near(r.debtPctCapex, 0.1419, 0.0005);
+  const opts = { retailDefault: field('retailMarginMonthly').value };
+  assert.match(F.explain(r, opts).join(' '), /Retail energy margin adds \$756 a year.*only to an owner that is also the home's retail provider, where retail choice exists.*gross margin/);
   const zero = F.sizeDebt(defaultInputs({ retailMarginMonthly: 0 }));
-  near(zero.debtPctCapex, 0.168, 0.001);
-  const text = F.explain(zero).join(' ');
+  assert.ok(zero.debt < r.debt);
+  const text = F.explain(zero, opts).join(' ');
   assert.match(text, /Retail energy margin is \$0 here, so this answer leaves out what a retail provider normally earns/);
-  assert.match(text, /\$22 a month/);
-  // The one-click example in the copy matches the default.
   assert.match(text, new RegExp('\\$' + field('retailMarginMonthly').value + ' a month'));
+  // Without the option the text still points at the input note.
+  assert.match(F.explain(zero).join(' '), /the derived default in the input note/);
   // No debt at all still says the margin is left out.
   const none = F.sizeDebt(defaultInputs({ retailMarginMonthly: 0, memberFeeMonthly: 0, opexPerYear: 5000 }));
   assert.equal(none.binding, 'none');
@@ -246,7 +247,7 @@ test('tax credit: bridge-loan simplification is stated, and $0 equity always has
   // The advance cap uses the full installed cost, not cost net of the credit.
   near(r.advanceCap, 0.7 * r.capex, 1e-9);
   // Net-cost cap binds: equity 0, and both the binding line and explain say why.
-  const big = F.sizeDebt(defaultInputs({ retailMarginMonthly: 300 }));
+  const big = F.sizeDebt(defaultInputs({ retailMarginMonthly: 1000, upfront: 5000 }));
   assert.equal(big.binding, 'cost');
   assert.equal(big.equity, 0);
   assert.match(F.bindingText(big), /equity is \$0/);
@@ -308,6 +309,16 @@ test('parseDecimal accepts plain decimals only', () => {
   assert.equal(F.parseDecimal('.5'), 0.5);
   assert.equal(F.parseDecimal('1e3'), 1000);
   assert.equal(F.parseDecimal('$1,200'), 1200);
+  assert.equal(F.parseDecimal('1,234,567.5'), 1234567.5);
+  assert.equal(F.parseDecimal('-1,200'), -1200);
+  // A comma is only a thousands separator: never 3,5 = 35 or $2,80% = 280.
+  for (const bad of ['3,5', '$2,80%', '1,0000', '12,34,567', ',5', '1,', '1,200,5', '+1,200']) {
+    assert.ok(Number.isNaN(F.parseDecimal(bad)), bad);
+    assert.equal(F.badComma(bad), true, bad);
+  }
+  assert.equal(F.badComma('3,5'), true);
+  assert.equal(F.badComma('1,200'), false);
+  assert.equal(F.badComma('35'), false);
   assert.equal(F.parseDecimal(8.5), 8.5);
   for (const bad of ['0x10', '0b1', '0o7', 'Infinity', '-Infinity', 'NaN', '', '  ', '1e999', '12abc', '1.2.3', true, null, [5], {}]) {
     assert.ok(Number.isNaN(F.parseDecimal(bad)), String(bad));
@@ -320,7 +331,7 @@ test('validateFields: the page and the API share one set of rules', () => {
   // Blank keeps the default, it is not 0.
   const blank = F.validateFields(DEF, { ...typed, capexPerKwh: '', ratePct: '   ' });
   assert.deepEqual(blank.errors, {});
-  assert.equal(blank.values.capexPerKwh, 350);
+  assert.equal(blank.values.capexPerKwh, 1290);
   assert.equal(blank.values.ratePct, 8);
   const cases = {
     capexPerKwh: '-100', ratePct: '500', dscr: '0', lifeYears: '0', availabilityPct: '1000',
@@ -388,8 +399,11 @@ test('ancillary services: counted in merchant and stacked, not toll; fades; defa
 test('copy: cost basis label, location pricing, export and ADER, depreciation', () => {
   const cap = field('capexPerKwh');
   assert.match(cap.label, /cost basis/);
-  assert.match(cap.note, /may include Base's margin/);
-  assert.match(field('upfront').note, /vary by address/);
+  assert.match(cap.note, /NREL/);
+  // Base's figures and their caveats now live in the optional preset.
+  const P = Object.fromEntries(DEF.presets.base_published.values.map((v) => [v.key, v]));
+  assert.match(P.capexPerKwh.note, /may include Base's margin/);
+  assert.match(P.upfront.note, /vary by address/);
   const html = fs.readFileSync(path.join(__dirname, '../finance.html'), 'utf8');
   assert.match(html, /ercot\.com\/mktrules\/pilots\/ader/);
   assert.doesNotMatch(html, /export earns the load-zone price only if/);
@@ -397,4 +411,200 @@ test('copy: cost basis label, location pricing, export and ADER, depreciation', 
   assert.match(html, /<strong>Depreciation<\/strong> is not modeled/);
   assert.doesNotMatch(html, /at face value/);
   assert.match(F.explain(F.sizeDebt(defaultInputs())).join(' '), /no ADER aggregation/);
+});
+
+// ---------- review fixes, 2026-11-04: generic defaults, returns, zones, ADER, ITC, comma rule ----------
+
+const HTML = fs.readFileSync(path.join(__dirname, '../finance.html'), 'utf8');
+const zoneInputs = (zoneId, over = {}) => {
+  const z = ZV.zones.find((x) => x.id === zoneId);
+  return defaultInputs(Object.assign({ arbPerYear: z.usdPerYear, zone: z.id, zoneMarket: z.market }, over));
+};
+
+test('generic defaults: no Base economics in the default path; Base figures only in a labeled preset', () => {
+  const cap = field('capexPerKwh');
+  assert.equal(cap.value, 1290);
+  assert.equal(cap.kind, 'sourced');
+  assert.match(cap.note, /\(\$4\.70 - \$2\.68\) x 8,000 W = \$16,160 for 12\.5 kWh, is \$1,293\/kWh/);
+  near((4.70 - 2.68) * 8000 / 12.5, 1292.8, 1e-9);
+  for (const k of ['capexPerKwh', 'upfront', 'memberFeeMonthly', 'retailMarginMonthly', 'availabilityPct']) {
+    const f = field(k);
+    assert.doesNotMatch(String(f.source || ''), /basepowercompany|bpc-web-static/, k);
+    assert.doesNotMatch(f.note, /Base's|Base Core|Base says/, k);
+  }
+  assert.equal(field('upfront').value, 0);
+  assert.equal(field('upfront').kind, 'assumption');
+  assert.equal(field('memberFeeMonthly').value, 35);
+  assert.equal(field('memberFeeMonthly').kind, 'assumption');
+  assert.match(field('memberFeeMonthly').note, /not a market average/);
+  const p = DEF.presets.base_published;
+  assert.match(p.label, /Base Power's published figures/);
+  assert.match(p.about, /public claims .*not Base's economics/);
+  const P = F.applyPreset(DEF, 'base_published');
+  const pf = (k) => P.groups.flatMap((g) => g.fields).find((f) => f.key === k);
+  assert.deepEqual(['capexPerKwh', 'upfront', 'memberFeeMonthly', 'availabilityPct', 'retailMarginMonthly'].map((k) => pf(k).value), [350, 695, 19, 96, 22]);
+  for (const k of ['capexPerKwh', 'upfront', 'memberFeeMonthly']) {
+    assert.equal(pf(k).kind, 'preset');
+    assert.match(pf(k).note, /a public claim, not the company's economics/);
+    assert.match(pf(k).source, /basepowercompany\.com/);
+  }
+  assert.match(pf('retailMarginMonthly').note, /not Base's margin/);
+  assert.equal(pf('ratePct').kind, 'assumption'); // untouched fields stay generic
+  assert.equal(F.applyPreset(DEF, 'nope'), null);
+  assert.equal(field('capexPerKwh').value, 1290); // the generic defaults object is never changed
+  // A file can name the preset, and its own rows go on top.
+  const r = F.applyOverrides(DEF, { kind: 'csv', data: [{ key: 'capexPerKwh', value: '300' }, { key: 'PRESET', value: 'Base_Published' }] }, ['LZ_NORTH']);
+  assert.deepEqual(r.errors, []);
+  assert.equal(r.preset, 'base_published');
+  assert.deepEqual(r.changed, ['capexPerKwh']);
+  const rf = (k) => r.defaults.groups.flatMap((g) => g.fields).find((f) => f.key === k);
+  assert.equal(rf('upfront').value, 695);
+  assert.match(rf('capexPerKwh').note, /Preset value was 350/);
+  assert.match(F.applyOverrides(DEF, { kind: 'json', data: { preset: 'tesla' } }, ['LZ_NORTH']).errors[0], /^preset must be one of base_published/);
+  // The template carries a blank preset row and loads back with no change.
+  const rows = F.templateRows(DEF);
+  assert.ok(rows.some((x) => x.key === 'preset' && x.value === ''));
+});
+
+test('returns: NPV, IRR and payback on known flows', () => {
+  near(F.npv(0.1, [-100, 110]), 0, 1e-9);
+  near(F.irr([-100, 110]), 0.1, 1e-7);
+  near(F.irr([-1000, 300, 300, 300, 300]), 0.0771384, 1e-6);
+  near(F.irr([-100, 40, 40]), 2 / (Math.sqrt(11) - 1) - 1, 1e-7); // -13.7%: negative IRR when the cash never covers the cost
+  assert.equal(F.irr([100, 10]), null);
+  assert.equal(F.irr([-100, -10]), null);
+  assert.equal(F.payback([-100, 40, 40, 40]), 3);
+  assert.equal(F.payback([-100, 40, 40]), null);
+  // On the flat test battery: $10,000 cost, $1,300 a year for 10 years.
+  const r = F.sizeDebt({ ...base, tollPerKwYear: 130, discount: 0.08 });
+  const u = r.returns.unlevered;
+  assert.equal(u.invest, 10000);
+  assert.equal(u.cashTotal, 13000);
+  assert.equal(u.paybackYear, 8);
+  near(u.npv, -10000 + 1300 * F.annuityFactor(0.08, 10), 1e-6);
+  near(F.npv(u.irr, r.returns.unleveredFlows), 0, 1e-4);
+  // Equity: equity in, CFADS minus the payment back.
+  const e = r.returns.equity;
+  near(e.invest, r.equity, 1e-9);
+  near(e.cashTotal, 10 * (1300 - r.debtService), 1e-6);
+  // No equity: equity return not defined, and the text says so.
+  const z = F.sizeDebt({ ...base, tollPerKwYear: 1000, itc: 0.3, upfront: 1000 });
+  assert.equal(z.equity, 0);
+  assert.equal(z.returns.equity, null);
+  assert.match(F.returnsText(z).join(' '), /equity return is not defined/);
+});
+
+test('returns: the generic default does not pay back and says so, with the left-out items', () => {
+  const r = F.sizeDebt(defaultInputs());
+  const u = r.returns.unlevered;
+  assert.equal(r.returns.discountRate, 0.1);
+  assert.equal(u.paysBack, false);
+  assert.ok(u.cashTotal < r.netCapex);
+  assert.ok(u.irr < 0 && u.npv < 0);
+  const text = F.returnsText(r);
+  assert.match(text[0], /^On these inputs the battery does not pay back: over its 12-year life its cash flow adds up to \$[\d,]+ \(not discounted\), less than the \$[\d,]+ net cost/);
+  assert.match(text[0], /unlevered IRR\): -\d+\.\d%\. NPV at 10%: -\$/);
+  assert.equal(text[text.length - 1], F.LEFT_OUT_TEXT);
+  const ex = F.explain(r);
+  assert.equal(ex[1], text[0]); // right after the biggest-line sentence
+  // Not tuned: the Base preset reproduces the reviewer's arithmetic and also does not pay back.
+  const P = F.applyPreset(DEF, 'base_published');
+  const raw = { revenueCase: P.revenueCaseDefault, arbPerYear: ZV.zones.find((z) => z.id === 'LZ_NORTH').usdPerYear };
+  for (const f of P.groups.flatMap((g) => g.fields)) raw[f.key] = f.value;
+  const b = F.sizeDebt(F.normalize(raw));
+  near(b.netCapex, 9341, 1);
+  near(b.returns.unlevered.cashTotal, 8860, 1);
+  assert.equal(b.returns.unlevered.paysBack, false);
+  // When it does pay, the text gives the year.
+  const good = F.sizeDebt(defaultInputs({ capexPerKwh: 300, retailMarginMonthly: 100 }));
+  assert.equal(good.returns.unlevered.paysBack, true);
+  assert.match(F.returnsText(good)[0], /^The battery pays back its \$[\d,]+ net cost in year \d+ of 12/);
+  const df = field('discountPct');
+  assert.equal(df.value, 10);
+  assert.equal(df.kind, 'assumption');
+  assert.ok(F.PERCENT_FIELDS.includes('discountPct'));
+});
+
+test('zones without retail choice: labeled in the zone file with sources, and finance drops retail and merchant arbitrage', () => {
+  const byId = Object.fromEntries(ZV.zones.map((z) => [z.id, z]));
+  for (const id of ['LZ_AEN', 'LZ_CPS', 'LZ_LCRA', 'LZ_RAYBN']) assert.equal(byId[id].market, 'utility or co-op', id);
+  for (const id of ['LZ_NORTH', 'LZ_HOUSTON', 'LZ_SOUTH', 'LZ_WEST']) assert.equal(byId[id].market, 'retail choice', id);
+  assert.match(byId.LZ_AEN.who, /Austin Energy/);
+  assert.match(byId.LZ_CPS.who, /CPS Energy/);
+  assert.match(byId.LZ_RAYBN.who, /Rayburn/);
+  assert.ok(ZV.markets.sources.some((u) => /932NPRR/.test(u)));
+  assert.ok(ZV.markets.sources.some((u) => /40\.051/.test(u)) && ZV.markets.sources.some((u) => /41\.051/.test(u)));
+  assert.match(ZV.markets.about, /reachable only through a utility partnership|reaches it only through a utility partnership/);
+  // The zone script writes the same labels, so a rebuild keeps them.
+  const script = fs.readFileSync(path.join(__dirname, '../scripts/zone-value.cjs'), 'utf8');
+  for (const z of ZV.zones) assert.ok(script.includes(z.id + ": { market: '" + z.market + "', who: '" + z.who + "' }"), z.id);
+  const north = F.sizeDebt(zoneInputs('LZ_NORTH'));
+  const aen = F.sizeDebt(zoneInputs('LZ_AEN'));
+  assert.equal(aen.noChoice, true);
+  assert.equal(aen.counted.retail, 0);
+  assert.equal(aen.counted.arb, 0);
+  assert.ok(aen.full.arb > 0 && aen.full.retail > 0);
+  assert.ok(north.counted.arb > 0 && north.counted.retail > 0);
+  const t = F.explain(aen);
+  assert.equal(t[0], F.noChoiceText(aen));
+  assert.match(t[0], /^LZ_AEN is city-utility or co-op territory .*PURA 40\.051 and 41\.051.*try the toll case\.$/);
+  assert.match(t.join(' '), /Retail energy margin is not counted: in LZ_AEN/);
+  assert.match(t.join(' '), /it does not count: in this zone it goes to the utility/);
+  // The toll case still works there: that is the utility partnership.
+  const toll = F.sizeDebt(zoneInputs('LZ_AEN', { revenueCase: 'toll' }));
+  assert.ok(toll.counted.toll > 0);
+  // The page labels each zone too.
+  const page = fs.readFileSync(path.join(__dirname, '../finance.js'), 'utf8');
+  assert.match(page, /city utility or co-op, no retail choice/);
+  assert.match(page, /raw\.zoneMarket = /);
+  assert.match(HTML, /Zones without retail choice/);
+  const market = fs.readFileSync(path.join(__dirname, '../market.js'), 'utf8');
+  assert.match(market, /Utility or co-op territory/);
+  assert.match(market, /reachable only through a utility partnership/);
+});
+
+test('arbitrage is labeled derived from public prices with assumptions, never "a public number"', () => {
+  const r = F.sizeDebt(defaultInputs({ retailMarginMonthly: 0, memberFeeMonthly: 0 }));
+  const first = F.explain(r)[0];
+  assert.match(first, /^Energy arbitrage is the biggest revenue line.*derived from public ERCOT prices with assumptions \(a fixed charge and discharge clock, 88% round trip, 20% backup reserve\)/);
+  for (const line of F.explain(F.sizeDebt(defaultInputs()))) assert.doesNotMatch(line, /That input is a public number/);
+  assert.match(HTML, /Derived from public prices with assumptions/);
+  assert.doesNotMatch(HTML, /Energy arbitrage zone <span class="badge badge-green">Sourced data/);
+  // Your own arbitrage value is tagged as yours.
+  assert.match(F.explain(r, { basis: F.lineBasis(DEF, 400) })[0], /That input is your own number/);
+});
+
+test('ADER status is current: Phase 3.2 limits, ECRS subscription, Phase 4 ADESR, each sourced to ERCOT', () => {
+  const n = field('ancPerKwYear').note;
+  for (const re of [/Phase 3\.2 limits took effect on 2026-02-27/, /500 MW/, /100 MW of Non-Spin and 100 MW of ECRS/, /ECRS fully subscribed/, /Phase 4, proposed for the December 2026 ERCOT board/, /ADESR/, /not eligible for ancillary services/]) assert.match(n, re);
+  assert.doesNotMatch(n, /Phase 3 proposed RRS/);
+  for (const url of ['10.1-Aggregate-Distributed-Energy-Resource-ADER-Pilot-Project-Phase-3.3.pdf', '14.-ADER-Pilot-Program-Update_04012026.pdf', 'ADER_Phase-4_WMWG_09252026.pdf', '06.-ADER_Phase-4_WMS_10072026.pdf']) assert.ok(HTML.includes(url), url);
+  assert.doesNotMatch(HTML, /4\.3-Aggregate-Distributed-Energy-Resource-ADER-Pilot-Project-Phase-3\.pdf/);
+});
+
+test('under-1 MW credit: a one-line caveat on single-facility treatment, labeled a risk to check', () => {
+  assert.match(F.ITC_PROJECT_TEXT, /^Risk to check:/);
+  assert.match(F.ITC_PROJECT_TEXT, /Treas\. Reg\. 1\.48E-3\(c\)\(4\)\(ii\)/);
+  assert.match(F.ITC_PROJECT_TEXT, /common ownership, financing and aggregated dispatch/);
+  assert.ok(F.explain(F.sizeDebt(defaultInputs())).some((l) => l.includes(F.ITC_PROJECT_TEXT)));
+  assert.match(field('itcPct').note, /Risk to check, not a conclusion/);
+  assert.match(HTML, /a risk to check with tax counsel, not a conclusion/);
+});
+
+test('comma rule: a comma is only a thousands separator, on the page form and in a file', () => {
+  const v = F.validateFields(DEF, { ratePct: '3,5', capexPerKwh: '1,200', upfront: '$2,80%' });
+  assert.equal(v.values.capexPerKwh, 1200);
+  assert.match(v.errors.ratePct, /^Interest rate is not a number: "3,5"\. A comma is only a thousands separator \(1,200\)\. Use a dot for decimals: 3\.5, not 3,5\.$/);
+  assert.match(v.errors.upfront, /is not a number: "\$2,80%"/);
+  const r = F.applyOverrides(DEF, { kind: 'csv', data: [{ key: 'ratePct', value: '8,5' }, { key: 'kwh', value: '1,000' }] }, ['LZ_NORTH']);
+  assert.deepEqual(r.errors, ['Row 2: ratePct is not a number: "8,5". ' + F.COMMA_HINT]);
+  const ok = F.applyOverrides(DEF, { kind: 'json', data: { kwh: '1,000', fleetCount: '2,500' } }, ['LZ_NORTH']);
+  assert.deepEqual(ok.errors, []);
+});
+
+test('a value column written twice is reported once', () => {
+  const data = [{ key: 'ratePct', value: '9' }];
+  data.headers = ['key', 'value', 'value'];
+  data.duplicateHeaders = ['value'];
+  assert.deepEqual(F.applyOverrides(DEF, { kind: 'csv', data }, ['LZ_NORTH']).errors, ['Column "value" appears more than once. Keep one.']);
 });

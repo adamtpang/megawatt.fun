@@ -31,7 +31,7 @@ test('finance: overrides apply, bad rows are named, public defaults untouched', 
   assert.equal(ok.arbPerYear, 150);
   const f = ok.defaults.groups.flatMap((g) => g.fields).find((x) => x.key === 'capexPerKwh');
   assert.equal(f.kind, 'yours');
-  assert.match(f.note, /Public default was 350/);
+  assert.match(f.note, new RegExp('Public default was ' + defaults.groups.flatMap((g) => g.fields).find((x) => x.key === 'capexPerKwh').value + ' '));
   assert.equal(JSON.stringify(defaults), before);
   const bad = F.applyOverrides(defaults, Y.parseText('key,value\ncapexPerKwh,abc\nnope,1\nrevenueCase,lease\nzone,LZ_MARS\ntollPerKwYear,-1', 'b.csv'), zones);
   assert.equal(bad.errors.length, 5);

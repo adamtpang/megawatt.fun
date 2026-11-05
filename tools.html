@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Energy tools · megawatt.fun</title>
-<meta name="description" content="An energy tooling suite. Tool 001: a day-ahead ERCOT arbitrage dispatch planner for home-battery fleets, run on real settlement prices.">
+<meta name="description" content="Five tools for a home-battery company, plus energy experiments run on real ERCOT prices.">
 <link rel="canonical" href="https://megawatt.fun/tools">
 <link rel="stylesheet" href="/style.css">
 <script type="application/ld+json">
@@ -33,7 +33,7 @@
       "@id": "https://megawatt.fun/#website",
       "url": "https://megawatt.fun/",
       "name": "megawatt.fun",
-      "description": "An energy tooling suite. Tool 001: a day-ahead ERCOT arbitrage dispatch planner for home-battery fleets, run on real settlement prices.",
+      "description": "Five tools for a home-battery company (market map, utility pitch, supply risks, fleet financing, launch planner), plus energy experiments run on real ERCOT prices.",
       "publisher": { "@id": "https://megawatt.fun/#organization" },
       "author": { "@id": "https://megawatt.fun/#adam-pangelinan" },
       "inLanguage": "en"
@@ -58,6 +58,7 @@
     <a href="/plug-and-play"><h2>Plug in your data</h2><p>File formats and the JSON API for all five. Files are read in the browser, never uploaded.</p><span>See the file formats</span></a>
   </div>
   <h2 class="tools-subhead">Other energy experiments</h2>
+  <p class="tools-spec-note">These experiments use a smaller generic battery (25 kWh / 5 kW), not the 20 kW / 39.2 kWh home battery the five tools above use.</p>
   <div class="tool-directory">
     <a href="/deploy"><h2>Where batteries go</h2><p>Compare three Texas regions. Inspect a year of prices.</p><span>Screen deployment sites</span></a>
     <a href="/bench"><h2>Keep backup safe</h2><p>Repeat a battery command. See why safeguards matter.</p><span>Try the experiment</span></a>
@@ -82,7 +83,7 @@
   </section>
 
   <section>
-    <p class="tool-tag">Tool 001 · fleet dispatch</p>
+    <p class="tool-tag">Experiment · fleet dispatch</p>
     <h2>One day's arbitrage is a scenario, not a valuation.</h2>
     <p class="what">
       A day-ahead dispatch planner for a fleet of home batteries, written in Go and run on
@@ -109,6 +110,7 @@
       <div class="stat"><div class="n amber">$38.46</div><div class="l">priciest hour sold (22:00)</div></div>
       <div class="stat"><div class="n">$0.43</div><div class="l">net per battery, this day (25 kWh / 5 kW / 88% RT)</div></div>
     </div>
+    <p class="tools-spec-note">A smaller generic battery than the five tools' 20 kW / 39.2 kWh unit, so this figure does not carry over to them.</p>
 
     <p class="honest">
       <b>This is not a revenue floor.</b> One cycle, energy-only, supplied prices, no
@@ -125,7 +127,7 @@
   </section>
 
   <section>
-    <p class="tool-tag">Tool 003 · live prices</p>
+    <p class="tool-tag">Experiment · live prices</p>
     <h2>ERCOT, right now</h2>
     <p class="what">
       Real-time 15-minute and day-ahead hourly settlement prices for every ERCOT hub and
@@ -136,7 +138,7 @@
   </section>
 
   <section>
-    <p class="tool-tag">Tool 002 · the climb</p>
+    <p class="tool-tag">Archive · the climb</p>
     <h2>Kardashev: where humanity actually is</h2>
     <p class="what">
       The earlier scale analysis is preserved as an archive. It explores
@@ -158,9 +160,9 @@
   </section>
 
   <p class="page-note">Prices are real, captured 2026-08-13; assumptions labeled in the <a href="https://github.com/adamtpang/megawatt.fun#the-model-honestly">README</a>.</p>
-<footer class="site-bottom"><div class="footer-links"><a href="/about">About</a><a href="/sources">Sources</a><a href="/contact">Contact</a><a href="/privacy">Privacy</a></div><p>Independent energy experiments. No real batteries are controlled.</p></footer>
 </details>
 </main>
+<footer class="site-bottom"><div class="footer-links"><a href="/about">About</a><a href="/sources">Sources</a><a href="/contact">Contact</a><a href="/privacy">Privacy</a></div><p>Independent energy experiments. No real batteries are controlled.</p></footer>
 
 <script>
   // Real ERCOT day-ahead hub-average prices, hour ending 01:00 to 24:00, 2026-08-13.

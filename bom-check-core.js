@@ -56,11 +56,13 @@
     return cellText(h).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
   }
 
-  function parseCSV(text) {
-    if (YD) return YD.parseCSV(text);
-    if (typeof window !== 'undefined' && window.YourData) return window.YourData.parseCSV(text);
+  // yourdata.js: the CSV parser, the text check and the number rule every tool shares.
+  function yd() {
+    if (YD) return YD;
+    if (typeof window !== 'undefined' && window.YourData) return window.YourData;
     throw new Error('CSV parser is not loaded.');
   }
+  function parseCSV(text) { return yd().parseCSV(text); }
 
   function splitAlts(value) {
     const t = cellText(value);
@@ -92,9 +94,8 @@
     return null;
   }
 
-  // Plain decimal numbers only, after dropping $ and thousands commas: the site's rule
-  // (finance-core, supply-core, api/_lib). No hex (0x10), binary, Infinity or NaN.
-  const DECIMAL = /^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$/;
+  // Plain decimal numbers only, after dropping $ and spaces, with a comma only as a thousands
+  // separator (1,200, never 3,5): the site's rule, yourdata.js readNumber. No hex (0x10), Infinity or NaN.
   // Upper bounds, so a typo such as 1e308 is a row error instead of a block score of Infinity.
   // Days match /supply's 520-week cap (10 years); cost and quantity match its unit_cost_usd and qty_per_unit caps.
   const MAX = { qty: 10000, lead_time_days: 3650, on_hand_days: 3650, unit_cost_usd: 1000000 };
@@ -104,10 +105,11 @@
      where error finishes "Row N: <column> ...". */
   function parseCell(v, col, opts) {
     const raw = cellText(v);
-    const t = raw.replace(/[$,\s]/g, '');
-    if (t === '') return opts.required ? { error: col + ' is empty. It must be a number greater than 0.' } : { value: null };
-    if (!DECIMAL.test(t)) return { error: col + ' is not a plain decimal number: "' + raw + '".' };
-    const n = Number(t);
+    const r = yd().readNumber(raw, /[$\s]/g);
+    if (r.value === null) return opts.required ? { error: col + ' is empty. It must be a number greater than 0.' } : { value: null };
+    if (r.comma) return { error: col + ' is not a plain decimal number: "' + raw.slice(0, 40) + '". ' + yd().COMMA_HINT };
+    if (r.error) return { error: col + ' is not a plain decimal number: "' + raw.slice(0, 40) + '".' };
+    const n = r.value;
     if (!Number.isFinite(n) || n > MAX[col]) return { error: col + ' must be at most ' + MAX[col].toLocaleString('en-US') + MAX_NOTE[col] + ', got ' + raw + '.' };
     if (opts.positive ? n <= 0 : n < 0) return { error: col + (opts.positive ? ' must be greater than 0.' : ' must be 0 or more, or blank.') };
     return { value: n };
@@ -130,7 +132,7 @@
   }
 
   function fail(errors, warnings) {
-    return { errors, warnings, rows: [], ranked: [], flagged_csv: '', formula: FORMULA, formula_note: FORMULA_NOTE };
+    return { errors: yd().onePerColumn(errors), warnings, rows: [], ranked: [], flagged_csv: '', formula: FORMULA, formula_note: FORMULA_NOTE };
   }
 
   // text: CSV. Returns { errors, warnings, rows, ranked, flagged_csv, formula, formula_note, demo_note }.
@@ -139,6 +141,10 @@
   function check(text) {
     const errors = [];
     const warnings = [];
+    // A spreadsheet, zip or image, or text that is not UTF-8, gets the same message as every other tool,
+    // never "no data rows".
+    const problem = yd().textProblem(text);
+    if (problem) return fail([problem], warnings);
     let table;
     try { table = parseCSV(text); } catch (e) {
       return fail(['Could not read that CSV: ' + e.message], warnings);

@@ -9,8 +9,9 @@
   function text(v) { return String(v == null ? '' : v).trim(); }
 
   // 5 digits, or ZIP+4 written 78704-1234 or 787041234: the first five digits are the ZIP.
+  // Fullwidth digits (\uFF17\uFF18\uFF17\uFF10\uFF14) read as plain ones (NFKC), the same on the page and in the API.
   function normalizeZip(input) {
-    const s = text(input);
+    const s = text(input).normalize('NFKC');
     const m = s.match(/^(\d{5})(?:-?\d{4})?$/);
     return m ? m[1] : null;
   }

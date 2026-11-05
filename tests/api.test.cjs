@@ -169,7 +169,10 @@ test('a raw request stream is read like a parsed body', async () => {
 function pageInputs(over = {}, zoneId = FIN.zoneDefault, arb = null) {
   const raw = { revenueCase: over.revenueCase || FIN.revenueCaseDefault };
   for (const f of FIN.groups.flatMap((g) => g.fields)) raw[f.key] = over[f.key] != null ? over[f.key] : f.value;
-  raw.arbPerYear = arb != null ? arb : ZONES.zones.find((z) => z.id === zoneId).usdPerYear;
+  const z = arb != null ? null : ZONES.zones.find((x) => x.id === zoneId);
+  raw.arbPerYear = arb != null ? arb : z.usdPerYear;
+  raw.zone = z ? z.id : null;
+  raw.zoneMarket = z ? z.market : null;
   return F.normalize(raw);
 }
 
@@ -186,7 +189,11 @@ test('finance POST matches F.sizeDebt on the same inputs', async () => {
   assert.equal(j.result.binding, want.binding);
   assert.equal(j.result.cfads_by_year.length, want.years.length);
   near(j.result.cfads_by_year[3].cfads, want.years[3].cfads);
-  assert.deepEqual(j.result.explain.slice(0, F.explain(want).length), F.explain(want));
+  const basis = Object.assign(F.lineBasis(FIN, null), { toll: 'yours' });
+  const retailDefault = FIN.groups.flatMap((g) => g.fields).find((f) => f.key === 'retailMarginMonthly').value;
+  const wantText = F.explain(want, { basis, retailDefault });
+  assert.deepEqual(j.result.explain.slice(0, wantText.length), wantText);
+  near(j.result.returns.unlevered.npv, want.returns.unlevered.npv);
   assert.deepEqual(j.inputs_used.yours.sort(), ['capexPerKwh', 'ratePct', 'tollPerKwYear']);
   assert.equal(j.inputs_used.zone, 'LZ_HOUSTON');
   // Fleet and 100 MW roll-ups.
@@ -236,7 +243,8 @@ test('finance default: merchant case, tax credit applied, toll placeholder not c
   near(j.result.itc, 0.3 * j.result.capex * 0.895);
   assert.equal(j.result.year1_revenue_lines.counted.anc, 0);
   const anc = (await post('finance', { inputs: { ancPerKwYear: 20 } })).json();
-  near(anc.result.year1_revenue_lines.counted.anc, 20 * 20 * 0.96);
+  const avail = FIN.groups.flatMap((g) => g.fields).find((f) => f.key === 'availabilityPct').value / 100;
+  near(anc.result.year1_revenue_lines.counted.anc, 20 * 20 * avail);
   near(anc.result.debt, F.sizeDebt(pageInputs({ ancPerKwYear: 20 })).debt);
   near(j.result.net_capex, j.result.capex - j.result.upfront - j.result.itc);
   near(j.result.equity, j.result.net_capex - j.result.debt);
@@ -797,12 +805,14 @@ test('pitch for an existing Base partner: labeled, framed as expansion, sourced,
     const j = r.json();
     const res = j.result;
     assert.equal(res.utility.id, id);
-    assert.equal(res.base_partner.status, 'Already a Base partner', utility);
+    // El Paso Electric's own release calls its program a pilot, so it is labeled one.
+    const label = id === '5701-TX' ? 'Runs a pilot with Base' : 'Already a Base partner';
+    assert.equal(res.base_partner.status, label, utility);
     assert.match(res.base_partner.framing, /not a cold pitch/);
     assert.ok(j.sources.some((s) => s.url === res.base_partner.source), utility + ': partner source listed');
     assert.match(res.questions[0], /^Existing program:/);
     const row = res.who_to_call_first.rows.find((x) => x.id === id);
-    assert.ok(row && row.base_partner && row.rank === null && row.status === 'Already a Base partner', utility);
+    assert.ok(row && row.base_partner && row.rank === null && row.status === label, utility);
     assert.ok(res.who_to_call_first.base_partners_in_state.some((x) => x.id === id));
   }
   const cold = (await post('pitch', { utility: '14626-TX' })).json().result;
@@ -870,10 +880,12 @@ test('pitch: target lists are capped at 500 rows and each name at 200 characters
   const t = Date.now();
   const slow = await post('pitch', { utility: '5078-TX', targets: Array.from({ length: 500 }, (_, i) => ({ utility: 'Q'.repeat(190) + i })) });
   assert.ok(Date.now() - t < 3000, '500 unmatched targets took ' + (Date.now() - t) + ' ms');
-  assert.equal(slow.statusCode, 200);
-  const w = slow.json().warnings.filter((x) => /no utility called/.test(x));
-  assert.equal(w.length, 500);
-  assert.ok(w.every((x) => x.length < 200), w[0]);
+  // Unknown targets are row errors (pass 3, item 12), and an error list is capped at 50 plus one "And N more" line.
+  assert.equal(slow.statusCode, 422);
+  const w = slow.json().errors;
+  assert.equal(w.length, 51);
+  assert.equal(w[50], 'And 450 more like these.');
+  assert.ok(w.slice(0, 50).every((x) => /no utility called/.test(x) && x.length < 260), w[0]);
 });
 
 test('pitch: common short names and names without Co / Inc resolve on the API', async () => {
@@ -1063,16 +1075,17 @@ test('break-test supply: duplicate columns are a 422; tiny gaps and the tariff h
   assert.equal(dup.ok, false);
   assert.deepEqual(dup.errors, ['Column "lead_time_weeks" appears more than once. Keep one.']);
   const tiny = (await post('supply', { parts: [{ part: 'A', category: 'cells', lead_time_weeks: 0.0001, on_hand_weeks: 0.00005, tariff_pct: 30 }] })).json();
-  assert.match(tiny.result.summary, /^1 of 1 part will run short\. Longest gap: A, under 0\.1 wk\. Add unit_cost_usd and qty_per_unit to see tariff cost per battery/);
+  // Lead 0.0001 against cover 0.00005: shown to enough decimals that the gap is visible (pass 3, item 11).
+  assert.match(tiny.result.summary, /^1 of 1 part will run short\. Longest gap: A, 0\.00005 wk\. Add unit_cost_usd and qty_per_unit to see tariff cost per battery/);
   assert.doesNotMatch(tiny.result.summary, /tariff_pct to see/);
 });
 
 // Finance settlement, retail margin and tax-credit bridge, 2026-11-04. Self-contained block.
 test('finance API: derived retail margin default, export settlement text, and $0 margin note', async () => {
   const d = (await post('finance', undefined, {})).json();
-  assert.equal(d.inputs_used.retailMarginMonthly, 22);
-  near(d.result.year1_revenue_lines.counted.retail, 264);
-  near(d.result.debt_pct_capex, 0.2673, 0.0005);
+  assert.equal(d.inputs_used.retailMarginMonthly, 63);
+  near(d.result.year1_revenue_lines.counted.retail, 756);
+  near(d.result.debt_pct_capex, 0.1419, 0.0005);
   assert.equal(d.result.export_settlement, F.EXPORT_TEXT);
   assert.match(d.result.export_settlement, /11\.4\.4\.3/);
   assert.match(d.result.itc_treatment, /bridge loan/);
@@ -1080,11 +1093,11 @@ test('finance API: derived retail margin default, export settlement text, and $0
   assert.ok(z.result.explain.some((l) => /leaves out what a retail provider normally earns/.test(l)));
   assert.ok(z.result.debt < d.result.debt);
   const usage = (await call('finance', 'GET')).json();
-  assert.equal(usage.post.input_keys.find((k) => k.key === 'retailMarginMonthly').public_value, 22);
+  assert.equal(usage.post.input_keys.find((k) => k.key === 'retailMarginMonthly').public_value, 63);
 });
 
 test('finance API: equity at $0 always comes with a note', async () => {
-  const j = (await post('finance', { inputs: { retailMarginMonthly: 300 } })).json();
+  const j = (await post('finance', { inputs: { retailMarginMonthly: 1000, upfront: 5000 } })).json();
   assert.equal(j.result.binding, 'cost');
   assert.equal(j.result.equity, 0);
   assert.match(j.result.binding_text, /equity is \$0/);
@@ -1111,16 +1124,24 @@ test('pitch for ComEd: Illinois VPP tariff route, ranked, statute sourced', asyn
 });
 
 test('pitch program carries an illustrative accredited MW, labeled an assumption', async () => {
-  const j = (await post('pitch', { utility: 'CoServ Electric' })).json();
+  // Accreditation only in a capacity market: ComEd (PJM). CoServ (ERCOT) gets the 2-hour peak MW instead (pass 3, item 15).
+  const j = (await post('pitch', { utility: 'ComEd' })).json();
   const a = j.result.program.accredited_example;
   assert.equal(a.basis, 'assumption');
   assert.equal(a.factor_pct, 64.65);
   assert.equal(a.accredited_mw, L.roundNum(5000 * 15.68 / 1000 * 0.6465));
   assert.ok(a.sources.length === 2 && a.sources.every((n) => j.sources.some((s) => s.n === n)));
-  const mine = (await post('pitch', { utility: 'CoServ Electric', terms: { memberReservePct: 50 } })).json().result.program.accredited_example;
+  assert.equal(j.result.program.capacity_example.kind, 'accredited');
+  const mine = (await post('pitch', { utility: 'ComEd', terms: { memberReservePct: 50 } })).json().result.program.accredited_example;
   assert.equal(mine.reserve_pct, 50);
   assert.equal(mine.reserve_from_your_file, true);
-  assert.match(j.result.who_to_call_first.method, /6 utility partners/);
+  const tx = (await post('pitch', { utility: 'CoServ Electric' })).json();
+  assert.equal(tx.result.program.accredited_example, null);
+  assert.equal(tx.result.program.capacity_example.kind, 'ercot');
+  assert.equal(tx.result.program.capacity_example.mw_for_2h, L.roundNum(5000 * 15.68 / 1000));
+  assert.match(tx.result.program.capacity_example.text, /ERCOT runs an energy-only market, so nothing here is accredited/);
+  assert.ok(!tx.sources.some((s) => s.key === 'nyisocaf'), 'no NYISO source on an ERCOT pitch');
+  assert.match(tx.result.who_to_call_first.method, /6 utility partners/);
 });
 
 test('market: Colorado and Connecticut carry equipment-only marks; the retail-choice flag is legal, not a share cut', async () => {
@@ -1132,4 +1153,246 @@ test('market: Colorado and Connecticut carry equipment-only marks; the retail-ch
   }
   const lp = (a) => j.states.find((x) => x.abbr === a).factors.launch_path.value;
   assert.deepEqual(['TX', 'IL', 'PA', 'CA', 'MI', 'GA'].map(lp), [1, 1, 1, 0, 0, 0]);
+});
+
+// ==========================================================================================
+// Finance review fixes, 2026-11-04: generic defaults, Base preset, returns, zones without
+// retail choice, comma rule, query parameters, null and BOM bodies. Self-contained block.
+// ==========================================================================================
+
+test('finance API: generic default says plainly that it does not pay back, with returns', async () => {
+  const j = (await post('finance', undefined, {})).json();
+  const R = j.result.returns;
+  assert.equal(j.result.preset, null);
+  assert.equal(j.inputs_used.capexPerKwh, 1290);
+  assert.equal(j.inputs_used.upfront, 0);
+  assert.equal(j.inputs_used.memberFeeMonthly, 35);
+  assert.equal(R.discount_rate, 0.1);
+  assert.equal(R.pays_back, false);
+  assert.equal(R.unlevered.payback_year, null);
+  assert.ok(R.unlevered.cash_total < R.unlevered.invest);
+  assert.ok(R.unlevered.irr < 0 && R.unlevered.npv < 0, JSON.stringify(R.unlevered));
+  assert.ok(R.equity && R.equity.invest > 0);
+  assert.match(R.text[0], /^On these inputs the battery does not pay back/);
+  assert.ok(R.text.includes(F.LEFT_OUT_TEXT));
+  for (const re of [/price spikes outside the fixed 7 to 9 PM window/, /ancillary services/, /depreciation/, /value after its useful life/]) assert.match(F.LEFT_OUT_TEXT, re);
+  assert.ok(j.result.explain.includes(R.text[0]));
+  assert.match(j.result.arbitrage_basis, /derived from public ERCOT prices with assumptions \(a fixed charge and discharge clock, 88% round trip, 20% backup reserve\)/);
+  assert.match(j.result.itc_treatment, /1\.48E-3\(c\)\(4\)\(ii\)/);
+  assert.equal(j.result.zone_market.retail_choice, true);
+  // No Base economic figure in the default path (the battery size cites the spec the zone values were simulated for).
+  for (const s of j.sources.filter((x) => ['capexPerKwh', 'upfront', 'memberFeeMonthly', 'retailMarginMonthly', 'availabilityPct'].includes(x.input))) assert.doesNotMatch(s.url, /basepowercompany|bpc-web-static/, s.input);
+});
+
+test('finance API: preset base_published loads Base\'s public claims, labeled, and reproduces the reviewer arithmetic', async () => {
+  const r = await post('finance', { preset: 'base_published' });
+  assert.equal(r.statusCode, 200, r.body);
+  const j = r.json();
+  assert.equal(j.result.preset, 'base_published');
+  assert.match(j.result.preset_label, /Base Power's published figures/);
+  assert.match(j.result.preset_about, /public claims .*not Base's economics/);
+  assert.equal(j.inputs_used.preset, 'base_published');
+  assert.deepEqual([j.inputs_used.capexPerKwh, j.inputs_used.upfront, j.inputs_used.memberFeeMonthly, j.inputs_used.retailMarginMonthly], [350, 695, 19, 22]);
+  const u = j.result.returns.unlevered;
+  near(u.invest, 9341, 1);
+  near(u.cash_total, 8860, 1);
+  assert.equal(j.result.returns.pays_back, false);
+  assert.ok(j.sources.some((s) => /basepowercompany/.test(s.url) && /public claim/.test(s.note)));
+  // Any case, in inputs too, and in a CSV row; your own values go on top of the preset.
+  const c = (await post('finance', 'key,value\ncapexPerKwh,300\npreset,BASE_PUBLISHED\n', CSV_CT)).json();
+  assert.equal(c.result.preset, 'base_published');
+  assert.equal(c.inputs_used.capexPerKwh, 300);
+  assert.equal(c.inputs_used.upfront, 695);
+  assert.deepEqual(c.inputs_used.yours, ['capexPerKwh']);
+  assert.equal((await post('finance', { inputs: { preset: 'base_published' } })).json().result.preset, 'base_published');
+  const bad = await post('finance', { preset: 'tesla' });
+  assert.equal(bad.statusCode, 422);
+  assert.match(bad.json().errors[0], /^preset must be one of base_published/);
+  const clash = await post('finance', { preset: 'base_published', inputs: { preset: 'x' } });
+  assert.equal(clash.statusCode, 422);
+});
+
+test('finance API: zones without retail choice drop retail margin and merchant arbitrage and suggest the toll', async () => {
+  for (const zone of ['LZ_AEN', 'LZ_CPS', 'LZ_LCRA', 'LZ_RAYBN']) {
+    const j = (await post('finance', { zone })).json();
+    assert.equal(j.result.zone_market.retail_choice, false, zone);
+    assert.equal(j.result.year1_revenue_lines.counted.retail, 0, zone);
+    assert.equal(j.result.year1_revenue_lines.counted.arb, 0, zone);
+    assert.ok(j.result.year1_revenue_lines.full.arb > 0, zone);
+    assert.match(j.result.explain[0], new RegExp('^' + zone + ' is city-utility or co-op territory.*PURA 40\\.051 and 41\\.051.*try the toll case'));
+    assert.ok(j.warnings.some((w) => w.startsWith(zone + ' has no retail choice') && /revenueCase toll/.test(w)), zone);
+    assert.ok(j.sources.some((s) => /932NPRR/.test(s.url)), zone);
+  }
+  const toll = (await post('finance', { zone: 'LZ_AEN', revenueCase: 'toll' })).json();
+  assert.ok(toll.result.year1_revenue_lines.counted.toll > 0);
+  const north = (await post('finance', { zone: 'LZ_NORTH' })).json();
+  assert.ok(north.result.year1_revenue_lines.counted.arb > 0);
+  assert.equal(north.warnings.length, 0);
+  // Your own arbitrage value replaces the zone, so the zone's market does not apply.
+  assert.ok((await post('finance', { arbPerYear: 300 })).json().result.year1_revenue_lines.counted.retail > 0);
+});
+
+test('finance API: comma rule, query parameters, null and BOM bodies, duplicate value column', async () => {
+  for (const v of ['3,5', '$2,80%', '1,0000']) {
+    const r = await post('finance', { inputs: { ratePct: v } });
+    assert.equal(r.statusCode, 422, v);
+    assert.match(r.json().errors[0], /^ratePct is not a number: .*Use a dot for decimals/, v);
+  }
+  const csv = await post('finance', 'key,value\nratePct,"8,5"\ncapexPerKwh,"1,200"\n', CSV_CT);
+  assert.equal(csv.statusCode, 422);
+  assert.deepEqual(csv.json().errors.length, 1);
+  assert.match(csv.json().errors[0], /^Row 2: ratePct is not a number: "8,5"\. A comma is only a thousands separator/);
+  const thousands = (await post('finance', { inputs: { capexPerKwh: '1,200', fleetCount: '2,500' } })).json();
+  assert.equal(thousands.inputs_used.capexPerKwh, 1200);
+  assert.equal(thousands.result.fleet.input.batteries, 2500);
+  // Query parameters on a POST are never silently ignored.
+  const q = (await post('finance', {}, JSON_CT, '/api/v1/finance?zone=LZ_WEST&ratepct=9')).json();
+  assert.equal(q.inputs_used.zone, FIN.zoneDefault);
+  assert.ok(q.warnings.some((w) => /^Ignored query string parameter "zone"\. Did you mean "zone"/.test(w)), q.warnings.join(' | '));
+  assert.ok(q.warnings.some((w) => /^Ignored query string parameter "ratepct"\. Did you mean "ratePct"/.test(w)), q.warnings.join(' | '));
+  // A JSON body of null is a 400 like any other non-object; a byte order mark is stripped.
+  assert.equal((await post('finance', 'null', JSON_CT)).statusCode, 400);
+  assert.equal((await post('finance', null, JSON_CT)).statusCode, 400);
+  const bom = await post('finance', '﻿{"inputs":{"capexPerKwh":300}}', JSON_CT);
+  assert.equal(bom.statusCode, 200, bom.body);
+  assert.equal(bom.json().inputs_used.capexPerKwh, 300);
+  const bomCsv = await post('finance', '﻿key,value\ncapexPerKwh,300\n', CSV_CT);
+  assert.equal(bomCsv.statusCode, 200, bomCsv.body);
+  // A value column written twice is reported once.
+  const dup = await post('finance', 'key,value,value\ncapexPerKwh,300,310\n', CSV_CT);
+  assert.equal(dup.statusCode, 422);
+  assert.deepEqual(dup.json().errors, ['Column "value" appears more than once. Keep one.']);
+});
+
+
+// ---------- pass 3 review (2026-11-04): supply, market, pitch, launch, zip and the shared request rules ----------
+// Self-contained block. Item numbers are the review's. Core and page cases: tests/pass3-tools.test.cjs.
+
+test('pass 3 item 1: a decimal comma is a 422 that says to use a dot, on every endpoint; 1,200 still works', async () => {
+  const sup = await post('supply', 'part,category,lead_time_weeks\nA,cells,"3,5"\n', CSV_CT);
+  assert.equal(sup.statusCode, 422);
+  assert.match(sup.json().errors[0], /"3,5"\. A comma is only a thousands separator \(1,200\)\. Use a dot for decimals/);
+  assert.equal((await post('supply', 'part,category,lead_time_weeks,unit_cost_usd\nA,cells,3,"1,200"\n', CSV_CT)).json().result.rows[0].unit_cost_usd, 1200);
+  const met = await post('market', { metrics: 'state,cost\nTX,"3,5"\nFL,1\nGA,2\nAZ,3\nNC,4\n' });
+  assert.match(met.json().errors[0], /^metrics: Row 2, column "cost": "3,5" is not a number\. A comma/);
+  const zon = await post('market', { zones: { LZ_WEST: '2,80' } });
+  assert.match(zon.json().errors[0], /^zones: .*"2,80" is not a number\. A comma/);
+  const w = await post('market', { weights: { homes: '1,5' } });
+  assert.match(w.json().errors[0], /weights: homes must be a number/);
+  for (const [body, ct, url] of [[{ utility: '5078-TX', terms: { tollPerKwYear: '3,5' } }, JSON_CT], ['key,value\ntollPerKwYear,"$2,80%"\n', CSV_CT, '/api/v1/pitch?utility=5078-TX']]) {
+    const r = await post('pitch', body, ct, url);
+    assert.equal(r.statusCode, 422);
+    assert.match(r.json().errors[0], /tollPerKwYear is not a number.*A comma is only a thousands separator/);
+  }
+  assert.match((await post('pitch', { utility: '5078-TX', mw: '3,5' })).json().errors[0], /^mw must be a number above 0 and at most 5000\. A comma/);
+  assert.equal((await post('pitch', { utility: '5078-TX', mw: '1,000' })).json().inputs_used.mw, 1000);
+  assert.match((await post('launch', {}, JSON_CT, '/api/v1/launch?rounds=1,5')).json().errors[0], /^rounds must be a whole number from 0 to 3, got "1,5"/);
+  assert.equal(L.parseNumber('1,200', {}).value, 1200);
+  assert.equal(L.parseNumber('3,5', {}).comma, true);
+});
+
+test('pass 3 item 2: query parameters a POST does not read are warnings with the closest field, everywhere', async () => {
+  const la = (await post('launch', {}, JSON_CT, '/api/v1/launch?stat=TX')).json();
+  assert.ok(la.warnings.some((x) => /^Ignored query string parameter "stat"\. Did you mean "state"\?/.test(x)), la.warnings.join(' | '));
+  const pi = (await post('pitch', { utility: '5078-TX' }, JSON_CT, '/api/v1/pitch?mww=5&terms=x')).json();
+  assert.ok(pi.warnings.some((x) => /"mww"\. Did you mean "mw"\?/.test(x)));
+  assert.ok(pi.warnings.some((x) => /"terms"\. Did you mean "terms" \(send it in the JSON body\)\?/.test(x)));
+  const su = (await post('supply', { parts: [{ part: 'A', category: 'cells', lead_time_weeks: 3 }] }, JSON_CT, '/api/v1/supply?part=1')).json();
+  assert.match(su.warnings[0], /^Ignored query string parameter "part"\. Did you mean "parts" \(send it in the JSON body\)\? This endpoint reads only the request body\.$/);
+  const zi = (await post('zip', { zip: '78704' }, JSON_CT, '/api/v1/zip?zipp=1')).json();
+  assert.ok(zi.warnings.some((x) => /"zipp"\. Did you mean "zip"\? This endpoint reads only zip from the query string\./.test(x)), zi.warnings.join(' | '));
+  const ma = (await post('market', {}, JSON_CT, '/api/v1/market?zone=x')).json();
+  assert.ok(ma.warnings.some((x) => /"zone"\. Did you mean "zones" \(send it in the JSON body\)\?/.test(x)));
+});
+
+test('pass 3 item 3: a JSON body of null is a 400 on every endpoint, never the public case', async () => {
+  for (const tool of ['launch', 'market', 'pitch', 'supply', 'zip']) {
+    for (const body of [null, 'null']) {
+      const r = await post(tool, body);
+      assert.equal(r.statusCode, 400, tool + ' ' + JSON.stringify(body) + ': ' + r.body);
+      assert.match(r.json().errors[0], /^Body must be a JSON object/);
+    }
+  }
+});
+
+test('pass 3 item 4: a UTF-8 byte order mark before JSON is fine, also when the platform parser gave up', async () => {
+  assert.equal((await post('launch', '﻿{"state":"TX"}')).json().inputs_used.state, 'TX');
+  // Vercel throws on req.body for a BOM; the handler then reads the stream itself.
+  const raw = (bytes) => {
+    const req = Readable.from([bytes]);
+    Object.defineProperty(req, 'body', { get() { throw new Error('Invalid JSON'); } });
+    return Object.assign(req, { method: 'POST', headers: JSON_CT, url: '/api/v1/launch' });
+  };
+  const res = mockRes();
+  await H.launch(raw(Buffer.from('﻿{"state":"TX"}', 'utf8')), res);
+  assert.equal(res.statusCode, 200, res.body);
+  assert.equal(res.json().inputs_used.state, 'TX');
+  // A stream that already ended cannot be re-read: still a 400, not a hang.
+  const done = raw(Buffer.from('{bad', 'utf8'));
+  done.resume(); await new Promise((r) => done.on('end', r));
+  const res2 = mockRes();
+  await H.launch(done, res2);
+  assert.equal(res2.statusCode, 400);
+  assert.match(res2.json().errors[0], /^Body is not valid JSON/);
+});
+
+test('pass 3 item 5: cp1252 and UTF-16 bodies get their own messages; UTF-16 with a mark is read', async () => {
+  const latin = await post('supply', Buffer.from('part,category,lead_time_weeks\nCaf\xe9,cells,3\n', 'latin1'), CSV_CT);
+  assert.equal(latin.statusCode, 400);
+  assert.match(latin.json().errors[0], /^The body is text but not UTF-8\..*"CSV UTF-8 \(Comma delimited\)", and send that\.$/);
+  const u16 = Buffer.concat([Buffer.from([0xFF, 0xFE]), Buffer.from('part,category,lead_time_weeks\nCafé,cells,3\n', 'utf16le')]);
+  const ok = await post('supply', u16, CSV_CT);
+  assert.equal(ok.statusCode, 200, ok.body);
+  assert.equal(ok.json().result.rows[0].part, 'Café');
+  assert.match((await post('supply', Buffer.from('part,category\n', 'utf16le'), CSV_CT)).json().errors[0], /UTF-16 text without a byte order mark/);
+  const zip = await post('supply', Buffer.from([0x50, 0x4B, 0x03, 0x04, 0x14, 0, 0, 0, 0x61]), CSV_CT);
+  assert.equal(zip.statusCode, 400);
+  assert.match(zip.json().errors[0], /^The body is not text\. It looks like a binary file/);
+});
+
+test('pass 3 items 6 and 8: fullwidth ZIP and utility read as plain text; ZIP+4 and its 5-digit ZIP agree', async () => {
+  assert.equal((await post('zip', { zip: '７８７０４' })).json().inputs_used.zip, '78704');
+  assert.equal((await post('pitch', { utility: 'ＣｏＳｅｒｖ' })).json().inputs_used.utility, '5078-TX');
+  const same = await post('zip', { zip: '78704-1234' }, JSON_CT, '/api/v1/zip?zip=78704');
+  assert.equal(same.statusCode, 200, same.body);
+  const diff = await post('zip', { zip: '78704-1234' }, JSON_CT, '/api/v1/zip?zip=78705');
+  assert.equal(diff.statusCode, 422);
+});
+
+test('pass 3 item 7: launch step ids match in any case; path RETAIL works', async () => {
+  const dup = await post('launch', 'path,id,name,owner,low,high,depends_on\nretail,a,A,o,1,2,\nretail,A,A2,o,1,2,a\n', CSV_CT, '/api/v1/launch?state=TX');
+  assert.equal(dup.statusCode, 422);
+  assert.match(dup.json().errors[0], /duplicate id "A" in retail \(also Row 2, as "a"; ids match in any case\)/);
+  const ok = await post('launch', 'path,id,name,owner,low,high,depends_on\nRETAIL,a,A,o,1,2,\nretail,first_installs,F,o,1,1,A\n', CSV_CT, '/api/v1/launch?state=TX&path=RETAIL');
+  assert.equal(ok.statusCode, 200, ok.body);
+  assert.deepEqual(ok.json().result.critical_path.map((x) => x.id), ['a', 'first_installs']);
+});
+
+test('pass 3 item 9: response and error sizes are capped', async () => {
+  const many = 'part,category,lead_time_weeks\n' + Array.from({ length: 2001 }, (_, i) => 'P' + i + ',cells,1').join('\n');
+  const sup = await post('supply', many, CSV_CT);
+  assert.equal(sup.statusCode, 422);
+  assert.match(sup.json().errors[0], /2,001 parts\. The limit is 2,000/);
+  const wide = 'state,' + Array.from({ length: 2000 }, (_, i) => 'm' + i).join(',') + '\nTX,' + Array(2000).fill(1).join(',') + '\n';
+  const mk = await post('market', wide, CSV_CT);
+  assert.equal(mk.statusCode, 422);
+  assert.ok(mk.body.length < 2000, 'market error stays small: ' + mk.body.length);
+  const weights = Object.fromEntries(Array.from({ length: 15000 }, (_, i) => ['nope' + i, 1]));
+  const wr = await post('market', { weights });
+  assert.equal(wr.statusCode, 422);
+  assert.equal(wr.json().errors.length, 51);
+  assert.equal(wr.json().errors[50], 'And 14,950 more like these.');
+  assert.ok(wr.body.length < 100000, 'error list is small: ' + wr.body.length);
+});
+
+test('pass 3 items 11 and 12: supply gap text keeps its precision; pitch target and term rules', async () => {
+  const s = (await post('supply', { parts: [{ part: 'A', category: 'cells', lead_time_weeks: 3, on_hand_weeks: 2.99999 }] })).json().result.rows[0];
+  assert.equal(s.gap_weeks, 0.00001);
+  assert.equal(s.gap_text, '0.00001 wk');
+  const t = await post('pitch', { utility: 'CoServ', targets: [{ utility: 'Nope Power' }] });
+  assert.equal(t.statusCode, 422);
+  assert.doesNotMatch(t.json().errors[0], /MI/);
+  const typo = await post('pitch', { utility: 'CoServ', targets: [{ utility: 'Austin Enrgy' }] });
+  assert.match(typo.json().errors[0], /Did you mean Austin Energy, TX/);
+  assert.deepEqual((await post('pitch', { utility: 'CoServ', terms: { termYears: 2.5 } })).json().errors, ['termYears must be a whole number of years. Got 2.5.']);
 });
