@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Energy tools · megawatt.fun</title>
-<meta name="description" content="Five tools for a home-battery company, plus energy experiments run on real ERCOT prices.">
+<meta name="description" content="A market map for a home-battery company: every US state scored from public data, with four more tools on the roadmap.">
 <link rel="canonical" href="https://megawatt.fun/tools">
 <link rel="stylesheet" href="/style.css">
 <script type="application/ld+json">
@@ -45,20 +45,33 @@
 <link rel="stylesheet" href="/site.css">
 <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48 64x64" type="image/x-icon">
 </head>
-<body>
+<body class="tool-page">
 <header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/">Guide</a><a href="/roadmap">Roadmap</a><a href="/tools" aria-current="page">Tools</a><details class="nav-more"><summary>More</summary><div class="nav-more-menu"><a href="/market">Market map</a><a href="/pitch">Utility pitch</a><a href="/launch">Launch planner</a><a href="/finance">Financing</a><a href="/supply">Supply risks</a><a href="/base">Battery</a><a href="/bench">Battery backup test</a><a href="/live">Live</a><a href="/kardashev">Kardashev</a><a href="/titans">Energy companies</a><a href="/notes">Notes</a><a href="/sources">Sources</a></div></details></nav></header>
 <main>
-  <header class="tools-intro"><p class="eyebrow">For a home-battery company</p><h1>Five tools, one per problem.</h1><p>Each runs on public data, takes your own CSV or JSON, and has a JSON API. Independent, not affiliated with Base Power.</p></header>
-  <div class="tool-directory">
-    <a href="/market"><h2>Where to roll out next</h2><p>Every US state scored from public data, and what one battery earns in each Texas load zone.</p><span>Open the market map</span></a>
-    <a href="/pitch"><h2>Persuading a utility</h2><p>A sourced program pitch for any of 962 US utilities, with who to call first.</p><span>Build a pitch</span></a>
-    <a href="/supply"><h2>Part shortages</h2><p>Each part's lead time, price trend, origin and 2026 tariffs, plus a bill-of-materials checker.</p><span>See the watch list</span></a>
-    <a href="/finance"><h2>Financing a fleet</h2><p>Debt sized from what one battery earns, with the storage tax credit.</p><span>Size the debt</span></a>
-    <a href="/launch"><h2>Launching a new state faster</h2><p>Steps, critical path, the cost of email back-and-forth, and a ZIP lookup for utility and permit office.</p><span>Plan a launch</span></a>
-    <a href="/plug-and-play"><h2>Plug in your data</h2><p>File formats and the JSON API for all five. Files are read in the browser, never uploaded.</p><span>See the file formats</span></a>
-  </div>
+  <header class="tools-intro"><p class="eyebrow">For a home-battery company</p><h1>Where to roll out next.</h1><p>One finished tool, and four more on the roadmap. Each runs on public data, takes your own CSV or JSON, and has a JSON API. Independent, not affiliated with Base Power.</p></header>
+  <section class="tool-feature card" aria-labelledby="feature-title">
+    <div class="tool-feature-copy">
+      <p class="eyebrow">Market map <span class="badge badge-solid">Ready to use</span></p>
+      <h2 id="feature-title">Every US state, scored for a home-battery program.</h2>
+      <p>Owner-occupied homes, outage minutes and frequency, storm and heat risk, retail and wholesale access, and the path to launch, from Census, EIA and FEMA. Change the weights, load your own state numbers, and see what one battery earns in each Texas load zone.</p>
+      <div class="tool-feature-actions"><a class="btn" href="/market">Open the market map</a><a class="btn btn-outline" href="/plug-and-play#market">File format and API</a></div>
+    </div>
+    <ul class="tool-feature-facts">
+      <li><b>51</b><span>places scored: 50 states and DC, each figure sourced</span></li>
+      <li><b>8</b><span>ERCOT load zones valued for one 20 kW / 39.2 kWh battery</span></li>
+      <li><b>0</b><span>uploads: your file is read in the browser</span></li>
+    </ul>
+  </section>
+  <h2 class="tools-subhead" id="roadmap">On the roadmap</h2>
+  <p class="tools-spec-note">Working previews. Each one runs today and is being checked to the same standard as the market map before it is called finished.</p>
+  <ol class="tool-roadmap">
+    <li><a href="/pitch"><span class="badge badge-yellow">Preview</span><h3>Persuading a utility</h3><p>A sourced program pitch for any of 962 US utilities.</p></a></li>
+    <li><a href="/launch"><span class="badge badge-yellow">Preview</span><h3>Launching a new state faster</h3><p>Steps, critical path and the cost of email back-and-forth.</p></a></li>
+    <li><a href="/finance"><span class="badge badge-yellow">Preview</span><h3>Financing a fleet</h3><p>Debt sized from what one battery earns, with the storage tax credit.</p></a></li>
+    <li><a href="/supply"><span class="badge badge-yellow">Preview</span><h3>Part shortages</h3><p>Lead times, origins and 2026 tariffs, plus a bill-of-materials checker.</p></a></li>
+  </ol>
   <h2 class="tools-subhead">Other energy experiments</h2>
-  <p class="tools-spec-note">These experiments use a smaller generic battery (25 kWh / 5 kW), not the 20 kW / 39.2 kWh home battery the five tools above use.</p>
+  <p class="tools-spec-note">These experiments use a smaller generic battery (25 kWh / 5 kW), not the 20 kW / 39.2 kWh home battery the market map uses.</p>
   <div class="tool-directory">
     <a href="/deploy"><h2>Where batteries go</h2><p>Compare three Texas regions. Inspect a year of prices.</p><span>Screen deployment sites</span></a>
     <a href="/bench"><h2>Keep backup safe</h2><p>Repeat a battery command. See why safeguards matter.</p><span>Try the experiment</span></a>
