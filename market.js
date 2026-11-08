@@ -23,7 +23,7 @@
   const PRESETS = {
     equal: () => true,
     retail: (f) => f.id !== 'partner',
-    partner: (f) => !RETAIL_PATH.includes(f.id),
+    partner: (f) => f.id !== 'retail' && f.id !== 'launch_path', // keeps wholesale share: a partner's battery still earns in the market
     pull: (f) => f.group === 'Customer pull',
     nosize: (f) => f.id !== 'homes',
   };
@@ -264,9 +264,13 @@
     const box = $('partners'); if (!box) return;
     const pool = E.utilities.filter(isPartner);
     if (!pool.length) { box.innerHTML = '<p class="mm-small">Utility ownership is not in this data build.</p>'; $('dl-partners').hidden = true; return; }
-    partnerRows = rank(pool, E.factors).filter((it) => it.score != null).sort((a, b) => b.score - a.score).slice(0, 25);
+    const all = rank(pool, E.factors).filter((it) => it.score != null).sort((a, b) => b.score - a.score);
+    partnerRows = all.slice(0, 25);
+    const mine = all.map((it, i) => ({ it, i })).filter((x) => BASE_PARTNERS.has(x.it.row.id));
+    const nm = (u) => (u.id === '5078-TX' ? 'CoServ (Denton County Electric Cooperative)' : u.name);
+    const mineLine = mine.length ? `</p><p class="notice mm-flag"><b>A limit worth knowing.</b> Base's current public-power partners rank ${mine.map((x) => `${esc(nm(x.it.row))} #${x.i + 1}`).join(', ')} of ${fmt(all.length)} here. Public data alone does not predict whom Base partners with: it has no distance to Base's crews, ERCOT zone value per utility, or board appetite. Treat this list as a long list to check, not a ranking. (El Paso Electric is investor owned, so it is not in this pool.)` : '';
     $('dl-partners').hidden = false;
-    box.innerHTML = `<p class="mm-small">The ${partnerRows.length} highest-scoring of ${fmt(pool.length)} co-ops, city utilities and other public power utilities in the data, scored against each other with the current weights. These utilities reach homes through partner programs, the way Austin Energy, GVEC, CoServ and Central Georgia EMC work with Base. Base's current partners are marked. Select a state code to open it.</p><div class="mm-scroll"><table class="ds-table mm-ptable"><thead><tr><th>Utility</th><th class="num">Score</th><th class="num">Homes</th><th class="num">Outage min</th></tr></thead><tbody>` +
+    box.innerHTML = `<p class="mm-small">The ${partnerRows.length} highest-scoring of ${fmt(pool.length)} co-ops, city utilities and other public power utilities in the data, scored against each other with the current weights. These utilities reach homes through partner programs, the way Austin Energy, GVEC, CoServ and Central Georgia EMC work with Base. Base partners are marked. Select a state code to open it.${mineLine}</p><div class="mm-scroll"><table class="ds-table mm-ptable"><thead><tr><th>Utility</th><th class="num">Score</th><th class="num">Homes</th><th class="num">Outage min</th></tr></thead><tbody>` +
       partnerRows.map((it) => { const u = it.row, st = states.find((x) => x.abbr === u.state); return `<tr><td>${esc(u.name)}${partnerTag(u)}<span class="mm-sub">${st ? `<button type="button" class="mm-link" data-state="${esc(st.name)}">${esc(u.state)}</button>` : esc(u.state)} \u00b7 ${esc((u.ownership || 'Public power').replace('Political Subdivision', 'Public district'))}</span></td><td class="num">${pts(it.score)}</td><td class="num">${factorFmt('homes', u.values.homes)}</td><td class="num">${factorFmt('saidi', u.values.saidi)}</td></tr>`; }).join('') + '</tbody></table></div>';
   }
   function downloadPartners() {
