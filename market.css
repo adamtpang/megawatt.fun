@@ -135,3 +135,42 @@
 .mm-bars li.is-yours i { background: var(--orange-60); }
 .mm-bars em.badge { font-style: normal; padding: 0 4px; }
 .mm-bars li { grid-template-columns: minmax(92px, auto) 1fr 52px; }
+
+/* Next 3 outside Base's footprint: the answer, first. */
+.mm-next { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.mm-next-btn { width: 100%; display: flex; gap: 12px; align-items: flex-start; text-align: left; padding: 12px; border: 1px solid var(--grey-20); border-radius: 12px; background: #fff; color: var(--grey-100); font: inherit; cursor: pointer; }
+.mm-next-btn:hover { border-color: var(--grey-100); }
+.mm-next-rank { flex: none; min-width: 32px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--green-90); }
+.mm-next-body { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: var(--text-body-md); }
+.mm-next-why { flex: 1 0 100%; font-size: var(--text-body-sm); color: var(--grey-80); }
+.mm-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 0; }
+.mm-link { border: 0; background: none; padding: 0; font: inherit; color: var(--green-90); text-decoration: underline; cursor: pointer; min-height: 24px; }
+.mm-round svg, .mm-layers svg { display: block; }
+#shares b { font-weight: 600; color: var(--grey-100); }
+#ov-stats { display: block; margin-top: 4px; }
+@media (max-width: 700px) { .mm-panel { max-height: calc(50% - 20px); } }
+
+/* Review pass: visible selection and focus, clear map edges, phone tap targets. */
+.mm-map .st:focus { outline: none; }
+.mm-map .sel-ring, .mm-map .focus-ring { fill: none; pointer-events: none; vector-effect: non-scaling-stroke; }
+.mm-map .sel-ring { stroke: var(--grey-100); stroke-width: 3; }
+.mm-map .focus-ring { stroke: var(--blue-60); stroke-width: 4; filter: drop-shadow(0 0 2px #fff); }
+.mm-map svg.warm .fp { stroke: var(--grey-100); }
+.mm-next-overall { font-size: var(--text-body-sm); color: var(--grey-80); }
+.mm-ptable td:first-child { min-width: 150px; }
+.mm-sub { display: block; font-size: var(--text-body-sm); color: var(--grey-80); margin-top: 2px; }
+.mm-zones { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 8px; }
+.mm-zones li { border: 1px solid var(--grey-20); border-radius: 12px; padding: 10px 12px; font-size: var(--text-body-sm); color: var(--grey-80); }
+.mm-zones p { margin: 0; }
+.mm-zones .mm-zone-h { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 4px; color: var(--grey-100); font-size: var(--text-body-md); }
+.mm-zones code { font-size: 11px; color: var(--grey-80); }
+@media (max-width: 700px) {
+  .mm-map { bottom: calc(50% - 12px); }
+}
+@media (pointer: coarse) {
+  .mm-chip, .mm-sec > summary, .mm-close, .btn-sm, .mm-layers button { min-height: 44px; }
+  .mm-layers button { width: 44px; }
+  .mm-link { display: inline-flex; align-items: center; min-height: 44px; padding: 0 8px; }
+  .mm-w { min-height: 44px; }
+  .mm-w input[type=range] { height: 44px; }
+}

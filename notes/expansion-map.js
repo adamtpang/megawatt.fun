@@ -244,10 +244,10 @@
 
   var TIER_FILL = { S: "#102a17", A: "#1e4d2b", B: "#77a45a", C: "#b2dd79", Later: "#d8d7d5" };
   var TIER_ORDER = [
-    { id: "S", label: "Target first" },
-    { id: "A", label: "Strong case" },
-    { id: "B", label: "Mixed" },
-    { id: "C", label: "One constraint leads" },
+    { id: "S", label: "Strongest fit" },
+    { id: "A", label: "Strong fit" },
+    { id: "B", label: "Mixed fit" },
+    { id: "C", label: "Weak fit" },
     { id: "Later", label: "Thin public case" }
   ];
 

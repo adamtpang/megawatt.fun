@@ -92,7 +92,9 @@ test('landed cost uses Base claimed $/kWh', () => {
 test('real data: default utility exists and known ids resolve', () => {
   for (const id of Object.keys(P.KNOWN)) assert.ok(data.utilities.some((x) => x.id === id), id);
   const coserv = data.utilities.find((x) => x.id === '5078-TX');
-  assert.equal(P.displayName(coserv), 'CoServ Electric (Denton County Elec Coop, Inc)');
+  assert.equal(P.displayName(coserv), 'CoServ Electric (Denton County Electric Cooperative, Inc)');
+  assert.equal(coserv.eia_name, 'Denton County Elec Coop, Inc');
+  assert.equal(coserv.ownership, 'Cooperative');
   const pc = P.signalPercentiles(coserv, data.utilities);
   const pick = P.pickOffer(coserv, pc);
   assert.equal(pick.offer.id, 'bulk');

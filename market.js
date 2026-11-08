@@ -10,16 +10,27 @@
   const fmt = (n, d = 0) => (n === null || n === undefined || n !== n) ? 'n/a' : Number(n).toLocaleString('en-US', { maximumFractionDigits: d, minimumFractionDigits: d });
   const S = () => window.ExpansionScore;
 
-  const WARM = ['#f3e6c8', '#efbd6f', '#d9822b', '#a3471b'];
+  // Base palette: orange-5, orange-40, orange-60, orange-90 for value layers; greens for tiers.
+  const WARM = ['#fbe3d8', '#f09064', '#ed6c30', '#742c0b'];
+  const NODATA = '#eceae6';
   const TIERS = [
-    { id: 'S', label: 'Target first', fill: '#102a17' }, { id: 'A', label: 'Strong case', fill: '#1e4d2b' },
-    { id: 'B', label: 'Mixed', fill: '#77a45a' }, { id: 'C', label: 'One constraint leads', fill: '#b2dd79' },
+    { id: 'S', label: 'Strongest fit', fill: '#1e4d2b' }, { id: 'A', label: 'Strong fit', fill: '#77a45a' },
+    { id: 'B', label: 'Mixed fit', fill: '#b2dd79' }, { id: 'C', label: 'Weak fit', fill: '#d6f0b4' },
     { id: 'Later', label: 'Thin public case', fill: '#d8d7d5' },
   ];
+  // Weight presets. A preset sets each factor to its default weight or 0.
+  const RETAIL_PATH = ['retail', 'wholesale', 'launch_path'];
+  const PRESETS = {
+    equal: () => true,
+    retail: (f) => f.id !== 'partner',
+    partner: (f) => !RETAIL_PATH.includes(f.id),
+    pull: (f) => f.group === 'Customer pull',
+    nosize: (f) => f.id !== 'homes',
+  };
   const EXTRA = {
     saidi_avg: { label: 'Minutes without power, 2024 and 2025 average', unit: (v) => fmt(v) + ' min', bins: [200, 400, 800] },
-    cents_kwh: { label: 'Residential power price, 2024', unit: (v) => fmt(v, 1) + '¢', bins: [13, 16, 20] },
-    bill_usd: { label: 'Average monthly bill, 2024', unit: (v) => '$' + fmt(v), bins: [130, 160, 190] },
+    cents_kwh: { label: 'Residential power price, 2025', unit: (v) => fmt(v, 1) + '¢', bins: [13, 16, 20] },
+    bill_usd: { label: 'Average monthly bill, 2025', unit: (v) => '$' + fmt(v), bins: [130, 160, 190] },
   };
 
   // byName and scored are Maps: a name from the URL (?state=__proto__) or a search box must never reach Object.prototype.
@@ -48,7 +59,10 @@
     if (isYours(id)) return fmt(v, Number.isInteger(v) ? 0 : 2);
     if (id === 'homes' || id === 'saidi') return fmt(v);
     if (id === 'saifi') return fmt(v, 2);
-    if (id === 'retail' || id === 'wholesale') return fmt(v * 100, 1) + '%';
+    if (id === 'retail' || id === 'wholesale' || id === 'partner') return fmt(v * 100, 1) + '%';
+    if (id === 'launch_path') return v >= 1 ? 'open' : v > 0 ? 'partly open' : 'not open';
+    if (id === 'price') return fmt(v, 1) + '¢/kWh';
+    if (id === 'batteries' || id === 'demand_response' || id === 'dynamic_pricing') return fmt(v, v < 10 ? 1 : 0);
     if (id === 'storm' || id === 'heat') return fmt(v, 1);
     return fmt(v, 2);
   }
@@ -78,7 +92,21 @@
     const st = data(name), it = scored.get(name);
     const parts = allFactors().filter((f) => weights[f.id] > 0 && it.factors[f.id] != null).map((f) => ({ f, r: it.factors[f.id] })).sort((a, b) => b.r - a.r);
     if (!parts.length) return 'No weighted factor has a published value here.';
-    const ph = (f) => `${f.yours ? 'your ' + f.label : f.label.toLowerCase()} ${factorFmt(f.id, val(st, f))}`;
+    const lc = (t) => t.charAt(0).toLowerCase() + t.slice(1);
+    const v = (f) => factorFmt(f.id, val(st, f));
+    const PLAIN = {
+      saidi: (f) => `${v(f)} outage minutes a year (SAIDI, 2021 to 2025 median)`,
+      saifi: (f) => `${v(f)} outages a year per customer (SAIFI)`,
+      homes: (f) => `${v(f)} owner-occupied single-family homes`,
+      demand_response: (f) => `${v(f)} demand response enrollments per 1,000 customers`,
+      dynamic_pricing: (f) => `${v(f)} dynamic pricing enrollments per 1,000 customers`,
+      batteries: (f) => `${v(f)} home batteries per 1,000 customers`,
+      price: (f) => `power at ${v(f)}`,
+      partner: (f) => `${v(f)} of homes on co-ops and public power`,
+      retail: (f) => `${v(f)} of homes already on a competitive supplier`,
+      launch_path: (f) => `retail choice ${v(f)}`,
+    };
+    const ph = (f) => (f.yours ? `your ${f.label} ${v(f)}` : PLAIN[f.id] ? PLAIN[f.id](f) : `${lc(f.label)} ${v(f)}`);
     let t = 'Leads on ' + parts.slice(0, 2).map((p) => ph(p.f)).join(' and ') + '.';
     const low = parts[parts.length - 1];
     if (parts.length > 2 && low.r < 0.5) t += ' Weakest: ' + ph(low.f) + '.';
@@ -92,9 +120,9 @@
     return scored.get(st.name).factors[layer]; // percentile rank 0..1
   }
   function fillFor(st) {
-    if (layer === 'score') { const t = TIERS.find((x) => x.id === scored.get(st.name).tier); return t ? t.fill : '#eceae6'; }
+    if (layer === 'score') { const t = TIERS.find((x) => x.id === scored.get(st.name).tier); return t ? t.fill : NODATA; }
     const v = layerValue(st);
-    if (v === null || v === undefined) return '#eceae6';
+    if (v === null || v === undefined) return NODATA;
     const b = EXTRA[layer] ? EXTRA[layer].bins : [0.25, 0.5, 0.75];
     return WARM[v < b[0] ? 0 : v < b[1] ? 1 : v < b[2] ? 2 : 3];
   }
@@ -116,17 +144,19 @@
     $('legend').innerHTML = ['Top quarter', 'Second quarter', 'Third quarter', 'Bottom quarter'].map((t, i) => `<li><i style="background:${WARM[3 - i]}"></i>${t}</li>`).join('') + '<li><i style="background:#eceae6"></i>No data</li>';
   }
 
+  // The answer first: the three strongest states outside Base's public footprint at these weights.
+  function outside(ranked) { return ranked.filter((it) => !it.row.footprint && it.score != null); }
   function overview(ranked) {
-    const top = ranked[0];
-    $('ov-lede').textContent = E.narrative[0] || '';
-    const n = (s) => ranked.filter((it) => it.row.footprint && it.row.footprint.status === s).length;
-    const stats = [
-      [top.row.name, 'Top score: ' + pts(top.score)],
-      [String(ranked.filter((it) => scored.get(it.row.name).tier === 'S').length), 'States in tier S'],
-      [String(n('operating')), 'States Base operates in'],
-      [fmt(M.us.saidi_avg) + ' min', 'US outage minutes, 2-yr avg'],
-    ];
-    $('ov-stats').innerHTML = stats.map(([v, l]) => `<div class="mm-stat"><b>${esc(v)}</b><span>${esc(l)}</span></div>`).join('');
+    const next = outside(ranked).slice(0, 3);
+    const preset = document.querySelector('[data-preset][aria-pressed="true"]');
+    const how = preset ? preset.textContent.trim().toLowerCase() + ' weights' : 'your weights';
+    $('ov-lede').textContent = next.length
+      ? `At ${how}, the strongest states outside Base's public footprint are ${next.map((it) => it.row.name).join(', ').replace(/, ([^,]*)$/, ' and $1')}. Each score is a relative fit from public data, not a forecast.`
+      : 'No state outside Base\u2019s footprint has a score at these weights. Raise a weight under Score weights.';
+    $('ov-stats').innerHTML = next.length ? '<p class="mm-h">Next 3 outside Base\u2019s footprint</p><ol class="mm-next">' + next.map((it, i) => {
+      const r = scored.get(it.row.name);
+      return `<li><button type="button" class="mm-next-btn" data-state="${esc(it.row.name)}"><span class="mm-next-rank">${i + 1}</span><span class="mm-next-body"><b>${esc(it.row.name)}</b> <span class="badge ${r.tier === 'S' || r.tier === 'A' ? 'badge-green' : ''}">${esc(r.tier)} \u00b7 ${pts(it.score)}</span><span class="mm-next-overall">#${r.rank} overall</span><span class="mm-next-why">${esc(why(it.row.name))}</span></span></button></li>`;
+    }).join('') + '</ol>' : '';
   }
 
   function tiers(ranked) {
@@ -134,7 +164,7 @@
     $('tiers').innerHTML = TIERS.map((t) => {
       const list = ranked.filter((it) => scored.get(it.row.name).tier === t.id);
       if (!list.length) return '';
-      return `<div class="mm-tier"><span class="mm-tier-id" style="background:${t.fill};color:${['S', 'A'].includes(t.id) ? '#fff' : '#1e4d2b'}" title="${esc(t.label)}">${t.id}</span><div>` +
+      return `<div class="mm-tier"><span class="mm-tier-id" style="background:${t.fill};color:${t.id === 'S' ? '#fff' : '#102a17'}" title="${esc(t.label)}">${t.id}</span><div>` +
         list.map((it) => `<button type="button" class="mm-chip" aria-pressed="${it.row.name === selected}" data-state="${esc(it.row.name)}">${esc(it.row.abbr)} <b>${pts(it.score)}</b></button>`).join('') + '</div></div>';
     }).join('');
   }
@@ -146,7 +176,8 @@
       p.setAttribute('fill', fillFor(st));
       p.setAttribute('aria-label', `${st.name}, tier ${it.tier || 'none'}, score ${pts(it.score)}${it.rank ? ', rank ' + it.rank : ', not ranked'}`);
     });
-    legend(); overview(ranked); tiers(ranked);
+    svg.classList.toggle('warm', layer !== 'score');
+    legend(); overview(ranked); tiers(ranked); shares(); partners();
     if (selected) detail(selected, false);
   }
 
@@ -154,6 +185,7 @@
   function detail(name, scroll = true) {
     const st = data(name), it = scored.get(name); selected = name;
     svg.querySelectorAll('.st').forEach((p) => p.classList.toggle('sel', p.dataset.name === name));
+    ring('sel-ring', name);
     document.querySelectorAll('.mm-chip').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.state === name)));
     const fpCls = { operating: 'notice-green', announced: 'mm-flag-planned' }[st.footprint && st.footprint.status] || '';
     const fpSrc = st.footprint && st.footprint.source ? ` Source: <a href="${esc(st.footprint.source.url)}">${esc(st.footprint.source.title)}</a>${st.footprint.source.retrieved ? ', checked ' + esc(st.footprint.source.retrieved) : ''}.` : '';
@@ -167,21 +199,79 @@
     c.innerHTML = `<p class="mm-small">Tier ${it.tier || 'n/a'} · score ${pts(it.score)} · ${place}</p>
       <h2>${esc(name)}</h2>${fp}<p class="mm-why">${esc(why(name))}</p>
       <dl>${rows}
-        <dt>Outage minutes, 2024 / 2025</dt><dd>${fmt(st.saidi_2024)} / ${fmt(st.saidi_2025)}</dd>
-        <dt>Power price, 2024</dt><dd>${fmt(st.cents_kwh, 2)}¢/kWh</dd>
-        <dt>Monthly bill, 2024</dt><dd>$${fmt(st.bill_usd, 2)}</dd>
+        <dt>Power price, 2025</dt><dd>${fmt(st.cents_kwh, 2)}¢/kWh</dd>
+        <dt>Monthly bill, 2025</dt><dd>$${fmt(st.bill_usd, 2)}</dd>
         <dt>Grid operators</dt><dd>${esc(st.detail.rtos || 'n/a')}</dd></dl>
       ${rcLine}${st.detail.note ? `<p class="mm-small">${esc(st.detail.note)}</p>` : ''}`;
     if (st.abbr === 'TX') { const s = $('sec-value'); s.open = true; c.insertAdjacentHTML('beforeend', '<p class="mm-small"><a href="#sec-value">Where one battery earns most inside Texas</a></p>'); }
     utilities(st);
-    if (scroll && innerWidth <= 700) { $('ov-body').hidden = false; $('ov-toggle').setAttribute('aria-expanded', 'true'); c.scrollIntoView({ block: 'nearest' }); }
+    if (scroll) { $('ov-body').hidden = false; $('ov-toggle').setAttribute('aria-expanded', 'true'); const pnl = $('overview'); pnl.scrollTop = c.getBoundingClientRect().top - pnl.getBoundingClientRect().top + pnl.scrollTop - 8; }
   }
   function utilities(st) {
     const rows = E.utilities.filter((u) => u.state === st.abbr);
     if (!rows.length) { $('utilities').innerHTML = `<p class="mm-small">No utilities listed for ${esc(st.name)}.</p>`; return; }
     const ranked = rank(rows, E.factors).sort((a, b) => (b.score ?? -1) - (a.score ?? -1)).slice(0, 8);
     $('utilities').innerHTML = `<p class="mm-small">${rows.length} utilities in ${esc(st.name)}, scored against each other with the same weights. Top ${ranked.length}:</p><div class="mm-scroll"><table class="ds-table"><thead><tr><th>Utility</th><th class="num">Score</th><th class="num">Homes</th><th class="num">Outage min</th></tr></thead><tbody>` +
-      ranked.map((it) => `<tr><td>${esc(it.row.name)}</td><td class="num">${pts(it.score)}</td><td class="num">${factorFmt('homes', it.row.values.homes)}</td><td class="num">${factorFmt('saidi', it.row.values.saidi)}</td></tr>`).join('') + '</tbody></table></div>';
+      ranked.map((it) => `<tr><td>${esc(it.row.name)}${partnerTag(it.row)}</td><td class="num">${pts(it.score)}</td><td class="num">${factorFmt('homes', it.row.values.homes)}</td><td class="num">${factorFmt('saidi', it.row.values.saidi)}</td></tr>`).join('') + '</tbody></table></div>';
+  }
+
+  // How much of the score each group carries at the current weights. Correlated factors in one group
+  // (four outage and hazard measures, three retail-access measures) add up, so this is shown, not hidden.
+  function shares() {
+    if (!$('shares')) return;
+    const tot = allFactors().reduce((a, f) => a + (weights[f.id] || 0), 0);
+    if (!tot) { $('shares').textContent = 'Every weight is 0.'; return; }
+    const g = new Map();
+    allFactors().forEach((f) => g.set(f.group, (g.get(f.group) || 0) + (weights[f.id] || 0)));
+    $('shares').innerHTML = 'Share of the score: ' + [...g].filter(([, w]) => w > 0).map(([k, w]) => `<b>${esc(k)} ${Math.round((w / tot) * 100)}%</b>`).join(', ') + '.';
+  }
+
+  // ---------- downloads (formula-safe CSV) ----------
+  const csvCell = (v) => { let t = v == null ? '' : String(v); if (/^[=+\-@]/.test(t)) t = "'" + t; return /[",\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
+  function saveCSV(name, header, rows) {
+    const text = [header, ...rows].map((r) => r.map(csvCell).join(',')).join('\n') + '\n';
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([text], { type: 'text/csv;charset=utf-8' }));
+    a.download = name; document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+  const UNIT = { homes: 'homes', saidi: 'saidi_minutes', saifi: 'saifi_per_customer', storm: 'storm_risk_score', heat: 'heat_risk_score', retail: 'competitive_supplier_pct', wholesale: 'wholesale_market_pct', partner: 'coop_public_power_pct', batteries: 'batteries_per_1000', demand_response: 'demand_response_per_1000', dynamic_pricing: 'dynamic_pricing_per_1000', launch_path: 'retail_choice_open', price: 'price_cents_per_kwh' };
+  const PCT = new Set(['retail', 'wholesale', 'partner']);
+  const DP = { homes: 0, saidi: 0, saifi: 2, storm: 1, heat: 1, price: 2, launch_path: 1 };
+  function csvVal(f, v) {
+    if (v == null || v !== v) return '';
+    if (PCT.has(f.id)) return (v * 100).toFixed(1);
+    return f.yours ? v : Number(v).toFixed(DP[f.id] ?? 1);
+  }
+  function presetName() { const b = document.querySelector('[data-preset][aria-pressed="true"]'); return b ? b.dataset.preset : 'custom'; }
+  function downloadRanking() {
+    const fs = allFactors();
+    const ranked = [...scored].sort((a, b) => (a[1].rank || 999) - (b[1].rank || 999));
+    const wcol = 'weights: ' + fs.filter((f) => weights[f.id] > 0).map((f) => `${f.id}=${weights[f.id]}`).join(' ');
+    saveCSV(`market-ranking-${presetName()}-weights.csv`, ['rank', 'state', 'abbr', 'tier', 'score', 'base_footprint', ...fs.map((f) => (f.yours ? f.id : UNIT[f.id] || f.id)), 'weights_used'],
+      ranked.map(([name, it]) => { const st = data(name); return [it.rank || '', name, st.abbr, it.tier || '', pts(it.score), st.footprint ? st.footprint.label : '', ...fs.map((f) => csvVal(f, val(st, f))), wcol]; }));
+  }
+
+  // ---------- utility partner candidates (co-ops and public power, nationwide) ----------
+  const PUBLIC = /^(Cooperative|Municipal|Political Subdivision|State|Federal)/i;
+  // Utilities with a public Base partner program (EIA ids). Sources: the Texas and Georgia footprint
+  // notes (Business Wire, 15 Jul 2026 and 13 Oct 2026). CoServ is Denton County Electric Cooperative.
+  const BASE_PARTNERS = new Set(['1015-TX', '7752-TX', '5078-TX', '6182-TX', '1175-TX', '5701-TX', '3248-GA']);
+  const partnerTag = (u) => (BASE_PARTNERS.has(u.id) ? ' <span class="badge badge-green">Base partner</span>' : '');
+  const isPartner = (u) => (u.values && u.values.partner === 1) || PUBLIC.test(u.ownership || '');
+  let partnerRows = [];
+  function partners() {
+    const box = $('partners'); if (!box) return;
+    const pool = E.utilities.filter(isPartner);
+    if (!pool.length) { box.innerHTML = '<p class="mm-small">Utility ownership is not in this data build.</p>'; $('dl-partners').hidden = true; return; }
+    partnerRows = rank(pool, E.factors).filter((it) => it.score != null).sort((a, b) => b.score - a.score).slice(0, 25);
+    $('dl-partners').hidden = false;
+    box.innerHTML = `<p class="mm-small">The ${partnerRows.length} highest-scoring of ${fmt(pool.length)} co-ops, city utilities and other public power utilities in the data, scored against each other with the current weights. These utilities reach homes through partner programs, the way Austin Energy, GVEC, CoServ and Central Georgia EMC work with Base. Base's current partners are marked. Select a state code to open it.</p><div class="mm-scroll"><table class="ds-table mm-ptable"><thead><tr><th>Utility</th><th class="num">Score</th><th class="num">Homes</th><th class="num">Outage min</th></tr></thead><tbody>` +
+      partnerRows.map((it) => { const u = it.row, st = states.find((x) => x.abbr === u.state); return `<tr><td>${esc(u.name)}${partnerTag(u)}<span class="mm-sub">${st ? `<button type="button" class="mm-link" data-state="${esc(st.name)}">${esc(u.state)}</button>` : esc(u.state)} \u00b7 ${esc((u.ownership || 'Public power').replace('Political Subdivision', 'Public district'))}</span></td><td class="num">${pts(it.score)}</td><td class="num">${factorFmt('homes', u.values.homes)}</td><td class="num">${factorFmt('saidi', u.values.saidi)}</td></tr>`; }).join('') + '</tbody></table></div>';
+  }
+  function downloadPartners() {
+    saveCSV(`utility-partner-candidates-${presetName()}-weights.csv`, ['rank', 'utility', 'eia_name', 'eia_id', 'state', 'ownership', 'base_partner', 'residential_customers', 'saidi_minutes', 'saifi', 'score'],
+      partnerRows.map((it, i) => [i + 1, it.row.name, it.row.eia_name || it.row.name, it.row.id, it.row.state, it.row.ownership || '', BASE_PARTNERS.has(it.row.id) ? 'yes' : 'no', it.row.values.homes, it.row.values.saidi == null ? '' : Math.round(it.row.values.saidi), it.row.values.saifi == null ? '' : Number(it.row.values.saifi).toFixed(2), pts(it.score)]));
   }
 
   // ---------- weights ----------
@@ -205,7 +295,7 @@
     document.querySelectorAll('[data-preset]').forEach((b) => b.addEventListener('click', () => {
       const p = b.dataset.preset;
       allFactors().forEach((f) => {
-        const on = p === 'pull' ? f.group === 'Customer pull' : p === 'access' ? f.group === 'Market access' : p === 'nosize' ? f.id !== 'homes' : true;
+        const on = f.yours || (PRESETS[p] || PRESETS.equal)(f);
         weights[f.id] = on ? f.weight : 0;
         document.querySelector(`[data-w="${CSS.escape(f.id)}"]`).value = weights[f.id]; $('o-' + f.id).textContent = weights[f.id];
       });
@@ -240,8 +330,8 @@
   function fitBox(bx) {
     const r = $('map').getBoundingClientRect();
     if (!(r.width > 0 && r.height > 0)) return { ...bx };
-    const mobile = r.width <= 700, left = mobile ? 0 : 440, bottom = mobile ? r.height * 0.5 : 0;
-    const fw = Math.max(200, r.width - left - 24), fh = Math.max(160, r.height - bottom - 24);
+    const mobile = r.width <= 700, left = mobile ? 0 : 440, right = mobile ? 0 : 80, bottom = mobile ? 70 : 150;
+    const fw = Math.max(200, r.width - left - right - 24), fh = Math.max(160, r.height - bottom - 24);
     const s = Math.max(bx.w / fw, bx.h / fh);
     return { x: bx.x - (left + 12) * s - (fw * s - bx.w) / 2, y: bx.y - 12 * s - (fh * s - bx.h) / 2, w: r.width * s, h: r.height * s };
   }
@@ -253,13 +343,19 @@
     setView(fitBox({ x: b.x - pad, y: b.y - pad, w: b.width + pad * 2, h: b.height + pad * 2 }));
   }
 
+  function ring(cls, name) {
+    const r = svg && svg.querySelector('.' + cls); if (!r) return;
+    const st = name && data(name); r.setAttribute('d', st ? st.path : '');
+  }
   function build() {
     svg = el('svg', { role: 'presentation', preserveAspectRatio: 'xMinYMin meet' });
     home = fitHome(); setView({ ...home });
     addEventListener('resize', () => { home = fitHome(); setView({ ...home }); });
-    states.forEach((s) => {
+    [...states].sort((a, b) => a.name.localeCompare(b.name)).forEach((s) => {
       const p = el('path', { d: s.path, class: 'st', tabindex: '0', 'data-name': s.name, role: 'button' });
       p.addEventListener('click', () => detail(s.name));
+      p.addEventListener('focus', () => ring('focus-ring', s.name));
+      p.addEventListener('blur', () => ring('focus-ring', null));
       p.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); detail(s.name); } });
       svg.append(p);
     });
@@ -271,13 +367,17 @@
       if (kind === 'dotted') p.style.cssText = 'stroke:var(--blue-60);stroke-dasharray:1 4;stroke-linecap:round';
       svg.append(p);
     });
+    svg.append(el('path', { class: 'sel-ring', d: '' }), el('path', { class: 'focus-ring', d: '' }));
     $('map').append(svg);
     svg.addEventListener('wheel', (e) => { e.preventDefault(); const [x, y] = toMap(e); zoomAt(e.deltaY > 0 ? 1.15 : 1 / 1.15, x, y); }, { passive: false });
     const ptr = new Map(); let last = null, moved = 0;
-    svg.addEventListener('pointerdown', (e) => { ptr.set(e.pointerId, e); last = null; moved = 0; svg.setPointerCapture(e.pointerId); svg.classList.add('dragging'); });
+    // Capture the pointer only once it starts dragging. Capturing on press retargets the click to the
+    // svg, so a plain click on a state never reached the state.
+    svg.addEventListener('pointerdown', (e) => { ptr.set(e.pointerId, e); last = null; moved = 0; });
     svg.addEventListener('pointermove', (e) => {
       if (!ptr.has(e.pointerId)) return;
       const prev = ptr.get(e.pointerId); ptr.set(e.pointerId, e);
+      if (moved > 6 && !svg.hasPointerCapture(e.pointerId)) { svg.setPointerCapture(e.pointerId); svg.classList.add('dragging'); }
       if (ptr.size === 2) {
         const [a, b] = [...ptr.values()], d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
         if (last) { const [x, y] = toMap({ clientX: (a.clientX + b.clientX) / 2, clientY: (a.clientY + b.clientY) / 2 }); zoomAt(last / d, x, y); }
@@ -301,7 +401,12 @@
   function controls() {
     document.querySelectorAll('.mm-layers button').forEach((b) => b.addEventListener('click', () => setLayer(b.dataset.layer)));
     $('color-by').addEventListener('change', (e) => setLayer(e.target.value));
-    $('tiers').addEventListener('click', (e) => { const b = e.target.closest('[data-state]'); if (b) { detail(b.dataset.state); fitTo(b.dataset.state); } });
+    const openFrom = (e) => { const b = e.target.closest('[data-state]'); if (b) { detail(b.dataset.state); fitTo(b.dataset.state); } };
+    $('tiers').addEventListener('click', openFrom);
+    $('ov-stats').addEventListener('click', openFrom);
+    $('partners').addEventListener('click', openFrom);
+    $('dl-ranking').addEventListener('click', downloadRanking);
+    $('dl-partners').addEventListener('click', downloadPartners);
     $('btn-reset').addEventListener('click', () => setView({ ...home }));
     $('btn-full').addEventListener('click', () => { const m = document.querySelector('.mm'); document.fullscreenElement ? document.exitFullscreen() : m.requestFullscreen && m.requestFullscreen(); });
     $('btn-search').addEventListener('click', () => { const f = $('search'); f.hidden = !f.hidden; $('btn-search').setAttribute('aria-expanded', String(!f.hidden)); if (!f.hidden) $('search-input').focus(); });
@@ -318,15 +423,17 @@
     const mine = z.zones.filter((x) => x.yours).length;
     const note = mine ? `<p class="notice notice-green mm-flag"><span class="badge badge-solid">Yours</span> Your file replaced ${mine} of ${z.zones.length} zone values. Zones marked Yours show your number; the rest are the public backtest below.</p>` : '';
     $('zone-value').innerHTML = note + `<p class="mm-small">${mine ? 'Public method: what' : 'What'} one Base Core (20 kW / 39.2 kWh) would have earned in each ERCOT load zone, ${esc(z.period.start)} to ${esc(z.period.endExclusive)} (12 real months), on one fixed daily clock: charge 10 AM to 2 PM, discharge 7 to 9 PM, Central, at real-time load zone prices. About 31 kWh is usable, so it sells 20 kWh from 7 to 8 PM and about 9 kWh from 8 to 9 PM. The clock was chosen from how ERCOT prices move (cheap midday solar, a peak after sunset), not by searching these prices. Energy arbitrage only: no capacity, tolling, backup or retail revenue. Not Base revenue.</p>` +
-      '<ol class="mm-bars">' + z.zones.map((x) => `<li${x.yours ? ` class="is-yours" title="Your file. Public value was $${fmt(x.publicUsdPerYear)}."` : x.market ? ` title="${esc(x.market)}: ${esc(x.who || '')}"` : ''}><span>${esc(x.id)}${x.market === NO_CHOICE ? '*' : ''}${x.yours ? ' <em class="badge badge-solid">Yours</em>' : ''}</span><i style="width:${Math.max(2, (x.usdPerYear / max) * 100)}%"></i><b>$${fmt(x.usdPerYear)}</b></li>`).join('') + '</ol>' +
+      '<ol class="mm-bars">' + z.zones.map((x) => `<li${x.yours ? ` class="is-yours" title="Your file. Public value was $${fmt(x.publicUsdPerYear)}."` : x.market ? ` title="${esc(x.market)}: ${esc(x.who || '')}"` : ''}><span>${esc(zname(x.id))}${x.market === NO_CHOICE ? '*' : ''}${x.yours ? ' <em class="badge badge-solid">Yours</em>' : ''}</span><i style="width:${Math.max(2, (x.usdPerYear / max) * 100)}%"></i><b>$${fmt(x.usdPerYear)}</b></li>`).join('') + '</ol>' +
       zoneMarkets(z) +
-      `<p class="mm-small">Only load zones (LZ_) are ranked: homes settle at load zone prices. Trading hubs (HB_) are not places a home battery earns, so they are left out (they are in the data file for reference). Best: ${esc(z.zones[0].id)} ($${fmt(z.zones[0].usdPerYear)} a year). Worst: ${esc(z.zones[z.zones.length - 1].id)} ($${fmt(z.zones[z.zones.length - 1].usdPerYear)}). See <a href="/deploy">/deploy</a> for monthly detail and <a href="/finance">/finance</a> for what this means for debt.</p>`;
+      `<p class="mm-small">Only load zones (LZ_) are ranked: homes settle at load zone prices. Trading hubs (HB_) are not places a home battery earns, so they are left out (they are in the data file for reference). Best: ${esc(zname(z.zones[0].id))} (${esc(z.zones[0].id)}, $${fmt(z.zones[0].usdPerYear)} a year). Worst: ${esc(zname(z.zones[z.zones.length - 1].id))} (${esc(z.zones[z.zones.length - 1].id)}, $${fmt(z.zones[z.zones.length - 1].usdPerYear)}). See <a href="/deploy">/deploy</a> for monthly detail and <a href="/finance">/finance</a> for what this means for debt.</p>`;
   }
 
   /* Who sells power to homes in each zone. In a zone without retail choice (ERCOT's NOIE load zones:
      city utilities and co-ops) no retail provider keeps the arbitrage, so a battery company reaches
      the value only through a utility partnership. Data and sources: zone-value.json "markets". */
   const NO_CHOICE = 'utility or co-op';
+  const ZONE_NAME = { LZ_WEST: 'West Texas', LZ_RAYBN: 'Rayburn co-op', LZ_NORTH: 'North Texas', LZ_CPS: 'CPS Energy (San Antonio)', LZ_LCRA: 'LCRA area', LZ_AEN: 'Austin Energy', LZ_SOUTH: 'South Texas', LZ_HOUSTON: 'Houston' };
+  const zname = (id) => ZONE_NAME[id] || id;
   function zoneMarkets(z) {
     if (!z.zones.some((x) => x.market)) return '';
     const how = (x) => (x.market === NO_CHOICE
@@ -334,9 +441,9 @@
       : 'A retail provider, or a battery owner that is one, keeps it.');
     const label = (x) => (x.market === NO_CHOICE ? 'Utility or co-op territory' : 'Retail choice');
     const src = ((z.markets && z.markets.sources) || []).map((u, i) => `<a href="${esc(u)}">${i + 1}</a>`).join(', ');
-    return '<div class="mm-scroll"><table class="ds-table"><thead><tr><th>Zone</th><th>Retail market</th><th>Who sells power to homes</th><th>How a battery company reaches this value</th></tr></thead><tbody>' +
-      z.zones.map((x) => `<tr><td>${esc(x.id)}${x.market === NO_CHOICE ? '*' : ''}</td><td>${esc(label(x))}</td><td>${esc(x.who || '')}</td><td>${esc(how(x))}</td></tr>`).join('') +
-      '</tbody></table></div>' +
+    return '<p class="mm-h">Who keeps the value in each zone</p><ul class="mm-zones">' +
+      z.zones.map((x) => `<li><p class="mm-zone-h"><b>${esc(zname(x.id))}</b> <code>${esc(x.id)}</code> <span class="badge ${x.market === NO_CHOICE ? 'badge-yellow' : 'badge-blue'}">${esc(label(x))}</span>${x.partner ? ` <span class="badge badge-green">Base partner</span>` : ''}</p><p>${esc(x.who || '')}. ${esc(how(x))}${x.partner ? ' ' + esc(x.partner) + (x.partnerSource ? ` (<a href="${esc(x.partnerSource)}">source</a>)` : '') + '.' : ''}</p></li>`).join('') +
+      '</ul>' +
       `<p class="mm-small">* No retail choice. LZ_AEN, LZ_CPS, LZ_LCRA and LZ_RAYBN are ERCOT Non-Opt-In Entity load zones: Austin Energy, CPS Energy, LCRA's wholesale customers and Rayburn Country co-op members, whose city councils and co-op boards decide whether to open to retail choice (PURA 40.051 and 41.051) and have not. The value there goes to the utility and is reachable only through a utility partnership. The other zones are mostly retail choice, with some city and co-op pockets. Sources: ${src}.</p>`;
   }
 

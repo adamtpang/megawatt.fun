@@ -42,7 +42,14 @@ const MARKETS = {
     'https://texas.public.law/statutes/tex._util._code_section_41.051',
   ],
 };
-const zones = all.filter((z) => z.kind === 'load zone').map((z) => Object.assign(z, MARKET[z.id] || { market: 'unknown', who: 'not classified' }));
+// Zones where Base already runs a utility partner program, with the utility's own announcement.
+const PARTNER = {
+  LZ_AEN: {
+    partner: 'Austin Energy (Base partner program: 40 MW agreement announced 19 May 2026, launched 15 Jul 2026)',
+    partnerSource: 'https://austinenergy.com/about/news/news-releases/2026/Austin-Energy-expands-local-battery-storage-to-support-reliable-affordable-power',
+  },
+};
+const zones = all.filter((z) => z.kind === 'load zone').map((z) => Object.assign(z, MARKET[z.id] || { market: 'unknown', who: 'not classified' }, PARTNER[z.id] || {}));
 const hubs = all.filter((z) => z.kind === 'hub');
 const out = {
   built: new Date().toISOString().slice(0, 10),

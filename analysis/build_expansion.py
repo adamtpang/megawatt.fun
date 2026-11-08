@@ -128,14 +128,14 @@ FACTORS = [
         "id": "saidi",
         "group": "Customer pull",
         "label": "Outage duration (SAIDI)",
-        "help": "EIA-861 2025 state total, including major events. Minutes per customer. Longer outages raise the score, as a backup-battery signal.",
+        "help": "EIA-861 state totals, median of 2021 to 2025, including major events. Minutes per customer. The median keeps one storm year from setting the score. Longer outages raise the score, as a backup-battery signal.",
         "weight": 1,
     },
     {
         "id": "saifi",
         "group": "Customer pull",
         "label": "Outage frequency (SAIFI)",
-        "help": "EIA-861 2025 state total, including major events. Interruptions per customer. More frequent outages raise the score.",
+        "help": "EIA-861 state totals, median of 2021 to 2025, including major events. Interruptions per customer. More frequent outages raise the score.",
         "weight": 1,
     },
     {
@@ -155,8 +155,8 @@ FACTORS = [
     {
         "id": "retail",
         "group": "Market access",
-        "label": "Retail delivery share",
-        "help": "Share of residential customers served by a delivery utility. Texas wires companies come from EIA's delivery-companies file. Retail-only suppliers are removed first so the same Texas home is not counted twice.",
+        "label": "Homes already on a competitive supplier",
+        "help": "Share of residential customers billed by a delivery-only utility, meaning they buy energy from a competitive supplier (EIA-861 2025). This measures switching, not legal access: open-choice states such as Maryland and New York still show low shares, and the retail-choice path factor carries legal access. Texas wires companies come from EIA's delivery-companies file, and retail-only suppliers are removed first so the same Texas home is not counted twice.",
         "weight": 1,
     },
     {
@@ -184,7 +184,14 @@ FACTORS = [
         "id": "dynamic_pricing",
         "group": "Market access",
         "label": "Dynamic pricing per 1,000 customers",
-        "help": "Residential dynamic-pricing enrollments reported on EIA-861 2025, per 1,000 residential customers. Blank cells are left out of the sum.",
+        "help": "Residential dynamic-pricing enrollments reported on EIA-861 2025, per 1,000 residential customers. Blank cells are left out of the sum. High counts often come from utility default or opt-out time-of-use rates (Maryland, Colorado, Delaware), so read this as rate design, not demand for a third-party battery.",
+        "weight": 1,
+    },
+    {
+        "id": "partner",
+        "group": "Market access",
+        "label": "Homes on co-ops and public power",
+        "help": "Share of residential customers served by cooperative, municipal, political-subdivision, state or federal utilities, from EIA-861 2025 Sales_Ult_Cust and the delivery-companies file. This is the utility-partnership path, the route of Base's co-op and city-utility programs (Austin Energy, GVEC, CoServ, Central Georgia EMC). Retail suppliers, behind-the-meter providers and EIA's unattributed adjustment rows are left out of both the count and the total.",
         "weight": 1,
     },
     {
@@ -194,13 +201,30 @@ FACTORS = [
         "help": "Proxy, not a permit clock. 1 when state law lets residential customers buy energy from a competitive supplier today (open residential retail choice), otherwise 0. Each state's flag cites its commission or statute and was checked " + RETAIL_CHOICE_CHECKED + ". Capped or closed programs count as 0: California (Direct Access capped, homes mostly on community choice aggregators) and Michigan (10% cap with a waiting list). A utility row also needs EIA-861 2025 delivery customers, since co-ops and city utilities in a choice state are usually exempt. A 1 means a licensed retail supplier can sell a battery plan without a new utility contract. A 0 means the public path is a utility or co-op partnership. DSIRE, SolarAPP+, and a full state interconnection-time table are not in this factor.",
         "weight": 1,
     },
+    {
+        "id": "price",
+        "group": "Economics",
+        "label": "Residential power price",
+        "help": "EIA-861 2025 average residential price, cents per kWh (Average_Bill_2025, the source of EIA Table 5A). A higher price leaves more room for a battery plan to cut the bill.",
+        "weight": 1,
+    },
 ]
+
+PARTNER_OWNERSHIP = {"Cooperative", "Municipal", "Political Subdivision", "State", "Federal"}
+NOT_A_WIRES_UTILITY = {"Retail Power Marketer", "Behind the Meter", ""}
+SAIDI_YEARS = (2021, 2022, 2023, 2024, 2025)
+TIER_LABELS = {"S": "Strongest fit", "A": "Strong fit", "B": "Mixed fit", "C": "Weak fit", "Later": "Thin public case"}
 
 FOOTPRINT = {
     "TX": {
         "status": "operating",
         "label": "Operating",
-        "detail": "Base's public offer is a Texas retail plan with a battery Base owns. The mark is not part of the score.",
+        "detail": "Base sells a Texas retail plan with a battery Base owns, and runs utility partner programs with Austin Energy, CoServ, GVEC, Farmers Electric Cooperative, Bandera Electric Cooperative and El Paso Electric. The mark is not part of the score.",
+        "source": {
+            "title": "Business Wire, 15 Jul 2026: Base Power Brings Affordable Home Backup to Austin Energy Customers (lists the partner utilities)",
+            "url": "https://www.businesswire.com/news/home/20260715702282/en/Base-Power-Brings-Affordable-Home-Backup-to-Austin-Energy-Customers",
+            "retrieved": "2026-11-08",
+        },
     },
     "IL": {
         "status": "operating",
@@ -210,9 +234,15 @@ FOOTPRINT = {
     "GA": {
         "status": "announced",
         "label": "Announced",
-        "detail": "Base Power and Central Georgia EMC announced a residential battery program on 13 Oct 2026 (Business Wire), for up to 50 MW with installations planned to begin in 2027. The mark is not part of the score.",
+        "detail": "Base Power and Central Georgia EMC announced a 50 MW residential battery program on 13 Oct 2026, Base's first utility partnership outside Texas. The co-op dispatches the fleet and members pay $95 for whole-home backup. The mark is not part of the score.",
+        "source": {
+            "title": "Business Wire, 13 Oct 2026: Central Georgia EMC and Base Power Launch Residential Battery Program",
+            "url": "https://www.businesswire.com/news/home/20261013886898/en/Central-Georgia-EMC-and-Base-Power-Launch-Residential-Battery-Program-to-Bring-Affordable-Whole-Home-Backup-to-Georgia",
+            "retrieved": "2026-11-08",
+        },
     },
 }
+GEORGIA_SOURCE_URL = FOOTPRINT["GA"]["source"]["url"]
 # Equipment and installation only: not retail supply and not a utility program. Source: Base's own site footer,
 # read from the raw homepage HTML on the date below. Job posts are not used as a source for any mark.
 BASE_FOOTER = {
@@ -516,6 +546,128 @@ def load_reliability(folder):
     return out, utility
 
 
+def eia_year_folder(year):
+    """EIA-861 files for one year. 2025 uses the main folder; earlier years come from EIA's archive."""
+    if year == 2025:
+        return ensure_eia()
+    dest = CACHE / f"f861{year}.zip"
+    fetch(f"https://www.eia.gov/electricity/data/eia861/archive/zip/f861{year}.zip", dest)
+    folder = CACHE / f"eia861-{year}"
+    marker = folder / f"Reliability_{year}.xlsx"
+    if not marker.exists():
+        folder.mkdir(parents=True, exist_ok=True)
+        with zipfile.ZipFile(dest) as archive:
+            archive.extract(f"Reliability_{year}.xlsx", folder)
+    return folder
+
+
+def state_reliability_year(year):
+    """One year's state SAIDI and SAIFI, any method, with major events.
+
+    2023 onward: EIA's State Totals sheet (Any Standard, else IEEE). 2021 and 2022 have no State Totals
+    sheet, so the state value is the customer-weighted mean of the utility rows (IEEE, else other method).
+    That rebuild matches the published State Totals to within 0.1% for every state in 2023 and 2024."""
+    path = eia_year_folder(year) / f"Reliability_{year}.xlsx"
+    import openpyxl
+    sheets = openpyxl.load_workbook(path, read_only=True).sheetnames
+    out = {}
+    if "State Totals" in sheets:
+        for row in rows(path, "State Totals", 4):
+            abbr = row[1]
+            if not abbr or abbr in SKIP_STATES:
+                continue
+            if num(row[13]) is not None:
+                out[abbr] = (num(row[13]), num(row[14]))
+            elif num(row[3]) is not None:
+                out[abbr] = (num(row[3]), num(row[4]))
+        return out
+    acc = defaultdict(lambda: [0.0, 0.0, 0.0])
+    for row in rows(path, "Reliability_States", 4):
+        abbr = row[3]
+        if not abbr or abbr in SKIP_STATES:
+            continue
+        saidi, saifi, count = num(row[5]), num(row[6]), num(row[14])
+        if saidi is None:
+            saidi, saifi, count = num(row[17]), num(row[18]), num(row[23])
+        if saidi is None or not count:
+            continue
+        slot = acc[abbr]
+        slot[0] += saidi * count
+        slot[1] += (saifi or 0) * count
+        slot[2] += count
+    return {abbr: (slot[0] / slot[2], slot[1] / slot[2]) for abbr, slot in acc.items() if slot[2]}
+
+
+def reliability_median():
+    """Median state SAIDI and SAIFI over SAIDI_YEARS, so one storm year does not set the score."""
+    years = {year: state_reliability_year(year) for year in SAIDI_YEARS}
+    out = {}
+    for abbr in {abbr for table in years.values() for abbr in table}:
+        pairs = [years[year][abbr] for year in SAIDI_YEARS if abbr in years[year]]
+        saidi = sorted(p[0] for p in pairs if p[0] is not None)
+        saifi = sorted(p[1] for p in pairs if p[1] is not None)
+        mid = lambda xs: None if not xs else (xs[len(xs) // 2] if len(xs) % 2 else (xs[len(xs) // 2 - 1] + xs[len(xs) // 2]) / 2)
+        out[abbr] = {"saidi": mid(saidi), "saifi": mid(saifi), "years": {str(y): clean(years[y][abbr][0], 1) for y in SAIDI_YEARS if abbr in years[y]}}
+    if abs((out["MI"]["saidi"] or 0) - 671.5) > 0.05:
+        raise SystemExit(f"Michigan SAIDI median changed or a sheet shifted: {out['MI']}")
+    return out
+
+
+def load_residential_bill(folder):
+    """EIA Average_Bill_2025 residential sheet (the source of Table 5A): price, bill, use, customers by state name."""
+    out = {}
+    for row in rows(folder / "Average_Bill_2025.xlsx", "Residential", 4):
+        name = row[0]
+        if not name or num(row[3]) is None:
+            continue
+        out[str(name).strip()] = {"customers": num(row[1]), "kwh_month": num(row[2]), "cents_kwh": num(row[3]), "bill_usd": num(row[4])}
+    if abs(out["Texas"]["cents_kwh"] - 15.397019) > 1e-4:
+        raise SystemExit(f"EIA Average_Bill Texas price changed or columns shifted: {out['Texas']}")
+    return out
+
+
+def partner_shares(customers):
+    """Per state: residential customers on co-op and public-power utilities, over all wires-utility customers."""
+    num_, den = defaultdict(float), defaultdict(float)
+    for (util, abbr), item in customers.items():
+        own = str(item.get("ownership") or "").strip()
+        if own in NOT_A_WIRES_UTILITY or util == 99999:
+            continue
+        count = item["Bundled"] + item["Delivery"]
+        den[abbr] += count
+        if own in PARTNER_OWNERSHIP:
+            num_[abbr] += count
+    return {abbr: num_[abbr] / den[abbr] for abbr in den if den[abbr]}
+
+
+CLEAN_WORDS = [
+    (r"\bEl Member Corp\b", "Electric Membership Corp"),
+    (r"\bElec Member Corp\b", "Electric Membership Corp"),
+    (r"\bElectric Member Corp\b", "Electric Membership Corp"),
+    (r"\bElec\b", "Electric"),
+    (r"\bCoop\b", "Cooperative"),
+    (r"\bAssn\b", "Association"),
+    (r"\bPwr\b", "Power"),
+    (r"\bUtil\b", "Utilities"),
+    (r"\bMun\b", "Municipal"),
+    (r"\bCnty\b", "County"),
+    (r"\bComm\b", "Commission"),
+]
+
+
+def clean_name(name):
+    """Readable utility or authority name. Expands EIA abbreviations and drops state suffixes like ' - (GA)'
+    and the ' - Trans.' tag; the state is shown next to the name."""
+    import re
+    text = str(name or "").strip()
+    text = re.sub(r"\s*-\s*\([A-Z]{2}\)\s*$", "", text)
+    text = re.sub(r"\s*-\s*Trans\.?\s*$", "", text)
+    for pattern, word in CLEAN_WORDS:
+        text = re.sub(pattern, word, text)
+    text = re.sub(r"\.{2,}$", ".", text)
+    return re.sub(r"\s{2,}", " ", text).strip()
+
+
 def is_iso_name(name):
     text = (name or "").lower()
     return (
@@ -689,7 +841,10 @@ def rto_label(parts, total):
     if not parts or not total:
         return "None reported"
     ordered = sorted(parts.items(), key=lambda item: -item[1])
-    bits = [f"{name} {item / total * 100:.0f}%" for name, item in ordered if item > 0]
+    # Shares that round to 0% are dropped: "SPP 0%" reads as a market the state is in.
+    bits = [f"{name} {item / total * 100:.0f}%" for name, item in ordered if item / total >= 0.005]
+    if not bits:
+        return "No ISO"
     label = ", ".join(bits[:3])
     if sum(parts.values()) > total * 1.02:
         label += " (tags overlap)"
@@ -750,8 +905,8 @@ def build_states(shapes, homes, nri_version, counties, reliability, customers, b
             "footprint": FOOTPRINT.get(abbr),
             "values": {key: clean(value) for key, value in values.items()},
             "detail": {
-                "rtos": rto_label(market_parts, known) if market_parts else ("No ISO balancing authority" if known else "Not reported"),
-                "top_ba": ba_labels.get(top_code, top_code) if top_code else None,
+                "rtos": rto_label(market_parts, known) if market_parts else ("No ISO" if known else "Not reported"),
+                "top_ba": clean_name(ba_labels.get(top_code, top_code)) if top_code else None,
                 "note": note,
                 "residential_customers": int(residential) if residential else None,
                 "battery_installs": None if battery_count is None else int(battery_count),
@@ -849,6 +1004,104 @@ def build_utilities(customers, utility_ba, iso_names, names, utility_reliability
     return utilities, {"county_rows": total, "matched": matched, "used": use_nri, "coverage": clean(coverage)}
 
 
+def enrich(states, utilities, folder=None):
+    """Second pass over built rows: five-year median outages, the co-op and public-power share, the 2025
+    residential price, clean names, utility ownership and ISO labels. Used by a full build and by --enrich,
+    which re-reads only the cached EIA-861 files and leaves the Census, FEMA and ERCOT numbers as they are."""
+    folder = folder or ensure_eia()
+    customers, ba_weight, utility_ba, iso_names, ba_labels, names = load_sales_and_markets(folder)
+    shares = partner_shares(customers)
+    bills = load_residential_bill(folder)
+    median = reliability_median()
+    # Bundled residential price per utility (revenue over sales). Delivery-only rows carry wires charges
+    # only, so they get no price rather than a misleadingly low one.
+    rev, mwh = defaultdict(float), defaultdict(float)
+    for row in rows(folder / "Sales_Ult_Cust_2025.xlsx", "States", 4):
+        if row[1] is None or row[4] != "Bundled" or not row[6]:
+            continue
+        r, s = num(row[9]), num(row[10])
+        if r is None or not s:
+            continue
+        rev[(int(row[1]), row[6])] += r
+        mwh[(int(row[1]), row[6])] += s
+    utility_price = {key: rev[key] / mwh[key] * 100 for key in mwh if mwh[key] > 0}
+    for record in states:
+        abbr = record["id"]
+        rel = median.get(abbr, {})
+        values = record["values"]
+        values["saidi"] = clean(rel.get("saidi"), 1)
+        values["saifi"] = clean(rel.get("saifi"), 3)
+        values["partner"] = clean(shares.get(abbr))
+        values["price"] = clean((bills.get(record["name"]) or {}).get("cents_kwh"))
+        detail = record["detail"]
+        detail["saidi_by_year"] = rel.get("years", {})
+        market_parts = defaultdict(float)
+        known = sum(ba_weight.get(abbr, {}).values())
+        for code, count in ba_weight.get(abbr, {}).items():
+            if code in iso_names:
+                market_parts[iso_names[code]] += count
+        detail["rtos"] = rto_label(market_parts, known) if market_parts else ("No ISO" if known else "Not reported")
+        if detail.get("top_ba"):
+            detail["top_ba"] = clean_name(detail["top_ba"])
+        years = rel.get("years", {})
+        detail["note"] = (
+            "SAIDI and SAIFI are the median of EIA's 2021 to 2025 state totals (any reporting method, with major events"
+            + ("; 2021 and 2022 rebuilt from the utility rows" if "2021" in years else "")
+            + "). SAIDI by year: " + ", ".join(f"{y} {v:,.0f}" for y, v in years.items() if v is not None) + " minutes. "
+            "Competitive-supplier share is delivery customers divided by bundled plus delivery customers. "
+            "Program rates use that same residential customer count. Price is EIA's 2025 average residential price."
+        )
+    # EIA's "Adjustment" rows (imputed short-form utilities) and behind-the-meter providers (Sunrun, Tesla)
+    # are not wires utilities a battery company could partner with, so they leave the utility list.
+    def wires(record):
+        util, abbr = record["id"].split("-")
+        key = (int(util), abbr)
+        own = str((names.get(key) or {}).get("ownership") or (customers.get(key) or {}).get("ownership") or "").strip()
+        return int(util) != 99999 and own not in NOT_A_WIRES_UTILITY
+    utilities[:] = [record for record in utilities if wires(record)]
+    for record in utilities:
+        util, abbr = record["id"].split("-")
+        key = (int(util), abbr)
+        own = str((names.get(key) or {}).get("ownership") or (customers.get(key) or {}).get("ownership") or "").strip()
+        record["eia_name"] = record.get("eia_name") or record["name"]
+        record["name"] = clean_name(record["eia_name"])
+        record["ownership"] = own or None
+        record["values"]["partner"] = 1.0 if own in PARTNER_OWNERSHIP else 0.0
+        record["values"]["price"] = clean(utility_price.get(key), 2)
+        note = record["detail"].get("note") or ""
+        if "2025 only" not in note:
+            record["detail"]["note"] = note + " (2025 only: the five-year median is used for states.)"
+    return states, utilities
+
+
+MARKET_STATES = ROOT / "data" / "market-states.json"
+
+
+def update_market_states(folder=None):
+    """Move the price and bill layers in data/market-states.json to EIA's 2025 Average_Bill file
+    (the data behind Table 5A). Shapes and the two-year outage layer are left as they are."""
+    folder = folder or ensure_eia()
+    bills = load_residential_bill(folder)
+    raw = MARKET_STATES.read_text(encoding="utf-8")
+    payload = json.loads(raw)
+    for record in payload["states"]:
+        bill = bills.get(record["name"])
+        if not bill:
+            raise SystemExit(f"No 2025 EIA bill row for {record['name']}")
+        record["customers"] = int(bill["customers"])
+        record["kwh_month"] = round(bill["kwh_month"])
+        record["cents_kwh"] = round(bill["cents_kwh"], 2)
+        record["bill_usd"] = round(bill["bill_usd"], 2)
+    us = bills["U.S. Total"]
+    payload["us"].update({"customers": int(us["customers"]), "kwh_month": round(us["kwh_month"]), "cents_kwh": round(us["cents_kwh"], 2), "bill_usd": round(us["bill_usd"], 2)})
+    payload["sources"]["price"] = {
+        "title": "EIA, 2025 Average Monthly Bill, Residential (EIA-861 Average_Bill_2025, the data behind Table 5A)",
+        "url": "https://www.eia.gov/electricity/sales_revenue_price/pdf/table_5A.pdf",
+        "year": 2025,
+    }
+    MARKET_STATES.write_text(json.dumps(payload, separators=(",", ":"), ensure_ascii="\\u" in raw) + ("\n" if raw.endswith("\n") else ""), encoding="utf-8", newline="")
+
+
 def score_rows(records):
     rank_table = {}
     for factor in FACTORS:
@@ -917,20 +1170,30 @@ def narrative(states, utilities):
         record = by_id[abbr]
         mark = (record.get("footprint") or {}).get("label")
         footprints.append(
-            f"{record['name']}{' (' + mark[0].lower() + mark[1:] + ')' if mark else ''} ranks {index}{' at equal weights' if not footprints else ''} (score {round(score * 100)}), with SAIDI {record['values']['saidi']:.0f} minutes, "
-            f"retail delivery share {record['values']['retail'] * 100:.1f}%, and wholesale mix {record['detail']['rtos']}"
+            f"{record['name']}{' (' + mark[0].lower() + mark[1:] + ')' if mark else ''} ranks {index}{' at equal weights' if not footprints else ''} (score {round(score * 100)}), with median SAIDI {record['values']['saidi']:.0f} minutes, "
+            f"{record['values']['retail'] * 100:.1f}% of homes on a competitive supplier, {(record['values'].get('partner') or 0) * 100:.0f}% on co-ops and public power, and wholesale mix {record['detail']['rtos']}"
         )
     lines.append("Base's public footprint, marked on the map and kept out of the weights: " + ". ".join(footprints) + ".")
     georgia = by_id["GA"]
-    lines.append(
-        f"Georgia's largest balancing authority in this file is {georgia['detail'].get('top_ba')}. "
-        "EIA reports no residential delivery service there. A utility contract, the shape of the reported Central Georgia EMC project, does not appear in the retail-choice factor, so Georgia's rank is a weak guide to that path."
-    )
+    partner_weights = {factor["id"]: (0 if factor["id"] in ("retail", "wholesale", "launch_path", "batteries", "demand_response", "dynamic_pricing") else 1) for factor in FACTORS}
+    if "partner" in partner_weights:
+        ranked_partner = rank(states, partner_weights)
+        ga_partner = next(i for i, item in enumerate(ranked_partner, start=1) if item["id"] == "GA")
+        lines.append(
+            f"Georgia has no residential retail choice, and {(georgia['values'].get('partner') or 0) * 100:.0f}% of its homes are on co-ops and public power. "
+            f"Central Georgia EMC's program is a utility partnership, so read Georgia on the partner path: with only the partner-path factors on (co-op and public-power share, homes, outages, storm, heat and price), it ranks {ga_partner}, "
+            f"behind {brief(ranked_partner[0])}, {brief(ranked_partner[1])} and {brief(ranked_partner[2])}."
+        )
+    else:
+        lines.append(
+            f"Georgia's largest balancing authority in this file is {georgia['detail'].get('top_ba')}. "
+            "EIA reports no residential delivery service there, so Georgia's rank is a weak guide to the utility-partnership path."
+        )
     comed = next((item for item in utilities if "commonwealth edison" in item["name"].lower()), None)
     georgia = next((item for item in utilities if "central georgia" in item["name"].lower()), None)
     extra = (
-        f"The longest state SAIDI in this file is {saidi_leader['name']} at {saidi_leader['values']['saidi']:.0f} minutes. "
-        f"The highest residential delivery share is {retail_leader['name']} at {retail_leader['values']['retail'] * 100:.1f}%."
+        f"The longest median state SAIDI in this file is {saidi_leader['name']} at {saidi_leader['values']['saidi']:.0f} minutes. "
+        f"The highest share of homes on a competitive supplier is {retail_leader['name']} at {retail_leader['values']['retail'] * 100:.1f}%."
     )
     if comed:
         extra += (
@@ -1228,9 +1491,19 @@ def sources(nri_version, queried=None):
             "detail": "Published 10 Sep 2026. North Haven electrical supervisor posting describes expansion beyond Texas. Context only: no footprint mark uses a job post.",
         },
         {
-            "title": "Grid & Generation, Georgia partnership report",
-            "url": "https://gridandgeneration.com/news/base-power-expands-georgia-mw-residential-battery-network/",
-            "detail": "21 Oct 2026. Attributes the Central Georgia EMC, 50 MW, 2027 installation timing to Utility Dive and energytech.com. Secondary report.",
+            "title": "Business Wire: Central Georgia EMC and Base Power launch residential battery program",
+            "url": GEORGIA_SOURCE_URL,
+            "detail": "13 Oct 2026. Up to 50 MW, installations planned to begin in 2027. Source of the Georgia mark.",
+        },
+        {
+            "title": "EIA Form 861, 2021 to 2024 (archive)",
+            "url": "https://www.eia.gov/electricity/data/eia861/",
+            "detail": "Reliability files for the five-year median SAIDI and SAIFI. 2021 and 2022 have no state-total sheet, so those years are rebuilt from the utility rows, customer-weighted.",
+        },
+        {
+            "title": "EIA Form 861, 2025: Average_Bill_2025 (residential)",
+            "url": EIA_URL,
+            "detail": "Average residential price and bill by state, the data behind EIA Table 5A.",
         },
     ]
 
@@ -1278,6 +1551,9 @@ def main():
     if "--patch" in sys.argv:
         patch_existing()
         return
+    if "--enrich" in sys.argv:
+        patch_existing(enrich_eia=True)
+        return
     skip_ercot = "--skip-ercot" in sys.argv
     print("shapes")
     shapes = load_shapes()
@@ -1295,6 +1571,7 @@ def main():
     territory = load_territory(folder)
     states = build_states(shapes, homes, nri_version, counties, reliability, customers, ba_weight, iso_names, ba_labels, programs)
     utilities, utility_nri = build_utilities(customers, utility_ba, iso_names, names, utility_reliability, programs, territory, counties)
+    enrich(states, utilities, folder)
     print("utility county match", utility_nri)
     print("ercot" if not skip_ercot else "skip ercot")
     try:
@@ -1306,7 +1583,7 @@ def main():
     payload = {
         "generated": TODAY,
         "vintage": (
-            f"Built {TODAY}. Homes: ACS 2024 5-year. Outages, customers, choice, markets, batteries, and programs: EIA-861 calendar 2025, final release 7 Oct 2026. "
+            f"Built {TODAY}. Homes: ACS 2024 5-year. Outages: EIA-861 2021 to 2025 median. Customers, choice, co-op share, price, markets, batteries, and programs: EIA-861 calendar 2025, final release 7 Oct 2026. "
             f"Storm and heat: FEMA National Risk Index counties, version {nri_version or 'unlabeled'}, queried {TODAY}."
         ),
         "factors": FACTORS,
@@ -1337,6 +1614,14 @@ def print_top(states, n=10):
     for abbr in ("TX", "IL", "PA", "CA", "GA", "MI", "CO", "CT"):
         index = next(i for i, item in enumerate(ranked, start=1) if item["id"] == abbr)
         print(f"  {abbr} rank {index} score {round(ranked[index - 1]['score'] * 100)}")
+    partner = {f["id"]: (1 if f["id"] in ("partner", "homes", "saidi", "saifi", "storm", "heat", "price") else 0) for f in FACTORS}
+    ranked = rank(states, partner)
+    print("partner path:")
+    for index, item in enumerate(ranked[:n], start=1):
+        print(f"  {index:2} {item['name']:20} {round(item['score']*100):3}")
+    for abbr in ("GA", "MI", "TX"):
+        index = next(i for i, item in enumerate(ranked, start=1) if item["id"] == abbr)
+        print(f"  {abbr} rank {index} score {round(ranked[index - 1]['score'] * 100)}")
 
 
 def ercot_paragraph(ercot):
@@ -1358,12 +1643,20 @@ def ercot_paragraph(ercot):
     ]
 
 
-def patch_existing():
+def patch_existing(enrich_eia=False):
     """Re-apply the hand-checked parts (retail-choice flags, footprint marks, factor text, ERCOT framing,
     sources and narrative) to the published data/expansion-map.json without downloading anything.
-    Every other number in the file is left as the last full build wrote it."""
+    Every other number in the file is left as the last full build wrote it. With enrich_eia (--enrich),
+    also re-read the cached EIA-861 files for the median outages, co-op share, price and names."""
     payload = json.loads(OUT.read_text(encoding="utf-8"))
     states, utilities = payload["states"], payload["utilities"]
+    if enrich_eia:
+        enrich(states, utilities)
+        update_market_states()
+        payload["vintage"] = payload["vintage"].replace(
+            "Outages, customers, choice, markets, batteries, and programs: EIA-861 calendar 2025",
+            "Outages: EIA-861 2021 to 2025 median. Customers, choice, co-op share, price, markets, batteries, and programs: EIA-861 calendar 2025",
+        )
     for record in states:
         abbr = record["id"]
         record["values"]["launch_path"] = launch_path(abbr)

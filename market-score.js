@@ -40,7 +40,8 @@
     const id = f.id;
     if (id === 'homes' || id === 'saidi') return fmt(v);
     if (id === 'saifi') return fmt(v, 2);
-    if (id === 'retail' || id === 'wholesale') return fmt(v * 100, 1) + '%';
+    if (id === 'retail' || id === 'wholesale' || id === 'partner') return fmt(v * 100, 1) + '%';
+    if (id === 'price') return fmt(v, 1) + '¢/kWh';
     if (id === 'storm' || id === 'heat') return fmt(v, 1);
     return fmt(v, 2);
   }
@@ -97,8 +98,8 @@
   }
 
   const TIERS = [
-    { id: 'S', label: 'Target first' }, { id: 'A', label: 'Strong case' }, { id: 'B', label: 'Mixed' },
-    { id: 'C', label: 'One constraint leads' }, { id: 'Later', label: 'Thin public case' },
+    { id: 'S', label: 'Strongest fit' }, { id: 'A', label: 'Strong fit' }, { id: 'B', label: 'Mixed fit' },
+    { id: 'C', label: 'Weak fit' }, { id: 'Later', label: 'Thin public case' },
   ];
 
   const api = { mergeStates, allFactors, defaultWeights, rank, why, factorFmt, scoreStates, TIERS };

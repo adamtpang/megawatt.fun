@@ -14,7 +14,33 @@ class ExpansionDataTests(unittest.TestCase):
         # B25032 owner-occupied one-unit detached 6,091,247 plus attached 172,350.
         self.assertEqual(state("TX")["values"]["homes"], 6263597)
         # EIA-861 2025 state total, any method, with major events.
-        self.assertAlmostEqual(state("AK")["values"]["saidi"], 540.9, places=1)
+        self.assertAlmostEqual(state("AK")["detail"]["saidi_by_year"]["2025"], 540.9, places=1)
+        # The score uses the 2021 to 2025 median: Alaska 379.1, 327.1, 374.8, 575.2, 540.9 -> 379.1.
+        self.assertAlmostEqual(state("AK")["values"]["saidi"], 379.1, places=1)
+        self.assertEqual(sorted(state("AK")["detail"]["saidi_by_year"]), ["2021", "2022", "2023", "2024", "2025"])
+        # Michigan's 2023 ice storm (1,093.6) no longer sets its value on its own: median 671.5.
+        self.assertAlmostEqual(state("MI")["values"]["saidi"], 671.5, places=1)
+        # EIA Average_Bill_2025 residential price for Texas.
+        self.assertAlmostEqual(state("TX")["values"]["price"], 15.397, places=3)
+
+    def test_partner_path(self):
+        # Share of homes on co-ops and public power (EIA-861 2025 ownership).
+        self.assertGreater(state("TN")["values"]["partner"], 0.95)
+        self.assertGreater(state("GA")["values"]["partner"], 0.4)
+        self.assertLess(state("NJ")["values"]["partner"], 0.2)
+        cgemc = next(u for u in DATA["utilities"] if u["id"] == "3248-GA")
+        self.assertEqual(cgemc["ownership"], "Cooperative")
+        self.assertEqual(cgemc["values"]["partner"], 1.0)
+        self.assertEqual(cgemc["name"], "Central Georgia Electric Membership Corp")
+        self.assertEqual(cgemc["eia_name"], "Central Georgia El Member Corp")
+        # Not wires utilities: EIA adjustment rows and behind-the-meter providers are left out.
+        self.assertFalse(any(u["name"].startswith("Adjustment") for u in DATA["utilities"]))
+        self.assertFalse(any(u.get("ownership") == "Behind the Meter" for u in DATA["utilities"]))
+        # A market share that rounds to 0% is dropped ("SPP 0%" read as a market the state is in).
+        import re
+        for s in DATA["states"]:
+            self.assertIsNone(re.search(r"(?<!\d)0%", s["detail"]["rtos"]), s["detail"]["rtos"])
+        self.assertEqual(state("CO")["detail"]["rtos"], "No ISO")
 
     def test_market_structure_is_not_a_checkbox(self):
         self.assertGreater(state("TX")["values"]["retail"], 0.5)

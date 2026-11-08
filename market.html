@@ -23,9 +23,9 @@
   <div class="mm-map" id="map" role="img" aria-label="US map shaded by the selected layer. Select a state for its numbers."></div>
 
   <div class="mm-tools" aria-label="Map controls">
-    <button class="mm-round" id="btn-search" type="button" aria-label="Search states" aria-expanded="false" title="Search">⌕</button>
-    <button class="mm-round" id="btn-reset" type="button" aria-label="Reset view" title="Reset view">⤢</button>
-    <button class="mm-round" id="btn-full" type="button" aria-label="Full screen" title="Full screen">⛶</button>
+    <button class="mm-round" id="btn-search" type="button" aria-label="Search states" aria-expanded="false" title="Search"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
+    <button class="mm-round" id="btn-reset" type="button" aria-label="Reset view" title="Reset view"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></button>
+    <button class="mm-round" id="btn-full" type="button" aria-label="Full screen" title="Full screen"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
   </div>
   <form class="mm-search" id="search" hidden role="search"><label class="sr-only" for="search-input">Find a state</label><input id="search-input" list="state-list" placeholder="Find a state" autocomplete="off"><datalist id="state-list"></datalist></form>
 
@@ -33,7 +33,7 @@
     <button class="mm-close" id="ov-toggle" type="button" aria-expanded="true" aria-controls="ov-body">Overview</button>
     <div id="ov-body">
       <p class="eyebrow">Market map</p>
-      <h1 id="ov-title">Where to look next</h1>
+      <h1 id="ov-title">Where to roll out next</h1>
       <p class="mm-lede" id="ov-lede" aria-live="polite">Loading the map data…</p>
       <div id="ov-error" role="alert"></div>
       <div class="mm-stats" id="ov-stats" aria-live="polite"></div>
@@ -42,21 +42,24 @@
       <p class="mm-updated" id="ov-updated"></p>
       <div class="mm-card" id="detail" aria-live="polite" hidden></div>
 
-      <details class="mm-sec" id="sec-tiers" open><summary>Tier list</summary><div id="tiers"><p class="mm-small">Loading…</p></div></details>
+      <details class="mm-sec" id="sec-tiers" open><summary>Tier list</summary><div id="tiers"><p class="mm-small">Loading…</p></div><p class="mm-actions"><button type="button" class="btn btn-outline btn-sm" id="dl-ranking">Download ranking (CSV)</button><a class="btn btn-outline btn-sm" href="/docs/api.md">JSON API</a></p></details>
       <details class="mm-sec"><summary>Score weights</summary>
         <p class="mm-small">Each factor is a percentile across the 51 states. The score is their weighted average. Set a weight to 0 to drop it.</p>
         <div class="mm-presets" role="group" aria-label="Weight presets">
-          <button type="button" class="btn btn-outline btn-sm" data-preset="equal" aria-pressed="true">Equal</button><button type="button" class="btn btn-outline btn-sm" data-preset="pull" aria-pressed="false">Customer pull</button><button type="button" class="btn btn-outline btn-sm" data-preset="access" aria-pressed="false">Market access</button><button type="button" class="btn btn-outline btn-sm" data-preset="nosize" aria-pressed="false">Ignore size</button>
+          <button type="button" class="btn btn-outline btn-sm" data-preset="equal" aria-pressed="true">Equal</button><button type="button" class="btn btn-outline btn-sm" data-preset="retail" aria-pressed="false" title="Drops the co-op and public power share">Retail path</button><button type="button" class="btn btn-outline btn-sm" data-preset="partner" aria-pressed="false" title="Drops retail share, wholesale share and retail-choice path">Partner path</button><button type="button" class="btn btn-outline btn-sm" data-preset="pull" aria-pressed="false">Customer pull</button><button type="button" class="btn btn-outline btn-sm" data-preset="nosize" aria-pressed="false">Ignore size</button>
         </div>
+        <p class="mm-small" id="shares" aria-live="polite"></p>
+        <p class="mm-small">Retail path scores states where Base can sell its own retail plan. Partner path scores states where it would work through co-ops and city utilities, as it does with Austin Energy, GVEC, CoServ and Central Georgia EMC.</p>
         <div id="weights"></div>
       </details>
       <details class="mm-sec" id="sec-value"><summary>Where one battery earns most (Texas)</summary><div id="zone-value" aria-live="polite"><p class="mm-small">Loading…</p></div></details>
+      <details class="mm-sec" id="sec-partners"><summary>Utility partner candidates (co-ops and public power)</summary><div id="partners" aria-live="polite"><p class="mm-small">Loading…</p></div><p class="mm-actions"><button type="button" class="btn btn-outline btn-sm" id="dl-partners" hidden>Download candidates (CSV)</button></p></details>
       <details class="mm-sec"><summary>Utilities in the selected state</summary><div id="utilities" aria-live="polite"><p class="mm-small">Select a state.</p></div></details>
       <details class="mm-sec" id="sec-congestion"><summary>ERCOT grid congestion (context, not battery value)</summary><div id="ercot"><p class="mm-small">Loading…</p></div></details>
       <details class="mm-sec"><summary>Method, limits and sources</summary>
         <ul class="mm-small" id="method">
           <li>The score is an outside view from public data. It has no Base install times, permit outcomes, crew plans, financing terms or customer data.</li>
-          <li>The outage, price and bill map layers are separate from the score. The outage layer averages 2024 and 2025 because one storm can swing a single year: Texas had 1,271 minutes in 2024 (Hurricane Beryl) and 224 in 2025. The score's own outage factors use EIA-861 2025 only, so a 2024 storm year does not raise a state's score.</li>
+          <li>The outage, price and bill map layers are separate from the score. The outage layer averages 2024 and 2025 because one storm can swing a single year: Texas had 1,271 minutes in 2024 (Hurricane Beryl) and 224 in 2025. The score's own outage factors use the median of EIA-861 2021 to 2025, so a single storm year does not set a state's score.</li>
           <li>Base footprint marks come from public, dated sources and are not part of the score. Operating means Base sells to homes there (Texas retail, Illinois ARES in ComEd). Announced means a utility program was announced. Equipment and installation (Colorado, Connecticut) is what Base's own site footer says it offers there: home battery equipment and installation, not a retail plan or a utility program.</li>
           <li>Not affiliated with Base Power.</li>
         </ul>
@@ -74,10 +77,10 @@
   </aside>
 
   <div class="mm-layers" role="radiogroup" aria-label="Map layer">
-    <button type="button" role="radio" aria-checked="true" data-layer="score" title="Expansion score">★<span>Score</span></button>
-    <button type="button" role="radio" aria-checked="false" data-layer="saidi_avg" title="Outage minutes">⚡<span>Outages</span></button>
-    <button type="button" role="radio" aria-checked="false" data-layer="cents_kwh" title="Power price">¢<span>Price</span></button>
-    <button type="button" role="radio" aria-checked="false" data-layer="bill_usd" title="Monthly bill">$<span>Bill</span></button>
+    <button type="button" role="radio" aria-checked="true" data-layer="score" title="Expansion score"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg><span>Score</span></button>
+    <button type="button" role="radio" aria-checked="false" data-layer="saidi_avg" title="Outage minutes"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg><span>Outages</span></button>
+    <button type="button" role="radio" aria-checked="false" data-layer="cents_kwh" title="Power price"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg><span>Price</span></button>
+    <button type="button" role="radio" aria-checked="false" data-layer="bill_usd" title="Monthly bill"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2h12v20l-3-2-3 2-3-2-3 2z"/><path d="M9 7h6M9 11h6M9 15h4"/></svg><span>Bill</span></button>
   </div>
 </main>
 </body>

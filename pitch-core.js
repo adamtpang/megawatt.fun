@@ -660,6 +660,14 @@
       var full = norm(u.name), bare = norm(u.name.replace(/\s*-\s*\([A-Z]{2}\)\s*$/, ''));
       add(byName, full, u);
       add(byName, bare, u);
+      // EIA's own spelling ("Bandera Electric Coop, Inc") still matches after the name is cleaned up.
+      if (u.eia_name && u.eia_name !== u.name) {
+        var eia = norm(u.eia_name), eiaBare = norm(u.eia_name.replace(/\s*-\s*\([A-Z]{2}\)\s*$/, ''));
+        add(byName, eia, u);
+        add(byName, eiaBare, u);
+        add(byLoose, looseName(eia), u);
+        add(byLoose, looseName(eiaBare), u);
+      }
       var k = own(KNOWN, u.id);
       if (k && k.alias) add(byName, norm(k.alias), u);
       add(byLoose, looseName(full), u);

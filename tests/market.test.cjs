@@ -18,7 +18,9 @@ test('every source is a real URL and Base markets are states on the map', () => 
 
 test('spot checks against the EIA tables', () => {
   const tx = d.states.find((s) => s.name === 'Texas');
-  assert.equal(tx.kwh_month, 1096); assert.equal(tx.cents_kwh, 14.94);
+  // EIA-861 2025 Average_Bill, residential (the data behind Table 5A).
+  assert.equal(tx.kwh_month, 1110); assert.equal(tx.cents_kwh, 15.4); assert.equal(tx.bill_usd, 170.95);
   assert.equal(tx.saidi_2024, 1270.6); assert.equal(tx.saidi_2025, 223.5);
-  assert.equal(d.us.cents_kwh, 16.48);
+  assert.equal(d.us.cents_kwh, 17.23);
+  assert.equal(d.sources.price.year, 2025);
 });
