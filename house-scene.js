@@ -61,37 +61,62 @@ async function boot() {
   scene.add(ground);
 
   const loader = new GLTFLoader();
+  const look = new THREE.Vector3(0, 2, 0);
   let current = null;
   let battery = null;
   let preset = '';
 
-  function fit(object) {
+  // Models stay in meters. The camera backs up so a 9 m bungalow, an 18 m suburban
+  // house, and a 21 m ranch each fill the frame. Front is +Z. The battery is on +X.
+  function frameHouse(object) {
     const box = new THREE.Box3().setFromObject(object);
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
-    const scale = 11 / Math.max(size.x, size.y, size.z, 0.001);
-    object.scale.setScalar(scale);
-    object.position.sub(center.multiplyScalar(scale));
-    object.position.y -= box.min.y * scale;
+    const aspect = (canvas.clientWidth || 640) / Math.max(canvas.clientHeight || 380, 1);
+    const vFov = camera.fov * Math.PI / 180;
+    const hFov = 2 * Math.atan(Math.tan(vFov / 2) * aspect);
+    const span = Math.max(size.x, size.z);
+    const dist = Math.max((span * 0.62) / Math.tan(hFov / 2), (size.y * 0.85) / Math.tan(vFov / 2));
+    look.set(center.x * 0.08, size.y * 0.38, center.z * 0.05);
+    camera.position.set(look.x + dist * 0.72, size.y * 0.55 + 1.4, look.z + dist);
+    camera.near = Math.max(0.05, dist / 200);
+    camera.far = dist * 12;
+    camera.updateProjectionMatrix();
+    ground.geometry.dispose();
+    ground.geometry = new THREE.CircleGeometry(Math.max(Math.hypot(size.x, size.z) * 0.62, 8), 64);
+    ground.position.y = -0.02;
   }
 
+  let loading = null;
   async function loadPreset(id) {
-    if (preset === id && current) return;
+    if (preset === id && current) return true;
+    if (loading && loading.id === id) return loading.promise;
     preset = id;
-    if (current) scene.remove(current);
-    current = null;
-    battery = null;
-    try {
+    const promise = (async () => {
+      if (current) scene.remove(current);
+      current = null;
+      battery = null;
       const gltf = await loader.loadAsync('/models/house-' + id + '.glb');
+      if (preset !== id) return false;
       current = gltf.scene;
       battery = current.getObjectByName('Battery');
-      fit(current);
+      if (battery && battery.material) {
+        battery.material = battery.material.clone();
+        battery.userData.baseColor = battery.material.color.getHex();
+      }
       scene.add(current);
+      frameHouse(current);
       return true;
+    })();
+    loading = { id, promise };
+    try {
+      return await promise;
     } catch (err) {
       console.error(err);
       showFallback();
       return false;
+    } finally {
+      if (loading && loading.promise === promise) loading = null;
     }
   }
 
@@ -112,12 +137,15 @@ async function boot() {
     ground.material.color.setHex(ROI[pending.roi] || ROI.idle);
     let mesh = battery;
     if (mesh && !mesh.material) mesh.traverse((obj) => { if (!mesh.material && obj.material) mesh = obj; });
+    const mode = modeAt(hour);
+    if (canvas) canvas.dataset.battery = mode;
     if (mesh && mesh.material) {
       const mat = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material;
-      mat.color.setHex(MODE[modeAt(hour)] || MODE.idle);
+      const tint = mode === 'idle' ? (mesh.userData.baseColor || MODE.charge) : MODE[mode];
+      mat.color.setHex(tint);
       mat.emissive = mat.emissive || new THREE.Color();
-      mat.emissive.setHex(MODE[modeAt(hour)] || 0);
-      mat.emissiveIntensity = modeAt(hour) === 'idle' ? 0 : 0.35;
+      mat.emissive.setHex(mode === 'idle' ? 0x000000 : MODE[mode]);
+      mat.emissiveIntensity = mode === 'idle' ? 0 : 0.35;
     }
   }
   pending.apply = apply;
@@ -128,15 +156,14 @@ async function boot() {
     if (canvas.width !== Math.floor(width * renderer.getPixelRatio()) || canvas.height !== Math.floor(height * renderer.getPixelRatio())) {
       renderer.setSize(width, height, false);
       camera.aspect = width / Math.max(height, 1);
-      camera.updateProjectionMatrix();
+      if (current) frameHouse(current);
     }
     if (!reduced && pending.day && now - last > 700) {
       last = now;
       hour = (hour + 1) % 24;
       apply();
     }
-    if (current && !reduced) current.rotation.y += 0.002;
-    camera.lookAt(0, 2, 0);
+    camera.lookAt(look);
     renderer.render(scene, camera);
     if (!reduced) requestAnimationFrame(frame);
   }
