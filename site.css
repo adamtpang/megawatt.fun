@@ -31,33 +31,140 @@
 }
 :root {
   color-scheme: light;
-  --surface: #f0eeeb;
-  --surface-raised: #fff;
-  --brand: #b2dd79;
-  --brand-foreground: #1e4d2b;
-  --brand-hover: #77a45a;
-  --brand-subtle: #d6f0b4;
-  --charcoal: #292826;
-  --line: #d8d7d5;
-  --ink: var(--charcoal);
-  --muted: #54524f;
-  --faint: #7f7d7a;
-  --good: #77a45a;
-  --bad: #bf5249;
-  --error: #c51808;
-  --body: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --display: var(--body);
-  --mono: "SF Mono", Monaco, Consolas, "Liberation Mono", monospace;
+  /* Base Power public tokens, extracted 2026-11-05 from basepowercompany.com MarketingLayout :root.
+     Instrument Sans stands in for PP Neue Montreal and Clarendon Wide. Those faces are not shipped. */
+  --bpc-color-blue-10: #cce5f5;
+  --bpc-color-blue-100: #07314b;
+  --bpc-color-blue-40: #68baed;
+  --bpc-color-blue-60: #048ee5;
+  --bpc-color-blue-80: #06507e;
+  --bpc-color-green-100: #102a17;
+  --bpc-color-green-20: #b2dd79;
+  --bpc-color-green-5: #d6f0b4;
+  --bpc-color-green-60: #77a45a;
+  --bpc-color-green-90: #1e4d2b;
+  --bpc-color-grey-100: #292826;
+  --bpc-color-grey-20: #d8d7d5;
+  --bpc-color-grey-40: #a9a8a7;
+  --bpc-color-grey-5: #f0eeeb;
+  --bpc-color-grey-60: #7f7d7a;
+  --bpc-color-grey-80: #54524f;
+  --bpc-color-grid-off: #bf5249;
+  --bpc-color-orange-40: #f09064;
+  --bpc-color-orange-5: #fbe3d8;
+  --bpc-color-orange-60: #ed6c30;
+  --bpc-color-orange-90: #742c0b;
+  --bpc-color-red-20: #ff948a;
+  --bpc-color-red-5: #ffccc7;
+  --bpc-color-red-80: #c51808;
+  --bpc-color-timeline-active: #084d41;
+  --bpc-color-timeline-inactive: #cdd3cf;
+  --bpc-color-white: #fff;
+  --bpc-color-yellow-10: #f9d77d;
+  --bpc-color-yellow-20: #f7c33c;
+  --bpc-color-yellow-5: #fdf1d3;
+  --bpc-color-yellow-60: #aa8422;
+  --bpc-color-yellow-80: #5e4507;
+  --bpc-color-border-active: var(--bpc-color-grey-100);
+  --bpc-color-border-default: var(--bpc-color-grey-20);
+  --bpc-color-border-error: var(--bpc-color-red-80);
+  --bpc-color-border-strong: var(--bpc-color-grey-80);
+  --bpc-color-brand-energy: var(--bpc-color-orange-60);
+  --bpc-color-brand-gold: var(--bpc-color-yellow-20);
+  --bpc-color-brand-primary: var(--bpc-color-green-20);
+  --bpc-color-brand-primary-active: var(--bpc-color-green-100);
+  --bpc-color-brand-primary-foreground: var(--bpc-color-green-90);
+  --bpc-color-brand-primary-hover: var(--bpc-color-green-60);
+  --bpc-color-brand-primary-subtle: var(--bpc-color-green-5);
+  --bpc-color-brand-sky: var(--bpc-color-blue-60);
+  --bpc-color-conduit: var(--bpc-color-grey-5);
+  --bpc-color-energy: var(--bpc-color-orange-60);
+  --bpc-color-goldenrod: var(--bpc-color-yellow-20);
+  --bpc-color-grounded: var(--bpc-color-green-90);
+  --bpc-color-livewire: var(--bpc-color-green-20);
+  --bpc-color-strike: var(--bpc-color-white);
+  --bpc-color-surface-dark: var(--bpc-color-green-90);
+  --bpc-color-surface-default: var(--bpc-color-grey-5);
+  --bpc-color-surface-inset: var(--bpc-color-white);
+  --bpc-color-surface-raised: var(--bpc-color-white);
+  --bpc-color-surface-subtle: var(--bpc-color-grey-20);
+  --bpc-color-terminal: var(--bpc-color-grey-100);
+  --bpc-color-texas-sky: var(--bpc-color-blue-60);
+  --bpc-color-text-brand: var(--bpc-color-green-90);
+  --bpc-color-text-default: var(--bpc-color-grey-100);
+  --bpc-color-text-disabled: var(--bpc-color-grey-40);
+  --bpc-color-text-error: var(--bpc-color-red-80);
+  --bpc-color-text-inverse: var(--bpc-color-white);
+  --bpc-color-text-link: var(--bpc-color-green-90);
+  --bpc-color-text-muted: var(--bpc-color-grey-80);
+  --bpc-space-1: .25rem;
+  --bpc-space-2: .5rem;
+  --bpc-space-3: .75rem;
+  --bpc-space-4: 1rem;
+  --bpc-space-5: 1.25rem;
+  --bpc-space-6: 1.5rem;
+  --bpc-space-8: 2rem;
+  --bpc-space-10: 2.5rem;
+  --bpc-space-12: 3rem;
+  --bpc-space-16: 4rem;
+  --bpc-space-20: 5rem;
+  --bpc-space-24: 6rem;
+  --bpc-space-32: 8rem;
+  --bpc-radius-sm: 4px;
+  --bpc-radius-md: 8px;
+  --bpc-radius-lg: 16px;
+  --bpc-radius-pill: 9999px;
+  --bpc-drop-shadow-media: 0 2px 6px #0006;
+  --bpc-shadow-floating: 0 18px 48px #00000073;
+  --bpc-shadow-media: 0 8px 24px #00000059;
+  --bpc-text-shadow-media: 0 2px 10px #00000073;
+  --bpc-font-sans: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --bpc-font-display: "Instrument Sans", Georgia, serif;
+  --bpc-font-mono: "SF Mono", Monaco, Consolas, "Liberation Mono", monospace;
+  --bpc-text-body-lg-size: 1rem;
+  --bpc-text-body-md-size: .875rem;
+  --bpc-text-body-sm-size: .75rem;
+  --bpc-text-body-xs-size: .6875rem;
+  --bpc-text-display-lg-size: clamp(3rem, 4.7vw, 4.25rem);
+  --bpc-text-display-md-size: 2.75rem;
+  --bpc-text-display-sm-size: 1.875rem;
+  --bpc-text-display-xl-size: clamp(3rem, 5.6vw, 5.5rem);
+  --bpc-text-heading-lg-size: 2.5rem;
+  --bpc-text-heading-md-size: 2rem;
+  --bpc-text-heading-sm-size: 1.25rem;
+  --bpc-text-heading-xl-size: 3rem;
+  --bpc-text-line-body: 1.5;
+  --bpc-text-line-heading: 1.2;
+  --bpc-text-line-heading-sm: 1.35;
+  --bpc-text-line-tight: 1;
+  --bpc-header-h: 69px;
+  --surface: var(--bpc-color-surface-default);
+  --surface-raised: var(--bpc-color-surface-raised);
+  --brand: var(--bpc-color-brand-primary);
+  --brand-foreground: var(--bpc-color-brand-primary-foreground);
+  --brand-hover: var(--bpc-color-brand-primary-hover);
+  --brand-subtle: var(--bpc-color-brand-primary-subtle);
+  --charcoal: var(--bpc-color-text-default);
+  --line: var(--bpc-color-border-default);
+  --ink: var(--bpc-color-text-default);
+  --muted: var(--bpc-color-text-muted);
+  --faint: var(--bpc-color-grey-60);
+  --good: var(--bpc-color-green-60);
+  --bad: var(--bpc-color-grid-off);
+  --error: var(--bpc-color-text-error);
+  --body: var(--bpc-font-sans);
+  --display: var(--bpc-font-display);
+  --mono: var(--bpc-font-mono);
   --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
   --space-6: 24px; --space-8: 32px; --space-12: 48px; --space-16: 64px;
-  --radius-control: 8px; --radius-panel: 16px;
+  --radius-control: var(--bpc-radius-md); --radius-panel: var(--bpc-radius-lg);
   /* Compatibility with the existing Guide, Roadmap and energy illustrations. */
   --night: var(--surface); --bg: var(--surface);
   --panel-solid: var(--surface-raised); --panel: var(--surface-raised);
   --lamp: var(--brand-foreground); --lamp-dim: var(--good); --dim: var(--muted);
-  --rung: #048ee5; --charge: var(--good); --discharge: var(--lamp);
+  --rung: var(--bpc-color-blue-60); --charge: var(--good); --discharge: var(--bpc-color-brand-energy);
   --idle: var(--line); --raised: #e5e3df; --accent: var(--lamp);
-  --gold: #aa8422; --deep: #102a17;
+  --gold: var(--bpc-color-yellow-60); --deep: var(--bpc-color-green-100);
 }
 body { background: var(--surface); color: var(--ink); font: 16px/1.5 var(--body); letter-spacing: normal; }
 a { color: var(--lamp); }
@@ -193,17 +300,17 @@ input[type=range] { accent-color: var(--brand-foreground); }
    Montreal, and muted text uses grey-80 (#54524f) instead of grey-60 so small
    text passes WCAG AA contrast on the #f0eeeb canvas. */
 :root {
-  --green-100: #102a17; --green-90: #1e4d2b; --green-60: #77a45a; --green-20: #b2dd79; --green-5: #d6f0b4;
-  --orange-90: #742c0b; --orange-60: #ed6c30; --orange-40: #f09064; --orange-5: #fbe3d8;
-  --blue-100: #07314b; --blue-80: #06507e; --blue-60: #048ee5; --blue-40: #68baed; --blue-10: #cce5f5;
-  --yellow-80: #5e4507; --yellow-60: #aa8422; --yellow-20: #f7c33c; --yellow-5: #fdf1d3;
-  --red-80: #c51808; --red-20: #ff948a; --red-5: #ffccc7;
-  --grey-100: #292826; --grey-80: #54524f; --grey-60: #7f7d7a; --grey-40: #a9a8a7; --grey-20: #d8d7d5; --grey-5: #f0eeeb;
-  --border-active: var(--grey-100);
-  --text-display-md: 2.75rem; --text-display-sm: 1.875rem;
-  --text-heading-md: 1.625rem; --text-heading-sm: 1.25rem;
-  --text-body-md: .875rem; --text-body-sm: .75rem;
-  --radius-sm: 4px;
+  --green-100: var(--bpc-color-green-100); --green-90: var(--bpc-color-green-90); --green-60: var(--bpc-color-green-60); --green-20: var(--bpc-color-green-20); --green-5: var(--bpc-color-green-5);
+  --orange-90: var(--bpc-color-orange-90); --orange-60: var(--bpc-color-orange-60); --orange-40: var(--bpc-color-orange-40); --orange-5: var(--bpc-color-orange-5);
+  --blue-100: var(--bpc-color-blue-100); --blue-80: var(--bpc-color-blue-80); --blue-60: var(--bpc-color-blue-60); --blue-40: var(--bpc-color-blue-40); --blue-10: var(--bpc-color-blue-10);
+  --yellow-80: var(--bpc-color-yellow-80); --yellow-60: var(--bpc-color-yellow-60); --yellow-20: var(--bpc-color-yellow-20); --yellow-5: var(--bpc-color-yellow-5);
+  --red-80: var(--bpc-color-red-80); --red-20: var(--bpc-color-red-20); --red-5: var(--bpc-color-red-5);
+  --grey-100: var(--bpc-color-grey-100); --grey-80: var(--bpc-color-grey-80); --grey-60: var(--bpc-color-grey-60); --grey-40: var(--bpc-color-grey-40); --grey-20: var(--bpc-color-grey-20); --grey-5: var(--bpc-color-grey-5);
+  --border-active: var(--bpc-color-border-active);
+  --text-display-md: var(--bpc-text-display-md-size); --text-display-sm: var(--bpc-text-display-sm-size);
+  --text-heading-md: var(--bpc-text-heading-md-size); --text-heading-sm: var(--bpc-text-heading-sm-size);
+  --text-body-md: var(--bpc-text-body-md-size); --text-body-sm: var(--bpc-text-body-sm-size);
+  --radius-sm: var(--bpc-radius-sm);
 }
 
 /* Eyebrow: small caps label above a heading. */
@@ -294,3 +401,71 @@ input[type=range] { accent-color: var(--brand-foreground); }
 .gift-set a { border-color: var(--border-active); font-weight: 600; }
 .gift-set a:hover { border-color: var(--green-90); }
 .gift-set a[aria-current=page] { background: var(--green-20); }
+
+/* Home battery ROI. */
+.roi { max-width: 1120px; margin: 0 auto; padding: var(--bpc-space-8) var(--bpc-space-4) var(--bpc-space-16); }
+.roi h1 { font-size: var(--bpc-text-display-sm-size); line-height: var(--bpc-text-line-heading); font-weight: 600; margin: 0 0 var(--bpc-space-3); }
+.roi .lede { margin: 0; max-width: 62ch; color: var(--bpc-color-text-muted); font-size: var(--bpc-text-body-lg-size); line-height: var(--bpc-text-line-body); }
+.roi-form { display: grid; gap: var(--bpc-space-4); margin-top: var(--bpc-space-6); padding: var(--bpc-space-6); background: var(--bpc-color-surface-raised); border: 1px solid var(--bpc-color-border-default); border-radius: var(--bpc-radius-lg); }
+.roi-form fieldset { border: 0; margin: 0; padding: 0; min-inline-size: 0; }
+.roi-form label { display: block; font-weight: 600; font-size: var(--bpc-text-body-md-size); margin-bottom: var(--bpc-space-2); }
+.roi-form input[type=text], .roi-form input[type=number], .roi-form select { width: 100%; box-sizing: border-box; min-height: 44px; padding: 8px 12px; border: 1px solid var(--bpc-color-border-default); border-radius: var(--bpc-radius-md); background: #fff; color: var(--bpc-color-text-default); font: 400 1rem/1.5 var(--bpc-font-sans); }
+.preset-row, .case-row { display: flex; flex-wrap: wrap; gap: var(--bpc-space-2); }
+.preset-row label, .case-row label { display: inline-flex; align-items: center; gap: var(--bpc-space-2); min-height: 44px; margin: 0; padding: 8px 14px; border: 1px solid var(--bpc-color-border-active); border-radius: var(--bpc-radius-md); font-weight: 600; background: #fff; cursor: pointer; }
+.preset-row input, .case-row input { accent-color: var(--bpc-color-green-90); }
+.preset-row label:has(input:checked), .case-row label:has(input:checked) { background: var(--bpc-color-brand-primary); border-color: transparent; color: var(--bpc-color-brand-primary-foreground); }
+.roi-actions { display: flex; flex-wrap: wrap; gap: var(--bpc-space-3); align-items: end; }
+.roi-actions .grow { flex: 1 1 180px; }
+.roi-layout { display: grid; grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.15fr); gap: var(--bpc-space-6); margin-top: var(--bpc-space-6); align-items: start; }
+.house-card, .result-card { background: #fff; border: 1px solid var(--bpc-color-border-default); border-radius: var(--bpc-radius-lg); padding: var(--bpc-space-4); box-shadow: var(--bpc-drop-shadow-media); }
+.house-stage { position: relative; height: 380px; border-radius: var(--bpc-radius-md); background: var(--bpc-color-surface-default); overflow: hidden; }
+.house-stage canvas, .house-fallback { width: 100%; height: 100%; display: block; }
+.house-fallback { display: flex; align-items: flex-end; justify-content: center; }
+.house-fallback[hidden], .house-stage canvas[hidden] { display: none; }
+.house-caption { margin: var(--bpc-space-3) 0 0; color: var(--bpc-color-text-muted); font-size: var(--bpc-text-body-sm-size); }
+.metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--bpc-space-3); margin: 0; }
+.metric-grid div { padding: var(--bpc-space-3); border-top: 1px solid var(--bpc-color-border-default); }
+.metric-grid dt { font-size: var(--bpc-text-body-sm-size); color: var(--bpc-color-text-muted); }
+.metric-grid dd { margin: var(--bpc-space-1) 0 0; font-size: var(--bpc-text-heading-sm-size); font-weight: 600; font-variant-numeric: tabular-nums; line-height: var(--bpc-text-line-heading-sm); }
+.earn-list { list-style: none; margin: var(--bpc-space-4) 0 0; padding: 0; }
+.earn-list li { display: flex; justify-content: space-between; gap: var(--bpc-space-3); align-items: baseline; padding: var(--bpc-space-3) 0; border-top: 1px solid var(--bpc-color-border-default); }
+.earn-list b { font-variant-numeric: tabular-nums; }
+.roi-note { margin: var(--bpc-space-4) 0 0; color: var(--bpc-color-text-muted); font-size: var(--bpc-text-body-sm-size); }
+.price-bars { display: flex; align-items: flex-end; gap: 2px; height: 72px; margin-top: var(--bpc-space-3); }
+.price-bars i { flex: 1; display: block; background: var(--bpc-color-grey-20); border-radius: 2px 2px 0 0; min-height: 2px; }
+.price-bars i.charge { background: var(--bpc-color-brand-primary); }
+.price-bars i.discharge { background: var(--bpc-color-brand-energy); }
+.source-list { margin: var(--bpc-space-3) 0 0; padding-left: 1.1rem; color: var(--bpc-color-text-muted); font-size: var(--bpc-text-body-sm-size); }
+.source-list li { margin-top: var(--bpc-space-2); }
+.roi-status { margin-top: var(--bpc-space-4); }
+@media (min-width: 760px) {
+  .roi h1 { font-size: var(--bpc-text-display-md-size); line-height: 1.1; }
+}
+@media (max-width: 800px) {
+  .roi { padding-top: var(--bpc-space-6); }
+  .roi-layout, .metric-grid { grid-template-columns: 1fr; }
+  .house-stage { height: 280px; }
+  .roi-form { padding: var(--bpc-space-4); }
+}
+
+/* Trust and live pages, without the legacy dark stylesheet. */
+.trust-page, .live-page { max-width: 860px; margin: 0 auto; padding: 0 var(--bpc-space-4) var(--bpc-space-16); }
+.trust-page .hero, .live-page .hero { padding: var(--bpc-space-10) 0 var(--bpc-space-6); }
+.trust-page h1, .live-page h1 { font-size: var(--bpc-text-display-sm-size); line-height: var(--bpc-text-line-heading); margin-top: var(--bpc-space-2); }
+.trust-page .sub, .live-page .sub { margin-top: var(--bpc-space-3); color: var(--bpc-color-text-muted); max-width: 62ch; }
+.trust-page section, .live-page section { margin-top: var(--bpc-space-6); padding: var(--bpc-space-6); background: #fff; border: 1px solid var(--bpc-color-border-default); border-radius: var(--bpc-radius-lg); }
+.trust-page section p, .live-page .honest { margin-top: var(--bpc-space-3); color: var(--bpc-color-text-muted); max-width: 68ch; }
+.trust-page .plain-list { margin: var(--bpc-space-3) 0 0 1.2rem; color: var(--bpc-color-text-muted); }
+.trust-page .actions, .live-page .links { display: flex; flex-wrap: wrap; gap: var(--bpc-space-3); margin-top: var(--bpc-space-5); }
+.trust-page .button-link { display: inline-flex; align-items: center; min-height: 44px; padding: 12px 16px; border: 1px solid var(--bpc-color-border-active); border-radius: var(--bpc-radius-md); font-weight: 600; text-decoration: none; color: var(--bpc-color-text-default); }
+.trust-page .button-link.primary { background: var(--bpc-color-brand-primary); border-color: transparent; color: var(--bpc-color-brand-primary-foreground); }
+.live-page .price-now { font-size: clamp(3rem, 10vw, 5rem); font-weight: 600; letter-spacing: 0; line-height: 1; color: var(--bpc-color-text-brand); }
+.live-page .price-now small { font-size: .32em; color: var(--bpc-color-text-muted); font-weight: 500; }
+.live-page .price-meta, .live-page .chart-title { margin-top: var(--bpc-space-2); font-size: var(--bpc-text-body-sm-size); color: var(--bpc-color-text-muted); }
+.live-page .hub-row { margin-top: var(--bpc-space-4); display: flex; align-items: center; gap: var(--bpc-space-3); }
+.live-page .chart-block { margin-top: var(--bpc-space-6); }
+.live-page .err { margin-top: var(--bpc-space-4); border: 1px solid var(--bpc-color-border-error); background: var(--bpc-color-red-5); color: var(--bpc-color-text-error); border-radius: var(--bpc-radius-md); padding: 12px 16px; }
+.live-page #rt-chart .bar, .live-page #dam-chart .bar { flex: 1; min-width: 2px; border-radius: 2px 2px 0 0; }
+@media (max-width: 700px) {
+  .trust-page h1, .live-page h1 { font-size: var(--bpc-text-heading-lg-size); }
+}

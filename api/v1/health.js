@@ -11,6 +11,7 @@ const MARKET = require('../../data/market-states.json');
 const ZIP = require('../../data/zip-launch.json');
 
 const TOOLS = [
+  ['home', 'One Texas home: ERCOT load zone, what one battery earns, payback, IRR and debt capacity.'],
   ['finance', 'Debt, equity, CFADS and DSCR for one home battery, plus fleet and 100 MW roll-ups.'],
   ['launch', 'Weeks to a first install in a state, the critical path, and what email back-and-forth costs.'],
   ['supply', 'Which parts in your bill of materials will run short, and tariff cost per battery.'],
