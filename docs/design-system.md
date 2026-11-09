@@ -4,7 +4,7 @@ Shared components and tokens live in `site.css`; tool layouts live in `deploy.cs
 
 ## Reference
 
-Refreshed from [Base Power's public site](https://www.basepowercompany.com/) on October 19, 2026, including its current MarketingLayout CSS and visible browser controls. Earlier measurements remain in `base-design-reference.json`; the private research folder `docs/base-current` holds the refreshed CSS, extracted tokens and reference capture notes. This is an independent Megawatt interface, not a Base product or official design system.
+Tokens in `site.css` match the public Base Power extraction of 2026-11-05 (`--bpc-*` colors, spacing, radii, shadows and type scale). Instrument Sans is the stand-in for PP Neue Montreal and Clarendon Wide, which are not shipped. No Base logo, wordmark, photo or marketing line is used. This is an independent Megawatt interface.
 
 | Purpose | Value |
 | --- | --- |

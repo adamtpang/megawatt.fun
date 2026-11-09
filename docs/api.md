@@ -1,6 +1,6 @@
 # megawatt.fun API
 
-A stateless JSON API for the five tools on megawatt.fun: **finance**, **launch**, **supply**, **market** and **pitch**. Each endpoint runs the same code as its page, on the same public data, and takes the same "Use your own data" file the page takes. Call it from a script, a spreadsheet or your own systems.
+The public tool is the home battery ROI page. `POST /api/v1/home` runs the same code. Finance, launch, supply, market, pitch and zip still answer, on the same code as before, and are not linked from the site.
 
 **Public data only. Nothing you send is stored.** Request bodies are never logged or written anywhere. Each call is computed and forgotten.
 
@@ -19,6 +19,11 @@ curl https://megawatt.fun/api/v1/finance
 One `POST` per tool:
 
 ```bash
+# Home: Houston ZIP, suburban house, merchant case
+curl -X POST https://megawatt.fun/api/v1/home \
+  -H 'Content-Type: application/json' \
+  -d '{"query": "77002", "preset": "suburban"}'
+
 # Finance: debt on one home battery with your own cost, toll and rate
 curl -X POST https://megawatt.fun/api/v1/finance \
   -H 'Content-Type: application/json' \

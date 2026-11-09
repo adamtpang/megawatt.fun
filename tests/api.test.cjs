@@ -22,9 +22,10 @@ const H = {
   market: require('../api/v1/market.js'),
   pitch: require('../api/v1/pitch.js'),
   zip: require('../api/v1/zip.js'),
+  home: require('../api/v1/home.js'),
 };
 const ZIP = require('../data/zip-launch.json');
-const TOOLS = ['finance', 'launch', 'supply', 'market', 'pitch', 'zip'];
+const TOOLS = ['home', 'finance', 'launch', 'supply', 'market', 'pitch', 'zip'];
 const JSON_CT = { 'content-type': 'application/json' };
 const CSV_CT = { 'content-type': 'text/csv' };
 

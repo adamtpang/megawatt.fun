@@ -308,8 +308,8 @@ test('10 pitch page: an out-of-range program size is an error, never "Ready" wit
 
 // ---------- 18. /tools copy ----------
 
-test('18 /tools: no "Tool 00x" labels; experiments with a smaller battery say so', () => {
-  const html = fs.readFileSync(path.join(ROOT, 'tools.html'), 'utf8');
+test('18 shelved tools page: no "Tool 00x" labels; experiments with a smaller battery say so', () => {
+  const html = fs.readFileSync(path.join(ROOT, 'shelved/tools.html'), 'utf8');
   assert.doesNotMatch(html, /Tool 00\d/);
   assert.match(html, /Experiment · fleet dispatch/);
   assert.match(html, /smaller generic battery \(25 kWh \/ 5 kW\), not the 20 kW \/ 39\.2 kWh/);

@@ -85,7 +85,7 @@ def main():
     args = parser.parse_args()
     data = json.loads((ROOT / 'data/progress-scorecard.json').read_text(encoding='utf-8'))
     validate(data)
-    page = ROOT / 'index.html'
+    page = ROOT / 'roadmap.html'
     text = page.read_text(encoding='utf-8')
     if START in text:
         a, b = text.index(START), text.index(END) + len(END)
