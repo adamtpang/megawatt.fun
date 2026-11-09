@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Home battery ROI · megawatt.fun</title>
-<meta name="description" content="What one home battery earns at a Texas address, and how much debt that cash flow can carry. ERCOT load-zone prices, with every figure sourced or labeled.">
+<title>Fleet battery ROI · megawatt.fun</title>
+<meta name="description" content="What one installed battery earns a fleet operator in ERCOT, and why a homeowner buying the pack is a different model. Every figure is sourced, partly sourced, an assumption, or not modeled yet.">
 <meta name="theme-color" content="#1e4d2b">
 <link rel="canonical" href="https://megawatt.fun/">
 <link rel="stylesheet" href="/site.css">
@@ -14,9 +14,9 @@
 <a class="skip" href="#main">Skip to the tool</a>
 <header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/" aria-current="page">Home battery</a><a href="/live">Live</a><a href="/notes">Notes</a></nav></header>
 <main id="main" class="roi">
-  <p class="eyebrow">One tool</p>
-  <h1>What one battery earns at this home.</h1>
-  <p class="lede">Pick a Texas ZIP and a house. The tool maps it to an ERCOT load zone, reads the public price replay, and runs the loan math. Independent. Not affiliated with Base Power.</p>
+  <p class="eyebrow">One tool · fleet operator</p>
+  <h1>What one battery earns the fleet.</h1>
+  <p class="lede">Batteries move energy through time. The fleet owns the pack, sells the electricity, and the member gets a lower bill plus backup. This page prices that per installed battery. It does not sell a battery to the house. Independent. Not affiliated with Base Power.</p>
 
   <form id="roi-form" class="roi-form">
     <div>
@@ -31,20 +31,38 @@
         <label><input type="radio" name="preset" value="ranch"> Large ranch</label>
       </div>
     </fieldset>
+    <fieldset>
+      <legend class="eyebrow">Landed cost</legend>
+      <div class="preset-row" role="radiogroup" aria-label="Hardware cost">
+        <label><input type="radio" name="hardware" value="shelf" checked> Off the shelf</label>
+        <label><input type="radio" name="hardware" value="base"> Base-built, assumed discount</label>
+      </div>
+      <label for="reduction">Percent below the shelf cost</label>
+      <input id="reduction" name="reductionPct" type="number" min="0" max="100" step="1" value="0">
+      <p class="roi-note">0% is an explicit assumption: no discount until you set one. It is not a Base Core price.</p>
+    </fieldset>
     <div class="roi-actions">
       <div class="grow">
-        <label for="revenue-case">How the battery is paid</label>
-        <select id="revenue-case" name="revenueCase">
-          <option value="merchant" selected>Merchant in ERCOT</option>
-          <option value="toll">Tolled to a utility</option>
-          <option value="stacked">Stacked (upper bound)</option>
-        </select>
+        <label for="bill-share">Member share of wholesale (%)</label>
+        <input id="bill-share" name="billCreditPct" type="number" min="0" max="100" step="1" placeholder="Not set">
+      </div>
+      <div class="grow">
+        <label for="contract">Utility contract ($/battery/year)</label>
+        <input id="contract" name="contractUsd" type="number" min="0" step="1" placeholder="Not set">
       </div>
       <div class="grow">
         <label for="fleet-count">Fleet size</label>
         <input id="fleet-count" name="fleetCount" type="number" min="1" max="10000000" step="1" value="1000">
       </div>
-      <button class="btn" type="submit">Estimate this home</button>
+      <button class="btn" type="submit">Estimate this battery</button>
+    </div>
+    <div id="mode-pick-wrap" hidden>
+      <label for="mode-pick">Which company serves this meter</label>
+      <select id="mode-pick" name="marketMode">
+        <option value="">Not chosen</option>
+        <option value="member">Retail choice: sell electricity</option>
+        <option value="vendor">Municipal or co-op: megawatts as a service</option>
+      </select>
     </div>
     <div id="zone-pick-wrap" hidden>
       <label for="zone-pick">Load zone</label>
@@ -69,12 +87,12 @@
           </svg>
         </div>
       </div>
-      <p class="house-caption" id="house-caption">The battery sits on the side wall. Charge hours are green. Discharge hours are orange.</p>
+      <p class="house-caption" id="house-caption">The battery sits on the side wall. Midday charge is green. The evening peak is orange. Prices: <a href="https://www.ercot.com/mktinfo/prices">ERCOT</a>.</p>
       <div class="price-bars" id="price-bars" aria-hidden="true"></div>
     </section>
 
     <section class="result-card" aria-labelledby="result-title">
-      <h2 id="result-title">The numbers</h2>
+      <h2 id="result-title">Per installed battery</h2>
       <div id="result" aria-live="polite"></div>
     </section>
   </div>
@@ -98,6 +116,7 @@
 <script src="/market-score.js"></script>
 <script src="/finance-core.js"></script>
 <script src="/home-roi-core.js"></script>
+<script src="/fleet-roi-core.js"></script>
 <script src="/home.js"></script>
 <script type="importmap">
 { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js" } }

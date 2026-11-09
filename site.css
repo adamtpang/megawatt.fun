@@ -429,6 +429,7 @@ input[type=range] { accent-color: var(--brand-foreground); }
 .metric-grid dd { margin: var(--bpc-space-1) 0 0; font-size: var(--bpc-text-heading-sm-size); font-weight: 600; font-variant-numeric: tabular-nums; line-height: var(--bpc-text-line-heading-sm); }
 .earn-list { list-style: none; margin: var(--bpc-space-4) 0 0; padding: 0; }
 .earn-list li { display: flex; justify-content: space-between; gap: var(--bpc-space-3); align-items: baseline; padding: var(--bpc-space-3) 0; border-top: 1px solid var(--bpc-color-border-default); }
+.roi h3 { margin: var(--bpc-space-5) 0 var(--bpc-space-2); font-size: var(--bpc-text-heading-sm-size); }
 .earn-list b { font-variant-numeric: tabular-nums; }
 .roi-note { margin: var(--bpc-space-4) 0 0; color: var(--bpc-color-text-muted); font-size: var(--bpc-text-body-sm-size); }
 .price-bars { display: flex; align-items: flex-end; gap: 2px; height: 72px; margin-top: var(--bpc-space-3); }
