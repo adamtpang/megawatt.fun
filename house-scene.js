@@ -48,7 +48,7 @@ async function boot() {
   renderer.setClearColor(0xf0eeeb, 1);
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 200);
-  camera.position.set(12, 8, 16);
+  camera.position.set(16, 7, 12);
   scene.add(new THREE.AmbientLight(0xffffff, 0.75));
   const sun = new THREE.DirectionalLight(0xffffff, 1.3);
   sun.position.set(8, 14, 6);

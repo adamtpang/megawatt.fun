@@ -13,19 +13,19 @@ const PRESETS = {
     walls: { w: 8, h: 3.2, d: 7, x: 0, z: 0 },
     roof: { w: 8.6, h: 1.3, d: 7.6 },
     garage: null,
-    battery: { w: 0.55, h: 1.25, d: 0.32, x: 4.15, z: 1.2 },
+    battery: { w: 1.1, h: 1.7, d: 0.55, x: 4.6, z: 1.2 },
   },
   suburban: {
     walls: { w: 8, h: 6.2, d: 8, x: 0.6, z: 0 },
     roof: { w: 8.8, h: 1.5, d: 8.8 },
     garage: { w: 3.6, h: 2.8, d: 6.2, x: -4.6, z: 0.6 },
-    battery: { w: 0.55, h: 1.25, d: 0.32, x: -6.55, z: 0.6 },
+    battery: { w: 1.15, h: 1.8, d: 0.7, x: 5.2, z: 1.4 },
   },
   ranch: {
     walls: { w: 14, h: 3.3, d: 7, x: -1, z: 0 },
     roof: { w: 14.6, h: 1.2, d: 7.6 },
     garage: { w: 4.2, h: 2.8, d: 6.4, x: 8.2, z: 0.2 },
-    battery: { w: 0.55, h: 1.25, d: 0.32, x: 10.45, z: 0.2 },
+    battery: { w: 1.15, h: 1.8, d: 0.55, x: 11.0, z: 0.2 },
   },
 };
 
