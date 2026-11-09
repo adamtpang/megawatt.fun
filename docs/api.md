@@ -1,6 +1,6 @@
 # megawatt.fun API
 
-The public tool is the home battery ROI page. `POST /api/v1/home` runs the same code. Finance, launch, supply, market, pitch and zip still answer, on the same code as before, and are not linked from the site.
+The public tool prices one installed battery for a fleet operator. `POST /api/v1/home` runs the same code. A homeowner-buys case is included as a labeled comparison. Finance, launch, supply, market, pitch and zip still answer, on the same code as before, and are not linked from the site.
 
 **Public data only. Nothing you send is stored.** Request bodies are never logged or written anywhere. Each call is computed and forgotten.
 
