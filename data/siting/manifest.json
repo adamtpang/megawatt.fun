@@ -1,0 +1,280 @@
+{
+  "generated": "2026-11-10T22:24:37.057433+00:00",
+  "clock": {
+    "chargeHoursEnding": [
+      11,
+      12,
+      13,
+      14
+    ],
+    "dischargeHoursEnding": [
+      20,
+      21
+    ],
+    "definition": "Daily spread is the mean settlement price in hours ending 20 and 21 minus the mean in hours ending 11 through 14, Central time, delivery date. The stored spread is the mean of those daily spreads. Negative days stay in. This is the clock in data/zone-value.json (charge late morning, discharge the early evening). It is not an optimized dispatch."
+  },
+  "formula": "profit = (spreadUsdPerMwh / 1000) * cyclesPerYear * usableKwh * roundTripEfficiency - degradationUsdPerYear",
+  "sources": [
+    {
+      "id": "ercot-hub-lz-annual",
+      "title": "ERCOT hub and load-zone day-ahead (report 13060) and real-time (report 13061)",
+      "url": "https://www.ercot.com/misapp/servlets/IceDocListJsonWS?reportTypeId=13060",
+      "retrievedAt": "2026-10-19T14:30:50.394777+00:00",
+      "sha256": null,
+      "bytes": null,
+      "detail": "Processed hourly files already in data/deployment/*.csv. Provenance is data/deployment/manifest.json. scripts/ercot_prices.py is the fetcher. This siting build does not re-download the annual workbooks.",
+      "manifestSources": [
+        {
+          "id": "dam-listing.json",
+          "url": "https://www.ercot.com/misapp/servlets/IceDocListJsonWS?reportTypeId=13060",
+          "retrievedAt": "2026-10-19T14:30:50.394777+00:00",
+          "sha256": "a0ede3d1adbbb1826580a2d826ff92e42c6522266ff4cbd94dad649ea8db6122",
+          "bytes": 7797
+        },
+        {
+          "id": "dam-2025-1177667469-download.zip",
+          "url": "https://www.ercot.com/misdownload/servlets/mirDownload?doclookupId=1177667469",
+          "retrievedAt": "2026-10-19T14:31:36.299185+00:00",
+          "sha256": "30df71ebb306bbe8c6cc075598d2e5bd47079b8ab9e0442979f3331353618320",
+          "bytes": 2050483
+        },
+        {
+          "id": "dam-2026-1287898588-download.zip",
+          "url": "https://www.ercot.com/misdownload/servlets/mirDownload?doclookupId=1287898588",
+          "retrievedAt": "2026-10-19T14:31:37.190837+00:00",
+          "sha256": "36eb96d99cb36bc2c85ec03d3de11f2bb81e85038734a3f2624be0a90e294f7c",
+          "bytes": 1631391
+        },
+        {
+          "id": "rtm-listing.json",
+          "url": "https://www.ercot.com/misapp/servlets/IceDocListJsonWS?reportTypeId=13061",
+          "retrievedAt": "2026-10-19T14:31:37.695869+00:00",
+          "sha256": "7403ddbcf743166869ff9219dcec9dd2ac2baefc6b8dfae7f2ab85b796bdd54b",
+          "bytes": 7813
+        },
+        {
+          "id": "rtm-2025-1177737535-download.zip",
+          "url": "https://www.ercot.com/misdownload/servlets/mirDownload?doclookupId=1177737535",
+          "retrievedAt": "2026-10-19T14:31:39.762183+00:00",
+          "sha256": "522a26678575b93bbc7e2c040760eead52c4aae484e0f353c603d5b1a0378faa",
+          "bytes": 13969454
+        },
+        {
+          "id": "rtm-2026-1287900508-download.zip",
+          "url": "https://www.ercot.com/misdownload/servlets/mirDownload?doclookupId=1287900508",
+          "retrievedAt": "2026-10-19T14:31:52.945562+00:00",
+          "sha256": "e6b05d49ae5ac8b15016dbba713ffec32090e51f1e3c14496cbd2d8aca386a63",
+          "bytes": 10869647
+        },
+        {
+          "id": "texas-counties.geojson",
+          "url": "https://tigerweb.geo.census.gov/arcgis/rest/services/Generalized_ACS2024/State_County/MapServer/13/query?where=STATE%3D%2748%27&outFields=GEOID%2CNAME&outSR=4326&f=geojson&geometryPrecision=3",
+          "retrievedAt": "2026-10-19T14:41:04.044314+00:00",
+          "sha256": "33eca0c4d06b1c78b092d03722911c0bebafe5a4cc063ecce62bb251ea7ea15a",
+          "bytes": 86394
+        }
+      ],
+      "period": {
+        "start": "2025-10-01",
+        "endExclusive": "2026-10-01",
+        "asOf": "2026-10-19",
+        "timezone": "America/Chicago",
+        "expectedHours": 8760,
+        "description": "Latest twelve complete calendar months; current partial month excluded"
+      }
+    },
+    {
+      "id": "ercot-settlement-points",
+      "title": "ERCOT settlement points list, NP4-160-SG, report type 10008",
+      "url": "https://www.ercot.com/mp/data-products/data-product-details?id=NP4-160-SG",
+      "download": "https://www.ercot.com/misdownload/servlets/mirDownload?doclookupId=1294503716",
+      "retrievedAt": "2026-11-10T22:20:39.699649+00:00",
+      "sha256": "e1e177d194d0dfd837df03bad94040455b1c51563b94313115b4969b0db62b69",
+      "bytes": 256181,
+      "friendlyName": "CIM_Nov_ML1_1_11102026_SP_List_and_EB_Mapping",
+      "publishDate": "2026-11-04T00:05:28-06:00",
+      "points": 1048,
+      "substations": 5061
+    },
+    {
+      "id": "ercot-dam-np4-190-cd",
+      "title": "ERCOT day-ahead settlement point prices, NP4-190-CD, report type 12331",
+      "url": "https://www.ercot.com/mp/data-products/data-product-details?id=NP4-190-CD",
+      "retrievedAt": "2026-11-10T22:24:32.743748+00:00",
+      "files": 32,
+      "detail": "Public list keeps roughly a month. Hourly rows are not committed. The snapshot keeps the mean daily clock spread."
+    },
+    {
+      "id": "hifld-tx-substations",
+      "title": "HIFLD Electric Substations, Texas, public feature service",
+      "url": "https://services5.arcgis.com/HDRa0B57OVrv2E1q/ArcGIS/rest/services/Electric_Substations/FeatureServer/0/query?where=STATE='TX'",
+      "retrievedAt": "2026-11-10T22:24:34.230631+00:00",
+      "rows": 4939,
+      "detail": "Used only to place an ERCOT substation name that matches exactly one HIFLD name. No owner and no address is stored."
+    },
+    {
+      "id": "census-texas-counties",
+      "title": "Census TIGERweb generalized county polygons, Texas",
+      "url": "https://tigerweb.geo.census.gov/arcgis/rest/services/Generalized_ACS2024/State_County/MapServer/13/query?where=STATE%3D%2748%27&outFields=GEOID%2CNAME&outSR=4326&f=geojson&geometryPrecision=3",
+      "retrievedAt": "2026-11-10T22:20:45.829585+00:00",
+      "sha256": "33eca0c4d06b1c78b092d03722911c0bebafe5a4cc063ecce62bb251ea7ea15a",
+      "bytes": 86394
+    },
+    {
+      "id": "census-tract-gazetteer",
+      "title": "Census Gazetteer tract internal points, Texas",
+      "url": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2024_Gazetteer/2024_gaz_tracts_48.txt",
+      "retrievedAt": "2026-11-10T22:23:21.772433+00:00",
+      "sha256": "449e791d1c78c821357df5ae2f441bf80de945ed29eeae73c88493b63b1434e9",
+      "bytes": 1386287
+    },
+    {
+      "id": "census-acs-b25032",
+      "title": "Census ACS 5-year table B25032, owner-occupied units by structure",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b25032.dat",
+      "retrievedAt": "2026-11-10T22:20:46.329857+00:00",
+      "sha256": "b2fc3d65dc9ef405cf16f26d16bfc3bad14a5cc72b9dafbd7607850f54a4dd13",
+      "bytes": 84505736,
+      "detail": "singleFamily is B25032_003E (owner-occupied 1-unit detached) plus B25032_004E (owner-occupied 1-unit attached). A suppressed or negative cell is left null, not zero. No address and no owner name.",
+      "tracts": 6896,
+      "zctas": 33772
+    },
+    {
+      "id": "zip-territory",
+      "title": "Texas ZIP to wires utility, from data/zip-launch.json",
+      "url": "https://www.powertochoose.org/",
+      "retrievedAt": "2026-11-04",
+      "detail": "Rebuilt by scripts/build-zip-launch.py. Retail-choice wires companies come from the PUCT Power to Choose API. Municipal and cooperative names come from the NREL/OpenEI 2024 ZIP file. This siting file keeps Texas only and does not copy plan prices.",
+      "upstream": {
+        "generated": "2026-11-03",
+        "ptcRetrieved": "2026-11-04",
+        "sources": {
+          "ptc": {
+            "title": "Power to Choose (Public Utility Commission of Texas), retail plans by ZIP",
+            "url": "https://www.powertochoose.org/",
+            "retrieved": "2026-11-04"
+          },
+          "eia861-2024-territory": {
+            "title": "EIA-861 2024, Service_Territory (utilities by county)",
+            "url": "https://www.eia.gov/electricity/data/eia861/zip/f8612024.zip",
+            "retrieved": "2026-11-03"
+          },
+          "puct-55999-lpl": {
+            "title": "ERCOT notification regarding the upcoming transition of LP&L's customers to retail competition, PUCT Project 55999, item 15",
+            "url": "https://interchange.puc.texas.gov/Documents/55999_15_1369350.PDF",
+            "retrieved": "2026-11-04"
+          },
+          "openei-2024": {
+            "title": "NREL/OpenEI, U.S. Electric Utility Companies and Rates: Look-up by Zip Code (2024)",
+            "url": "https://data.openei.org/submissions/8563",
+            "retrieved": "2026-11-03"
+          },
+          "census-zcta-county": {
+            "title": "Census Bureau, 2020 ZCTA to County Relationship File",
+            "url": "https://www2.census.gov/geo/docs/maps-data/data/rel2020/zcta520/tab20_zcta520_county20_natl.txt",
+            "retrieved": "2026-11-03"
+          },
+          "census-zcta-place": {
+            "title": "Census Bureau, 2020 ZCTA to Place Relationship File",
+            "url": "https://www2.census.gov/geo/docs/maps-data/data/rel2020/zcta520/tab20_zcta520_place20_natl.txt",
+            "retrieved": "2026-11-03"
+          },
+          "solarapp": {
+            "title": "SolarAPP+ participating jurisdictions CSV",
+            "url": "https://cdn.prod.website-files.com/688961592e789cad27b033ec/69c142d1a3f4b94b82f219d3_gosolarapp%20-%20locations.csv",
+            "retrieved": "2026-11-03"
+          },
+          "puct-25211": {
+            "title": "PUCT Substantive Rule 25.211, Interconnection of On-Site Distributed Generation",
+            "url": "https://ftp.puc.texas.gov/public/puct-info/agency/rulesnlaws/subrules/electric/25.211/25.211.pdf",
+            "retrieved": "2026-11-03"
+          },
+          "puct-ercot-tdus": {
+            "title": "PUCT, Guide to the Electric Rate Case Process for Investor-owned Utilities inside ERCOT",
+            "url": "https://www.puc.texas.gov/agency/about/ope/inside_ercot/Default.aspx",
+            "retrieved": "2026-11-03"
+          },
+          "austin-energy-ica": {
+            "title": "Austin Energy, Residential Interconnection Agreement for Solar and Energy Storage Systems",
+            "url": "https://austinenergy.com/-/media/Project/Websites/AustinEnergy/Green-Power/Solar/Residential-Solar-Interconnection-Agreement.pdf",
+            "retrieved": "2026-11-03"
+          },
+          "pec-interconnection": {
+            "title": "Pedernales Electric Cooperative, Interconnection Process",
+            "url": "https://mypec.com/solar-and-distributed-generation-dg/interconnection-process/",
+            "retrieved": "2026-11-03"
+          },
+          "oncor-residential": {
+            "title": "Oncor, Residential and small commercial solar",
+            "url": "https://www.oncor.com/content/oncorwww/us/en/home/smart-energy/renewables-solar-and-more/residential-small-commercial-thinking-about-solar.html",
+            "retrieved": "2026-11-03"
+          }
+        }
+      }
+    },
+    {
+      "id": "ercot-llwg-2026-06-19",
+      "title": "ERCOT Large Load Interconnection Status Update, Large Load Integration Team",
+      "url": "https://www.ercot.com/files/docs/2026/06/18/June-19-LLWG-Report.pptx",
+      "retrievedAt": "2026-11-10T22:23:22.092448+00:00",
+      "sha256": "cdb778341b4392cb6235603dd87b1822655f27e7ac80ad1cd7dd0ba882d82db3",
+      "bytes": 1213321,
+      "asOf": "2026-06-18"
+    },
+    {
+      "id": "sb6-enrolled",
+      "title": "Texas SB 6, 89th Regular Session, enrolled bill text",
+      "url": "https://capitol.texas.gov/tlodocs/89R/billtext/html/SB00006F.htm",
+      "retrievedAt": "2026-11-10T22:23:22.428003+00:00",
+      "sha256": "1ef38096867ebc62b555037c0ab364ad002b96cd43e322f2d92686ef55f73885",
+      "bytes": 100751
+    },
+    {
+      "id": "puct-58481-proposal",
+      "title": "PUCT Project No. 58481, proposal for publication of 16 TAC section 25.194",
+      "url": "https://ftp.puc.texas.gov/public/puct-info/agency/rulesnlaws/subrules/electric/25.194/58481pub.pdf",
+      "retrievedAt": "2026-11-10T22:23:22.550769+00:00",
+      "sha256": "dad6f957ec227f7551c14849137f91050a979a93a2dbb4c7cb12ac6b2f29168f",
+      "bytes": 221989,
+      "detail": "Proposal text, not the adoption order."
+    },
+    {
+      "id": "eia-texas-profile",
+      "title": "EIA Texas Electricity Profile, Table 1, 2024 summary",
+      "url": "https://www.eia.gov/electricity/state/texas/",
+      "retrievedAt": "2026-11-10T22:23:22.659539+00:00",
+      "sha256": "b84323d092b8c97bf09ee07c18fd348bc85bde4b4e515b5a9f507732fd94a7ae",
+      "bytes": 59940
+    }
+  ],
+  "gaps": [
+    "Real-time prices at resource nodes (NP6-905-CD, report 12301) were not downloaded. The public daily files are much larger than the day-ahead extract. Hub and load-zone real-time prices are the annual series.",
+    "ERCOT's June 19, 2026 large-load deck does not list projects by county or by customer. Load zones other than LZ_WEST and LZ_NORTH are one bar labeled Other. The TSP chart was not transcribed because the segment values are not in a table.",
+    "The large-load figures are not a data-center census. ERCOT does not label the queue as data centers on the slides this build read.",
+    "County appraisal district bulk files were not downloaded. Harris and Travis publish owner names and street addresses on the roll. This snapshot uses Census counts only.",
+    "PUCT Project 58481 adoption order text was not extracted. The 75 MW applicability sentence in this file is from the proposal for publication, labeled PROPOSAL, plus the enrolled SB 6 statute.",
+    "No public capex or opex range for a Texas data center was retrieved from EIA or LBNL in this run. Those inputs stay empty until someone types an EXAMPLE.",
+    "Base service territory and Base retail pricing are not in any source used here. No county is marked as a Base county.",
+    "A home meter settles at its load zone, not at a resource node. A county gets a zone only when at least three ERCOT substation names match exactly one HIFLD point inside the county and at least 75 percent of those matches share a zone. A name that is on the NOIE map uses the NOIE zone. Counties that fail the test stay unassigned. The node spread is the median day-ahead clock spread of priced resource nodes at the matched substations."
+  ],
+  "match": {
+    "attempted": 177,
+    "placed": 177,
+    "countiesWithZone": 13,
+    "hifldUniqueNames": 4829,
+    "hifldAmbiguousNames": 54
+  },
+  "nodeWindow": {
+    "start": "2026-10-11",
+    "end": "2026-11-11",
+    "dates": 32
+  },
+  "annualPeriod": {
+    "start": "2025-10-01",
+    "endExclusive": "2026-10-01",
+    "asOf": "2026-10-19",
+    "timezone": "America/Chicago",
+    "expectedHours": 8760,
+    "description": "Latest twelve complete calendar months; current partial month excluded"
+  }
+}

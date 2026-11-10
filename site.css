@@ -258,7 +258,7 @@ input[type=range] { accent-color: var(--brand-foreground); }
 @media (max-width: 480px) {
   .site-top { gap: 6px; padding-left: 12px; padding-right: 12px; }
   .site-top .brand { font-size: 18px; }
-  .site-top nav > a, .nav-more > summary { padding: 8px 6px; }
+  .site-top nav > a, .nav-more > summary { padding: 8px 4px; font-size: 13px; }
   .site-top .nav-more-menu { right: 0; left: auto; max-width: calc(100vw - 24px); }
 }
 

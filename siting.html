@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Texas siting · megawatt.fun</title>
+<meta name="description" content="Where a Texas home battery and a large load sit against public ERCOT prices. Counts only. Every figure is sourced or marked EXAMPLE.">
+<meta name="theme-color" content="#1e4d2b">
+<link rel="canonical" href="https://megawatt.fun/siting">
+<link rel="stylesheet" href="/site.css">
+<link rel="stylesheet" href="/siting.css">
+<link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48 64x64" type="image/x-icon">
+</head>
+<body class="tool-page">
+<a class="skip" href="#main">Skip to the tool</a>
+<header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/">Home battery</a><a href="/siting" aria-current="page">Siting</a><a href="/live">Live</a><a href="/notes">Notes</a></nav></header>
+<main id="main" class="roi siting">
+  <p class="eyebrow">Texas · public data</p>
+  <h1>Where the price is, and what a megawatt costs.</h1>
+  <p class="lede">Two readings of the same public files. Data center sites uses the ERCOT large-load queue, which is not a data-center census. Home battery ranks census tracts and ZCTAs, never a parcel. Independent. Not affiliated with Base Power.</p>
+  <p id="siting-status" class="notice" role="status">Loading the public snapshot.</p>
+
+  <div class="siting-tabs" role="tablist" aria-label="Siting views">
+    <button id="tab-dc" type="button" role="tab" aria-selected="true" aria-controls="panel-dc">Data center sites</button>
+    <button id="tab-home" type="button" role="tab" aria-selected="false" aria-controls="panel-home">Home battery</button>
+  </div>
+
+  <div id="panel-dc" role="tabpanel" aria-labelledby="tab-dc"></div>
+
+  <div id="panel-home" role="tabpanel" aria-labelledby="tab-home" hidden>
+    <p class="notice">Base service territory and Base retail pricing are not in this snapshot. No county is marked as a Base county. 39.2 kWh is the Base Core nameplate cited from <a href="https://pv-magazine-usa.com/2026/08/04/base-power-launches-39-2-kwh-u-s-made-base-core-home-battery-secures-1-billion-in-new-funding/">pv magazine, 4 Aug 2026</a>. Using that nameplate as usable kWh is an EXAMPLE.</p>
+    <section class="card siting-block">
+      <h2>The formula</h2>
+      <p class="formula">profit = (node or zone price spread, $/MWh / 1000) x cycles/yr x usable kWh x round-trip efficiency - degradation, $/yr</p>
+      <p class="fine">The spread is the mean of daily (evening price minus late-morning price): hours ending 20 and 21, minus hours ending 11 through 14. A negative day stays in the average. A home settles at its load zone. The resource-node figure is a one-month day-ahead median at substations that matched a county, and it is a proxy.</p>
+      <form id="home-form" class="roi-form">
+        <div class="field-grid">
+          <label>Area
+            <select name="grain">
+              <option value="tract" selected>Census tract</option>
+              <option value="zip">ZCTA</option>
+            </select>
+          </label>
+          <label>Price spread
+            <select name="spread">
+              <option value="spreadNodeDam" selected>Resource-node day-ahead median (short window, proxy)</option>
+              <option value="spreadZoneRt">Load-zone real-time, twelve months</option>
+              <option value="spreadZoneDam">Load-zone day-ahead, twelve months</option>
+            </select>
+          </label>
+          <label>Wires, ZCTA only
+            <select name="flag">
+              <option value="all">All</option>
+              <option value="deregulated">Deregulated</option>
+              <option value="coop_muni">Co-op or municipal</option>
+              <option value="split">Split</option>
+              <option value="unknown">Unknown</option>
+            </select>
+          </label>
+          <label>Sort
+            <select name="sort">
+              <option value="profit" selected>Profit per battery</option>
+              <option value="screen">Profit x homes</option>
+            </select>
+          </label>
+          <label>Cycles per year <span class="badge badge-yellow">EXAMPLE</span>
+            <input name="cyclesPerYear" type="number" min="0" step="1" value="365">
+            <span class="fine">One cycle a day, because the spread is a daily difference. Not an observed cycle count.</span>
+          </label>
+          <label>Usable kWh <span class="badge badge-yellow">EXAMPLE</span>
+            <input name="usableKwh" type="number" min="0" step="0.1" value="39.2">
+            <span class="fine">Starts at the cited 39.2 kWh nameplate. That is not a measured usable capacity.</span>
+          </label>
+          <label>Round-trip efficiency <span class="badge badge-yellow">EXAMPLE</span>
+            <input name="roundTripEfficiency" type="number" min="0" max="1" step="0.01" value="0.88">
+            <span class="fine">Not a published pack test.</span>
+          </label>
+          <label>Degradation, $ per year <span class="badge badge-yellow">EXAMPLE</span>
+            <input name="degradationUsdPerYear" type="number" min="0" step="1" value="0">
+            <span class="fine">Zero means degradation is not subtracted.</span>
+          </label>
+        </div>
+        <button class="btn btn-outline" id="clear-county" type="button">Clear the county filter</button>
+      </form>
+    </section>
+    <div class="siting-split">
+      <section class="card siting-block">
+        <h2>Ranked areas</h2>
+        <p id="home-count" class="fine"></p>
+        <div class="table-scroll" id="home-table"></div>
+        <div id="home-detail"></div>
+      </section>
+      <section class="card siting-block">
+        <h2>Counties</h2>
+        <p class="fine">A county is colored only when at least three substation names matched and 75 percent shared a zone. Click a county to filter the table. Gray means unassigned, not a zero price.</p>
+        <svg class="tx-map" id="home-map" role="img" aria-label="Texas counties. Assigned load zones are colored. Unassigned counties are gray."></svg>
+      </section>
+    </div>
+    <details class="card siting-block">
+      <summary>What is not in the home ranking</summary>
+      <ul>
+        <li>No owner name, street, or parcel. Homes are Census ACS 2024 5-year table B25032: owner-occupied one-unit detached plus one-unit attached.</li>
+        <li>County appraisal rolls were not downloaded, because the bulk files carry owner names and addresses.</li>
+        <li>Most counties have no substation name match, so they are not given a zone. Harris, Dallas, and Bexar are in that group in this snapshot.</li>
+        <li>Real-time prices at resource nodes were not downloaded.</li>
+      </ul>
+    </details>
+  </div>
+</main>
+<footer class="site-bottom">
+  <div class="footer-links">
+    <a href="/about">About</a>
+    <a href="/contact">Contact</a>
+    <a href="/privacy">Privacy</a>
+    <a href="/live">Live</a>
+    <a href="/notes">Notes</a>
+    <a href="/sources">Sources</a>
+  </div>
+  <p>Independent. Not affiliated with Base Power. No real batteries are controlled. Counts only, never a parcel.</p>
+</footer>
+<script src="/siting-core.js"></script>
+<script src="/datacenter-core.js"></script>
+<script src="/siting-map.js"></script>
+<script src="/datacenter.js"></script>
+<script src="/siting.js"></script>
+</body>
+</html>
