@@ -260,6 +260,10 @@ input[type=range] { accent-color: var(--brand-foreground); }
   .site-top .brand { font-size: 18px; }
   .site-top nav > a, .nav-more > summary { padding: 8px 6px; }
   .site-top .nav-more-menu { right: 0; left: auto; max-width: calc(100vw - 24px); }
+  /* Five links do not fit beside the brand on a phone: the links take their own row. */
+  .site-top { flex-wrap: wrap; row-gap: 0; padding-top: 6px; padding-bottom: 2px; }
+  .site-top nav { flex: 1 0 100%; margin: 0 -6px; overflow-x: auto; scrollbar-width: none; }
+  .site-top nav > a { min-height: 40px; }
 }
 
 /* The five home-battery company tools link to each other. */

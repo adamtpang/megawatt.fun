@@ -5,6 +5,7 @@
 ## Start here
 
 - [PJM, the next market](https://megawatt.fun/) (the homepage): One battery's yearly value in each of 20 PJM utility zones (energy, capacity tag, transmission tag) on a year of PJM prices, and launch requirements for each PJM retail-choice state. API: https://megawatt.fun/api/v1/pjm.
+- [US market map](https://megawatt.fun/market): Every US state scored for a home-battery program on public Census, EIA and FEMA data, with a retail path and a utility-partner path, and what one battery earns in each Texas load zone.
 - [Texas home battery ROI](https://megawatt.fun/battery): Pick a Texas ZIP and a house. See the ERCOT load zone, what one battery earns, the payback, simple ROI, IRR and debt capacity. Every figure is sourced, partly sourced, or an assumption.
 - [Live ERCOT prices](https://megawatt.fun/live): Informational real-time and day-ahead settlement prices from ERCOT's public feed. These values are delayed and are not for financial settlement.
 - [Notes](https://megawatt.fun/notes): A public-data suite on how long a new market takes to open, and on whether one home battery's historical revenue could cover a loan. Independent of Base Power.
