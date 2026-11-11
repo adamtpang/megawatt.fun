@@ -75,3 +75,5 @@
 .pjm-field { min-width: 0; }
 .pjm-field select { width: 100%; min-width: 0; }
 .pjm-field small { overflow-wrap: anywhere; }
+.pjm-what { margin: 12px 0 0; max-width: 72ch; font-size: var(--text-body-md); color: var(--grey-80); }
+.pjm-what b { color: var(--grey-100); }

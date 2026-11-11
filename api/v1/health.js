@@ -32,7 +32,7 @@ function body() {
     status: 'ok',
     version: version(),
     endpoints: [{ path: '/api/v1/health', methods: ['GET'], what: 'This check.' }].concat(TOOLS.map(([t, what]) => ({
-      path: '/api/v1/' + t, methods: ['GET', 'POST'], what, usage: 'GET for the request shape and an example', docs: t === 'pjm' ? L.SITE + '/pjm' : L.docsUrl(t),
+      path: '/api/v1/' + t, methods: ['GET', 'POST'], what, usage: 'GET for the request shape and an example', docs: t === 'pjm' ? L.SITE + '/' : L.docsUrl(t),
     }))),
     data_as_of: {
       finance_defaults: FIN.built,

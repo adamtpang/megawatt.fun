@@ -222,7 +222,7 @@ Result: `utility` when exactly one wires utility is listed, `utilities` always (
 
 ### PJM
 
-One 20 kW / 39.2 kWh battery's yearly value in each of 20 PJM utility zones, the same way [/pjm](https://megawatt.fun/pjm) does: energy on a fixed daily clock (charge 1 to 5 AM, discharge 5 to 9 PM local time, at the zone real-time price, 12 real months of PJM Data Miner prices), capped at the home's own load unless `allowExports` is true (PJM DER aggregation opens 1 Feb 2028), plus the capacity tag (PLC: `tagKw` x capacity price x 365) and the transmission tag (NSPL: `tagKw` x the zone's June 2026 NITS rate, 0 where transmission is a nonbypassable utility charge, as in Ohio).
+One 20 kW / 39.2 kWh battery's yearly value in each of 20 PJM utility zones, the same way the [homepage](https://megawatt.fun/) does: energy on a fixed daily clock (charge 1 to 5 AM, discharge 5 to 9 PM local time, at the zone real-time price, 12 real months of PJM Data Miner prices), capped at the home's own load unless `allowExports` is true (PJM DER aggregation opens 1 Feb 2028), plus the capacity tag (PLC: `tagKw` x capacity price x 365) and the transmission tag (NSPL: `tagKw` x the zone's June 2026 NITS rate, 0 where transmission is a nonbypassable utility charge, as in Ohio).
 
 ```json
 { "tagKw": 3, "hitRate": 0.8, "capacityUsdPerMwDay": 333.44, "pplNonbypass": true }

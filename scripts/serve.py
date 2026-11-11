@@ -25,6 +25,8 @@ class Handler(SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(body)
             return
+        if path == "/pjm":
+            self.send_response(301); self.send_header("Location", "/"); self.end_headers(); return
         if path == "/notes":
             self.path = "/notes/index.html"
         elif path == "/notes/expansion-map":
@@ -35,7 +37,7 @@ class Handler(SimpleHTTPRequestHandler):
             self.path = "/notes/kardashev-stack.html"
         elif path == "/notes/financing-a-home-battery":
             self.path = "/notes/financing-a-home-battery.html"
-        elif path in {"/ops", "/market", "/pjm", "/pitch", "/launch", "/finance", "/supply", "/plug-and-play", "/deploy", "/tools", "/kardashev", "/live", "/titans", "/roadmap", "/essay", "/why", "/sources", "/base", "/bench", "/about", "/contact", "/privacy"}:
+        elif path in {"/ops", "/market", "/battery", "/pitch", "/launch", "/finance", "/supply", "/plug-and-play", "/deploy", "/tools", "/kardashev", "/live", "/titans", "/roadmap", "/essay", "/why", "/sources", "/base", "/bench", "/about", "/contact", "/privacy"}:
             self.path = path + ".html"
         super().do_GET()
 
