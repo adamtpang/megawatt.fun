@@ -139,6 +139,7 @@
       ${row('PJM five peaks (capacity, most utilities)', z.peaks.rtoFiveCP)}${row('Zone five summer peaks', z.peaks.zoneFiveCP)}${row('Zone single summer peak', [z.peaks.zoneOneCP])}</tbody></table></div>`;
   }
 
+  const FIELD_LABEL = { review_time: 'review time source', fee: 'fee source', summary: 'billing source', security: 'security source' };
   function states() {
     if (!S || !S.states) { $('states').innerHTML = '<p class="pjm-small">State requirements are not in this build yet.</p>'; return; }
     const UNV = '<span class="badge badge-yellow">Unverified</span>';
@@ -146,13 +147,15 @@
     const src = (u, label = 'source') => (!u ? '' : isUnv(u) ? ' ' + UNV : /^https?:\/\//.test(u) ? ` <a href="${esc(u)}">${esc(label)}</a>` : '');
     // Text fields may say "unverified" in place, or end with "(secondary)" when only a secondary source exists.
     const txt = (t) => esc(t).replace(/\bunverified\b/gi, 'not confirmed').replace(/\(secondary\)/g, '<span class="badge">Secondary source</span>');
-    const due = (d) => (!d ? '' : isUnv(d) ? ', due date not confirmed' : ', due ' + txt(d));
+    const nodot = (t) => txt(String(t == null ? '' : t).replace(/[.\s]+$/, ''));
+    const due = (d) => (!d ? '' : isUnv(d) ? ', due date not confirmed' : ', due ' + nodot(d));
     const list = (items, f) => (items && items.length ? '<ul>' + items.map(f).join('') + '</ul>' : '<p class="pjm-small">None found.</p>');
+    const fieldSrc = (o) => Object.entries((o && o.field_sources) || {}).map(([k, u]) => src(u, FIELD_LABEL[k] || k)).join('') + ((o && o.more_sources) || []).map((u, i) => src(u, 'another source')).join('');
     const billing = (b) => {
       if (!b) return '';
       if (typeof b === 'string') return `<h3>Billing</h3><p>${txt(b)}</p>`;
-      const rows = Object.entries(b).filter(([k]) => k !== 'source');
-      return `<h3>Billing</h3><ul>${rows.map(([k, v]) => `<li>${k === 'summary' ? '' : `<b>${esc(k)}</b>: `}${txt(v)}</li>`).join('')}</ul>${b.source ? `<p class="pjm-small">${src(b.source).trim()}</p>` : ''}`;
+      const rows = Object.entries(b).filter(([k]) => !['source', 'field_sources', 'more_sources'].includes(k));
+      return `<h3>Billing</h3><ul>${rows.map(([k, v]) => `<li>${k === 'summary' ? '' : `<b>${esc(k)}</b>: `}${txt(v)}</li>`).join('')}</ul>${b.source || b.field_sources ? `<p class="pjm-small">${(src(b.source) + fieldSrc(b)).trim()}</p>` : ''}`;
     };
     const order = { open: 0, limited: 1, none: 2 };
     $('states').innerHTML = [...S.states].sort((a, b) => (order[a.retail_choice] ?? 3) - (order[b.retail_choice] ?? 3)).map((s) => {
@@ -160,9 +163,9 @@
       const L = s.license || {};
       return `<details class="card pjm-state" id="state-${esc(s.code)}"><summary><b>${esc(s.name)}</b> <span class="badge ${s.retail_choice === 'open' ? 'badge-green' : 'badge-yellow'}">${esc(s.retail_choice === 'open' ? 'Retail choice' : 'Limited choice')}</span> <span class="pjm-small">${esc(L.name || '')}</span></summary>
         <div class="pjm-state-body">
-          <h3>License</h3><p>${txt([L.agency, L.name, L.rule].filter(Boolean).join(', '))}.${L.security ? ' Security: ' + txt(L.security) + '.' : ''}${L.fee ? ' Fee: ' + txt(L.fee) + '.' : ''}${L.review_time && !isUnv(L.review_time) ? ' Review: ' + txt(L.review_time) + '.' : ''}${src(L.source)}</p>
+          <h3>License</h3><p>${nodot([L.agency, L.name, L.rule].filter(Boolean).join(', '))}.${L.security ? ' Security: ' + nodot(L.security) + '.' : ''}${L.fee ? ' Fee: ' + nodot(L.fee) + '.' : ''}${L.review_time && !isUnv(L.review_time) ? ' Review: ' + nodot(L.review_time) + '.' : ''}${src(L.source)}${fieldSrc(L)}</p>
           ${billing(s.billing)}
-          <h3>Recurring filings</h3>${list(s.filings, (f) => `<li><b>${txt(f.what)}</b>${due(f.due)}.${src(f.source)}</li>`)}
+          <h3>Recurring filings</h3>${list(s.filings, (f) => `<li><b>${nodot(f.what)}</b>${due(f.due)}.${src(f.source)}</li>`)}
           <h3>Consumer rules that shape a battery offer</h3>${list(s.consumer, (c) => `<li>${txt(c.rule)}${src(c.source)}</li>`)}
           <h3>Battery programs and storage rules</h3>${list(s.programs, (g) => `<li><b>${txt(g.name)}</b>: ${txt(g.what)}${src(g.source)}</li>`)}
           ${(s.dockets || []).length ? `<h3>Open dockets</h3>${list(s.dockets, (d) => `<li><b>${txt(d.id)}</b>: ${txt(d.what)}${src(d.source)}</li>`)}` : ''}
