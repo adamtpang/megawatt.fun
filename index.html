@@ -33,7 +33,7 @@
       <input type="range" id="tagKw" min="0" max="8" step="0.5" value="3" aria-describedby="tag-help">
       <p class="pjm-small" id="tag-help">The one assumption that matters most. Drag it to see every zone change.</p>
     </div>
-    <p class="pjm-legend"><span class="sw sw-e"></span>Energy <span class="sw sw-c"></span>Capacity charge <span class="sw sw-t"></span>Transmission charge</p>
+    <p class="pjm-legend"><span class="sw sw-e"></span>Energy <span class="sw sw-c"></span>Capacity charge <span class="sw sw-t"></span>Transmission charge <span class="sw sw-p"></span>Not confirmed, not counted</p>
     <ol class="pjm-zones" id="zones"><li class="pjm-small">Loading…</li></ol>
     <p class="pjm-actions"><button type="button" class="btn btn-outline btn-sm" id="show-all" aria-expanded="false">Show all 20 zones</button></p>
     <p class="pjm-small" id="rank-note"></p>
@@ -53,6 +53,7 @@
         <label><input type="checkbox" id="includeCapacity" checked> Capacity tag</label>
         <label><input type="checkbox" id="includeTransmission" checked> Transmission tag</label>
         <label><input type="checkbox" id="allowExports"> Full 20 kW exports (PJM DER aggregation, from Feb 2028)</label>
+        <label><input type="checkbox" id="countUnconfirmed"> Also count zones whose capacity and transmission rules are not confirmed</label>
         <label><input type="checkbox" id="pplNonbypass"> Model PPL’s nonbypassable transmission proposal</label>
       </fieldset>
       </div>

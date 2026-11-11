@@ -34,9 +34,9 @@ const BASE_IL = 'https://www.basepowercompany.com/_bpc/files/ENC6_mP2RRd-de1nBi7
 const ZONES = {
   AECO: { utility: 'Atlantic City Electric', states: ['NJ'], choice: 'open' },
   AEP: { utility: 'AEP (Ohio, Appalachian, Indiana Michigan, Kentucky, Wheeling)', states: ['OH', 'VA', 'WV', 'IN', 'MI', 'KY'], choice: 'partly', choiceNote: 'AEP Ohio only' },
-  APS: { utility: 'FirstEnergy: West Penn, Potomac Edison, Mon Power', states: ['PA', 'MD', 'WV'], choice: 'partly', choiceNote: 'Pennsylvania and Maryland parts only' },
+  APS: { utility: 'FirstEnergy: West Penn, Potomac Edison, Mon Power', shortName: 'West Penn and Potomac Edison', states: ['PA', 'MD', 'WV'], choice: 'partly', choiceNote: 'Pennsylvania and Maryland parts only' },
   ATSI: { utility: 'FirstEnergy Ohio (Ohio Edison, Illuminating, Toledo Edison) and Penn Power', states: ['OH', 'PA'], choice: 'open' },
-  BGE: { utility: 'Baltimore Gas and Electric', states: ['MD'], choice: 'open' },
+  BGE: { utility: 'Baltimore Gas and Electric', shortName: 'BGE', states: ['MD'], choice: 'open' },
   COMED: { utility: 'ComEd', states: ['IL'], choice: 'open', base: 'Base Retail holds Illinois ARES certificate 26-0121 and offers a Battery Time of Use plan to ComEd homes', baseSource: BASE_IL, baseStatus: 'operating' },
   DAY: { utility: 'AES Ohio', states: ['OH'], choice: 'open' },
   DEOK: { utility: 'Duke Energy Ohio and Kentucky', states: ['OH', 'KY'], choice: 'partly', choiceNote: 'Ohio part only' },
@@ -49,25 +49,25 @@ const ZONES = {
   PECO: { utility: 'PECO', states: ['PA'], choice: 'open' },
   PENELEC: { utility: 'Penelec (FirstEnergy Pennsylvania)', states: ['PA'], choice: 'open' },
   PEPCO: { utility: 'Pepco', states: ['DC', 'MD'], choice: 'open' },
-  PPL: { utility: 'PPL Electric Utilities', states: ['PA'], choice: 'open', base: 'Base Retail filed comments in PPL dockets at the Pennsylvania PUC (Nov 2026)', baseSource: 'https://www.energychoicematters.com/news/retail-supplier-expresses-concern-with-ppl-electric-s-nonbypassable-nits-proposa', baseStatus: 'docket' },
+  PPL: { utility: 'PPL Electric Utilities', shortName: 'PPL', states: ['PA'], choice: 'open', base: 'Base Retail filed comments in PPL dockets at the Pennsylvania PUC (Nov 2026)', baseSource: 'https://www.energychoicematters.com/news/retail-supplier-expresses-concern-with-ppl-electric-s-nonbypassable-nits-proposa', baseStatus: 'docket' },
   PSEG: { utility: 'PSE&G', states: ['NJ'], choice: 'open' },
   RECO: { utility: 'Rockland Electric', states: ['NJ'], choice: 'open' },
 };
-// Transmission tags a supplier cannot keep: Ohio utilities recover transmission from every customer
-// through a nonbypassable rider. Elsewhere the supplier is assumed to be billed NITS for its load.
-const TX = {
-  AEP: { bypassable: false, note: 'AEP Ohio recovers transmission through the nonbypassable Basic Transmission Cost Rider (BTCR) (secondary source).', source: 'https://www.energychoicematters.com/stories/20260318e.html' },
-  ATSI: { bypassable: false, note: 'FirstEnergy Ohio recovers transmission through Rider NMB, charged to all customers. Penn Power (Pennsylvania) is not covered by this.', source: 'https://www.firstenergycorp.com/content/dam/customer/Customer%20Choice/Files/Ohio/tariffs/OE-2026-Electric-Service.pdf' },
-  DAY: { bypassable: false, note: 'AES Ohio recovers transmission through the nonbypassable rider TCRR-N.', source: 'https://www.aes-ohio.com/sites/default/files/2022-06/T08%20-%2021%20TCRR-N%206-1-22.pdf' },
-  DEOK: { bypassable: false, note: 'Duke Energy Ohio recovers transmission through Rider BTR, believed nonbypassable; not confirmed on the tariff. Counted as 0 to stay conservative.', source: 'unverified' },
-};
-const TX_DEFAULT = { bypassable: true, note: 'Assumed: the retail supplier is billed NITS for its customers’ NSPL. Check the utility tariff before counting it.', source: null };
-// How each utility sets a home's tags. Only PPL is sourced so far.
+// Per-utility research (scripts/merge-pjm-tags.py -> data/pjm-tags.json): how each utility sets a home's
+// capacity and transmission tags, and whether transmission is a nonbypassable utility charge.
+const TAGS = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'pjm-tags.json'), 'utf8'));
 const PJM_TAGS = 'https://www.pjm.com/markets-and-operations/billing-settlements-and-credit/theo-plc-and-nspl.aspx';
-const TAG_METHOD = {
-  PPL: { text: 'PPL sets each customer’s PLC from interval load on the five PPL zone peaks, not the five PJM-wide peaks.', source: 'https://www.pplelectric.com/-/media/PPLElectric/At-Your-Service/Docs/General-Supplier-Reference-Information/HowPPLCalculatesCustomerPLCs-Starting2011.pdf' },
-};
-const TAG_DEFAULT = { text: 'Not confirmed: whether this utility sets residential tags from the home’s interval meter or a class load profile. Only an interval-meter method lets a battery move the tag.', source: PJM_TAGS };
+function transmissionFor(id) {
+  const us = (TAGS.zones[id] || { utilities: [] }).utilities.filter((u) => u.transmission);
+  const nb = us.find((u) => u.transmission.nonbypassable === true);
+  if (nb) return { bypassable: false, note: nb.transmission.text, rider: nb.transmission.rider, quote: nb.transmission.quote, source: nb.transmission.source, sourceKind: nb.transmission.source_kind };
+  return { bypassable: true, note: 'Assumed: the retail supplier is billed NITS for its customers\u2019 NSPL. Check the utility tariff before counting it.', source: null };
+}
+function tagsFor(id) {
+  const z = TAGS.zones[id];
+  if (!z) return { status: 'unknown', utilities: [], note: 'Not researched: homes here cannot choose a supplier.', source: PJM_TAGS };
+  return { status: z.status, utilities: z.utilities.map((u) => ({ utility: u.utility, plc: u.plc, nspl: u.nspl || null, notes: u.notes })), source: PJM_TAGS };
+}
 
 // Launch flags: sourced rules that change whether a battery-owning supplier can capture this zone's value.
 // Details and more sources: data/pjm-states.json.
@@ -127,12 +127,12 @@ const zones = Object.keys(ZONES).map((id) => {
   const shift = CENTRAL.has(id) ? 1 : 0;
   const zp = peaks(load.zones[id], shift);
   const rtoLocal = rto.fiveCP.map((p) => ({ ...p, localStart: p.localStart - shift }));
-  const tx = TX[id] || TX_DEFAULT;
+  const tx = transmissionFor(id);
   return {
     id, ...ZONES[id], flags: FLAGS[id] || [],
     nitsUsdPerMwYear: NITS[id],
-    transmission: { bypassable: tx.bypassable, note: tx.note, source: tx.source },
-    tagMethod: TAG_METHOD[id] || TAG_DEFAULT,
+    transmission: tx,
+    tags: tagsFor(id),
     timezone: CENTRAL.has(id) ? 'Central' : 'Eastern',
     energyByKw,
     energyExportUsdPerYear: r2(full.net),
@@ -166,9 +166,10 @@ const out = {
   },
   peaksSource: { title: 'PJM Data Miner 2: hrl_load_metered, June to September ' + load.year + ', load areas summed by zone. Peak hours computed here; PJM’s official 5CP list may differ slightly.', url: 'https://dataminer2.pjm.com/' },
   nits: { effective: 'June 2026', source: NITS_SOURCE },
+  tagsChecked: TAGS.checked,
   baseSaysSource: { title: 'Energy Choice Matters, 2 Nov 2026: Base Retail comments on PPL nonbypassable NITS (P-2026-3065185, P-2026-3065186, P-2024-3047290)', url: 'https://www.energychoicematters.com/news/retail-supplier-expresses-concern-with-ppl-electric-s-nonbypassable-nits-proposa' },
   pricesSource: { title: 'PJM Data Miner 2: rt_hrl_lmps and da_hrl_lmps, zone prices', url: 'https://dataminer2.pjm.com/' },
-  method: 'Energy: a fixed daily clock (charge 1 to 5 AM, discharge 5 to 9 PM, local time) at the zone real-time price over 12 real months, the same tested backtest as the Texas zones. Today the battery can only serve the home’s own load, so energy is capped at the home load you set; full 20 kW exports need PJM’s DER aggregator model, live from 1 Feb 2028. Capacity: tag kW x capacity price x 365 x a scaling multiplier. Transmission: tag kW x the zone NITS rate, and 0 where transmission is a nonbypassable utility charge. Tags are set by summer peaks and paid the following year. Home load is an assumption. Load-offset and tag value reach a supplier only where the utility settles and tags the home on its interval meter. Not Base revenue.',
+  method: 'Energy: a fixed daily clock (charge 1 to 5 AM, discharge 5 to 9 PM, local time) at the zone real-time price over 12 real months, the same tested backtest as the Texas zones. Today the battery can only serve the home’s own load, so energy is capped at the home load you set; full 20 kW exports need PJM’s DER aggregator model, live from 1 Feb 2028. Capacity: tag kW x capacity price x 365 x a scaling multiplier. Transmission: tag kW x the zone NITS rate, and 0 where transmission is a nonbypassable utility charge. Tags are set by summer peaks and paid the following year. Home load is an assumption. Capacity and transmission value is counted only where the utility\u2019s own documents confirm a home\u2019s tags come from its interval meter; where the method on file is a class profile it is 0, and where it is not confirmed it is shown as potential. Not Base revenue.',
   zones: zones.sort((a, b) => b.energyExportUsdPerYear - a.energyExportUsdPerYear),
   rankedAtDefaults: defaults.map((x) => ({ id: x.zone.id, ...x.value })),
 };

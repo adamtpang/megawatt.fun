@@ -38,6 +38,25 @@ test('energy is capped at home load unless exports are allowed; nonbypassable tr
   assert.equal(P.DEFAULTS.allowExports, false);
 });
 
+test('tag rules: interval counts, unknown is held back as potential, profile is 0, no research counts as before', () => {
+  const at = (status) => P.valueZone(zone({ tags: { status } }), { tagKw: 2, capacityUsdPerMwDay: 300 });
+  assert.equal(at('interval').capacity, 219);
+  assert.equal(at('partly').capacity, 219);
+  assert.equal(at('interval').potential, 0);
+  assert.equal(at('unknown').capacity, 0);
+  assert.equal(at('unknown').transmission, 0);
+  assert.equal(at('unknown').potential, 319); // 219 capacity + 100 transmission
+  assert.equal(at('unknown').total, 100); // energy only
+  assert.equal(at('profile').capacity, 0);
+  assert.equal(at('profile').potential, 0);
+  const counted = P.valueZone(zone({ tags: { status: 'unknown' } }), { tagKw: 2, capacityUsdPerMwDay: 300, countUnconfirmed: true });
+  assert.equal(counted.capacity, 219);
+  assert.equal(counted.potential, 0);
+  assert.equal(P.valueZone(zone({ tags: { status: 'profile' } }), { tagKw: 2, countUnconfirmed: true }).capacity, 0);
+  assert.equal(P.valueZone(zone(), { tagKw: 2, capacityUsdPerMwDay: 300 }).capacity, 219);
+  assert.equal(P.DEFAULTS.countUnconfirmed, false);
+});
+
 test('hit rate scales both tags; switches drop streams', () => {
   const z = zone();
   const half = P.valueZone(z, { tagKw: 2, hitRate: 0.5, capacityUsdPerMwDay: 300 });
@@ -82,6 +101,15 @@ test('data: 20 utility zones, sourced NITS rates, a full year of prices each', (
     assert.ok(z.peaks.zoneOneCP.date.startsWith('2026-'), z.id);
   }
   assert.equal(byId.COMED.timezone, 'Central');
+  const TAGS = require('../data/pjm-tags.json');
+  for (const id of ['COMED', 'PPL', 'METED', 'PENELEC', 'PSEG', 'ATSI']) assert.equal(byId[id].tags.status, 'interval', id);
+  for (const id of ['PECO', 'DUQ']) assert.equal(byId[id].tags.status, 'profile', id);
+  for (const id of ['BGE', 'PEPCO', 'JCPL', 'AECO', 'DPL', 'RECO', 'AEP', 'DAY', 'DEOK']) assert.equal(byId[id].tags.status, 'unknown', id);
+  assert.equal(byId.APS.tags.status, 'partly');
+  for (const [id, z] of Object.entries(TAGS.zones)) for (const u of z.utilities) {
+    assert.match(u.plc.source, /^https:\/\//, id + ' capacity rule has a source');
+    if (z.status === 'interval') assert.ok(u.plc.quote && u.plc.quote.length > 10, id + ' confirmed rule quotes the document');
+  }
   assert.ok(!byId.APS.states.includes('VA') && !byId.AEP.states.includes('TN'));
   assert.ok(DATA.nits.source.startsWith('https://www.pjm.com/'));
 });
@@ -97,9 +125,20 @@ test('API: GET is usage, POST matches the core, PPL nonbypassable zeroes only PP
   assert.equal(zones[0].zone, core[0].zone.id);
   assert.equal(zones.length, 20);
   const nb = (await call('POST', JSON.stringify({ tagKw: 3, pplNonbypass: true }))).json().result.zones;
-  const ppl = nb.find((z) => z.zone === 'PPL'), peco = nb.find((z) => z.zone === 'PECO');
+  const ppl = nb.find((z) => z.zone === 'PPL'), pseg = nb.find((z) => z.zone === 'PSEG');
   assert.equal(ppl.transmission_usd_yr, 0);
-  assert.ok(peco.transmission_usd_yr > 0);
+  assert.ok(pseg.transmission_usd_yr > 0);
+  // Tag rules: counted where confirmed, 0 with a "potential" where not confirmed, 0 with none for a class profile.
+  const z0 = (id) => zones.find((z) => z.zone === id);
+  assert.equal(z0('COMED').tag_rules, 'interval');
+  assert.ok(z0('COMED').capacity_usd_yr > 0 && z0('COMED').not_counted_if_confirmed_usd_yr === 0);
+  assert.equal(z0('BGE').tag_rules, 'unknown');
+  assert.ok(z0('BGE').capacity_usd_yr === 0 && z0('BGE').not_counted_if_confirmed_usd_yr > 0);
+  assert.equal(z0('PECO').tag_rules, 'profile');
+  assert.ok(z0('PECO').capacity_usd_yr === 0 && z0('PECO').not_counted_if_confirmed_usd_yr === 0);
+  const all = (await call('POST', JSON.stringify({ tagKw: 3, countUnconfirmed: true }))).json().result.zones;
+  assert.ok(all.find((z) => z.zone === 'BGE').capacity_usd_yr > 0, 'countUnconfirmed counts BGE');
+  assert.equal(all.find((z) => z.zone === 'PECO').capacity_usd_yr, 0, 'a class-profile zone stays 0');
   const bad = await call('POST', JSON.stringify({ tagKw: 9, pplNonbypass: 'yes' }));
   assert.equal(bad.statusCode, 422);
   assert.equal(bad.json().errors.length, 2);

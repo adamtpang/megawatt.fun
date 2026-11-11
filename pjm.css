@@ -97,3 +97,16 @@
 .pjm-fold[open] { padding-bottom: 16px; }
 .pjm-fold .pjm-quote { margin-top: 12px; }
 #rank-note { margin: 12px 0 16px; }
+
+/* Tag rules: confirmed value is solid, unconfirmed value is a lighter striped bar and not in the total. */
+.sw-p, .pjm-bar .p { background: repeating-linear-gradient(135deg, var(--grey-20) 0 4px, #fff 4px 8px); }
+.pjm-pot { display: block; font-size: var(--text-body-sm); font-weight: 400; color: var(--grey-80); white-space: nowrap; }
+.pjm-row { grid-template-columns: 28px minmax(0, 2fr) minmax(0, 2fr) 132px; }
+.pjm-rules { margin: 12px 0 0; }
+.pjm-rules p { margin: 0; }
+.pjm-rules-u { margin-top: 8px !important; font-weight: 600; }
+.pjm-rules ul { margin: 4px 0 0; padding-left: 18px; display: grid; gap: 4px; }
+.pjm-rules details { margin-top: 4px; font-size: var(--text-body-sm); }
+.pjm-rules summary { cursor: pointer; min-height: 32px; display: flex; align-items: center; }
+.pjm-detail .notice:not(.notice-green):not(.notice-red) { background: var(--grey-5); color: var(--grey-100); }
+@media (max-width: 700px) { .pjm-row { grid-template-columns: 24px minmax(0, 1fr) 118px; } }

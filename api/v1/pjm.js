@@ -17,6 +17,7 @@ function usage() {
       json_body: {
         tagKw: 'home load the battery covers in the evening and at peaks, kW, 0 to 8 (default ' + P.DEFAULTS.tagKw + ', an assumption). Caps energy and sets both tags.',
         allowExports: 'true counts full 20 kW exports at the zone price, possible once PJM DER aggregation opens on 1 Feb 2028 (default false: home load only)',
+        countUnconfirmed: 'true also counts capacity and transmission in zones where the utility\u2019s tag method is not confirmed (default false: counted only where the utility\u2019s documents confirm a home\u2019s own meter sets its tags)',
         hitRate: 'share of tag-setting peak hours covered, 0 to 1 (default 1)',
         capacityUsdPerMwDay: 'capacity price, $/MW-day (default ' + P.DEFAULTS.capacityUsdPerMwDay + ', PJM 2027/2028 BRA, the year summer 2026 tags are paid)',
         capacityScale: 'multiplier for zonal scaling and forecast pool factors, 0 to 2 (default 1)',
@@ -48,6 +49,7 @@ async function post(parsed) {
     rank: i + 1, zone: r.zone.id, utility: r.zone.utility, states: r.zone.states, retail_choice: r.zone.choice,
     energy_usd_yr: r.value.energy, capacity_usd_yr: r.value.capacity, transmission_usd_yr: r.value.transmission, total_usd_yr: r.value.total,
     nits_usd_per_mw_yr: r.zone.nitsUsdPerMwYear,
+    tag_rules: r.value.tagStatus, not_counted_if_confirmed_usd_yr: r.value.potential,
     transmission_bypassable: r.zone.transmission.bypassable,
     energy_full_export_usd_yr: r.zone.energyExportUsdPerYear,
     peaks: r.zone.peaks,

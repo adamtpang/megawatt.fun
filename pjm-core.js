@@ -6,6 +6,7 @@
    2. Capacity: lowering the home's peak load contribution (PLC tag) x the PJM capacity price.
    3. Transmission: lowering the home's network service peak load (NSPL tag) x the zone's NITS rate, and 0
       where transmission is a nonbypassable utility charge (zone.transmission.bypassable === false).
+   Tags are counted only where the utility's documents confirm the home's own meter sets them (zone.tags.status).
    Tag value is only reachable where the utility sets the tag from the home's own interval meter and the
    load-serving entity (a retail supplier, or a utility partner) is the one billed for it. */
 (function (root, factory) {
@@ -21,6 +22,7 @@
     hitRate: 1,             // share of tag-setting peak hours the battery actually covers
     includeEnergy: true, includeCapacity: true, includeTransmission: true,
     allowExports: false,    // true: full 20 kW exports at the zone price (PJM DER aggregation, from Feb 2028)
+    countUnconfirmed: false, // true: also count tags where the utility's tag method is not confirmed
   });
   const LIMITS = { tagKw: [0, 8], capacityUsdPerMwDay: [0, 2000], capacityScale: [0, 2], hitRate: [0, 1] };
 
@@ -51,19 +53,33 @@
     return zone.energyByKw[k];
   }
 
+  // 'interval' | 'partly' | 'profile' | 'unknown'. Zones without research data count as confirmed,
+  // so a caller's own zone list (and older data) behaves as before.
+  const tagStatus = (zone) => (zone.tags && zone.tags.status) || 'interval';
+
   function valueZone(zone, raw) {
     const { inputs: p } = inputs(raw);
     const kw = p.tagKw * p.hitRate;
     const energy = p.includeEnergy ? energyFor(zone, p.tagKw, p.allowExports) : 0;
-    const capacity = p.includeCapacity ? kw * capacityPerKwYear(p) : 0;
-    const transmission = p.includeTransmission ? kw * transmissionPerKwYear(zone) : 0;
+    const capFull = p.includeCapacity ? kw * capacityPerKwYear(p) : 0;
+    const txFull = p.includeTransmission ? kw * transmissionPerKwYear(zone) : 0;
+    // Tags count only where the utility sets them from the home's own interval meter.
+    const status = tagStatus(zone);
+    const counted = status === 'interval' || status === 'partly' || (status === 'unknown' && p.countUnconfirmed);
+    const possible = status !== 'profile';
+    const capacity = counted ? capFull : 0, transmission = counted ? txFull : 0;
     const r = (x) => Math.round(x * 100) / 100;
-    return { id: zone.id, energy: r(energy), capacity: r(capacity), transmission: r(transmission), total: r(energy + capacity + transmission) };
+    return {
+      id: zone.id, energy: r(energy), capacity: r(capacity), transmission: r(transmission), total: r(energy + capacity + transmission),
+      tagStatus: status,
+      // What the tags would add if an unconfirmed method turns out to be interval-based.
+      potential: r(!counted && possible ? capFull + txFull : 0),
+    };
   }
 
   function rank(zones, raw) {
     return zones.map((z) => ({ zone: z, value: valueZone(z, raw) })).sort((a, b) => b.value.total - a.value.total || a.zone.id.localeCompare(b.zone.id));
   }
 
-  return { DEFAULTS, LIMITS, inputs, capacityPerKwYear, transmissionPerKwYear, energyFor, valueZone, rank };
+  return { DEFAULTS, LIMITS, inputs, capacityPerKwYear, transmissionPerKwYear, energyFor, tagStatus, valueZone, rank };
 });
