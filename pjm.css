@@ -1,0 +1,77 @@
+/* PJM, the next market. Base system tokens from site.css. */
+.skip { position: absolute; left: -999px; top: 8px; z-index: 30; background: var(--green-20); color: var(--green-90); padding: 8px 12px; border-radius: 8px; }
+.skip:focus { left: 8px; }
+.pjm { max-width: 1040px; margin: 0 auto; padding: 0 16px 48px; }
+.pjm-intro { margin: 32px 0 24px; }
+.pjm-intro h1 { max-width: 22ch; }
+.pjm-quote { margin: 16px 0 0; padding: 12px 16px; border-left: 3px solid var(--green-20); background: #fff; border-radius: 0 var(--radius-control) var(--radius-control) 0; font-size: var(--text-body-md); color: var(--grey-80); max-width: 70ch; }
+.pjm section { margin: 0 0 32px; }
+.pjm .card { padding: 24px; }
+.pjm-controls h2 { margin-bottom: 16px; }
+.pjm-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px 24px; }
+.pjm-field { display: grid; gap: 6px; font-size: var(--text-body-md); font-weight: 600; color: var(--grey-100); border: 0; padding: 0; margin: 0; }
+.pjm-field span { display: flex; justify-content: space-between; gap: 8px; }
+.pjm-field output { font-variant-numeric: tabular-nums; color: var(--green-90); }
+.pjm-field small { font-weight: 400; color: var(--grey-80); font-size: var(--text-body-sm); }
+.pjm-field input[type=range] { width: 100%; min-height: 32px; accent-color: var(--green-90); }
+.pjm-checks legend { font-weight: 600; margin-bottom: 6px; }
+.pjm-checks label { display: flex; align-items: center; gap: 8px; font-weight: 400; min-height: 32px; }
+.pjm-checks input { width: 18px; height: 18px; accent-color: var(--green-90); }
+.pjm-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; }
+.pjm-legend { margin: 0; font-size: var(--text-body-sm); color: var(--grey-80); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-left: 8px; }
+.sw-e, .pjm-bar .e { background: var(--green-90); }
+.sw-c, .pjm-bar .c { background: var(--green-60); }
+.sw-t, .pjm-bar .t { background: var(--blue-60); }
+.pjm-small { font-size: var(--text-body-sm); color: var(--grey-80); }
+.pjm-zones { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 8px; }
+.pjm-zone { background: #fff; border: 1px solid var(--grey-20); border-radius: 12px; }
+.pjm-zone.is-open { border-color: var(--grey-100); }
+.pjm-row { width: 100%; display: grid; grid-template-columns: 28px minmax(0, 2fr) minmax(0, 2fr) 92px; align-items: center; gap: 12px; padding: 12px 16px; border: 0; background: none; text-align: left; font: inherit; color: inherit; cursor: pointer; min-height: 56px; border-radius: 12px; }
+.pjm-rank { font-weight: 600; color: var(--green-90); font-variant-numeric: tabular-nums; }
+.pjm-name b { display: block; font-size: var(--text-body-md); line-height: 1.3; }
+.pjm-meta { display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: center; margin-top: 4px; font-size: var(--text-body-sm); color: var(--grey-80); }
+.pjm-meta code { font-size: 11px; }
+.pjm-bar { display: flex; height: 14px; border-radius: 4px; overflow: hidden; background: var(--grey-5); }
+.pjm-bar i { display: block; height: 100%; }
+.pjm-total { text-align: right; font-weight: 600; font-size: var(--text-heading-sm); font-variant-numeric: tabular-nums; color: var(--grey-100); }
+.pjm-total small { font-size: var(--text-body-sm); font-weight: 400; color: var(--grey-80); }
+.pjm-detail { padding: 0 16px 16px 56px; }
+.pjm-detail dl { display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; margin: 0; font-size: var(--text-body-md); max-width: 560px; }
+.pjm-detail dt { color: var(--grey-80); }
+.pjm-detail dd { margin: 0; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.pjm-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.pjm-risk { border-left: 4px solid var(--orange-60); }
+.pjm-risk p { color: var(--grey-80); max-width: 72ch; margin: 0; }
+.pjm .pjm-state { margin: 8px 0; padding: 0; }
+.pjm-state > summary { padding: 14px 20px; cursor: pointer; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; min-height: 44px; list-style: none; }
+.pjm-state > summary::-webkit-details-marker { display: none; }
+.pjm-state > summary::before { content: '\25B8'; color: var(--grey-80); width: 12px; }
+.pjm-state[open] > summary::before { content: '\25BE'; }
+.pjm-detail .notice { margin: 8px 0 0; }
+.pjm-state-body { padding: 0 24px 20px; font-size: var(--text-body-md); }
+.pjm-state-body h3 { font-size: var(--text-body-md); text-transform: uppercase; letter-spacing: .04em; color: var(--grey-80); margin: 16px 0 6px; }
+.pjm-state-body p, .pjm-state-body ul { margin: 0; color: var(--grey-100); }
+.pjm-state-body ul { padding-left: 18px; display: grid; gap: 4px; }
+.pjm-method { margin: 0 0 32px; }
+.pjm-method > summary { cursor: pointer; font-weight: 600; min-height: 44px; display: flex; align-items: center; }
+.pjm-h { font: 600 var(--text-body-sm)/1.5 var(--body); letter-spacing: .04em; text-transform: uppercase; color: var(--grey-80); margin: 16px 0 4px; }
+.pjm .gift-set { margin-top: 0; }
+.mm-scroll { overflow-x: auto; margin-top: 8px; }
+.pjm-peaks th, .pjm-peaks td { font-size: var(--text-body-sm); }
+.pk-hit, .pk-miss { display: inline-block; padding: 1px 6px; border-radius: var(--radius-sm); margin: 1px 0; white-space: nowrap; }
+.pk-hit { background: var(--green-5); color: var(--green-90); }
+.pk-miss { background: var(--orange-5); color: var(--orange-90); }
+@media (max-width: 700px) {
+  .pjm-row { grid-template-columns: 24px minmax(0, 1fr) 80px; }
+  .pjm-bar { grid-column: 2 / 4; grid-row: 2; }
+  .pjm-detail { padding: 0 16px 16px; }
+  .pjm .card { padding: 20px 16px; }
+  .pjm-state > summary { padding: 14px 16px; }
+  .pjm-state-body { padding: 0 16px 16px; }
+}
+.pjm-keyfacts { margin: 12px 0 0; padding-left: 20px; display: grid; gap: 6px; max-width: 72ch; font-size: var(--text-body-md); color: var(--grey-80); }
+.pjm-keyfacts b { color: var(--grey-100); font-weight: 600; }
+.pjm-field { min-width: 0; }
+.pjm-field select { width: 100%; min-width: 0; }
+.pjm-field small { overflow-wrap: anywhere; }

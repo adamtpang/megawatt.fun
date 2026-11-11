@@ -9,6 +9,7 @@ const SUPPLY = require('../../data/supply.json');
 const MAP = require('../../data/expansion-map.json');
 const MARKET = require('../../data/market-states.json');
 const ZIP = require('../../data/zip-launch.json');
+const PJM = require('../../data/pjm-value.json');
 
 const TOOLS = [
   ['finance', 'Debt, equity, CFADS and DSCR for one home battery, plus fleet and 100 MW roll-ups.'],
@@ -17,6 +18,7 @@ const TOOLS = [
   ['market', 'States ranked for home batteries, and Texas zones ranked by $/battery/year.'],
   ['pitch', 'The outside-view pitch for one utility, and who to call first in its state.'],
   ['zip', 'Wires utility, permit office, interconnection path, and days to a first install for one US ZIP.'],
+  ['pjm', 'One home battery\u2019s yearly value in each PJM utility zone: energy, capacity tag and transmission tag.'],
 ];
 
 function version() {
@@ -29,7 +31,7 @@ function body() {
     status: 'ok',
     version: version(),
     endpoints: [{ path: '/api/v1/health', methods: ['GET'], what: 'This check.' }].concat(TOOLS.map(([t, what]) => ({
-      path: '/api/v1/' + t, methods: ['GET', 'POST'], what, usage: 'GET for the request shape and an example', docs: L.docsUrl(t),
+      path: '/api/v1/' + t, methods: ['GET', 'POST'], what, usage: 'GET for the request shape and an example', docs: t === 'pjm' ? L.SITE + '/pjm' : L.docsUrl(t),
     }))),
     data_as_of: {
       finance_defaults: FIN.built,
@@ -39,6 +41,7 @@ function body() {
       expansion_map: MAP.generated,
       market_states: MARKET.retrieved,
       zip_launch: ZIP.generated,
+      pjm_value: { built: PJM.built, period_start: PJM.period.start, period_end_exclusive: PJM.period.endExclusive },
     },
     docs: L.SITE + '/docs/api.md',
     note: 'Public data only. Nothing you send is stored.',

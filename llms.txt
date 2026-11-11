@@ -4,12 +4,9 @@
 
 ## Start here
 
-- [Five tools for a home-battery company](https://megawatt.fun/tools): One tool per problem, each on public data, each taking your own CSV or JSON, each with a JSON API ([file formats](https://megawatt.fun/plug-and-play), [API](https://megawatt.fun/docs/api.md)).
+- [Tools for a home-battery company](https://megawatt.fun/tools): which market next, and what it takes to get there. Public data, each with a JSON API ([API](https://megawatt.fun/docs/api.md)).
   - [Market map](https://megawatt.fun/market): where to roll out next, and what one battery earns in each Texas load zone.
-  - [Utility pitch](https://megawatt.fun/pitch): a sourced program pitch for any of 897 US utilities.
-  - [Supply risks](https://megawatt.fun/supply): part-by-part lead times, prices, origins and 2026 tariffs, plus a bill-of-materials checker.
-  - [Financing](https://megawatt.fun/finance): debt sized from one battery's cash flow, with the storage tax credit.
-  - [Launch planner](https://megawatt.fun/launch): steps and critical path for a new state, and a ZIP lookup.
+  - [PJM, the next market](https://megawatt.fun/pjm): one battery's yearly value in each PJM utility zone (energy, capacity tag, transmission tag), and launch requirements for each PJM retail-choice state.
 - [The Kardashev guide](https://megawatt.fun/): What the Kardashev scale is, where humanity is, and what the next level takes.
 - [Live ERCOT prices](https://megawatt.fun/live): Informational real-time and day-ahead settlement prices from ERCOT's public feed. These values are delayed and are not for financial settlement.
 - [Kardashev tracker](https://megawatt.fun/kardashev): A transparent calculation of humanity's current Kardashev-scale position, with sources and adjustable growth assumptions.

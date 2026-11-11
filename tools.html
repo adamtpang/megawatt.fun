@@ -46,9 +46,9 @@
 <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48 64x64" type="image/x-icon">
 </head>
 <body class="tool-page">
-<header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/">Guide</a><a href="/roadmap">Roadmap</a><a href="/tools" aria-current="page">Tools</a><details class="nav-more"><summary>More</summary><div class="nav-more-menu"><a href="/market">Market map</a><a href="/pitch">Utility pitch</a><a href="/launch">Launch planner</a><a href="/finance">Financing</a><a href="/supply">Supply risks</a><a href="/base">Battery</a><a href="/bench">Battery backup test</a><a href="/live">Live</a><a href="/kardashev">Kardashev</a><a href="/titans">Energy companies</a><a href="/notes">Notes</a><a href="/sources">Sources</a></div></details></nav></header>
+<header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/">Guide</a><a href="/roadmap">Roadmap</a><a href="/tools" aria-current="page">Tools</a><details class="nav-more"><summary>More</summary><div class="nav-more-menu"><a href="/market">Market map</a><a href="/pjm">PJM next market</a><a href="/base">Battery</a><a href="/bench">Battery backup test</a><a href="/live">Live</a><a href="/kardashev">Kardashev</a><a href="/titans">Energy companies</a><a href="/notes">Notes</a><a href="/sources">Sources</a></div></details></nav></header>
 <main>
-  <header class="tools-intro"><p class="eyebrow">For a home-battery company</p><h1>Where to roll out next.</h1><p>One finished tool, and four more on the roadmap. Each runs on public data, takes your own CSV or JSON, and has a JSON API. Independent, not affiliated with Base Power.</p></header>
+  <header class="tools-intro"><p class="eyebrow">For a home-battery company</p><h1>Where to roll out next.</h1><p>Two tools on one question: which market next, and what it takes to get there. Both run on public data and have a JSON API. Independent, not affiliated with Base Power.</p></header>
   <section class="tool-feature card" aria-labelledby="feature-title">
     <div class="tool-feature-copy">
       <p class="eyebrow">Market map <span class="badge badge-solid">Ready to use</span></p>
@@ -62,14 +62,19 @@
       <li><b>0</b><span>uploads: your file is read in the browser</span></li>
     </ul>
   </section>
-  <h2 class="tools-subhead" id="roadmap">On the roadmap</h2>
-  <p class="tools-spec-note">Working previews. Each one runs today and is being checked to the same standard as the market map before it is called finished.</p>
-  <ol class="tool-roadmap">
-    <li><a href="/pitch"><span class="badge badge-yellow">Preview</span><h3>Persuading a utility</h3><p>A sourced program pitch for any of 897 US utilities.</p></a></li>
-    <li><a href="/launch"><span class="badge badge-yellow">Preview</span><h3>Launching a new state faster</h3><p>Steps, critical path and the cost of email back-and-forth.</p></a></li>
-    <li><a href="/finance"><span class="badge badge-yellow">Preview</span><h3>Financing a fleet</h3><p>Debt sized from what one battery earns, with the storage tax credit.</p></a></li>
-    <li><a href="/supply"><span class="badge badge-yellow">Preview</span><h3>Part shortages</h3><p>Lead times, origins and 2026 tariffs, plus a bill-of-materials checker.</p></a></li>
-  </ol>
+  <section class="tool-feature card" aria-labelledby="pjm-title">
+    <div class="tool-feature-copy">
+      <p class="eyebrow">PJM, the next market <span class="badge badge-solid">New</span></p>
+      <h2 id="pjm-title">Where a home battery pays in PJM, and what it takes to launch there.</h2>
+      <p>One battery’s yearly value in every PJM utility zone: energy on a daily clock, plus the capacity and transmission tags a supplier can lower for its members. Then the license, billing, filings and consumer rules for each PJM state, each with its source.</p>
+      <div class="tool-feature-actions"><a class="btn" href="/pjm">Open PJM</a><a class="btn btn-outline" href="/api/v1/pjm">JSON API</a></div>
+    </div>
+    <ul class="tool-feature-facts">
+      <li><b>20</b><span>PJM utility zones valued on a year of PJM prices</span></li>
+      <li><b>3</b><span>value streams: energy, capacity tag, transmission tag</span></li>
+      <li><b>7</b><span>retail-choice jurisdictions (six states and DC) with launch requirements</span></li>
+    </ul>
+  </section>
   <h2 class="tools-subhead">Other energy experiments</h2>
   <p class="tools-spec-note">These experiments use a smaller generic battery (25 kWh / 5 kW), not the 20 kW / 39.2 kWh home battery the market map uses.</p>
   <div class="tool-directory">

@@ -22,9 +22,10 @@ const H = {
   market: require('../api/v1/market.js'),
   pitch: require('../api/v1/pitch.js'),
   zip: require('../api/v1/zip.js'),
+  pjm: require('../api/v1/pjm.js'),
 };
 const ZIP = require('../data/zip-launch.json');
-const TOOLS = ['finance', 'launch', 'supply', 'market', 'pitch', 'zip'];
+const TOOLS = ['finance', 'launch', 'supply', 'market', 'pitch', 'zip', 'pjm'];
 const JSON_CT = { 'content-type': 'application/json' };
 const CSV_CT = { 'content-type': 'text/csv' };
 
@@ -81,7 +82,8 @@ test('GET on each tool returns usage with an example and the docs link', async (
     const j = r.json();
     assert.equal(j.tool, t);
     assert.ok(j.what && j.post && j.example, t);
-    assert.equal(j.docs, 'https://megawatt.fun/plug-and-play#' + t);
+    // PJM has no upload file format, so its docs are its own page.
+    assert.equal(j.docs, t === 'pjm' ? 'https://megawatt.fun/pjm' : 'https://megawatt.fun/plug-and-play#' + t);
     assert.match(r.headers['cache-control'], /s-maxage=3600/);
     assert.equal(r.headers['access-control-allow-origin'], '*');
   }

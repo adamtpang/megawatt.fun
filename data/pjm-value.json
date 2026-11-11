@@ -1,0 +1,3730 @@
+{
+  "built": "2026-11-08",
+  "period": {
+    "start": "2025-10-01",
+    "endExclusive": "2026-10-01",
+    "timezone": "America/New_York",
+    "fetched": "2026-11-08"
+  },
+  "spec": {
+    "capacity": 39.2,
+    "power": 20,
+    "efficiency": 0.88,
+    "reserve": 0.2,
+    "wear": 0,
+    "label": "Base Core: 20 kW / 39.2 kWh (Base utilities page); 88% round trip and 20% backup reserve are assumptions"
+  },
+  "schedule": {
+    "name": "overnight",
+    "charge": [
+      1,
+      5
+    ],
+    "discharge": [
+      17,
+      21
+    ],
+    "label": "Charge 1 AM to 5 AM, discharge 5 PM to 9 PM, local time (Central in ComEd, Eastern elsewhere)"
+  },
+  "kwSteps": [
+    0.5,
+    1,
+    1.5,
+    2,
+    2.5,
+    3,
+    3.5,
+    4,
+    4.5,
+    5,
+    5.5,
+    6,
+    6.5,
+    7,
+    7.5,
+    8
+  ],
+  "exportsFrom": {
+    "date": "2028-02-01",
+    "what": "PJM DER aggregator participation in energy and ancillary services",
+    "source": "https://www.pjm.com/-/media/DotCom/committees-groups/subcommittees/disrs/postings/ferc-order-no-2222-overview.pdf"
+  },
+  "capacity": {
+    "deliveryYears": [
+      {
+        "year": "2027/2028",
+        "usdPerMwDay": 333.44,
+        "tagsFrom": "summer 2026 peaks",
+        "source": "https://www.pjm.com/-/media/DotCom/markets-ops/rpm/rpm-auction-info/2027-2028/2027-2028-bra-report.pdf"
+      },
+      {
+        "year": "2028/2029",
+        "usdPerMwDay": 325,
+        "tagsFrom": "summer 2027 peaks",
+        "source": "https://www.pjm.com/-/media/DotCom/markets-ops/rpm/rpm-auction-info/2028-2029/2028-2029-bra-results-report.pdf"
+      },
+      {
+        "year": "2026/2027",
+        "usdPerMwDay": 329.17,
+        "tagsFrom": "summer 2025 peaks (already set)",
+        "source": "https://insidelines.pjm.com/pjm-auction-procures-134311-mw-of-generation-resources-supply-responds-to-price-signal/"
+      }
+    ],
+    "note": "All three auctions cleared at the price cap across PJM. Without the cap, PJM simulated $529.80/MW-day for 2027/2028 and $776.69 in the ComEd area for 2028/2029. A supplier is billed PLC x zonal scaling factor x forecast pool requirement x final zonal price; those factors are folded into one adjustable multiplier here."
+  },
+  "peaksSource": {
+    "title": "PJM Data Miner 2: hrl_load_metered, June to September 2026, load areas summed by zone. Peak hours computed here; PJM’s official 5CP list may differ slightly.",
+    "url": "https://dataminer2.pjm.com/"
+  },
+  "nits": {
+    "effective": "June 2026",
+    "source": "https://www.pjm.com/-/media/DotCom/markets-ops/settlements/network-integration-trans-service-june-2026.pdf"
+  },
+  "baseSaysSource": {
+    "title": "Energy Choice Matters, 2 Nov 2026: Base Retail comments on PPL nonbypassable NITS (P-2026-3065185, P-2026-3065186, P-2024-3047290)",
+    "url": "https://www.energychoicematters.com/news/retail-supplier-expresses-concern-with-ppl-electric-s-nonbypassable-nits-proposa"
+  },
+  "pricesSource": {
+    "title": "PJM Data Miner 2: rt_hrl_lmps and da_hrl_lmps, zone prices",
+    "url": "https://dataminer2.pjm.com/"
+  },
+  "method": "Energy: a fixed daily clock (charge 1 to 5 AM, discharge 5 to 9 PM, local time) at the zone real-time price over 12 real months, the same tested backtest as the Texas zones. Today the battery can only serve the home’s own load, so energy is capped at the home load you set; full 20 kW exports need PJM’s DER aggregator model, live from 1 Feb 2028. Capacity: tag kW x capacity price x 365 x a scaling multiplier. Transmission: tag kW x the zone NITS rate, and 0 where transmission is a nonbypassable utility charge. Tags are set by summer peaks and paid the following year. Home load is an assumption. Load-offset and tag value reach a supplier only where the utility settles and tags the home on its interval meter. Not Base revenue.",
+  "zones": [
+    {
+      "id": "BGE",
+      "utility": "Baltimore Gas and Electric",
+      "states": [
+        "MD"
+      ],
+      "choice": "open",
+      "flags": [
+        {
+          "text": "Maryland caps a residential supplier price at the trailing 12-month utility default rate, limits contracts to 12 months and bars variable rates (SB 1, 2024).",
+          "source": "https://mgaleg.maryland.gov/2024RS/fnotes/bil_0001/sb0001.pdf"
+        },
+        {
+          "text": "Maryland utilities stopped billing for residential suppliers and buying their receivables, effective 1 Jan 2026 (PSC Order 92384, approved Apr 2026, with exceptions), so a supplier bills members itself.",
+          "source": "https://psc.maryland.gov/wp-content/uploads/2026/04/Order_SB1-Res-Cessation-of-POR-PC65.pdf"
+        }
+      ],
+      "nitsUsdPerMwYear": 56999,
+      "transmission": {
+        "bypassable": true,
+        "note": "Assumed: the retail supplier is billed NITS for its customers’ NSPL. Check the utility tariff before counting it.",
+        "source": null
+      },
+      "tagMethod": {
+        "text": "Not confirmed: whether this utility sets residential tags from the home’s interval meter or a class load profile. Only an interval-meter method lets a battery move the tag.",
+        "source": "https://www.pjm.com/markets-and-operations/billing-settlements-and-credit/theo-plc-and-nspl.aspx"
+      },
+      "timezone": "Eastern",
+      "energyByKw": {
+        "1": 124.49,
+        "2": 248.98,
+        "3": 373.46,
+        "4": 497.95,
+        "5": 622.44,
+        "6": 746.93,
+        "7": 871.38,
+        "8": 995.82,
+        "0.5": 62.24,
+        "1.5": 186.73,
+        "2.5": 311.22,
+        "3.5": 435.71,
+        "4.5": 560.19,
+        "5.5": 684.68,
+        "6.5": 809.17,
+        "7.5": 933.59
+      },
+      "energyExportUsdPerYear": 948.12,
+      "energyMonthly": [
+        {
+          "month": "2025-10",
+          "usd": 60.3
+        },
+        {
+          "month": "2025-11",
+          "usd": 23.71
+        },
+        {
+          "month": "2025-12",
+          "usd": 17.82
+        },
+        {
+          "month": "2026-01",
+          "usd": 81.41
+        },
+        {
+          "month": "2026-02",
+          "usd": -22.1
+        },
+        {
+          "month": "2026-03",
+          "usd": 15.36
+        },
+        {
+          "month": "2026-04",
+          "usd": 28.21
+        },
+        {
+          "month": "2026-05",
+          "usd": 53.72
+        },
+        {
+          "month": "2026-06",
+          "usd": 166.31
+        },
+        {
+          "month": "2026-07",
+          "usd": 260.54
+        },
+        {
+          "month": "2026-08",
+          "usd": 63.22
+        },
+        {
+          "month": "2026-09",
+          "usd": 199.63
+        }
+      ],
+      "energyTopTwoMonths": {
+        "months": [
+          "2026-07",
+          "2026-09"
+        ],
+        "share": 0.485
+      },
+      "peaks": {
+        "zoneOneCP": {
+          "date": "2026-07-02",
+          "localStart": 17,
+          "mw": 6556,
+          "coveredByClock": true
+        },
+        "zoneFiveCP": [
+          {
+            "date": "2026-07-02",
+            "localStart": 17,
+            "mw": 6556,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-03",
+            "localStart": 16,
+            "mw": 6551,
+            "coveredByClock": false
+          },
+          {
+            "date": "2026-07-04",
+            "localStart": 17,
+            "mw": 6397,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-16",
+            "localStart": 17,
+            "mw": 6378,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-15",
+            "localStart": 18,
+            "mw": 6348,
+            "coveredByClock": true
+          }
+        ],
+        "rtoFiveCP": [
+          {
+            "date": "2026-07-02",
+            "localStart": 17,
+            "mw": 162133,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-01",
+            "localStart": 17,
+            "mw": 161440,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-15",
+            "localStart": 17,
+            "mw": 158600,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-03",
+            "localStart": 17,
+            "mw": 154345,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-16",
+            "localStart": 17,
+            "mw": 153700,
+            "coveredByClock": true
+          }
+        ]
+      },
+      "maxRtUsdPerMwh": 4591.12,
+      "hours": 8760,
+      "avgRtUsdPerMwh": 84.19
+    },
+    {
+      "id": "PEPCO",
+      "utility": "Pepco",
+      "states": [
+        "DC",
+        "MD"
+      ],
+      "choice": "open",
+      "flags": [
+        {
+          "text": "Maryland part: Maryland caps a residential supplier price at the trailing 12-month utility default rate, limits contracts to 12 months and bars variable rates (SB 1, 2024).",
+          "source": "https://mgaleg.maryland.gov/2024RS/fnotes/bil_0001/sb0001.pdf"
+        },
+        {
+          "text": "Maryland part: Maryland utilities stopped billing for residential suppliers and buying their receivables, effective 1 Jan 2026 (PSC Order 92384, approved Apr 2026, with exceptions), so a supplier bills members itself.",
+          "source": "https://psc.maryland.gov/wp-content/uploads/2026/04/Order_SB1-Res-Cessation-of-POR-PC65.pdf"
+        }
+      ],
+      "nitsUsdPerMwYear": 60491.36,
+      "transmission": {
+        "bypassable": true,
+        "note": "Assumed: the retail supplier is billed NITS for its customers’ NSPL. Check the utility tariff before counting it.",
+        "source": null
+      },
+      "tagMethod": {
+        "text": "Not confirmed: whether this utility sets residential tags from the home’s interval meter or a class load profile. Only an interval-meter method lets a battery move the tag.",
+        "source": "https://www.pjm.com/markets-and-operations/billing-settlements-and-credit/theo-plc-and-nspl.aspx"
+      },
+      "timezone": "Eastern",
+      "energyByKw": {
+        "1": 118.47,
+        "2": 236.94,
+        "3": 355.41,
+        "4": 473.88,
+        "5": 592.36,
+        "6": 710.83,
+        "7": 829.27,
+        "8": 947.69,
+        "0.5": 59.24,
+        "1.5": 177.71,
+        "2.5": 296.18,
+        "3.5": 414.65,
+        "4.5": 533.12,
+        "5.5": 651.59,
+        "6.5": 770.06,
+        "7.5": 888.46
+      },
+      "energyExportUsdPerYear": 917.72,
+      "energyMonthly": [
+        {
+          "month": "2025-10",
+          "usd": 57.18
+        },
+        {
+          "month": "2025-11",
+          "usd": 22.53
+        },
+        {
+          "month": "2025-12",
+          "usd": 19.57
+        },
+        {
+          "month": "2026-01",
+          "usd": 80.22
+        },
+        {
+          "month": "2026-02",
+          "usd": -25.87
+        },
+        {
+          "month": "2026-03",
+          "usd": 13.49
+        },
+        {
+          "month": "2026-04",
+          "usd": 26.1
+        },
+        {
+          "month": "2026-05",
+          "usd": 51.28
+        },
+        {
+          "month": "2026-06",
+          "usd": 157.72
+        },
+        {
+          "month": "2026-07",
+          "usd": 263.16
+        },
+        {
+          "month": "2026-08",
+          "usd": 63.13
+        },
+        {
+          "month": "2026-09",
+          "usd": 189.21
+        }
+      ],
+      "energyTopTwoMonths": {
+        "months": [
+          "2026-07",
+          "2026-09"
+        ],
+        "share": 0.493
+      },
+      "peaks": {
+        "zoneOneCP": {
+          "date": "2026-07-02",
+          "localStart": 17,
+          "mw": 5896,
+          "coveredByClock": true
+        },
+        "zoneFiveCP": [
+          {
+            "date": "2026-07-02",
+            "localStart": 17,
+            "mw": 5896,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-03",
+            "localStart": 17,
+            "mw": 5815,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-16",
+            "localStart": 17,
+            "mw": 5753,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-01",
+            "localStart": 18,
+            "mw": 5745,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-04",
+            "localStart": 17,
+            "mw": 5681,
+            "coveredByClock": true
+          }
+        ],
+        "rtoFiveCP": [
+          {
+            "date": "2026-07-02",
+            "localStart": 17,
+            "mw": 162133,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-01",
+            "localStart": 17,
+            "mw": 161440,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-15",
+            "localStart": 17,
+            "mw": 158600,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-03",
+            "localStart": 17,
+            "mw": 154345,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-16",
+            "localStart": 17,
+            "mw": 153700,
+            "coveredByClock": true
+          }
+        ]
+      },
+      "maxRtUsdPerMwh": 4454.44,
+      "hours": 8760,
+      "avgRtUsdPerMwh": 82.82
+    },
+    {
+      "id": "DOM",
+      "utility": "Dominion Energy Virginia",
+      "states": [
+        "VA",
+        "NC"
+      ],
+      "choice": "none",
+      "choiceNote": "Virginia residential choice is limited",
+      "flags": [],
+      "nitsUsdPerMwYear": 85190.65,
+      "transmission": {
+        "bypassable": true,
+        "note": "Assumed: the retail supplier is billed NITS for its customers’ NSPL. Check the utility tariff before counting it.",
+        "source": null
+      },
+      "tagMethod": {
+        "text": "Not confirmed: whether this utility sets residential tags from the home’s interval meter or a class load profile. Only an interval-meter method lets a battery move the tag.",
+        "source": "https://www.pjm.com/markets-and-operations/billing-settlements-and-credit/theo-plc-and-nspl.aspx"
+      },
+      "timezone": "Eastern",
+      "energyByKw": {
+        "1": 119.26,
+        "2": 238.52,
+        "3": 357.78,
+        "4": 477.04,
+        "5": 596.3,
+        "6": 715.56,
+        "7": 834.79,
+        "8": 954,
+        "0.5": 59.63,
+        "1.5": 178.89,
+        "2.5": 298.15,
+        "3.5": 417.41,
+        "4.5": 536.67,
+        "5.5": 655.93,
+        "6.5": 775.19,
+        "7.5": 894.38
+      },
+      "energyExportUsdPerYear": 916.24,
+      "energyMonthly": [
+        {
+          "month": "2025-10",
+          "usd": 121.37
+        },
+        {
+          "month": "2025-11",
+          "usd": 19.9
+        },
+        {
+          "month": "2025-12",
+          "usd": 17.09
+        },
+        {
+          "month": "2026-01",
+          "usd": 70.96
+        },
+        {
+          "month": "2026-02",
+          "usd": -28.75
+        },
+        {
+          "month": "2026-03",
+          "usd": 11.14
+        },
+        {
+          "month": "2026-04",
+          "usd": 30.51
+        },
+        {
+          "month": "2026-05",
+          "usd": 106.43
+        },
+        {
+          "month": "2026-06",
+          "usd": 125.2
+        },
+        {
+          "month": "2026-07",
+          "usd": 217.5
+        },
+        {
+          "month": "2026-08",
+          "usd": 57.02
+        },
+        {
+          "month": "2026-09",
+          "usd": 167.86
+        }
+      ],
+      "energyTopTwoMonths": {
+        "months": [
+          "2026-07",
+          "2026-09"
+        ],
+        "share": 0.421
+      },
+      "peaks": {
+        "zoneOneCP": {
+          "date": "2026-07-03",
+          "localStart": 18,
+          "mw": 25181,
+          "coveredByClock": true
+        },
+        "zoneFiveCP": [
+          {
+            "date": "2026-07-03",
+            "localStart": 18,
+            "mw": 25181,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-02",
+            "localStart": 17,
+            "mw": 24944,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-16",
+            "localStart": 17,
+            "mw": 24753,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-04",
+            "localStart": 16,
+            "mw": 24584,
+            "coveredByClock": false
+          },
+          {
+            "date": "2026-09-01",
+            "localStart": 17,
+            "mw": 24513,
+            "coveredByClock": true
+          }
+        ],
+        "rtoFiveCP": [
+          {
+            "date": "2026-07-02",
+            "localStart": 17,
+            "mw": 162133,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-01",
+            "localStart": 17,
+            "mw": 161440,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-15",
+            "localStart": 17,
+            "mw": 158600,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-03",
+            "localStart": 17,
+            "mw": 154345,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-16",
+            "localStart": 17,
+            "mw": 153700,
+            "coveredByClock": true
+          }
+        ]
+      },
+      "maxRtUsdPerMwh": 4234.38,
+      "hours": 8760,
+      "avgRtUsdPerMwh": 87.72
+    },
+    {
+      "id": "APS",
+      "utility": "FirstEnergy: West Penn, Potomac Edison, Mon Power",
+      "states": [
+        "PA",
+        "MD",
+        "WV"
+      ],
+      "choice": "partly",
+      "choiceNote": "Pennsylvania and Maryland parts only",
+      "flags": [
+        {
+          "text": "Maryland part (Potomac Edison): Maryland caps a residential supplier price at the trailing 12-month utility default rate, limits contracts to 12 months and bars variable rates (SB 1, 2024).",
+          "source": "https://mgaleg.maryland.gov/2024RS/fnotes/bil_0001/sb0001.pdf"
+        },
+        {
+          "text": "Pennsylvania part (West Penn): FirstEnergy Pennsylvania will buy supplier receivables only for prices at or below the utility price to compare, for contracts from 1 June 2027 (P-2026-3060298; reported by trade press, not confirmed on the docket).",
+          "source": "https://www.energychoicematters.com/news/pennsylvania-puc-adopts-rate-cap-for-eligibility-for-purchase-of-receivables-por"
+        }
+      ],
+      "nitsUsdPerMwYear": 28519.21,
+      "transmission": {
+        "bypassable": true,
+        "note": "Assumed: the retail supplier is billed NITS for its customers’ NSPL. Check the utility tariff before counting it.",
+        "source": null
+      },
+      "tagMethod": {
+        "text": "Not confirmed: whether this utility sets residential tags from the home’s interval meter or a class load profile. Only an interval-meter method lets a battery move the tag.",
+        "source": "https://www.pjm.com/markets-and-operations/billing-settlements-and-credit/theo-plc-and-nspl.aspx"
+      },
+      "timezone": "Eastern",
+      "energyByKw": {
+        "1": 87.14,
+        "2": 174.28,
+        "3": 261.42,
+        "4": 348.55,
+        "5": 435.69,
+        "6": 522.83,
+        "7": 609.94,
+        "8": 697.03,
+        "0.5": 43.57,
+        "1.5": 130.71,
+        "2.5": 217.85,
+        "3.5": 304.98,
+        "4.5": 392.12,
+        "5.5": 479.26,
+        "6.5": 566.4,
+        "7.5": 653.47
+      },
+      "energyExportUsdPerYear": 637.1,
+      "energyMonthly": [
+        {
+          "month": "2025-10",
+          "usd": 42.96
+        },
+        {
+          "month": "2025-11",
+          "usd": 17.68
+        },
+        {
+          "month": "2025-12",
+          "usd": 19.66
+        },
+        {
+          "month": "2026-01",
+          "usd": 57.89
+        },
+        {
+          "month": "2026-02",
+          "usd": -3.74
+        },
+        {
+          "month": "2026-03",
+          "usd": 10.3
+        },
+        {
+          "month": "2026-04",
+          "usd": 15.47
+        },
+        {
+          "month": "2026-05",
+          "usd": 19.74
+        },
+        {
+          "month": "2026-06",
+          "usd": 78
+        },
+        {
+          "month": "2026-07",
+          "usd": 177.75
+        },
+        {
+          "month": "2026-08",
+          "usd": 48.33
+        },
+        {
+          "month": "2026-09",
+          "usd": 153.07
+        }
+      ],
+      "energyTopTwoMonths": {
+        "months": [
+          "2026-07",
+          "2026-09"
+        ],
+        "share": 0.519
+      },
+      "peaks": {
+        "zoneOneCP": {
+          "date": "2026-07-01",
+          "localStart": 17,
+          "mw": 8932,
+          "coveredByClock": true
+        },
+        "zoneFiveCP": [
+          {
+            "date": "2026-07-01",
+            "localStart": 17,
+            "mw": 8932,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-02",
+            "localStart": 17,
+            "mw": 8841,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-15",
+            "localStart": 17,
+            "mw": 8814,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-16",
+            "localStart": 15,
+            "mw": 8780,
+            "coveredByClock": false
+          },
+          {
+            "date": "2026-07-03",
+            "localStart": 17,
+            "mw": 8661,
+            "coveredByClock": true
+          }
+        ],
+        "rtoFiveCP": [
+          {
+            "date": "2026-07-02",
+            "localStart": 17,
+            "mw": 162133,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-01",
+            "localStart": 17,
+            "mw": 161440,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-15",
+            "localStart": 17,
+            "mw": 158600,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-03",
+            "localStart": 17,
+            "mw": 154345,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-16",
+            "localStart": 17,
+            "mw": 153700,
+            "coveredByClock": true
+          }
+        ]
+      },
+      "maxRtUsdPerMwh": 4001.25,
+      "hours": 8760,
+      "avgRtUsdPerMwh": 67.41
+    },
+    {
+      "id": "COMED",
+      "utility": "ComEd",
+      "states": [
+        "IL"
+      ],
+      "choice": "open",
+      "base": "Base Retail holds Illinois ARES certificate 26-0121 and offers a Battery Time of Use plan to ComEd homes",
+      "baseSource": "https://www.basepowercompany.com/_bpc/files/ENC6_mP2RRd-de1nBi7v6w-esa-uds-v09302026-docx.pdf",
+      "baseStatus": "operating",
+      "flags": [],
+      "nitsUsdPerMwYear": 46876,
+      "transmission": {
+        "bypassable": true,
+        "note": "Assumed: the retail supplier is billed NITS for its customers’ NSPL. Check the utility tariff before counting it.",
+        "source": null
+      },
+      "tagMethod": {
+        "text": "Not confirmed: whether this utility sets residential tags from the home’s interval meter or a class load profile. Only an interval-meter method lets a battery move the tag.",
+        "source": "https://www.pjm.com/markets-and-operations/billing-settlements-and-credit/theo-plc-and-nspl.aspx"
+      },
+      "timezone": "Central",
+      "energyByKw": {
+        "1": 65.85,
+        "2": 131.69,
+        "3": 197.54,
+        "4": 263.39,
+        "5": 329.23,
+        "6": 395.08,
+        "7": 460.93,
+        "8": 526.86,
+        "0.5": 32.92,
+        "1.5": 98.77,
+        "2.5": 164.62,
+        "3.5": 230.46,
+        "4.5": 296.31,
+        "5.5": 362.16,
+        "6.5": 428,
+        "7.5": 493.87
+      },
+      "energyExportUsdPerYear": 624.36,
+      "energyMonthly": [
+        {
+          "month": "2025-10",
+          "usd": 37.35
+        },
+        {
+          "month": "2025-11",
+          "usd": 11.38
+        },
+        {
+          "month": "2025-12",
+          "usd": 12.69
+        },
+        {
+          "month": "2026-01",
+          "usd": 43.21
+        },
+        {
+          "month": "2026-02",
+          "usd": 23.38
+        },
+        {
+          "month": "2026-03",
+          "usd": 36.2
+        },
+        {
+          "month": "2026-04",
+          "usd": 16
+        },
+        {
+          "month": "2026-05",
+          "usd": 15.48
+        },
+        {
+          "month": "2026-06",
+          "usd": 25.39
+        },
+        {
+          "month": "2026-07",
+          "usd": 148.24
+        },
+        {
+          "month": "2026-08",
+          "usd": 51.28
+        },
+        {
+          "month": "2026-09",
+          "usd": 203.76
+        }
+      ],
+      "energyTopTwoMonths": {
+        "months": [
+          "2026-09",
+          "2026-07"
+        ],
+        "share": 0.564
+      },
+      "peaks": {
+        "zoneOneCP": {
+          "date": "2026-09-02",
+          "localStart": 16,
+          "mw": 21228,
+          "coveredByClock": false
+        },
+        "zoneFiveCP": [
+          {
+            "date": "2026-09-02",
+            "localStart": 16,
+            "mw": 21228,
+            "coveredByClock": false
+          },
+          {
+            "date": "2026-06-30",
+            "localStart": 17,
+            "mw": 20677,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-09-01",
+            "localStart": 16,
+            "mw": 20633,
+            "coveredByClock": false
+          },
+          {
+            "date": "2026-07-14",
+            "localStart": 17,
+            "mw": 20612,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-15",
+            "localStart": 16,
+            "mw": 20598,
+            "coveredByClock": false
+          }
+        ],
+        "rtoFiveCP": [
+          {
+            "date": "2026-07-02",
+            "localStart": 16,
+            "mw": 162133,
+            "coveredByClock": false
+          },
+          {
+            "date": "2026-07-01",
+            "localStart": 16,
+            "mw": 161440,
+            "coveredByClock": false
+          },
+          {
+            "date": "2026-07-15",
+            "localStart": 16,
+            "mw": 158600,
+            "coveredByClock": false
+          },
+          {
+            "date": "2026-07-03",
+            "localStart": 16,
+            "mw": 154345,
+            "coveredByClock": false
+          },
+          {
+            "date": "2026-07-16",
+            "localStart": 16,
+            "mw": 153700,
+            "coveredByClock": false
+          }
+        ]
+      },
+      "maxRtUsdPerMwh": 2717.06,
+      "hours": 8760,
+      "avgRtUsdPerMwh": 39.15
+    },
+    {
+      "id": "DEOK",
+      "utility": "Duke Energy Ohio and Kentucky",
+      "states": [
+        "OH",
+        "KY"
+      ],
+      "choice": "partly",
+      "choiceNote": "Ohio part only",
+      "flags": [],
+      "nitsUsdPerMwYear": 52721,
+      "transmission": {
+        "bypassable": false,
+        "note": "Duke Energy Ohio recovers transmission through Rider BTR, believed nonbypassable; not confirmed on the tariff. Counted as 0 to stay conservative.",
+        "source": "unverified"
+      },
+      "tagMethod": {
+        "text": "Not confirmed: whether this utility sets residential tags from the home’s interval meter or a class load profile. Only an interval-meter method lets a battery move the tag.",
+        "source": "https://www.pjm.com/markets-and-operations/billing-settlements-and-credit/theo-plc-and-nspl.aspx"
+      },
+      "timezone": "Eastern",
+      "energyByKw": {
+        "1": 88.34,
+        "2": 176.69,
+        "3": 265.03,
+        "4": 353.37,
+        "5": 441.72,
+        "6": 530.06,
+        "7": 618.37,
+        "8": 706.67,
+        "0.5": 44.17,
+        "1.5": 132.52,
+        "2.5": 220.86,
+        "3.5": 309.2,
+        "4.5": 397.55,
+        "5.5": 485.89,
+        "6.5": 574.23,
+        "7.5": 662.51
+      },
+      "energyExportUsdPerYear": 602.47,
+      "energyMonthly": [
+        {
+          "month": "2025-10",
+          "usd": 40.52
+        },
+        {
+          "month": "2025-11",
+          "usd": 13.76
+        },
+        {
+          "month": "2025-12",
+          "usd": 12.87
+        },
+        {
+          "month": "2026-01",
+          "usd": 35.37
+        },
+        {
+          "month": "2026-02",
+          "usd": 12.79
+        },
+        {
+          "month": "2026-03",
+          "usd": 10.36
+        },
+        {
+          "month": "2026-04",
+          "usd": 28.03
+        },
+        {
+          "month": "2026-05",
+          "usd": 15.91
+        },
+        {
+          "month": "2026-06",
+          "usd": 42.94
+        },
+        {
+          "month": "2026-07",
+          "usd": 169.06
+        },
+        {
+          "month": "2026-08",
+          "usd": 48.24
+        },
+        {
+          "month": "2026-09",
+          "usd": 172.61
+        }
+      ],
+      "energyTopTwoMonths": {
+        "months": [
+          "2026-09",
+          "2026-07"
+        ],
+        "share": 0.567
+      },
+      "peaks": {
+        "zoneOneCP": {
+          "date": "2026-09-03",
+          "localStart": 17,
+          "mw": 5299,
+          "coveredByClock": true
+        },
+        "zoneFiveCP": [
+          {
+            "date": "2026-09-03",
+            "localStart": 17,
+            "mw": 5299,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-09-04",
+            "localStart": 15,
+            "mw": 5276,
+            "coveredByClock": false
+          },
+          {
+            "date": "2026-09-02",
+            "localStart": 17,
+            "mw": 5261,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-09-01",
+            "localStart": 17,
+            "mw": 5159,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-01",
+            "localStart": 17,
+            "mw": 5108,
+            "coveredByClock": true
+          }
+        ],
+        "rtoFiveCP": [
+          {
+            "date": "2026-07-02",
+            "localStart": 17,
+            "mw": 162133,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-01",
+            "localStart": 17,
+            "mw": 161440,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-15",
+            "localStart": 17,
+            "mw": 158600,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-03",
+            "localStart": 17,
+            "mw": 154345,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-16",
+            "localStart": 17,
+            "mw": 153700,
+            "coveredByClock": true
+          }
+        ]
+      },
+      "maxRtUsdPerMwh": 3911.35,
+      "hours": 8760,
+      "avgRtUsdPerMwh": 58.9
+    },
+    {
+      "id": "DPL",
+      "utility": "Delmarva Power",
+      "states": [
+        "DE",
+        "MD"
+      ],
+      "choice": "open",
+      "flags": [
+        {
+          "text": "Maryland part: Maryland caps a residential supplier price at the trailing 12-month utility default rate, limits contracts to 12 months and bars variable rates (SB 1, 2024). Delaware is not affected.",
+          "source": "https://mgaleg.maryland.gov/2024RS/fnotes/bil_0001/sb0001.pdf"
+        }
+      ],
+      "nitsUsdPerMwYear": 67517,
+      "transmission": {
+        "bypassable": true,
+        "note": "Assumed: the retail supplier is billed NITS for its customers’ NSPL. Check the utility tariff before counting it.",
+        "source": null
+      },
+      "tagMethod": {
+        "text": "Not confirmed: whether this utility sets residential tags from the home’s interval meter or a class load profile. Only an interval-meter method lets a battery move the tag.",
+        "source": "https://www.pjm.com/markets-and-operations/billing-settlements-and-credit/theo-plc-and-nspl.aspx"
+      },
+      "timezone": "Eastern",
+      "energyByKw": {
+        "1": 65.03,
+        "2": 130.06,
+        "3": 195.08,
+        "4": 260.11,
+        "5": 325.14,
+        "6": 390.17,
+        "7": 455.16,
+        "8": 520.13,
+        "0.5": 32.51,
+        "1.5": 97.54,
+        "2.5": 162.57,
+        "3.5": 227.6,
+        "4.5": 292.62,
+        "5.5": 357.65,
+        "6.5": 422.68,
+        "7.5": 487.63
+      },
+      "energyExportUsdPerYear": 599.1,
+      "energyMonthly": [
+        {
+          "month": "2025-10",
+          "usd": 30.41
+        },
+        {
+          "month": "2025-11",
+          "usd": 19.37
+        },
+        {
+          "month": "2025-12",
+          "usd": 21.95
+        },
+        {
+          "month": "2026-01",
+          "usd": 35.79
+        },
+        {
+          "month": "2026-02",
+          "usd": 13.91
+        },
+        {
+          "month": "2026-03",
+          "usd": 1.79
+        },
+        {
+          "month": "2026-04",
+          "usd": 8.07
+        },
+        {
+          "month": "2026-05",
+          "usd": 20.12
+        },
+        {
+          "month": "2026-06",
+          "usd": 72.81
+        },
+        {
+          "month": "2026-07",
+          "usd": 244.85
+        },
+        {
+          "month": "2026-08",
+          "usd": 82.14
+        },
+        {
+          "month": "2026-09",
+          "usd": 47.89
+        }
+      ],
+      "energyTopTwoMonths": {
+        "months": [
+          "2026-07",
+          "2026-08"
+        ],
+        "share": 0.546
+      },
+      "peaks": {
+        "zoneOneCP": {
+          "date": "2026-07-03",
+          "localStart": 17,
+          "mw": 4283,
+          "coveredByClock": true
+        },
+        "zoneFiveCP": [
+          {
+            "date": "2026-07-03",
+            "localStart": 17,
+            "mw": 4283,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-02",
+            "localStart": 17,
+            "mw": 4192,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-04",
+            "localStart": 17,
+            "mw": 4181,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-15",
+            "localStart": 17,
+            "mw": 4094,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-16",
+            "localStart": 18,
+            "mw": 4040,
+            "coveredByClock": true
+          }
+        ],
+        "rtoFiveCP": [
+          {
+            "date": "2026-07-02",
+            "localStart": 17,
+            "mw": 162133,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-01",
+            "localStart": 17,
+            "mw": 161440,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-15",
+            "localStart": 17,
+            "mw": 158600,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-03",
+            "localStart": 17,
+            "mw": 154345,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-16",
+            "localStart": 17,
+            "mw": 153700,
+            "coveredByClock": true
+          }
+        ]
+      },
+      "maxRtUsdPerMwh": 2587.42,
+      "hours": 8760,
+      "avgRtUsdPerMwh": 57.85
+    },
+    {
+      "id": "DAY",
+      "utility": "AES Ohio",
+      "states": [
+        "OH"
+      ],
+      "choice": "open",
+      "flags": [],
+      "nitsUsdPerMwYear": 54290.7,
+      "transmission": {
+        "bypassable": false,
+        "note": "AES Ohio recovers transmission through the nonbypassable rider TCRR-N.",
+        "source": "https://www.aes-ohio.com/sites/default/files/2022-06/T08%20-%2021%20TCRR-N%206-1-22.pdf"
+      },
+      "tagMethod": {
+        "text": "Not confirmed: whether this utility sets residential tags from the home’s interval meter or a class load profile. Only an interval-meter method lets a battery move the tag.",
+        "source": "https://www.pjm.com/markets-and-operations/billing-settlements-and-credit/theo-plc-and-nspl.aspx"
+      },
+      "timezone": "Eastern",
+      "energyByKw": {
+        "1": 86.37,
+        "2": 172.75,
+        "3": 259.12,
+        "4": 345.49,
+        "5": 431.87,
+        "6": 518.24,
+        "7": 604.58,
+        "8": 690.9,
+        "0.5": 43.19,
+        "1.5": 129.56,
+        "2.5": 215.93,
+        "3.5": 302.31,
+        "4.5": 388.68,
+        "5.5": 475.05,
+        "6.5": 561.43,
+        "7.5": 647.73
+      },
+      "energyExportUsdPerYear": 566.76,
+      "energyMonthly": [
+        {
+          "month": "2025-10",
+          "usd": 42.27
+        },
+        {
+          "month": "2025-11",
+          "usd": 15.78
+        },
+        {
+          "month": "2025-12",
+          "usd": 13.48
+        },
+        {
+          "month": "2026-01",
+          "usd": 35.3
+        },
+        {
+          "month": "2026-02",
+          "usd": 13.98
+        },
+        {
+          "month": "2026-03",
+          "usd": 10.25
+        },
+        {
+          "month": "2026-04",
+          "usd": 21.75
+        },
+        {
+          "month": "2026-05",
+          "usd": 14.51
+        },
+        {
+          "month": "2026-06",
+          "usd": 42.86
+        },
+        {
+          "month": "2026-07",
+          "usd": 139.46
+        },
+        {
+          "month": "2026-08",
+          "usd": 45.64
+        },
+        {
+          "month": "2026-09",
+          "usd": 171.47
+        }
+      ],
+      "energyTopTwoMonths": {
+        "months": [
+          "2026-09",
+          "2026-07"
+        ],
+        "share": 0.549
+      },
+      "peaks": {
+        "zoneOneCP": {
+          "date": "2026-09-02",
+          "localStart": 17,
+          "mw": 3457,
+          "coveredByClock": true
+        },
+        "zoneFiveCP": [
+          {
+            "date": "2026-09-02",
+            "localStart": 17,
+            "mw": 3457,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-09-03",
+            "localStart": 16,
+            "mw": 3453,
+            "coveredByClock": false
+          },
+          {
+            "date": "2026-07-16",
+            "localStart": 17,
+            "mw": 3379,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-09-01",
+            "localStart": 17,
+            "mw": 3378,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-01",
+            "localStart": 16,
+            "mw": 3349,
+            "coveredByClock": false
+          }
+        ],
+        "rtoFiveCP": [
+          {
+            "date": "2026-07-02",
+            "localStart": 17,
+            "mw": 162133,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-01",
+            "localStart": 17,
+            "mw": 161440,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-15",
+            "localStart": 17,
+            "mw": 158600,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-03",
+            "localStart": 17,
+            "mw": 154345,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-16",
+            "localStart": 17,
+            "mw": 153700,
+            "coveredByClock": true
+          }
+        ]
+      },
+      "maxRtUsdPerMwh": 4097.78,
+      "hours": 8760,
+      "avgRtUsdPerMwh": 58.66
+    },
+    {
+      "id": "ATSI",
+      "utility": "FirstEnergy Ohio (Ohio Edison, Illuminating, Toledo Edison) and Penn Power",
+      "states": [
+        "OH",
+        "PA"
+      ],
+      "choice": "open",
+      "flags": [
+        {
+          "text": "Pennsylvania part (Penn Power): FirstEnergy Pennsylvania will buy supplier receivables only for prices at or below the utility price to compare, for contracts from 1 June 2027 (P-2026-3060298; reported by trade press, not confirmed on the docket).",
+          "source": "https://www.energychoicematters.com/news/pennsylvania-puc-adopts-rate-cap-for-eligibility-for-purchase-of-receivables-por"
+        }
+      ],
+      "nitsUsdPerMwYear": 91371.62,
+      "transmission": {
+        "bypassable": false,
+        "note": "FirstEnergy Ohio recovers transmission through Rider NMB, charged to all customers. Penn Power (Pennsylvania) is not covered by this.",
+        "source": "https://www.firstenergycorp.com/content/dam/customer/Customer%20Choice/Files/Ohio/tariffs/OE-2026-Electric-Service.pdf"
+      },
+      "tagMethod": {
+        "text": "Not confirmed: whether this utility sets residential tags from the home’s interval meter or a class load profile. Only an interval-meter method lets a battery move the tag.",
+        "source": "https://www.pjm.com/markets-and-operations/billing-settlements-and-credit/theo-plc-and-nspl.aspx"
+      },
+      "timezone": "Eastern",
+      "energyByKw": {
+        "1": 77.34,
+        "2": 154.67,
+        "3": 232.01,
+        "4": 309.35,
+        "5": 386.68,
+        "6": 464.02,
+        "7": 541.33,
+        "8": 618.62,
+        "0.5": 38.67,
+        "1.5": 116.01,
+        "2.5": 193.34,
+        "3.5": 270.68,
+        "4.5": 348.02,
+        "5.5": 425.35,
+        "6.5": 502.69,
+        "7.5": 579.96
+      },
+      "energyExportUsdPerYear": 523.02,
+      "energyMonthly": [
+        {
+          "month": "2025-10",
+          "usd": 40.59
+        },
+        {
+          "month": "2025-11",
+          "usd": 16.18
+        },
+        {
+          "month": "2025-12",
+          "usd": 13.05
+        },
+        {
+          "month": "2026-01",
+          "usd": 34.93
+        },
+        {
+          "month": "2026-02",
+          "usd": 15.61
+        },
+        {
+          "month": "2026-03",
+          "usd": 7.55
+        },
+        {
+          "month": "2026-04",
+          "usd": 9.09
+        },
+        {
+          "month": "2026-05",
+          "usd": 7.17
+        },
+        {
+          "month": "2026-06",
+          "usd": 45.88
+        },
+        {
+          "month": "2026-07",
+          "usd": 140.02
+        },
+        {
+          "month": "2026-08",
+          "usd": 41.81
+        },
+        {
+          "month": "2026-09",
+          "usd": 151.13
+        }
+      ],
+      "energyTopTwoMonths": {
+        "months": [
+          "2026-09",
+          "2026-07"
+        ],
+        "share": 0.557
+      },
+      "peaks": {
+        "zoneOneCP": {
+          "date": "2026-07-01",
+          "localStart": 16,
+          "mw": 13220,
+          "coveredByClock": false
+        },
+        "zoneFiveCP": [
+          {
+            "date": "2026-07-01",
+            "localStart": 16,
+            "mw": 13220,
+            "coveredByClock": false
+          },
+          {
+            "date": "2026-09-02",
+            "localStart": 15,
+            "mw": 12976,
+            "coveredByClock": false
+          },
+          {
+            "date": "2026-07-15",
+            "localStart": 16,
+            "mw": 12877,
+            "coveredByClock": false
+          },
+          {
+            "date": "2026-07-02",
+            "localStart": 16,
+            "mw": 12792,
+            "coveredByClock": false
+          },
+          {
+            "date": "2026-06-30",
+            "localStart": 16,
+            "mw": 12745,
+            "coveredByClock": false
+          }
+        ],
+        "rtoFiveCP": [
+          {
+            "date": "2026-07-02",
+            "localStart": 17,
+            "mw": 162133,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-01",
+            "localStart": 17,
+            "mw": 161440,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-15",
+            "localStart": 17,
+            "mw": 158600,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-03",
+            "localStart": 17,
+            "mw": 154345,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-16",
+            "localStart": 17,
+            "mw": 153700,
+            "coveredByClock": true
+          }
+        ]
+      },
+      "maxRtUsdPerMwh": 4058.56,
+      "hours": 8760,
+      "avgRtUsdPerMwh": 54.78
+    },
+    {
+      "id": "DUQ",
+      "utility": "Duquesne Light",
+      "states": [
+        "PA"
+      ],
+      "choice": "open",
+      "flags": [],
+      "nitsUsdPerMwYear": 74004.25,
+      "transmission": {
+        "bypassable": true,
+        "note": "Assumed: the retail supplier is billed NITS for its customers’ NSPL. Check the utility tariff before counting it.",
+        "source": null
+      },
+      "tagMethod": {
+        "text": "Not confirmed: whether this utility sets residential tags from the home’s interval meter or a class load profile. Only an interval-meter method lets a battery move the tag.",
+        "source": "https://www.pjm.com/markets-and-operations/billing-settlements-and-credit/theo-plc-and-nspl.aspx"
+      },
+      "timezone": "Eastern",
+      "energyByKw": {
+        "1": 75.77,
+        "2": 151.54,
+        "3": 227.31,
+        "4": 303.08,
+        "5": 378.85,
+        "6": 454.62,
+        "7": 530.36,
+        "8": 606.09,
+        "0.5": 37.89,
+        "1.5": 113.66,
+        "2.5": 189.43,
+        "3.5": 265.2,
+        "4.5": 340.97,
+        "5.5": 416.74,
+        "6.5": 492.51,
+        "7.5": 568.21
+      },
+      "energyExportUsdPerYear": 518.46,
+      "energyMonthly": [
+        {
+          "month": "2025-10",
+          "usd": 40.01
+        },
+        {
+          "month": "2025-11",
+          "usd": 15.53
+        },
+        {
+          "month": "2025-12",
+          "usd": 10.6
+        },
+        {
+          "month": "2026-01",
+          "usd": 35.34
+        },
+        {
+          "month": "2026-02",
+          "usd": 16.57
+        },
+        {
+          "month": "2026-03",
+          "usd": 11.46
+        },
+        {
+          "month": "2026-04",
+          "usd": 11.89
+        },
+        {
+          "month": "2026-05",
+          "usd": 7.07
+        },
+        {
+          "month": "2026-06",
+          "usd": 42.67
+        },
+        {
+          "month": "2026-07",
+          "usd": 140.1
+        },
+        {
+          "month": "2026-08",
+          "usd": 42.5
+        },
+        {
+          "month": "2026-09",
+          "usd": 144.72
+        }
+      ],
+      "energyTopTwoMonths": {
+        "months": [
+          "2026-09",
+          "2026-07"
+        ],
+        "share": 0.549
+      },
+      "peaks": {
+        "zoneOneCP": {
+          "date": "2026-07-02",
+          "localStart": 16,
+          "mw": 2732,
+          "coveredByClock": false
+        },
+        "zoneFiveCP": [
+          {
+            "date": "2026-07-02",
+            "localStart": 16,
+            "mw": 2732,
+            "coveredByClock": false
+          },
+          {
+            "date": "2026-07-01",
+            "localStart": 17,
+            "mw": 2728,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-03",
+            "localStart": 17,
+            "mw": 2706,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-15",
+            "localStart": 17,
+            "mw": 2705,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-09-02",
+            "localStart": 16,
+            "mw": 2698,
+            "coveredByClock": false
+          }
+        ],
+        "rtoFiveCP": [
+          {
+            "date": "2026-07-02",
+            "localStart": 17,
+            "mw": 162133,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-01",
+            "localStart": 17,
+            "mw": 161440,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-15",
+            "localStart": 17,
+            "mw": 158600,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-03",
+            "localStart": 17,
+            "mw": 154345,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-16",
+            "localStart": 17,
+            "mw": 153700,
+            "coveredByClock": true
+          }
+        ]
+      },
+      "maxRtUsdPerMwh": 3911.7,
+      "hours": 8760,
+      "avgRtUsdPerMwh": 53.43
+    },
+    {
+      "id": "AEP",
+      "utility": "AEP (Ohio, Appalachian, Indiana Michigan, Kentucky, Wheeling)",
+      "states": [
+        "OH",
+        "VA",
+        "WV",
+        "IN",
+        "MI",
+        "KY"
+      ],
+      "choice": "partly",
+      "choiceNote": "AEP Ohio only",
+      "flags": [],
+      "nitsUsdPerMwYear": 138848.55,
+      "transmission": {
+        "bypassable": false,
+        "note": "AEP Ohio recovers transmission through the nonbypassable Basic Transmission Cost Rider (BTCR) (secondary source).",
+        "source": "https://www.energychoicematters.com/stories/20260318e.html"
+      },
+      "tagMethod": {
+        "text": "Not confirmed: whether this utility sets residential tags from the home’s interval meter or a class load profile. Only an interval-meter method lets a battery move the tag.",
+        "source": "https://www.pjm.com/markets-and-operations/billing-settlements-and-credit/theo-plc-and-nspl.aspx"
+      },
+      "timezone": "Eastern",
+      "energyByKw": {
+        "1": 78.86,
+        "2": 157.72,
+        "3": 236.58,
+        "4": 315.44,
+        "5": 394.29,
+        "6": 473.15,
+        "7": 551.98,
+        "8": 630.8,
+        "0.5": 39.43,
+        "1.5": 118.29,
+        "2.5": 197.15,
+        "3.5": 276.01,
+        "4.5": 354.86,
+        "5.5": 433.72,
+        "6.5": 512.58,
+        "7.5": 591.38
+      },
+      "energyExportUsdPerYear": 514.77,
+      "energyMonthly": [
+        {
+          "month": "2025-10",
+          "usd": 41.82
+        },
+        {
+          "month": "2025-11",
+          "usd": 15.6
+        },
+        {
+          "month": "2025-12",
+          "usd": 11.12
+        },
+        {
+          "month": "2026-01",
+          "usd": 37.98
+        },
+        {
+          "month": "2026-02",
+          "usd": 3.77
+        },
+        {
+          "month": "2026-03",
+          "usd": 8.46
+        },
+        {
+          "month": "2026-04",
+          "usd": 20.95
+        },
+        {
+          "month": "2026-05",
+          "usd": 13.45
+        },
+        {
+          "month": "2026-06",
+          "usd": 45.46
+        },
+        {
+          "month": "2026-07",
+          "usd": 128.26
+        },
+        {
+          "month": "2026-08",
+          "usd": 39.7
+        },
+        {
+          "month": "2026-09",
+          "usd": 148.21
+        }
+      ],
+      "energyTopTwoMonths": {
+        "months": [
+          "2026-09",
+          "2026-07"
+        ],
+        "share": 0.537
+      },
+      "peaks": {
+        "zoneOneCP": {
+          "date": "2026-09-03",
+          "localStart": 15,
+          "mw": 25099,
+          "coveredByClock": false
+        },
+        "zoneFiveCP": [
+          {
+            "date": "2026-09-03",
+            "localStart": 15,
+            "mw": 25099,
+            "coveredByClock": false
+          },
+          {
+            "date": "2026-09-02",
+            "localStart": 17,
+            "mw": 25089,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-01",
+            "localStart": 17,
+            "mw": 24926,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-17",
+            "localStart": 16,
+            "mw": 24441,
+            "coveredByClock": false
+          },
+          {
+            "date": "2026-07-16",
+            "localStart": 14,
+            "mw": 24386,
+            "coveredByClock": false
+          }
+        ],
+        "rtoFiveCP": [
+          {
+            "date": "2026-07-02",
+            "localStart": 17,
+            "mw": 162133,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-01",
+            "localStart": 17,
+            "mw": 161440,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-15",
+            "localStart": 17,
+            "mw": 158600,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-03",
+            "localStart": 17,
+            "mw": 154345,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-16",
+            "localStart": 17,
+            "mw": 153700,
+            "coveredByClock": true
+          }
+        ]
+      },
+      "maxRtUsdPerMwh": 3904.5,
+      "hours": 8760,
+      "avgRtUsdPerMwh": 57.19
+    },
+    {
+      "id": "METED",
+      "utility": "Met-Ed (FirstEnergy Pennsylvania)",
+      "states": [
+        "PA"
+      ],
+      "choice": "open",
+      "flags": [
+        {
+          "text": "FirstEnergy Pennsylvania will buy supplier receivables only for prices at or below the utility price to compare, for contracts from 1 June 2027 (P-2026-3060298; reported by trade press, not confirmed on the docket).",
+          "source": "https://www.energychoicematters.com/news/pennsylvania-puc-adopts-rate-cap-for-eligibility-for-purchase-of-receivables-por"
+        }
+      ],
+      "nitsUsdPerMwYear": 96066.49,
+      "transmission": {
+        "bypassable": true,
+        "note": "Assumed: the retail supplier is billed NITS for its customers’ NSPL. Check the utility tariff before counting it.",
+        "source": null
+      },
+      "tagMethod": {
+        "text": "Not confirmed: whether this utility sets residential tags from the home’s interval meter or a class load profile. Only an interval-meter method lets a battery move the tag.",
+        "source": "https://www.pjm.com/markets-and-operations/billing-settlements-and-credit/theo-plc-and-nspl.aspx"
+      },
+      "timezone": "Eastern",
+      "energyByKw": {
+        "1": 59.86,
+        "2": 119.72,
+        "3": 179.58,
+        "4": 239.44,
+        "5": 299.3,
+        "6": 359.16,
+        "7": 418.99,
+        "8": 478.8,
+        "0.5": 29.93,
+        "1.5": 89.79,
+        "2.5": 149.65,
+        "3.5": 209.51,
+        "4.5": 269.37,
+        "5.5": 329.23,
+        "6.5": 389.09,
+        "7.5": 448.88
+      },
+      "energyExportUsdPerYear": 507.51,
+      "energyMonthly": [
+        {
+          "month": "2025-10",
+          "usd": 27.86
+        },
+        {
+          "month": "2025-11",
+          "usd": 13.79
+        },
+        {
+          "month": "2025-12",
+          "usd": 22.05
+        },
+        {
+          "month": "2026-01",
+          "usd": 54.46
+        },
+        {
+          "month": "2026-02",
+          "usd": 17.21
+        },
+        {
+          "month": "2026-03",
+          "usd": 5.88
+        },
+        {
+          "month": "2026-04",
+          "usd": 3.97
+        },
+        {
+          "month": "2026-05",
+          "usd": 5.96
+        },
+        {
+          "month": "2026-06",
+          "usd": 46.87
+        },
+        {
+          "month": "2026-07",
+          "usd": 184.55
+        },
+        {
+          "month": "2026-08",
+          "usd": 46.13
+        },
+        {
+          "month": "2026-09",
+          "usd": 78.77
+        }
+      ],
+      "energyTopTwoMonths": {
+        "months": [
+          "2026-07",
+          "2026-09"
+        ],
+        "share": 0.519
+      },
+      "peaks": {
+        "zoneOneCP": {
+          "date": "2026-07-02",
+          "localStart": 17,
+          "mw": 3012,
+          "coveredByClock": true
+        },
+        "zoneFiveCP": [
+          {
+            "date": "2026-07-02",
+            "localStart": 17,
+            "mw": 3012,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-01",
+            "localStart": 17,
+            "mw": 3000,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-15",
+            "localStart": 17,
+            "mw": 2978,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-03",
+            "localStart": 17,
+            "mw": 2922,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-06-11",
+            "localStart": 17,
+            "mw": 2828,
+            "coveredByClock": true
+          }
+        ],
+        "rtoFiveCP": [
+          {
+            "date": "2026-07-02",
+            "localStart": 17,
+            "mw": 162133,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-01",
+            "localStart": 17,
+            "mw": 161440,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-15",
+            "localStart": 17,
+            "mw": 158600,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-03",
+            "localStart": 17,
+            "mw": 154345,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-16",
+            "localStart": 17,
+            "mw": 153700,
+            "coveredByClock": true
+          }
+        ]
+      },
+      "maxRtUsdPerMwh": 2847.34,
+      "hours": 8760,
+      "avgRtUsdPerMwh": 50.36
+    },
+    {
+      "id": "PENELEC",
+      "utility": "Penelec (FirstEnergy Pennsylvania)",
+      "states": [
+        "PA"
+      ],
+      "choice": "open",
+      "flags": [
+        {
+          "text": "FirstEnergy Pennsylvania will buy supplier receivables only for prices at or below the utility price to compare, for contracts from 1 June 2027 (P-2026-3060298; reported by trade press, not confirmed on the docket).",
+          "source": "https://www.energychoicematters.com/news/pennsylvania-puc-adopts-rate-cap-for-eligibility-for-purchase-of-receivables-por"
+        }
+      ],
+      "nitsUsdPerMwYear": 96066.49,
+      "transmission": {
+        "bypassable": true,
+        "note": "Assumed: the retail supplier is billed NITS for its customers’ NSPL. Check the utility tariff before counting it.",
+        "source": null
+      },
+      "tagMethod": {
+        "text": "Not confirmed: whether this utility sets residential tags from the home’s interval meter or a class load profile. Only an interval-meter method lets a battery move the tag.",
+        "source": "https://www.pjm.com/markets-and-operations/billing-settlements-and-credit/theo-plc-and-nspl.aspx"
+      },
+      "timezone": "Eastern",
+      "energyByKw": {
+        "1": 68.46,
+        "2": 136.93,
+        "3": 205.39,
+        "4": 273.85,
+        "5": 342.31,
+        "6": 410.78,
+        "7": 479.21,
+        "8": 547.63,
+        "0.5": 34.23,
+        "1.5": 102.69,
+        "2.5": 171.16,
+        "3.5": 239.62,
+        "4.5": 308.08,
+        "5.5": 376.55,
+        "6.5": 445.01,
+        "7.5": 513.41
+      },
+      "energyExportUsdPerYear": 493.54,
+      "energyMonthly": [
+        {
+          "month": "2025-10",
+          "usd": 40.26
+        },
+        {
+          "month": "2025-11",
+          "usd": 13.9
+        },
+        {
+          "month": "2025-12",
+          "usd": 11.81
+        },
+        {
+          "month": "2026-01",
+          "usd": 43.3
+        },
+        {
+          "month": "2026-02",
+          "usd": 11.27
+        },
+        {
+          "month": "2026-03",
+          "usd": 9.37
+        },
+        {
+          "month": "2026-04",
+          "usd": 7.54
+        },
+        {
+          "month": "2026-05",
+          "usd": 6.98
+        },
+        {
+          "month": "2026-06",
+          "usd": 43.28
+        },
+        {
+          "month": "2026-07",
+          "usd": 152.08
+        },
+        {
+          "month": "2026-08",
+          "usd": 40.14
+        },
+        {
+          "month": "2026-09",
+          "usd": 113.61
+        }
+      ],
+      "energyTopTwoMonths": {
+        "months": [
+          "2026-07",
+          "2026-09"
+        ],
+        "share": 0.538
+      },
+      "peaks": {
+        "zoneOneCP": {
+          "date": "2026-07-01",
+          "localStart": 16,
+          "mw": 2931,
+          "coveredByClock": false
+        },
+        "zoneFiveCP": [
+          {
+            "date": "2026-07-01",
+            "localStart": 16,
+            "mw": 2931,
+            "coveredByClock": false
+          },
+          {
+            "date": "2026-07-02",
+            "localStart": 17,
+            "mw": 2863,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-15",
+            "localStart": 15,
+            "mw": 2850,
+            "coveredByClock": false
+          },
+          {
+            "date": "2026-07-03",
+            "localStart": 16,
+            "mw": 2816,
+            "coveredByClock": false
+          },
+          {
+            "date": "2026-06-30",
+            "localStart": 17,
+            "mw": 2786,
+            "coveredByClock": true
+          }
+        ],
+        "rtoFiveCP": [
+          {
+            "date": "2026-07-02",
+            "localStart": 17,
+            "mw": 162133,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-01",
+            "localStart": 17,
+            "mw": 161440,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-15",
+            "localStart": 17,
+            "mw": 158600,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-03",
+            "localStart": 17,
+            "mw": 154345,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-16",
+            "localStart": 17,
+            "mw": 153700,
+            "coveredByClock": true
+          }
+        ]
+      },
+      "maxRtUsdPerMwh": 3463.02,
+      "hours": 8760,
+      "avgRtUsdPerMwh": 56.22
+    },
+    {
+      "id": "EKPC",
+      "utility": "East Kentucky Power Cooperative",
+      "states": [
+        "KY"
+      ],
+      "choice": "none",
+      "flags": [],
+      "nitsUsdPerMwYear": 26173,
+      "transmission": {
+        "bypassable": true,
+        "note": "Assumed: the retail supplier is billed NITS for its customers’ NSPL. Check the utility tariff before counting it.",
+        "source": null
+      },
+      "tagMethod": {
+        "text": "Not confirmed: whether this utility sets residential tags from the home’s interval meter or a class load profile. Only an interval-meter method lets a battery move the tag.",
+        "source": "https://www.pjm.com/markets-and-operations/billing-settlements-and-credit/theo-plc-and-nspl.aspx"
+      },
+      "timezone": "Eastern",
+      "energyByKw": {
+        "1": 75.65,
+        "2": 151.31,
+        "3": 226.96,
+        "4": 302.62,
+        "5": 378.27,
+        "6": 453.92,
+        "7": 529.55,
+        "8": 605.14,
+        "0.5": 37.83,
+        "1.5": 113.48,
+        "2.5": 189.13,
+        "3.5": 264.79,
+        "4.5": 340.44,
+        "5.5": 416.1,
+        "6.5": 491.75,
+        "7.5": 567.33
+      },
+      "energyExportUsdPerYear": 487.15,
+      "energyMonthly": [
+        {
+          "month": "2025-10",
+          "usd": 38.67
+        },
+        {
+          "month": "2025-11",
+          "usd": 14.59
+        },
+        {
+          "month": "2025-12",
+          "usd": 10.86
+        },
+        {
+          "month": "2026-01",
+          "usd": 37.91
+        },
+        {
+          "month": "2026-02",
+          "usd": 1.53
+        },
+        {
+          "month": "2026-03",
+          "usd": 10.25
+        },
+        {
+          "month": "2026-04",
+          "usd": 11.96
+        },
+        {
+          "month": "2026-05",
+          "usd": 8.64
+        },
+        {
+          "month": "2026-06",
+          "usd": 34.86
+        },
+        {
+          "month": "2026-07",
+          "usd": 126.65
+        },
+        {
+          "month": "2026-08",
+          "usd": 41.08
+        },
+        {
+          "month": "2026-09",
+          "usd": 150.15
+        }
+      ],
+      "energyTopTwoMonths": {
+        "months": [
+          "2026-09",
+          "2026-07"
+        ],
+        "share": 0.568
+      },
+      "peaks": {
+        "zoneOneCP": {
+          "date": "2026-09-03",
+          "localStart": 15,
+          "mw": 2669,
+          "coveredByClock": false
+        },
+        "zoneFiveCP": [
+          {
+            "date": "2026-09-03",
+            "localStart": 15,
+            "mw": 2669,
+            "coveredByClock": false
+          },
+          {
+            "date": "2026-06-30",
+            "localStart": 18,
+            "mw": 2654,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-09-02",
+            "localStart": 17,
+            "mw": 2635,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-16",
+            "localStart": 17,
+            "mw": 2613,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-09-01",
+            "localStart": 18,
+            "mw": 2609,
+            "coveredByClock": true
+          }
+        ],
+        "rtoFiveCP": [
+          {
+            "date": "2026-07-02",
+            "localStart": 17,
+            "mw": 162133,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-01",
+            "localStart": 17,
+            "mw": 161440,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-15",
+            "localStart": 17,
+            "mw": 158600,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-03",
+            "localStart": 17,
+            "mw": 154345,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-16",
+            "localStart": 17,
+            "mw": 153700,
+            "coveredByClock": true
+          }
+        ]
+      },
+      "maxRtUsdPerMwh": 3783.92,
+      "hours": 8760,
+      "avgRtUsdPerMwh": 55.2
+    },
+    {
+      "id": "PPL",
+      "utility": "PPL Electric Utilities",
+      "states": [
+        "PA"
+      ],
+      "choice": "open",
+      "base": "Base Retail filed comments in PPL dockets at the Pennsylvania PUC (Nov 2026)",
+      "baseSource": "https://www.energychoicematters.com/news/retail-supplier-expresses-concern-with-ppl-electric-s-nonbypassable-nits-proposa",
+      "baseStatus": "docket",
+      "flags": [
+        {
+          "text": "PPL proposes a nonbypassable transmission rider, which would end the transmission tag saving for suppliers; Base Retail asked for a supplier opt-out (P-2026-3065185).",
+          "source": "https://www.puc.pa.gov/docket/P-2026-3065185"
+        }
+      ],
+      "nitsUsdPerMwYear": 112973,
+      "transmission": {
+        "bypassable": true,
+        "note": "Assumed: the retail supplier is billed NITS for its customers’ NSPL. Check the utility tariff before counting it.",
+        "source": null
+      },
+      "tagMethod": {
+        "text": "PPL sets each customer’s PLC from interval load on the five PPL zone peaks, not the five PJM-wide peaks.",
+        "source": "https://www.pplelectric.com/-/media/PPLElectric/At-Your-Service/Docs/General-Supplier-Reference-Information/HowPPLCalculatesCustomerPLCs-Starting2011.pdf"
+      },
+      "timezone": "Eastern",
+      "energyByKw": {
+        "1": 55.52,
+        "2": 111.03,
+        "3": 166.55,
+        "4": 222.06,
+        "5": 277.58,
+        "6": 333.1,
+        "7": 388.58,
+        "8": 444.05,
+        "0.5": 27.76,
+        "1.5": 83.27,
+        "2.5": 138.79,
+        "3.5": 194.31,
+        "4.5": 249.82,
+        "5.5": 305.34,
+        "6.5": 360.86,
+        "7.5": 416.3
+      },
+      "energyExportUsdPerYear": 472.32,
+      "energyMonthly": [
+        {
+          "month": "2025-10",
+          "usd": 26.89
+        },
+        {
+          "month": "2025-11",
+          "usd": 12.99
+        },
+        {
+          "month": "2025-12",
+          "usd": 21.81
+        },
+        {
+          "month": "2026-01",
+          "usd": 53.01
+        },
+        {
+          "month": "2026-02",
+          "usd": 22.07
+        },
+        {
+          "month": "2026-03",
+          "usd": 5.42
+        },
+        {
+          "month": "2026-04",
+          "usd": 5.02
+        },
+        {
+          "month": "2026-05",
+          "usd": 6.64
+        },
+        {
+          "month": "2026-06",
+          "usd": 44.23
+        },
+        {
+          "month": "2026-07",
+          "usd": 170.63
+        },
+        {
+          "month": "2026-08",
+          "usd": 37.9
+        },
+        {
+          "month": "2026-09",
+          "usd": 65.69
+        }
+      ],
+      "energyTopTwoMonths": {
+        "months": [
+          "2026-07",
+          "2026-09"
+        ],
+        "share": 0.5
+      },
+      "peaks": {
+        "zoneOneCP": {
+          "date": "2026-07-02",
+          "localStart": 17,
+          "mw": 7632,
+          "coveredByClock": true
+        },
+        "zoneFiveCP": [
+          {
+            "date": "2026-07-02",
+            "localStart": 17,
+            "mw": 7632,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-01",
+            "localStart": 18,
+            "mw": 7540,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-03",
+            "localStart": 17,
+            "mw": 7412,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-15",
+            "localStart": 14,
+            "mw": 7410,
+            "coveredByClock": false
+          },
+          {
+            "date": "2026-07-14",
+            "localStart": 17,
+            "mw": 7076,
+            "coveredByClock": true
+          }
+        ],
+        "rtoFiveCP": [
+          {
+            "date": "2026-07-02",
+            "localStart": 17,
+            "mw": 162133,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-01",
+            "localStart": 17,
+            "mw": 161440,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-15",
+            "localStart": 17,
+            "mw": 158600,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-03",
+            "localStart": 17,
+            "mw": 154345,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-16",
+            "localStart": 17,
+            "mw": 153700,
+            "coveredByClock": true
+          }
+        ]
+      },
+      "maxRtUsdPerMwh": 2477.63,
+      "hours": 8760,
+      "avgRtUsdPerMwh": 48.06
+    },
+    {
+      "id": "JCPL",
+      "utility": "Jersey Central Power and Light",
+      "states": [
+        "NJ"
+      ],
+      "choice": "open",
+      "flags": [],
+      "nitsUsdPerMwYear": 45900.24,
+      "transmission": {
+        "bypassable": true,
+        "note": "Assumed: the retail supplier is billed NITS for its customers’ NSPL. Check the utility tariff before counting it.",
+        "source": null
+      },
+      "tagMethod": {
+        "text": "Not confirmed: whether this utility sets residential tags from the home’s interval meter or a class load profile. Only an interval-meter method lets a battery move the tag.",
+        "source": "https://www.pjm.com/markets-and-operations/billing-settlements-and-credit/theo-plc-and-nspl.aspx"
+      },
+      "timezone": "Eastern",
+      "energyByKw": {
+        "1": 55.53,
+        "2": 111.05,
+        "3": 166.58,
+        "4": 222.1,
+        "5": 277.63,
+        "6": 333.15,
+        "7": 388.64,
+        "8": 444.12,
+        "0.5": 27.76,
+        "1.5": 83.29,
+        "2.5": 138.81,
+        "3.5": 194.34,
+        "4.5": 249.86,
+        "5.5": 305.39,
+        "6.5": 360.91,
+        "7.5": 416.37
+      },
+      "energyExportUsdPerYear": 468.16,
+      "energyMonthly": [
+        {
+          "month": "2025-10",
+          "usd": 29.62
+        },
+        {
+          "month": "2025-11",
+          "usd": 13.74
+        },
+        {
+          "month": "2025-12",
+          "usd": 15.88
+        },
+        {
+          "month": "2026-01",
+          "usd": 52.08
+        },
+        {
+          "month": "2026-02",
+          "usd": 15.55
+        },
+        {
+          "month": "2026-03",
+          "usd": 3.64
+        },
+        {
+          "month": "2026-04",
+          "usd": 6.8
+        },
+        {
+          "month": "2026-05",
+          "usd": 8.49
+        },
+        {
+          "month": "2026-06",
+          "usd": 53
+        },
+        {
+          "month": "2026-07",
+          "usd": 176.63
+        },
+        {
+          "month": "2026-08",
+          "usd": 34.72
+        },
+        {
+          "month": "2026-09",
+          "usd": 58
+        }
+      ],
+      "energyTopTwoMonths": {
+        "months": [
+          "2026-07",
+          "2026-09"
+        ],
+        "share": 0.501
+      },
+      "peaks": {
+        "zoneOneCP": {
+          "date": "2026-07-02",
+          "localStart": 18,
+          "mw": 6464,
+          "coveredByClock": true
+        },
+        "zoneFiveCP": [
+          {
+            "date": "2026-07-02",
+            "localStart": 18,
+            "mw": 6464,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-03",
+            "localStart": 17,
+            "mw": 6379,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-01",
+            "localStart": 18,
+            "mw": 6002,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-15",
+            "localStart": 16,
+            "mw": 5958,
+            "coveredByClock": false
+          },
+          {
+            "date": "2026-08-07",
+            "localStart": 16,
+            "mw": 5657,
+            "coveredByClock": false
+          }
+        ],
+        "rtoFiveCP": [
+          {
+            "date": "2026-07-02",
+            "localStart": 17,
+            "mw": 162133,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-01",
+            "localStart": 17,
+            "mw": 161440,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-15",
+            "localStart": 17,
+            "mw": 158600,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-03",
+            "localStart": 17,
+            "mw": 154345,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-16",
+            "localStart": 17,
+            "mw": 153700,
+            "coveredByClock": true
+          }
+        ]
+      },
+      "maxRtUsdPerMwh": 2223.76,
+      "hours": 8760,
+      "avgRtUsdPerMwh": 50.7
+    },
+    {
+      "id": "PSEG",
+      "utility": "PSE&G",
+      "states": [
+        "NJ"
+      ],
+      "choice": "open",
+      "flags": [],
+      "nitsUsdPerMwYear": 183352.99,
+      "transmission": {
+        "bypassable": true,
+        "note": "Assumed: the retail supplier is billed NITS for its customers’ NSPL. Check the utility tariff before counting it.",
+        "source": null
+      },
+      "tagMethod": {
+        "text": "Not confirmed: whether this utility sets residential tags from the home’s interval meter or a class load profile. Only an interval-meter method lets a battery move the tag.",
+        "source": "https://www.pjm.com/markets-and-operations/billing-settlements-and-credit/theo-plc-and-nspl.aspx"
+      },
+      "timezone": "Eastern",
+      "energyByKw": {
+        "1": 55.86,
+        "2": 111.73,
+        "3": 167.59,
+        "4": 223.46,
+        "5": 279.32,
+        "6": 335.18,
+        "7": 391.02,
+        "8": 446.83,
+        "0.5": 27.93,
+        "1.5": 83.8,
+        "2.5": 139.66,
+        "3.5": 195.52,
+        "4.5": 251.39,
+        "5.5": 307.25,
+        "6.5": 363.12,
+        "7.5": 418.91
+      },
+      "energyExportUsdPerYear": 466.99,
+      "energyMonthly": [
+        {
+          "month": "2025-10",
+          "usd": 30.18
+        },
+        {
+          "month": "2025-11",
+          "usd": 14.03
+        },
+        {
+          "month": "2025-12",
+          "usd": 15.2
+        },
+        {
+          "month": "2026-01",
+          "usd": 55.17
+        },
+        {
+          "month": "2026-02",
+          "usd": 19.72
+        },
+        {
+          "month": "2026-03",
+          "usd": 3.25
+        },
+        {
+          "month": "2026-04",
+          "usd": 6.69
+        },
+        {
+          "month": "2026-05",
+          "usd": 8.45
+        },
+        {
+          "month": "2026-06",
+          "usd": 51.62
+        },
+        {
+          "month": "2026-07",
+          "usd": 173.4
+        },
+        {
+          "month": "2026-08",
+          "usd": 34.28
+        },
+        {
+          "month": "2026-09",
+          "usd": 54.99
+        }
+      ],
+      "energyTopTwoMonths": {
+        "months": [
+          "2026-07",
+          "2026-01"
+        ],
+        "share": 0.489
+      },
+      "peaks": {
+        "zoneOneCP": {
+          "date": "2026-07-02",
+          "localStart": 18,
+          "mw": 10446,
+          "coveredByClock": true
+        },
+        "zoneFiveCP": [
+          {
+            "date": "2026-07-02",
+            "localStart": 18,
+            "mw": 10446,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-03",
+            "localStart": 17,
+            "mw": 9975,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-01",
+            "localStart": 19,
+            "mw": 9850,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-15",
+            "localStart": 16,
+            "mw": 9535,
+            "coveredByClock": false
+          },
+          {
+            "date": "2026-08-07",
+            "localStart": 16,
+            "mw": 9351,
+            "coveredByClock": false
+          }
+        ],
+        "rtoFiveCP": [
+          {
+            "date": "2026-07-02",
+            "localStart": 17,
+            "mw": 162133,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-01",
+            "localStart": 17,
+            "mw": 161440,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-15",
+            "localStart": 17,
+            "mw": 158600,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-03",
+            "localStart": 17,
+            "mw": 154345,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-16",
+            "localStart": 17,
+            "mw": 153700,
+            "coveredByClock": true
+          }
+        ]
+      },
+      "maxRtUsdPerMwh": 2190.1,
+      "hours": 8760,
+      "avgRtUsdPerMwh": 51.96
+    },
+    {
+      "id": "RECO",
+      "utility": "Rockland Electric",
+      "states": [
+        "NJ"
+      ],
+      "choice": "open",
+      "flags": [],
+      "nitsUsdPerMwYear": 53766,
+      "transmission": {
+        "bypassable": true,
+        "note": "Assumed: the retail supplier is billed NITS for its customers’ NSPL. Check the utility tariff before counting it.",
+        "source": null
+      },
+      "tagMethod": {
+        "text": "Not confirmed: whether this utility sets residential tags from the home’s interval meter or a class load profile. Only an interval-meter method lets a battery move the tag.",
+        "source": "https://www.pjm.com/markets-and-operations/billing-settlements-and-credit/theo-plc-and-nspl.aspx"
+      },
+      "timezone": "Eastern",
+      "energyByKw": {
+        "1": 57.96,
+        "2": 115.92,
+        "3": 173.88,
+        "4": 231.84,
+        "5": 289.8,
+        "6": 347.76,
+        "7": 405.69,
+        "8": 463.6,
+        "0.5": 28.98,
+        "1.5": 86.94,
+        "2.5": 144.9,
+        "3.5": 202.86,
+        "4.5": 260.82,
+        "5.5": 318.78,
+        "6.5": 376.74,
+        "7.5": 434.63
+      },
+      "energyExportUsdPerYear": 464.43,
+      "energyMonthly": [
+        {
+          "month": "2025-10",
+          "usd": 31.64
+        },
+        {
+          "month": "2025-11",
+          "usd": 15.33
+        },
+        {
+          "month": "2025-12",
+          "usd": 14.15
+        },
+        {
+          "month": "2026-01",
+          "usd": 53.77
+        },
+        {
+          "month": "2026-02",
+          "usd": 22.71
+        },
+        {
+          "month": "2026-03",
+          "usd": 2.11
+        },
+        {
+          "month": "2026-04",
+          "usd": 5.83
+        },
+        {
+          "month": "2026-05",
+          "usd": 9.17
+        },
+        {
+          "month": "2026-06",
+          "usd": 49.62
+        },
+        {
+          "month": "2026-07",
+          "usd": 166.66
+        },
+        {
+          "month": "2026-08",
+          "usd": 34.54
+        },
+        {
+          "month": "2026-09",
+          "usd": 58.91
+        }
+      ],
+      "energyTopTwoMonths": {
+        "months": [
+          "2026-07",
+          "2026-09"
+        ],
+        "share": 0.486
+      },
+      "peaks": {
+        "zoneOneCP": {
+          "date": "2026-07-02",
+          "localStart": 16,
+          "mw": 431,
+          "coveredByClock": false
+        },
+        "zoneFiveCP": [
+          {
+            "date": "2026-07-02",
+            "localStart": 16,
+            "mw": 431,
+            "coveredByClock": false
+          },
+          {
+            "date": "2026-07-01",
+            "localStart": 16,
+            "mw": 408,
+            "coveredByClock": false
+          },
+          {
+            "date": "2026-07-03",
+            "localStart": 16,
+            "mw": 405,
+            "coveredByClock": false
+          },
+          {
+            "date": "2026-07-15",
+            "localStart": 15,
+            "mw": 386,
+            "coveredByClock": false
+          },
+          {
+            "date": "2026-06-11",
+            "localStart": 16,
+            "mw": 380,
+            "coveredByClock": false
+          }
+        ],
+        "rtoFiveCP": [
+          {
+            "date": "2026-07-02",
+            "localStart": 17,
+            "mw": 162133,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-01",
+            "localStart": 17,
+            "mw": 161440,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-15",
+            "localStart": 17,
+            "mw": 158600,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-03",
+            "localStart": 17,
+            "mw": 154345,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-16",
+            "localStart": 17,
+            "mw": 153700,
+            "coveredByClock": true
+          }
+        ]
+      },
+      "maxRtUsdPerMwh": 2128.86,
+      "hours": 8760,
+      "avgRtUsdPerMwh": 55.09
+    },
+    {
+      "id": "AECO",
+      "utility": "Atlantic City Electric",
+      "states": [
+        "NJ"
+      ],
+      "choice": "open",
+      "flags": [],
+      "nitsUsdPerMwYear": 85511,
+      "transmission": {
+        "bypassable": true,
+        "note": "Assumed: the retail supplier is billed NITS for its customers’ NSPL. Check the utility tariff before counting it.",
+        "source": null
+      },
+      "tagMethod": {
+        "text": "Not confirmed: whether this utility sets residential tags from the home’s interval meter or a class load profile. Only an interval-meter method lets a battery move the tag.",
+        "source": "https://www.pjm.com/markets-and-operations/billing-settlements-and-credit/theo-plc-and-nspl.aspx"
+      },
+      "timezone": "Eastern",
+      "energyByKw": {
+        "1": 54,
+        "2": 108,
+        "3": 161.99,
+        "4": 215.99,
+        "5": 269.99,
+        "6": 323.99,
+        "7": 377.95,
+        "8": 431.9,
+        "0.5": 27,
+        "1.5": 81,
+        "2.5": 134.99,
+        "3.5": 188.99,
+        "4.5": 242.99,
+        "5.5": 296.99,
+        "6.5": 350.99,
+        "7.5": 404.91
+      },
+      "energyExportUsdPerYear": 464.16,
+      "energyMonthly": [
+        {
+          "month": "2025-10",
+          "usd": 29.79
+        },
+        {
+          "month": "2025-11",
+          "usd": 13.75
+        },
+        {
+          "month": "2025-12",
+          "usd": 15.8
+        },
+        {
+          "month": "2026-01",
+          "usd": 51.28
+        },
+        {
+          "month": "2026-02",
+          "usd": 13.6
+        },
+        {
+          "month": "2026-03",
+          "usd": 2.99
+        },
+        {
+          "month": "2026-04",
+          "usd": 7.23
+        },
+        {
+          "month": "2026-05",
+          "usd": 7.39
+        },
+        {
+          "month": "2026-06",
+          "usd": 54.33
+        },
+        {
+          "month": "2026-07",
+          "usd": 185.01
+        },
+        {
+          "month": "2026-08",
+          "usd": 34.07
+        },
+        {
+          "month": "2026-09",
+          "usd": 48.92
+        }
+      ],
+      "energyTopTwoMonths": {
+        "months": [
+          "2026-07",
+          "2026-06"
+        ],
+        "share": 0.516
+      },
+      "peaks": {
+        "zoneOneCP": {
+          "date": "2026-07-03",
+          "localStart": 18,
+          "mw": 2928,
+          "coveredByClock": true
+        },
+        "zoneFiveCP": [
+          {
+            "date": "2026-07-03",
+            "localStart": 18,
+            "mw": 2928,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-04",
+            "localStart": 18,
+            "mw": 2774,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-02",
+            "localStart": 18,
+            "mw": 2650,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-15",
+            "localStart": 18,
+            "mw": 2611,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-16",
+            "localStart": 18,
+            "mw": 2459,
+            "coveredByClock": true
+          }
+        ],
+        "rtoFiveCP": [
+          {
+            "date": "2026-07-02",
+            "localStart": 17,
+            "mw": 162133,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-01",
+            "localStart": 17,
+            "mw": 161440,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-15",
+            "localStart": 17,
+            "mw": 158600,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-03",
+            "localStart": 17,
+            "mw": 154345,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-16",
+            "localStart": 17,
+            "mw": 153700,
+            "coveredByClock": true
+          }
+        ]
+      },
+      "maxRtUsdPerMwh": 2259.2,
+      "hours": 8760,
+      "avgRtUsdPerMwh": 49.86
+    },
+    {
+      "id": "PECO",
+      "utility": "PECO",
+      "states": [
+        "PA"
+      ],
+      "choice": "open",
+      "flags": [],
+      "nitsUsdPerMwYear": 29542,
+      "transmission": {
+        "bypassable": true,
+        "note": "Assumed: the retail supplier is billed NITS for its customers’ NSPL. Check the utility tariff before counting it.",
+        "source": null
+      },
+      "tagMethod": {
+        "text": "Not confirmed: whether this utility sets residential tags from the home’s interval meter or a class load profile. Only an interval-meter method lets a battery move the tag.",
+        "source": "https://www.pjm.com/markets-and-operations/billing-settlements-and-credit/theo-plc-and-nspl.aspx"
+      },
+      "timezone": "Eastern",
+      "energyByKw": {
+        "1": 52.1,
+        "2": 104.21,
+        "3": 156.31,
+        "4": 208.42,
+        "5": 260.52,
+        "6": 312.63,
+        "7": 364.7,
+        "8": 416.76,
+        "0.5": 26.05,
+        "1.5": 78.16,
+        "2.5": 130.26,
+        "3.5": 182.37,
+        "4.5": 234.47,
+        "5.5": 286.58,
+        "6.5": 338.68,
+        "7.5": 390.71
+      },
+      "energyExportUsdPerYear": 449.24,
+      "energyMonthly": [
+        {
+          "month": "2025-10",
+          "usd": 29.53
+        },
+        {
+          "month": "2025-11",
+          "usd": 13.38
+        },
+        {
+          "month": "2025-12",
+          "usd": 15.61
+        },
+        {
+          "month": "2026-01",
+          "usd": 50.2
+        },
+        {
+          "month": "2026-02",
+          "usd": 12.95
+        },
+        {
+          "month": "2026-03",
+          "usd": 2.34
+        },
+        {
+          "month": "2026-04",
+          "usd": 7.62
+        },
+        {
+          "month": "2026-05",
+          "usd": 7.36
+        },
+        {
+          "month": "2026-06",
+          "usd": 53.17
+        },
+        {
+          "month": "2026-07",
+          "usd": 176.15
+        },
+        {
+          "month": "2026-08",
+          "usd": 33.84
+        },
+        {
+          "month": "2026-09",
+          "usd": 47.09
+        }
+      ],
+      "energyTopTwoMonths": {
+        "months": [
+          "2026-07",
+          "2026-06"
+        ],
+        "share": 0.51
+      },
+      "peaks": {
+        "zoneOneCP": {
+          "date": "2026-07-02",
+          "localStart": 17,
+          "mw": 8439,
+          "coveredByClock": true
+        },
+        "zoneFiveCP": [
+          {
+            "date": "2026-07-02",
+            "localStart": 17,
+            "mw": 8439,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-03",
+            "localStart": 17,
+            "mw": 8334,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-01",
+            "localStart": 17,
+            "mw": 8082,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-15",
+            "localStart": 17,
+            "mw": 8073,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-16",
+            "localStart": 17,
+            "mw": 7840,
+            "coveredByClock": true
+          }
+        ],
+        "rtoFiveCP": [
+          {
+            "date": "2026-07-02",
+            "localStart": 17,
+            "mw": 162133,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-01",
+            "localStart": 17,
+            "mw": 161440,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-15",
+            "localStart": 17,
+            "mw": 158600,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-03",
+            "localStart": 17,
+            "mw": 154345,
+            "coveredByClock": true
+          },
+          {
+            "date": "2026-07-16",
+            "localStart": 17,
+            "mw": 153700,
+            "coveredByClock": true
+          }
+        ]
+      },
+      "maxRtUsdPerMwh": 2201.62,
+      "hours": 8760,
+      "avgRtUsdPerMwh": 49.1
+    }
+  ],
+  "rankedAtDefaults": [
+    {
+      "id": "PSEG",
+      "energy": 167.59,
+      "capacity": 365.12,
+      "transmission": 550.06,
+      "total": 1082.77
+    },
+    {
+      "id": "DOM",
+      "energy": 357.78,
+      "capacity": 365.12,
+      "transmission": 255.57,
+      "total": 978.47
+    },
+    {
+      "id": "BGE",
+      "energy": 373.46,
+      "capacity": 365.12,
+      "transmission": 171,
+      "total": 909.57
+    },
+    {
+      "id": "PEPCO",
+      "energy": 355.41,
+      "capacity": 365.12,
+      "transmission": 181.47,
+      "total": 902
+    },
+    {
+      "id": "PPL",
+      "energy": 166.55,
+      "capacity": 365.12,
+      "transmission": 338.92,
+      "total": 870.59
+    },
+    {
+      "id": "PENELEC",
+      "energy": 205.39,
+      "capacity": 365.12,
+      "transmission": 288.2,
+      "total": 858.71
+    },
+    {
+      "id": "METED",
+      "energy": 179.58,
+      "capacity": 365.12,
+      "transmission": 288.2,
+      "total": 832.9
+    },
+    {
+      "id": "DUQ",
+      "energy": 227.31,
+      "capacity": 365.12,
+      "transmission": 222.01,
+      "total": 814.44
+    },
+    {
+      "id": "AECO",
+      "energy": 161.99,
+      "capacity": 365.12,
+      "transmission": 256.53,
+      "total": 783.64
+    },
+    {
+      "id": "DPL",
+      "energy": 195.08,
+      "capacity": 365.12,
+      "transmission": 202.55,
+      "total": 762.75
+    },
+    {
+      "id": "APS",
+      "energy": 261.42,
+      "capacity": 365.12,
+      "transmission": 85.56,
+      "total": 712.09
+    },
+    {
+      "id": "COMED",
+      "energy": 197.54,
+      "capacity": 365.12,
+      "transmission": 140.63,
+      "total": 703.28
+    },
+    {
+      "id": "RECO",
+      "energy": 173.88,
+      "capacity": 365.12,
+      "transmission": 161.3,
+      "total": 700.29
+    },
+    {
+      "id": "EKPC",
+      "energy": 226.96,
+      "capacity": 365.12,
+      "transmission": 78.52,
+      "total": 670.6
+    },
+    {
+      "id": "JCPL",
+      "energy": 166.58,
+      "capacity": 365.12,
+      "transmission": 137.7,
+      "total": 669.4
+    },
+    {
+      "id": "DEOK",
+      "energy": 265.03,
+      "capacity": 365.12,
+      "transmission": 0,
+      "total": 630.15
+    },
+    {
+      "id": "DAY",
+      "energy": 259.12,
+      "capacity": 365.12,
+      "transmission": 0,
+      "total": 624.24
+    },
+    {
+      "id": "PECO",
+      "energy": 156.31,
+      "capacity": 365.12,
+      "transmission": 88.63,
+      "total": 610.05
+    },
+    {
+      "id": "AEP",
+      "energy": 236.58,
+      "capacity": 365.12,
+      "transmission": 0,
+      "total": 601.7
+    },
+    {
+      "id": "ATSI",
+      "energy": 232.01,
+      "capacity": 365.12,
+      "transmission": 0,
+      "total": 597.13
+    }
+  ]
+}

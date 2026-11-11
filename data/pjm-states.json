@@ -1,0 +1,713 @@
+{
+  "checked": "2026-11-08",
+  "verified_pass": "2026-11-08 second pass",
+  "method": "Each claim was read on its source page on 2026-11-08. Anything marked 'unverified' was not confirmed on a source page in this pass. Sources on energychoicematters.com are secondary trade press, used only where no primary page was found.",
+  "states": [
+    {
+      "code": "IL",
+      "name": "Illinois",
+      "retail_choice": "open",
+      "license": {
+        "agency": "Illinois Commerce Commission (ICC)",
+        "name": "Alternative Retail Electric Supplier (ARES) certificate",
+        "rule": "220 ILCS 5/16-115; 83 Ill. Adm. Code 451",
+        "security": "Bond of $300,000 to serve all eligible retail customers including residential (83 Ill. Adm. Code 451.50)",
+        "review_time": "unverified",
+        "fee": "unverified",
+        "status_for_base": "Base already holds ARES status in ComEd (per brief, not re-checked)",
+        "source": "https://www.law.cornell.edu/regulations/illinois/Ill-Admin-Code-tit-83-SS-451.50"
+      },
+      "billing": {
+        "summary": "ComEd (PJM) is the target zone. Ameren Illinois is in MISO, not PJM.",
+        "ComEd": "Rider PORCB: ComEd buys supplier receivables and issues consolidated bills; tariff revised in 2026 (filing dated Mar 2, 2026)",
+        "Ameren": "MISO zone 4, outside PJM scope",
+        "source": "https://www.comed.com/cdn/assets/v3/assets/blt3ebb3fed6084be2a/blt51c693930a51fa85/6ad91229c5089936800f8623/2026_Index_of_Filings.pdf"
+      },
+      "filings": [
+        {
+          "what": "Annual kWh report: kWh sold to retail customers by utility territory, prior calendar year (83 Ill. Adm. Code 451.770)",
+          "due": "March 1 each year",
+          "source": "https://www.law.cornell.edu/regulations/illinois/Ill-Admin-Code-tit-83-SS-451.770"
+        },
+        {
+          "what": "Annual managerial qualifications certification (451.750)",
+          "due": "During April each year",
+          "source": "https://www.law.cornell.edu/regulations/illinois/Ill-Admin-Code-tit-83-SS-451.750"
+        },
+        {
+          "what": "Financial compliance items: ratings report or peak demand data, single billing estimate, insurance proof (451.740)",
+          "due": "April 1 to 30 each year",
+          "source": "https://www.law.cornell.edu/regulations/illinois/Ill-Admin-Code-tit-83-SS-451.740"
+        },
+        {
+          "what": "Audited financial statements and accountant's report (451.740(e),(f))",
+          "due": "Within 120 days after fiscal year end",
+          "source": "https://www.law.cornell.edu/regulations/illinois/Ill-Admin-Code-tit-83-SS-451.740"
+        },
+        {
+          "what": "Annual Section 16-115D(i) Compliance Report: certify no recovery of utility or IPA renewable costs from customers (83 Ill. Adm. Code 455.125)",
+          "due": "September 1 each year, for compliance year ending May 31",
+          "source": "https://www.law.cornell.edu/regulations/illinois/Ill-Admin-Code-tit-83-SS-455.125"
+        },
+        {
+          "what": "Information ICC needs for the integrated resource plan under 16-201 (new duty under PA 104-0458)",
+          "due": "unverified",
+          "source": "https://www.ilga.gov/documents/legislation/PublicActs/104/104-0458.htm"
+        },
+        {
+          "what": "Comply with any ICC resource procurement set under 16-111.5(b-10), a condition of ARES service",
+          "due": "unverified",
+          "source": "https://www.ilga.gov/documents/legislation/PublicActs/104/104-0458.htm"
+        }
+      ],
+      "consumer": [
+        {
+          "rule": "In-person sales: no visits before 9 a.m. or after 7 p.m. (earlier if dusk); photo ID badge with agent number and supplier name; Letter of Agency or third-party verification with agent out of earshot (83 Ill. Adm. Code 412.120)",
+          "source": "https://www.law.cornell.edu/regulations/illinois/Ill-Admin-Code-tit-83-SS-412.120"
+        },
+        {
+          "rule": "Telemarketing, inbound calls, direct mail and online marketing rules (412.130 to 412.160); Uniform Disclosure Statement (412.115); rate notices (412.165); agent training (412.170)",
+          "source": "https://www.law.cornell.edu/regulations/illinois/title-83/part-412/subpart-B"
+        },
+        {
+          "rule": "Customer may rescind before enrollment is submitted or within 10 calendar days after the utility enrollment notice (412.210)",
+          "source": "https://www.law.cornell.edu/regulations/illinois/Ill-Admin-Code-tit-83-SS-412.210"
+        },
+        {
+          "rule": "Residential and small commercial customers may end the contract at any time without termination fees; caps do not cover equipment or other services (412.220)",
+          "source": "https://www.law.cornell.edu/regulations/illinois/Ill-Admin-Code-tit-83-SS-412.220"
+        },
+        {
+          "rule": "Respond in writing to an ICC-forwarded informal complaint within 14 days (412.320)",
+          "source": "https://www.law.cornell.edu/regulations/illinois/Ill-Admin-Code-tit-83-SS-412.320"
+        }
+      ],
+      "programs": [
+        {
+          "name": "Utility VPP program, 220 ILCS 5/16-107.9",
+          "what": "Utilities with over 300,000 customers must file VPP tariffs by Dec 31, 2027; ICC approves at least one per utility by Dec 31, 2028. Third-party aggregators (100 kW or more) can enroll customer or third-party owned batteries for upfront and performance payments.",
+          "source": "https://www.ilga.gov/legislation/ilcs/fulltext?DocName=022000050K16-107.9"
+        },
+        {
+          "name": "ComEd Rider SDVPP",
+          "what": "Scheduled Dispatch VPP under 220 ILCS 5/16-107.6(e) (not 16-107.9): pays enrolled storage for dispatch in peak windows. Filed June 1, 2026, effective July 16, 2026.",
+          "source": "https://www.comed.com/cdn/assets/v3/assets/blt3ebb3fed6084be2a/blt85f9e80ece77bc15/6a32eec593d7b22688534e76/Trnsmtl_Ltr_SS_Tariff_Shts_-_Rider_SDVPP_STAMPED.pdf?branch=prod_alias"
+        },
+        {
+          "name": "Storage rebates, 220 ILCS 5/16-107.6 as amended by PA 104-0458",
+          "what": "Behind-the-meter storage rebate of $250 per kWh of nameplate capacity (stand-alone or paired); $300 per kWh base for storage paired with net-metering-eligible DG before the threshold date",
+          "source": "https://www.ilga.gov/documents/legislation/PublicActs/104/104-0458.htm"
+        },
+        {
+          "name": "IPA storage procurement, 20 ILCS 3855/1-75(d-20)",
+          "what": "Initial procurement of at least 1,038 MW stand-alone storage (588 MW in PJM ComEd area); 3,000 MW cumulative by 2030. Utilities serving over 10,000 customers may not bid.",
+          "source": "https://www.ilga.gov/documents/legislation/PublicActs/104/104-0458.htm"
+        },
+        {
+          "name": "Behind-the-meter interconnection",
+          "what": "83 Ill. Adm. Code 466, Electric Interconnection of Distributed Generation Facilities (last amended May 26, 2022); covers limited-export and non-exporting DER (466.75). Storage not named in section titles.",
+          "source": "https://www.law.cornell.edu/regulations/illinois/title-83/part-466"
+        }
+      ],
+      "dockets": [
+        {
+          "id": "ICC filing ERM #26-096 (no docket number shown on the filing)",
+          "what": "ComEd Rider SDVPP tariff filed June 1, 2026 under PA 104-0458; ICC approval reported June 30, 2026 (secondary)",
+          "source": "https://www.comed.com/cdn/assets/v3/assets/blt3ebb3fed6084be2a/blt85f9e80ece77bc15/6a32eec593d7b22688534e76/Trnsmtl_Ltr_SS_Tariff_Shts_-_Rider_SDVPP_STAMPED.pdf?branch=prod_alias"
+        }
+      ],
+      "notes": "Statute text read did not mention retail suppliers as VPP participants, only aggregators and direct participants. Base would likely enroll as an aggregator. No limit on utility-owned behind-the-meter storage found in the text read."
+    },
+    {
+      "code": "PA",
+      "name": "Pennsylvania",
+      "retail_choice": "open",
+      "license": {
+        "agency": "Pennsylvania Public Utility Commission (PUC)",
+        "name": "Electric Generation Supplier (EGS) license",
+        "rule": "52 Pa. Code Chapter 54, Subchapter D (54.31 to 54.43)",
+        "security": "$250,000 initial; after year one, 10% of reported gross receipts (52 Pa. Code 54.40)",
+        "review_time": "unverified",
+        "fee": "Annual fee $350 plus supplemental fee on gross intrastate revenues. Application fee: unverified.",
+        "source": "https://www.pacodeandbulletin.gov/secure/pacode/data/052/chapter54/s54.40.html"
+      },
+      "billing": {
+        "summary": "Utility consolidated billing and POR exist at PA EDCs (FirstEnergy PA FAQ describes POR under consolidated billing). Per-EDC POR terms unverified except below.",
+        "FirstEnergy PA": "PUC adopted a POR eligibility cap: only products priced at or below the price to compare at enrollment get POR, for contracts after June 1, 2027 (P-2026-3060298, secondary source)",
+        "PPL": "Proposal to make NITS nonbypassable would remove transmission from supplier prices (see dockets)",
+        "source": "https://www.energychoicematters.com/news/pennsylvania-puc-adopts-rate-cap-for-eligibility-for-purchase-of-receivables-por"
+      },
+      "filings": [
+        {
+          "what": "Quarterly gross receipts report (52 Pa. Code 54.39(a))",
+          "due": "Within 30 days after each quarter ends",
+          "source": "https://www.pacodeandbulletin.gov/secure/pacode/data/052/chapter54/s54.39.html"
+        },
+        {
+          "what": "Annual report for prior calendar year: tax info updates, gross receipts, kWh sold, fuel mix (54.39(b))",
+          "due": "April 30 each year",
+          "source": "https://www.pacodeandbulletin.gov/secure/pacode/data/052/chapter54/s54.39.html"
+        },
+        {
+          "what": "Annual sales activity report on the PUC EGS form (54.203)",
+          "due": "April 30 each year",
+          "source": "https://www.pacodeandbulletin.gov/secure/pacode/data/052/chapter54/s54.203.html"
+        },
+        {
+          "what": "Renew or replace financial security; security reset annually to 10% of gross receipts (54.40(d))",
+          "due": "At least 30 days before the security expires",
+          "source": "https://www.puc.pa.gov/electricity/electric-companies-suppliers/supplier-application-resources/"
+        },
+        {
+          "what": "Annual $350 fee plus supplemental fee on gross intrastate revenues",
+          "due": "unverified",
+          "source": "https://www.puc.pa.gov/electricity/electric-companies-suppliers/supplier-application-resources/"
+        },
+        {
+          "what": "AEPS: hold alternative energy credits for the June 1 to May 31 reporting period (52 Pa. Code 75.61)",
+          "due": "90-day true-up after May 31",
+          "source": "https://www.pacodeandbulletin.gov/secure/pacode/data/052/chapter75/s75.61.html"
+        }
+      ],
+      "consumer": [
+        {
+          "rule": "FirstEnergy PA default service order rejected a proposed ban on fixed-price residential auto-renewals (Oct 2026) (secondary)",
+          "source": "https://www.energychoicematters.com/news/pennsylvania-puc-adopts-rate-cap-for-eligibility-for-purchase-of-receivables-por"
+        },
+        {
+          "rule": "Door-to-door: 9 a.m. to 7 p.m. (Oct to Mar) or 8 p.m. (Apr to Sep), supplier ID badge, leave copies of signed documents (52 Pa. Code 111.9)",
+          "source": "https://www.pacodeandbulletin.gov/secure/pacode/data/052/chapter111/s111.9.html"
+        },
+        {
+          "rule": "Separate post-sale verification for door-to-door and phone sales; agent leaves the home before verification (111.7)",
+          "source": "https://www.pacodeandbulletin.gov/secure/pacode/data/052/chapter111/s111.7.html"
+        },
+        {
+          "rule": "Disclosure statement: variable price conditions and limits, cancellation fees in dollars or formula; 3 business day rescission (54.5)",
+          "source": "https://www.pacodeandbulletin.gov/secure/pacode/data/052/chapter54/s54.5.html"
+        },
+        {
+          "rule": "Expiration notices 45 to 60 days and at least 30 days before; silent fixed contract rolls to month-to-month or a fixed term cancellable without fees (54.10)",
+          "source": "https://www.pacodeandbulletin.gov/secure/pacode/data/052/chapter54/s54.10.html"
+        }
+      ],
+      "programs": [
+        {
+          "name": "Behind-the-meter interconnection",
+          "what": "52 Pa. Code 75.21 to 75.40 (Chapter 75, Subchapter C). Small generator facility includes equipment that stores electricity (75.22).",
+          "source": "https://www.pacodeandbulletin.gov/secure/pacode/data/052/chapter75/chap75toc.html"
+        },
+        {
+          "name": "Residential storage incentive or third-party VPP",
+          "what": "None found this pass (unverified)",
+          "source": "unverified"
+        }
+      ],
+      "dockets": [
+        {
+          "id": "P-2026-3065185",
+          "what": "PPL nonbypassable Customer Protection Transmission Rider (NITS moves off supplier bills), filed Sep 14, 2026, proposed start Q1 2028. Status active.",
+          "source": "https://www.puc.pa.gov/docket/P-2026-3065185"
+        },
+        {
+          "id": "P-2026-3065185, P-2026-3065186, P-2024-3047290",
+          "what": "Base Retail, LLC comments asking for a supplier opt-out so it keeps NITS and its customers stay off the rider",
+          "source": "https://www.energychoicematters.com/news/retail-supplier-expresses-concern-with-ppl-electric-s-nonbypassable-nits-proposa"
+        },
+        {
+          "id": "P-2026-3060298",
+          "what": "FirstEnergy PA default service plan: POR limited to prices at or below the PTC from June 1, 2027",
+          "source": "https://www.puc.pa.gov/docket/P-2026-3060298"
+        }
+      ],
+      "notes": "POR price caps would hit a premium battery-bundled product hardest if priced above the price to compare. 52 Pa. Code 62.110 cited in the first pass is a natural gas rule and does not apply to EGSs."
+    },
+    {
+      "code": "NJ",
+      "name": "New Jersey",
+      "retail_choice": "open",
+      "license": {
+        "agency": "New Jersey Board of Public Utilities (BPU)",
+        "name": "Third Party Supplier (TPS), electric power supplier license",
+        "rule": "N.J.A.C. 14:4-5 (fees at 14:4-5.12, bond at 14:4-5.4(f))",
+        "security": "$250,000 surety bond per electric power supplier license (N.J.A.C. 14:4-5.4(f))",
+        "review_time": "unverified",
+        "fee": "$350 nonrefundable application fee plus $1,500 initial license fee (refunded if denied); effective Sep 21, 2026",
+        "source": "https://www.nj.gov/bpu/pdf/energy/thirdpartysupplier/Licensing%20and%20Registration%20Fees%20Increase%20Effective%209.21.2026.pdf"
+      },
+      "billing": {
+        "summary": "PSE&G utility consolidated billing: the billing party assumes the other party's undisputed charges as receivables; PSE&G remits electric supplier charges by the 5th day after the bill due date (factoring percentage applies to gas only). POR terms at JCP&L, ACE and RECO: unverified.",
+        "source": "https://nj.myaccount.pseg.com/-/media/pseg/njmyaccount/gathercontentdocuments/1-2-6-5energychoicedocuments/casagmt.ashx"
+      },
+      "filings": [
+        {
+          "what": "Annual Information Update Form with $750 nonrefundable fee (N.J.A.C. 14:4-5.12); file through the BPU External Access Portal from Nov 2, 2026",
+          "due": "Within 30 days before license anniversary date",
+          "source": "https://www.nj.gov/bpu/about/divisions/energy/thirdparty.html"
+        },
+        {
+          "what": "RPS annual report for the reporting year ending May 31, with ACP or SACP for any shortfall (N.J.A.C. 14:8-2.11)",
+          "due": "December 1 each year",
+          "source": "https://www.law.cornell.edu/regulations/new-jersey/N-J-A-C-14-8-2-11"
+        }
+      ],
+      "consumer": [
+        {
+          "rule": "Telemarketing: FTC rules, no calls 9 p.m. to 8 a.m., honor do-not-call lists (N.J.A.C. 14:4-7.4; text as amended 2017, 2026 readoption not checked)",
+          "source": "https://www.law.cornell.edu/regulations/new-jersey/N-J-A-C-14-4-7-4"
+        },
+        {
+          "rule": "7-day rescission after the utility confirmation notice; variable price needs a clear formula; no price change without customer authorization; ETFs must be stated in the contract; no penalty on move, disability or death; 30 days notice before term ends, then month-to-month (14:4-7.6)",
+          "source": "https://www.law.cornell.edu/regulations/new-jersey/N-J-A-C-14-4-7-6"
+        },
+        {
+          "rule": "Contract summaries (14:4-7.6A) and fixed rate rules (14:4-7.12) exist; text not read this pass (unverified)",
+          "source": "https://www.law.cornell.edu/regulations/new-jersey/title-14/chapter-4/subchapter-7"
+        }
+      ],
+      "programs": [
+        {
+          "name": "Garden State Energy Storage Program, Phase 2 Block 1",
+          "what": "Straw proposal (Aug 19, 2026) for about 150 MW of distributed storage including residential behind-the-meter batteries; incentive pays for transmission, distribution and capacity services. Third-party eligibility unverified.",
+          "source": "https://www.nj.gov/bpu/newsroom/2026/approved/20260819.html"
+        },
+        {
+          "name": "Utility-owned storage",
+          "what": "Atlantic City Electric petition (filed July 23, 2026) for a utility-owned BESS up to 500 MW, 4-hour, on ACE land in Salem County; Board retained it for hearing Sep 9, 2026",
+          "source": "https://www.nj.gov/bpu/pdf/boardorders/2026/20260909/8D%20ORDER%20ACE%20BESS%20Designation%20of%20Commissioner.pdf"
+        },
+        {
+          "name": "Behind-the-meter interconnection",
+          "what": "N.J.A.C. 14:8-5; energy storage interconnection under 14:8-5.2(m) per a 2026 BPU request for information",
+          "source": "https://www.nj.gov/bpu/pdf/publicnotice/RFI%20Notice-2026.pdf"
+        }
+      ],
+      "dockets": [
+        {
+          "id": "QO22080540",
+          "what": "GSESP docket (Phase 1 Tranche 1 awards, Mar 4, 2026; secondary). Phase 2 distributed docket number unverified.",
+          "source": "https://www.saul.com/insights/alert/new-jersey-bpu-issues-march-4-2026-orders-energy-storage-competitive-solar-incentive"
+        },
+        {
+          "id": "EO26070402",
+          "what": "ACE 500 MW utility-owned battery petition and cost recovery; retained for hearing by the Board",
+          "source": "https://www.nj.gov/bpu/pdf/boardorders/2026/20260909/8D%20ORDER%20ACE%20BESS%20Designation%20of%20Commissioner.pdf"
+        }
+      ],
+      "notes": "NJ is the strongest incentive opportunity if Phase 2 lets third-party owned home batteries in."
+    },
+    {
+      "code": "MD",
+      "name": "Maryland",
+      "retail_choice": "open",
+      "license": {
+        "agency": "Maryland Public Service Commission (PSC)",
+        "name": "Electricity supplier license",
+        "rule": "COMAR 20.51 (application 20.51.02.02, bond 20.51.02.08)",
+        "security": "$250,000 bond for suppliers; $10,000 for brokers or aggregators only; $50,000 initial bond if taking deposits or prepayments",
+        "review_time": "unverified",
+        "fee": "$400 application fee",
+        "term": "No more than 3 years for new and renewed licenses (SB 1, 2024)",
+        "source": "https://psc.maryland.gov/wp-content/uploads/sites/2/Electric-Supplier-Application.pdf"
+      },
+      "billing": {
+        "summary": "Utilities ended utility consolidated billing for residential supplier accounts and residential POR from Jan 1, 2026; residential suppliers must dual bill. PSC Order No. 92384 (Apr 28, 2026) approved the utilities' cessation plan. Proposed COMAR changes (May 2026) say utilities need not offer residential UCB after Dec 31, 2025 and cap supplier dual-billing late fees at 5% total.",
+        "source": "https://psc.maryland.gov/wp-content/uploads/2026/04/Order_SB1-Res-Cessation-of-POR-PC65.pdf"
+      },
+      "filings": [
+        {
+          "what": "Annual update of changed application items; material changes within 30 days",
+          "due": "Within 120 days after supplier fiscal year end",
+          "source": "https://psc.maryland.gov/wp-content/uploads/sites/2/Electric-Supplier-Application.pdf"
+        },
+        {
+          "what": "RPS Supplier Annual Report for prior calendar year (COMAR 20.61.04.02)",
+          "due": "April 1 each year (offshore wind items April 30)",
+          "source": "https://regs.maryland.gov/us/md/exec/comar/20.61.04.02"
+        },
+        {
+          "what": "Marketed Renewable Electricity Sales Report (COMAR 20.61.04.01D)",
+          "due": "April 1 each year (offshore wind marketed sales April 30)",
+          "source": "https://regs.maryland.gov/us/md/exec/comar/20.61.04.01"
+        },
+        {
+          "what": "Emissions and Fuel Mix Disclosure Report (PSC Order No. 77666)",
+          "due": "unverified",
+          "source": "https://psc.maryland.gov/wp-content/uploads/sites/2/Electric-Supplier-Application.pdf"
+        },
+        {
+          "what": "Deposit or prepayment bond: annual certification with the annual update, then quarterly reports",
+          "due": "With annual update; quarterly after",
+          "source": "https://psc.maryland.gov/wp-content/uploads/sites/2/Electric-Supplier-Application.pdf"
+        },
+        {
+          "what": "PSC assessment (cap raised to 0.5% of gross operating revenue by SB 1)",
+          "due": "unverified",
+          "source": "https://mgaleg.maryland.gov/2024RS/fnotes/bil_0001/sb0001.pdf"
+        }
+      ],
+      "consumer": [
+        {
+          "rule": "SB 1 (2024), agreements from Jan 1, 2025: residential non-green price may not exceed the trailing 12-month average utility SOS rate at signing",
+          "source": "https://mgaleg.maryland.gov/2024RS/fnotes/bil_0001/sb0001.pdf"
+        },
+        {
+          "rule": "Residential terms up to 12 months; auto-renewal only with notices 90 and 30 days before; green power may not auto-renew",
+          "source": "https://mgaleg.maryland.gov/2024RS/fnotes/bil_0001/sb0001.pdf"
+        },
+        {
+          "rule": "No variable rates except seasonal changes up to twice a year; time-of-use rates allowed",
+          "source": "https://mgaleg.maryland.gov/2024RS/fnotes/bil_0001/sb0001.pdf"
+        },
+        {
+          "rule": "Green power needs at least the greater of 51% or RPS plus 1%; PSC sets a general price cap, supplier-specific price generally up to 150% of it",
+          "source": "https://mgaleg.maryland.gov/2024RS/fnotes/bil_0001/sb0001.pdf"
+        },
+        {
+          "rule": "Utilities may not buy residential supplier receivables; no commissions to energy salespersons for enrollments",
+          "source": "https://mgaleg.maryland.gov/2024RS/fnotes/bil_0001/sb0001.pdf"
+        },
+        {
+          "rule": "Energy salesperson licensing from July 1, 2025; supplier penalties up to $25,000",
+          "source": "https://mgaleg.maryland.gov/2024RS/fnotes/bil_0001/sb0001.pdf"
+        },
+        {
+          "rule": "Telephone solicitation only 8 a.m. to 9 p.m.; license number on marketing materials (COMAR 20.53.07.07)",
+          "source": "https://regs.maryland.gov/us/md/exec/comar/20.53.07.07"
+        },
+        {
+          "rule": "Door-to-door: ID badge, business card with license number, leave copies of signed documents, leave when asked (COMAR 20.53.10.06)",
+          "source": "https://regs.maryland.gov/us/md/exec/comar/20.53.10.06"
+        }
+      ],
+      "programs": [
+        {
+          "name": "Statutory storage target, utility procurement",
+          "what": "Pepco and Delmarva propose 29 MW utility-owned front-of-meter storage; Phase 1 procured 14.5 MW third-party owned (30% third-party share, Order No. 91705). BGE proposes 42 MW utility-owned (40 MW at C&I customer sites) plus 16 MW third-party via Index Storage Credit. (secondary)",
+          "source": "https://www.energychoicematters.com/news/exelon-owned-utilities-propose-more-utility-owned-battery-storage"
+        },
+        {
+          "name": "Behind-the-meter interconnection",
+          "what": "COMAR 20.50.09, Small Generator Facility Interconnection Standards (Levels 1 to 4). Storage treatment in the text not read this pass.",
+          "source": "https://regs.maryland.gov/us/md/exec/comar/20.50.09"
+        },
+        {
+          "name": "Residential storage incentive or VPP open to third parties",
+          "what": "unverified",
+          "source": "unverified"
+        }
+      ],
+      "dockets": [
+        {
+          "id": "PSC Case No. 9715",
+          "what": "Utility storage procurement phases, including utility-owned BGE, Pepco and Delmarva proposals (secondary)",
+          "source": "https://www.energychoicematters.com/news/exelon-owned-utilities-propose-more-utility-owned-battery-storage"
+        },
+        {
+          "id": "PC 65 (Order No. 91463, Dec 30, 2024; Order No. 92384, Apr 28, 2026)",
+          "what": "Ends residential POR and residential utility consolidated billing from Jan 1, 2026",
+          "source": "https://psc.maryland.gov/wp-content/uploads/2026/04/Order_SB1-Res-Cessation-of-POR-PC65.pdf"
+        },
+        {
+          "id": "Proposed COMAR 20.53.05 and new 20.53.07.16 (May 2026, RM number not shown)",
+          "what": "Draft rules: no required residential UCB after Dec 31, 2025; dual-billing late fees 1.5% steps, 5% total cap",
+          "source": "https://psc.maryland.gov/wp-content/uploads/2026/05/Exhibits-A-D-UCB-Residential.pdf"
+        }
+      ],
+      "notes": "Hardest residential market in PJM for a premium product: SOS price cap, no POR, no residential utility consolidated billing (dual billing only), near-ban on variable rates. Time-of-use is the allowed exception."
+    },
+    {
+      "code": "DE",
+      "name": "Delaware",
+      "retail_choice": "open",
+      "license": {
+        "agency": "Delaware Public Service Commission (PSC)",
+        "name": "Electric supplier certificate",
+        "rule": "26 Del. Admin. Code 3001",
+        "security": "Copy of any performance bond required by the utility service agreement (2.2.15); a bond, if required, is $10,000 (2.3.3.3)",
+        "review_time": "unverified",
+        "fee": "$750 nonrefundable application fee (2.7)",
+        "source": "https://regulations.delaware.gov/AdminCode/title26/3000/3001.shtml"
+      },
+      "billing": {
+        "summary": "Delmarva Power is the only investor-owned EDC. A Delmarva POR program was litigated in PSC Docket 15-1693 (Hearing Examiner recommended POR; RESA exceptions June 4, 2018). Current consolidated billing and POR tariff terms: unverified.",
+        "source": "https://depsc.delaware.gov/wp-content/uploads/sites/54/2018/08/Item-1-15-1693.RESA-Exceptions.pdf"
+      },
+      "filings": [
+        {
+          "what": "Supplier information update to PSC and DPA (12.3)",
+          "due": "Within 30 days of a change and annually by April 30",
+          "source": "https://regulations.delaware.gov/AdminCode/title26/3000/3001.shtml"
+        },
+        {
+          "what": "Green power product compliance report with VREC retirement evidence (13.4), only if offering green power",
+          "due": "Within 120 days after end of compliance year",
+          "source": "https://regulations.delaware.gov/AdminCode/title26/3000/3001.shtml"
+        },
+        {
+          "what": "RPS: no supplier compliance report; only Delmarva files an RPS compliance report (within 120 days of compliance year end) and recovers RPS cost from all customers",
+          "due": "Not applicable to suppliers",
+          "source": "https://depsc.delaware.gov/?p=22557"
+        }
+      ],
+      "consumer": [
+        {
+          "rule": "Telemarketing and door-to-door rules (3001 sections 11.7 and 11.8)",
+          "source": "https://regulations.delaware.gov/AdminCode/title26/3000/3001.shtml"
+        },
+        {
+          "rule": "Contract summary and variable rate disclosure (sections 6.2, 6.3)",
+          "source": "https://regulations.delaware.gov/AdminCode/title26/3000/3001.shtml"
+        },
+        {
+          "rule": "No early cancellation fee on the commodity part of a variable price contract (6.2.2.12.4)",
+          "source": "https://regulations.delaware.gov/AdminCode/title26/3000/3001.shtml"
+        },
+        {
+          "rule": "Residential rescission within 3 business days (6.2.2.7.1)",
+          "source": "https://regulations.delaware.gov/AdminCode/title26/3000/3001.shtml"
+        },
+        {
+          "rule": "2026 amendments: variable rate notice 12 days before billing period close, PA-style fixed rate renewal notices, not-the-utility statement, voicemail script, written enrollment notice within 7 days (secondary)",
+          "source": "https://www.energychoicematters.com/stories/20260806a.html"
+        }
+      ],
+      "programs": [
+        {
+          "name": "Utility-owned storage",
+          "what": "Delaware allows Exelon utilities to own storage for resiliency (Exelon CFO, secondary)",
+          "source": "https://www.utilitydive.com/news/exelon-energy-storage-new-jersey-earnings/873423/"
+        },
+        {
+          "name": "Behind-the-meter interconnection and storage incentives",
+          "what": "unverified",
+          "source": "unverified"
+        }
+      ],
+      "dockets": [
+        {
+          "id": "Regulation Docket 3001 (formerly Reg. Docket 49)",
+          "what": "Marketing rule changes adopted Aug 2026 (secondary)",
+          "source": "https://www.energychoicematters.com/stories/20260806a.html"
+        }
+      ],
+      "notes": "Small market, single EDC. Cheapest license fee path but limited scale."
+    },
+    {
+      "code": "OH",
+      "name": "Ohio",
+      "retail_choice": "open",
+      "license": {
+        "agency": "Public Utilities Commission of Ohio (PUCO)",
+        "name": "Competitive Retail Electric Service (CRES) provider certificate",
+        "rule": "Ohio Adm.Code 4901:1-24 (financial security 4901:1-24-14, effective Oct 5, 2026)",
+        "security": "Financial assurance set by each utility's supplier tariff (4901:1-10-29), not a fixed PUCO bond",
+        "review_time": "Deemed approved 30 days after filing unless PUCO suspends; then decision within 90 days of suspension (R.C. 4928.08)",
+        "fee": "unverified",
+        "term": "Certificate renews every two years; renewal filed 30 to 90 days before expiration",
+        "source": "https://codes.ohio.gov/ohio-administrative-code/rule-4901:1-24-14"
+      },
+      "billing": {
+        "summary": "AEP Ohio offers bill-ready and rate-ready consolidated billing to CRES providers. Duke Energy Ohio's supplier tariff provides for a voluntary agreement to buy supplier receivables (eff. Jan 13, 2023). POR at AEP Ohio, AES Ohio and FirstEnergy Ohio utilities: unverified.",
+        "source": "https://dam.assets.ohio.gov/image/upload/puco.ohio.gov/empliibrary/files/docketing/tariffs/Electric/Duke%20Energy%20Ohio%20-%20Electric/PUCO%2020%20Certified%20Supplier.pdf"
+      },
+      "filings": [
+        {
+          "what": "Annual RPS compliance report",
+          "due": "April 15 each year",
+          "source": "https://puco.ohio.gov/utilities/electricity/resources/ohio-renewable-energy-portfolio-standard/edu-cres-rps-compliance-reports"
+        },
+        {
+          "what": "Annual report for fiscal assessment (CRES providers included; 2025 report under Case 26-0001-AU-RPT)",
+          "due": "April 30 (2026 deadline); 50% initial payment by June 20 if over $1,000; final assessment by November 1",
+          "source": "https://puco.ohio.gov/documents-and-rules/resources/annual-reports/annual-reports-for-fiscal-assessment"
+        },
+        {
+          "what": "Certificate renewal",
+          "due": "Every two years, 30 to 90 days before expiration",
+          "source": "https://puco.ohio.gov/utilities/electricity/resources/competitive-retail-electric-service-certification"
+        }
+      ],
+      "consumer": [
+        {
+          "rule": "Door-to-door: background checks, photo ID, hours 9 a.m. to 7 p.m. absent local rules (4901:1-21-05)",
+          "source": "https://codes.ohio.gov/ohio-administrative-code/chapter-4901:1-21"
+        },
+        {
+          "rule": "Third-party verification for door-to-door sales; recorded verification for phone enrollment (4901:1-21-06)",
+          "source": "https://codes.ohio.gov/ohio-administrative-code/chapter-4901:1-21"
+        },
+        {
+          "rule": "Variable rate contracts need an index formula or a factor explanation; no early termination fee if using the factor explanation (4901:1-21-12)",
+          "source": "https://codes.ohio.gov/ohio-administrative-code/chapter-4901:1-21"
+        },
+        {
+          "rule": "Seven-day rescission after the utility confirmation notice (4901:1-21-11)",
+          "source": "https://codes.ohio.gov/ohio-administrative-code/chapter-4901:1-21"
+        }
+      ],
+      "programs": [
+        {
+          "name": "Behind-the-meter interconnection",
+          "what": "Ohio Adm.Code 4901:1-22, Interconnection Services; most rules amended effective July 20, 2026; definitions (4901:1-22-01) address energy storage",
+          "source": "https://codes.ohio.gov/ohio-administrative-code/chapter-4901:1-22"
+        },
+        {
+          "name": "Residential storage incentive or third-party VPP",
+          "what": "None found this pass (unverified)",
+          "source": "unverified"
+        }
+      ],
+      "dockets": [
+        {
+          "id": "4901:1-24 rule amendments effective Oct 5, 2026 (case number unverified)",
+          "what": "Financial security now tied to utility tariffs",
+          "source": "https://codes.ohio.gov/ohio-administrative-code/rule-4901:1-24-14"
+        }
+      ],
+      "notes": "Large shopping market with clear rules. Collateral is negotiated utility by utility."
+    },
+    {
+      "code": "DC",
+      "name": "District of Columbia",
+      "retail_choice": "open",
+      "license": {
+        "agency": "DC Public Service Commission (DCPSC)",
+        "name": "Electricity Supplier License",
+        "rule": "15 DCMR Chapter 46",
+        "security": "Integrity bond $50,000 if applicant cannot meet financial standards ($10,000 for non-title aggregators or brokers) (4605.2); Customer Payments Bond $50,000 before taking deposits or prepayments (4604.2)",
+        "review_time": "Decision within 15 days after application deemed complete (4602.6)",
+        "fee": "$400 application fee (4602.2)",
+        "term": "Valid until revoked or surrendered; reviewed every 5 years (4602.7)",
+        "source": "https://dcpsc.org/getattachment/Orders-and-Regulations/Orders-Rules-and-Regulations/District-of-Columbia-Municipal-Regulations-Title-1/15-46-Compiled-(Updated-August-3,-2022).pdf.aspx?lang=en-US"
+      },
+      "billing": {
+        "summary": "Pepco buys supplier receivables under its Electric Supplier Coordination Tariff (POR Supplier Discount Rate, Schedule 3). A 2026 discount rate true-up is pending in PEPPOR-2026-01 after Order No. 22883 (June 12, 2026).",
+        "source": "https://dcpsc.org/PSCDC/media/PDFFiles/PEPPOR-2026-01-E-12.pdf"
+      },
+      "filings": [
+        {
+          "what": "Five-year license review",
+          "due": "Every 5 years from issue or last review",
+          "source": "https://dcpsc.org/getattachment/Orders-and-Regulations/Orders-Rules-and-Regulations/District-of-Columbia-Municipal-Regulations-Title-1/15-46-Compiled-(Updated-August-3,-2022).pdf.aspx?lang=en-US"
+        },
+        {
+          "what": "Customer Payments Bond certification if taking deposits (15 DCMR 4604.2)",
+          "due": "Within 6 months of the initial bond, then by December 31 each year",
+          "source": "https://dcpsc.org/getattachment/Orders-and-Regulations/Orders-Rules-and-Regulations/District-of-Columbia-Municipal-Regulations-Title-1/15-46-Compiled-(Updated-August-3,-2022).pdf.aspx?lang=en-US"
+        },
+        {
+          "what": "Update application information (4607.1)",
+          "due": "Within 30 days of a change",
+          "source": "https://dcpsc.org/getattachment/Orders-and-Regulations/Orders-Rules-and-Regulations/District-of-Columbia-Municipal-Regulations-Title-1/15-46-Compiled-(Updated-August-3,-2022).pdf.aspx?lang=en-US"
+        },
+        {
+          "what": "Electricity Supplier Education Workshop (4603.1)",
+          "due": "Within 90 days of license, then every 3 years by April 1",
+          "source": "https://dcpsc.org/getattachment/Orders-and-Regulations/Orders-Rules-and-Regulations/District-of-Columbia-Municipal-Regulations-Title-1/15-46-Compiled-(Updated-August-3,-2022).pdf.aspx?lang=en-US"
+        },
+        {
+          "what": "RPS annual compliance report (15 DCMR 2901)",
+          "due": "March 25 of the year after the compliance year",
+          "source": "https://dcpsc.org/getattachment/Orders-and-Regulations/Orders-Rules-and-Regulations/District-of-Columbia-Municipal-Regulations-Title-1/15-29-Compiled-(3).pdf.aspx?lang=en-US"
+        },
+        {
+          "what": "RPS compliance fee payment, if any",
+          "due": "Between October 1 and November 1",
+          "source": "https://dcpsc.org/getattachment/Utility-Information/Electric/RPS/Renewable-Portfolio-Standard-FAQs/How-do-I-file-the-Electricity-Supplier-Annual-Comp/DC-REPS-Compliance-Report-Filing-Instructions-102424.doc.aspx?lang=en-US"
+        }
+      ],
+      "consumer": [
+        {
+          "rule": "Home solicitation only 9 a.m. to sunset, photo ID naming the agent and supplier (15 DCMR 327.23)",
+          "source": "https://dcregs.dc.gov/Common/DCMR/SectionList.aspx?SectionNumber=15-327"
+        },
+        {
+          "rule": "Phone sales: independent third-party verification or recording; written contract sent within 5 business days; enroll only after rescission ends (327.17 to 327.19)",
+          "source": "https://dcregs.dc.gov/Common/DCMR/SectionList.aspx?SectionNumber=15-327"
+        },
+        {
+          "rule": "3 business day rescission (327.21)",
+          "source": "https://dcregs.dc.gov/Common/DCMR/SectionList.aspx?SectionNumber=15-327"
+        },
+        {
+          "rule": "Notify PSC 3 business days before first marketing; door-to-door agents show photo ID (4602.8)",
+          "source": "https://dcregs.dc.gov/Common/DCMR/SectionList.aspx?SectionNumber=15-4602"
+        },
+        {
+          "rule": "Variable rate, early termination fee and renewal rules in 327: not read this pass (unverified)",
+          "source": "unverified"
+        }
+      ],
+      "programs": [
+        {
+          "name": "Behind-the-meter interconnection",
+          "what": "15 DCMR Chapter 40 Small Generator Interconnection Rules, up to 20 MW; non-exporting storage load treated as customer load (4008.16); exporting front-of-meter storage goes to Level 4 (4008.19)",
+          "source": "https://dcregs.dc.gov/Common/DCMR/SectionList.aspx?SectionNumber=15-4008"
+        },
+        {
+          "name": "Storage incentives, utility storage",
+          "what": "unverified",
+          "source": "unverified"
+        }
+      ],
+      "dockets": [
+        {
+          "id": "PEPPOR-2026-01",
+          "what": "Pepco POR supplier discount rate update (Notice of Proposed Tariff, Aug 2026)",
+          "source": "https://dcpsc.org/PSCDC/media/PDFFiles/PEPPOR-2026-01-E-12.pdf"
+        }
+      ],
+      "notes": "Fast published license clock. Small, dense market with one EDC."
+    },
+    {
+      "code": "VA",
+      "name": "Virginia",
+      "retail_choice": "limited",
+      "notes": "Residential choice limited; not sourced this pass (unverified).",
+      "source": "unverified"
+    },
+    {
+      "code": "MI",
+      "name": "Michigan",
+      "retail_choice": "limited",
+      "notes": "Choice capped at a share of load; mostly MISO; not sourced this pass (unverified).",
+      "source": "unverified"
+    },
+    {
+      "code": "KY",
+      "name": "Kentucky",
+      "retail_choice": "none",
+      "notes": "No residential retail choice (unverified this pass).",
+      "source": "unverified"
+    },
+    {
+      "code": "WV",
+      "name": "West Virginia",
+      "retail_choice": "none",
+      "notes": "No residential retail choice (unverified this pass).",
+      "source": "unverified"
+    },
+    {
+      "code": "NC",
+      "name": "North Carolina",
+      "retail_choice": "none",
+      "notes": "No residential retail choice (unverified this pass).",
+      "source": "unverified"
+    },
+    {
+      "code": "IN",
+      "name": "Indiana",
+      "retail_choice": "none",
+      "notes": "No residential retail choice; mostly MISO (unverified this pass).",
+      "source": "unverified"
+    },
+    {
+      "code": "TN",
+      "name": "Tennessee",
+      "retail_choice": "none",
+      "notes": "No residential retail choice; TVA territory (unverified this pass).",
+      "source": "unverified"
+    }
+  ]
+}
