@@ -2,21 +2,19 @@
 
 [![test](https://github.com/adamtpang/megawatt.fun/actions/workflows/test.yml/badge.svg)](https://github.com/adamtpang/megawatt.fun/actions/workflows/test.yml)
 
-Five tools for a home-battery company, plus a guide to the Kardashev scale. Each tool runs on public data out of the box, takes the company's own numbers as a CSV or JSON file, and has a JSON API that runs the same code.
+One tool for a home-battery company: what one battery earns at a Texas home, and how much debt that cash flow can carry. It uses the market zone ranking and the finance model. Public data, every figure tagged sourced, partly sourced, or assumption.
 
-[Live site](https://megawatt.fun) · [The five tools](https://megawatt.fun/tools) · [File formats](https://megawatt.fun/plug-and-play) · [API](docs/api.md)
+[Live site](https://megawatt.fun) · [API](docs/api.md) · [House models](docs/models.md)
 
 Independent. Not affiliated with Base Power.
 
-## The five tools
+## The tool
 
 | Question | Page | API |
 | --- | --- | --- |
-| Which states should we roll out to, and where does one battery earn most? | [/market](https://megawatt.fun/market) | `POST /api/v1/market` |
-| How do we pitch a utility or co-op on a home-battery program? | [/pitch](https://megawatt.fun/pitch) | `POST /api/v1/pitch` |
-| Which parts could stop the next install (cells, power chips, memory, modems)? | [/supply](https://megawatt.fun/supply) | `POST /api/v1/supply` |
-| How much debt can one battery, and a fleet, carry? | [/finance](https://megawatt.fun/finance) | `POST /api/v1/finance` |
-| How long until the first install in a new state, and what does one ZIP show? | [/launch](https://megawatt.fun/launch) | `POST /api/v1/launch`, `POST /api/v1/zip` |
+| What does one battery earn at this home, and how much debt can it carry? | [/](https://megawatt.fun/) | `POST /api/v1/home` |
+
+Pitch, supply, launch, bench, base, deploy and ops stay in the repo and are not linked from the site. Their APIs still answer. House models: `docs/models.md`.
 
 ## Try it out
 
@@ -26,17 +24,15 @@ The API is already running. Ask it how it's doing:
 curl -s https://megawatt.fun/api/v1/health
 ```
 
-It replies with `"status":"ok"`, the build, and the date of every data file. Then ask a real question, here the debt one battery can carry at your own cost and toll price:
+It replies with `"status":"ok"`, the build, and the date of every data file. Then ask what one battery earns at a Houston ZIP:
 
 ```bash
-curl -s -X POST https://megawatt.fun/api/v1/finance \
+curl -s -X POST https://megawatt.fun/api/v1/home \
   -H 'Content-Type: application/json' \
-  -d '{"inputs": {"capexPerKwh": 280, "tollPerKwYear": 90}}'
+  -d '{"query": "77002", "preset": "suburban"}'
 ```
 
-Nothing you send is stored. [docs/api.md](docs/api.md) has one example per tool, the response shapes and the error format.
-
-On the site, every tool has a **Use your own data** panel: download the template, fill it in, load it. The file is read in the browser and never uploaded.
+Nothing you send is stored. [docs/api.md](docs/api.md) has the request shape.
 
 ## How it works
 
@@ -48,13 +44,9 @@ Each tool is three layers, and the page and the API share the bottom two:
 
 The rule that matters most: a company's file is checked strictly before anything uses it. A file with any problem is not used, and every problem is listed by row ("Row 4: high is below low"), so it can be fixed in one pass. Numbers from the file are tagged **Yours**; public numbers keep their sources.
 
-| Tool | Public data | Core | File format |
-| --- | --- | --- | --- |
-| Market | `data/expansion-map.json`, `data/zone-value.json` | `market-core.js`, `market-score.js`, `notes/score.js` | [market](https://megawatt.fun/plug-and-play#market) |
-| Pitch | `data/expansion-map.json`, `data/market-states.json` | `pitch-core.js` | [pitch](https://megawatt.fun/plug-and-play#pitch) |
-| Supply | `data/supply.json` | `supply-core.js`, `bom-check-core.js` | [supply](https://megawatt.fun/plug-and-play#supply) |
-| Finance | `data/finance-defaults.json`, `data/zone-value.json` | `finance-core.js` | [finance](https://megawatt.fun/plug-and-play#finance) |
-| Launch | `data/launch-steps.json`, `data/zip-launch.json` | `launch-core.js`, `zip-launch-core.js` | [launch](https://megawatt.fun/plug-and-play#launch) |
+| Piece | Public data | Core |
+| --- | --- | --- |
+| Home battery ROI | `data/zone-value.json`, `data/finance-defaults.json`, `data/zip-launch.json` | `home-roi-core.js` (calls `market-core.js`, `market-score.js`, `finance-core.js`) |
 
 ## Run the tests
 

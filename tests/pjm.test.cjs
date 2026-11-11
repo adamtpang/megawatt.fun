@@ -109,7 +109,7 @@ test('API: GET is usage, POST matches the core, PPL nonbypassable zeroes only PP
 
 test('page: no em dashes, quote is attributed as a report not a direct quote', () => {
   for (const f of ['pjm.html', 'pjm.js', 'pjm-core.js', 'pjm.css', 'api/v1/pjm.js', 'scripts/pjm-value.cjs', 'scripts/fetch-pjm-prices.cjs']) {
-    assert.ok(!fs.readFileSync(path.join(__dirname, '..', f), 'utf8').includes('—'), f);
+    assert.ok(!fs.readFileSync(path.join(__dirname, '..', f), 'utf8').includes(String.fromCharCode(0x2014)), f);
   }
   const html = fs.readFileSync(path.join(__dirname, '..', 'pjm.html'), 'utf8');
   assert.match(html, /Base said it saves customers money/);

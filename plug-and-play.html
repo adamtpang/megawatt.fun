@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Plug In Your Data</title>
-<meta name="description" content="File formats for loading a home-battery company's own data into the market map, utility pitch, supply risks, financing and launch planner. Files are read in the browser and never uploaded. Independent, not affiliated with Base Power.">
+<meta name="description" content="File format for the home battery ROI tool, plus the formats still used by code that remains in the repo. Independent, not affiliated with Base Power.">
 <meta name="theme-color" content="#1e4d2b">
 <link rel="canonical" href="https://megawatt.fun/plug-and-play">
 <link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/site.css">
@@ -24,13 +24,13 @@
 </style>
 </head>
 <body class="tool-page">
-<header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/">Guide</a><a href="/roadmap">Roadmap</a><a href="/tools">Tools</a><details class="nav-more"><summary>More</summary><div class="nav-more-menu"><a href="/market">Market map</a><a href="/pjm">PJM next market</a><a href="/base">Battery</a><a href="/bench">Battery backup test</a><a href="/live">Live</a><a href="/kardashev">Kardashev</a><a href="/titans">Energy companies</a><a href="/notes">Notes</a><a href="/sources">Sources</a></div></details></nav></header>
+<header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/">Home battery</a><a href="/live">Live</a><a href="/notes">Notes</a></nav></header>
 
 <main class="pp" id="main">
   <section class="pp-intro">
     <p class="eyebrow">Plug in your data</p>
-    <h1>Run the tools on your own numbers</h1>
-    <p class="lede">Every tool below starts from public data. Each one also takes a company's own file: download the template on the tool's page, fill it in, and load it.</p>
+    <h1>The home battery tool, and the file formats kept with the code</h1>
+    <p class="lede">The public tool is the <a href="/">home battery ROI</a> page. It does not take a spreadsheet. The sections after it document file formats for code that is still in the repo.</p>
     <ul class="pp-rules">
       <li><strong>Nothing is uploaded.</strong> Files are read in your browser. The last file is kept in this browser only, until you choose "Back to public data".</li>
       <li><strong>CSV or JSON.</strong> Spreadsheet exports work as CSV.</li>
@@ -40,6 +40,15 @@
     <p class="sp-small">Independent. Not affiliated with Base Power.</p>
   </section>
 
+<section class="pp-card card">
+<h2 id="home">Home battery ROI</h2>
+<p>Page: <code>/</code>. One Texas home. The same code answers <code>POST /api/v1/home</code>.</p>
+<p>Send JSON. <code>query</code> is a ZIP (<code>77002</code>), a place (<code>Houston</code>), or a street address that contains a ZIP. <code>preset</code> is <code>bungalow</code>, <code>suburban</code> or <code>ranch</code>. <code>revenueCase</code> is <code>merchant</code>, <code>toll</code> or <code>stacked</code>. <code>fleetCount</code> is the fleet roll-up. <code>zone</code> is optional: send it when the ZIP is served by Oncor or TNMP, or when no load zone is on file.</p>
+<p>Suburban annual use is the 2024 Texas residential average, 1,097 kWh a month. Bungalow (9,000 kWh) and ranch (18,000 kWh) are labeled assumptions. Earnings use <code>data/zone-value.json</code> (real-time load-zone prices, 2025-10-01 to 2026-10-01, fixed clock). Debt, payback, simple ROI and IRR use <code>finance-core.js</code>. Backup is $0 of cash flow: the replay already holds a 20% reserve, and no outage dollar is in the file.</p>
+<p>A ZIP that does not pick one zone returns <code>needsZone: true</code> and does not invent a zone.</p>
+<p><strong>Example:</strong></p>
+<pre><code>{ &quot;query&quot;: &quot;77002&quot;, &quot;preset&quot;: &quot;suburban&quot;, &quot;revenueCase&quot;: &quot;merchant&quot; }</code></pre>
+</section>
 <section class="pp-card card">
 <h2 id="market">Market</h2>
 <p>Page: <code>/market</code>. Adds your own per-state metrics to the expansion score, or swaps the public Texas zone values for your own. One file holds one kind; the page tells them apart by their columns.</p>
@@ -126,7 +135,7 @@ retail,first_installs,First installs,Field,2,3,license;edi,,</code></pre>
 <p>A figure that is not in the source files is the word unknown. The day total is <code>permit_review_days + interconnection_days + crew_days</code>, and only when each input is a calendar-day number. Coverage is Texas first (Austin, Houston, Dallas, San Antonio), plus Illinois, Georgia, and Connecticut. Oncor, CenterPoint, AEP Texas, and TNMP are not in the OpenEI ZIP file, so in Texas the wires companies inside retail choice come from Power to Choose, the PUCT plan site, ZIP by ZIP. A ZIP split between one of them and a city utility or co-op lists both. The ZIP is text: <code>"06103"</code>, not the number <code>6103</code>.</p>
 </section>
 
-  <nav class="gift-set" aria-label="Home battery company tools"><span>For a home-battery company</span><a href="/market">Where to grow</a><a href="/pjm">PJM, the next market</a></nav>
+  <p class="sp-small"><a href="/">Back to the home battery tool</a></p>
 </main>
 
 <footer class="site-bottom"><div class="footer-links"><a href="/about">About</a><a href="/sources">Sources</a><a href="/contact">Contact</a><a href="/privacy">Privacy</a></div><p>Independent energy experiments. Not affiliated with Base Power.</p></footer>
