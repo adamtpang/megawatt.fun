@@ -13,28 +13,92 @@
 <script src="/yourdata.js" defer></script>
 <script src="/pjm-core.js" defer></script>
 <script src="/pjm.js" defer></script>
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js" } }
+</script>
+<script type="module" src="/pjm-scene.js"></script>
 </head>
 <body class="tool-page pjm-page">
 <a class="skip" href="#main">Skip to content</a>
 <header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/" aria-current="page">PJM</a><a href="/battery">Texas battery</a><a href="/live">Live</a><a href="/notes">Notes</a></nav></header>
 <main id="main" class="pjm">
-  <header class="pjm-intro">
-    <p class="eyebrow">One home battery in PJM</p>
-    <h1>Where a home battery pays in PJM.</h1>
-    <p class="lede" id="lede" aria-live="polite">Loading PJM prices…</p>
-    <p class="pjm-what"><b>PJM</b> runs the power grid and wholesale electricity market for 13 states and Washington DC, from Chicago to New Jersey and Virginia. It is to those states what ERCOT is to Texas.</p>
+  <header class="pjm-hero">
+    <p class="eyebrow">How a home battery pays</p>
+    <h1>One battery on the wall. Two sides win.</h1>
+    <p class="lede">A company puts a big battery on the side of a home. The home gets backup power and a steady bill. The company earns money from the power grid. Here is one day, with real prices.</p>
+    <label class="pjm-where" for="zone-pick">Show me a home served by <select id="zone-pick"></select></label>
   </header>
 
   <div id="error" role="alert"></div>
 
+  <section class="pjm-day" aria-labelledby="day-h">
+    <h2 id="day-h" class="sr-only">One day in the life of a home battery</h2>
+    <div class="pjm-day-copy">
+      <div class="pjm-steps" role="tablist" aria-label="Moments in the battery's day">
+        <button type="button" role="tab" id="tab-night" data-step="night" aria-selected="true" aria-controls="step"><span>1</span>Night</button>
+        <button type="button" role="tab" id="tab-evening" data-step="evening" aria-selected="false" aria-controls="step" tabindex="-1"><span>2</span>Evening</button>
+        <button type="button" role="tab" id="tab-peak" data-step="peak" aria-selected="false" aria-controls="step" tabindex="-1"><span>3</span>Hottest days</button>
+        <button type="button" role="tab" id="tab-outage" data-step="outage" aria-selected="false" aria-controls="step" tabindex="-1"><span>4</span>Outage</button>
+      </div>
+      <div class="pjm-step" id="step" role="tabpanel" aria-labelledby="tab-night" aria-live="polite"><p class="pjm-small">Loading prices…</p></div>
+    </div>
+    <div class="pjm-day-art">
+      <canvas id="house-canvas" hidden aria-hidden="true"></canvas>
+      <div id="house-fallback" class="pjm-house-fallback" data-mode="night">
+        <svg viewBox="0 0 320 220" role="img" aria-label="A house with a battery on its side wall">
+          <ellipse cx="160" cy="186" rx="150" ry="26" class="hf-ground"/>
+          <path d="M70 110 L160 52 L250 110 Z" fill="#54524f"/>
+          <rect x="84" y="110" width="152" height="74" fill="#fff" stroke="#292826" stroke-width="2"/>
+          <rect x="146" y="138" width="28" height="46" fill="#d8d7d5" stroke="#292826" stroke-width="2"/>
+          <rect x="100" y="126" width="30" height="26" fill="#cce5f5" stroke="#292826" stroke-width="2"/>
+          <rect x="190" y="126" width="30" height="26" fill="#cce5f5" stroke="#292826" stroke-width="2"/>
+          <rect x="242" y="142" width="22" height="42" rx="3" class="hf-battery" stroke="#292826" stroke-width="2"/>
+        </svg>
+      </div>
+      <p class="pjm-art-cap" id="art-cap"></p>
+    </div>
+    <div class="pjm-prices">
+      <p class="pjm-h">What power costs through an average day, <span id="price-zone">…</span></p>
+      <div class="pjm-pricebars" id="pricebars" role="img" aria-label="Average price of power for each hour of the day"></div>
+      <div class="pjm-priceaxis" aria-hidden="true"><span>12 AM</span><span>6 AM</span><span>Noon</span><span>6 PM</span><span>11 PM</span></div>
+      <p class="pjm-small" id="price-note"></p>
+    </div>
+  </section>
+
+  <section class="pjm-sides" aria-labelledby="sides-h">
+    <h2 id="sides-h">Who gets what</h2>
+    <div class="pjm-sides-grid">
+      <article class="card pjm-side">
+        <p class="eyebrow">The home</p>
+        <h3>Backup power and a steady bill.</h3>
+        <dl>
+          <dt>Pays once, for installation</dt><dd>$695</dd>
+          <dt>Pays each month, as a member</dt><dd>$19</dd>
+          <dt>Gets a battery on the wall</dt><dd>39.2 kWh</dd>
+          <dt>Gets backup when the grid is down</dt><dd>up to 36 hours</dd>
+          <dt>Owns or maintains the battery</dt><dd>No</dd>
+        </dl>
+        <p class="pjm-small">These are Base Power’s published Texas prices and battery figures (<a href="https://www.basepowercompany.com/">basepowercompany.com</a>, read 11 Nov 2026). Prices in other states may differ. The home also buys its power at a fixed rate where Base is the power provider.</p>
+      </article>
+      <article class="card pjm-side">
+        <p class="eyebrow">The company</p>
+        <h3>Earns from the grid, not from the home.</h3>
+        <dl id="company"></dl>
+        <p class="pjm-small" id="company-note"></p>
+      </article>
+    </div>
+  </section>
+
   <section aria-labelledby="rank-h">
-    <h2 id="rank-h" class="sr-only">Value of one battery, by PJM utility zone</h2>
+    <h2 id="rank-h">Where it pays most</h2>
+    <p class="lede pjm-rank-lede" id="lede" aria-live="polite">Loading…</p>
+    <p class="pjm-what"><b>PJM</b> runs the power grid and the wholesale power market for 13 states and Washington DC, from Chicago to New Jersey and Virginia. It is to those states what ERCOT is to Texas. Below is one battery’s yearly value in each of its 20 utility areas.</p>
     <div class="pjm-one">
       <label class="pjm-slider" for="tagKw"><span>Home load the battery covers</span><output id="o-tag">3 kW</output></label>
       <input type="range" id="tagKw" min="0" max="8" step="0.5" value="3" aria-describedby="tag-help">
       <p class="pjm-small" id="tag-help">The one assumption that matters most. Drag it to see every zone change.</p>
     </div>
-    <p class="pjm-legend"><span class="sw sw-e"></span>Energy <span class="sw sw-c"></span>Capacity charge <span class="sw sw-t"></span>Transmission charge <span class="sw sw-p"></span>Not confirmed, not counted</p>
+    <p class="pjm-legend"><span class="sw sw-e"></span>Buying cheap, using at peak <span class="sw sw-c"></span>Lower capacity charge <span class="sw sw-t"></span>Lower transmission charge <span class="sw sw-p"></span>Not confirmed, not counted</p>
     <ol class="pjm-zones" id="zones"><li class="pjm-small">Loading…</li></ol>
     <p class="pjm-actions"><button type="button" class="btn btn-outline btn-sm" id="show-all" aria-expanded="false">Show all 20 zones</button></p>
     <p class="pjm-small" id="rank-note"></p>

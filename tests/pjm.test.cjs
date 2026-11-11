@@ -241,3 +241,33 @@ test('API: zones as JSON rows, as CSV text, and as a CSV body all match the core
   const ex = (await call('GET')).json().example;
   assert.equal((await call('POST', JSON.stringify(ex))).statusCode, 200);
 });
+
+// ---------- the day story on the homepage ----------
+test('story data: every zone has 24 hourly prices, cheaper at night than in the evening', () => {
+  const mean = (xs) => xs.reduce((a, b) => a + b, 0) / xs.length;
+  for (const z of DATA.zones) {
+    assert.equal(z.hourlyAvgRt.length, 24, z.id);
+    assert.ok(z.hourlyAvgRt.every((x) => Number.isFinite(x)), z.id);
+    assert.ok(mean(z.hourlyAvgRt.slice(1, 5)) < mean(z.hourlyAvgRt.slice(17, 21)), z.id + ' night is cheaper than evening');
+    // The 24 hourly averages agree with the yearly average.
+    assert.ok(Math.abs(mean(z.hourlyAvgRt) - z.avgRtUsdPerMwh) < 0.5, z.id);
+  }
+});
+
+test('story page: four steps, the Blender house with a flat fallback, both sides, Base figures sourced', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  for (const s of ['night', 'evening', 'peak', 'outage']) assert.match(html, new RegExp('role="tab"[^>]*data-step="' + s + '"'));
+  assert.match(html, /id="house-canvas" hidden/);
+  assert.match(html, /id="house-fallback"/);
+  assert.match(html, /<script type="module" src="\/pjm-scene\.js"><\/script>/);
+  assert.match(html, /The home<\/p>/);
+  assert.match(html, /The company<\/p>/);
+  // Base's published figures are stated as Base's, with a link, and the page stays independent.
+  assert.match(html, /Base Power’s published Texas prices/);
+  assert.match(html, /href="https:\/\/www\.basepowercompany\.com\/"/);
+  assert.match(html, /Not affiliated with Base Power/);
+  const scene = fs.readFileSync(path.join(__dirname, '..', 'pjm-scene.js'), 'utf8');
+  assert.match(scene, /\/models\/house-suburban\.glb/);
+  assert.ok(fs.existsSync(path.join(__dirname, '..', 'models', 'house-suburban.glb')));
+  assert.ok(!scene.includes(String.fromCharCode(0x2014)));
+});

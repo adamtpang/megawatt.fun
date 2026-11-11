@@ -19,6 +19,64 @@
   // PPL's proposal makes transmission a utility charge for every customer, so no supplier keeps the tag saving.
   const zonesNow = () => C().applyYours(V.zones, yours).map((z) => ($('pplNonbypass').checked && z.id === 'PPL' ? { ...z, nitsUsdPerMwYear: 0, nonbypass: true } : z));
 
+  // ---------- the day story, the price chart and the two sides ----------
+  let step = 'night', pick = 'COMED';
+  const shortName = (z) => z.shortName || z.utility.split(' (')[0].split(':')[0];
+  const cents = (usdPerMwh) => (usdPerMwh / 10).toFixed(1) + '\u00a2'; // $/MWh to cents per kWh
+  const avg = (xs) => xs.reduce((a, b) => a + b, 0) / xs.length;
+  const clockHour = (h) => { const a = h % 12 || 12; return `${a} ${h < 12 ? 'AM' : 'PM'}`; };
+  // Local begin-hours each step lights up on the price chart.
+  const HOURS = { night: [1, 2, 3, 4], evening: [17, 18, 19, 20], outage: [] };
+
+  function story(ranked) {
+    const r = ranked.find((x) => x.zone.id === pick) || ranked[0];
+    const z = r.zone, v = r.value, h = z.hourlyAvgRt, name = shortName(z);
+    const night = avg(HOURS.night.map((i) => h[i])), evening = avg(HOURS.evening.map((i) => h[i]));
+    const peakHours = [...new Set(z.peaks.rtoFiveCP.concat(z.peaks.zoneFiveCP).map((x) => x.localStart))].sort((a, b) => a - b);
+    const lit = step === 'peak' ? peakHours : HOURS[step];
+    const tags = v.capacity + v.transmission;
+    const status = v.tagStatus;
+    const peakNum = tags > 0 ? [usd(tags), `saved a year on those two charges in ${name}`]
+      : status === 'profile' ? ['$0', `${name} bills these charges from an average home, so one home\u2019s battery cannot lower them`]
+        : [`$0 counted`, `${name}\u2019s rules are not confirmed yet. If they bill from the home\u2019s own meter, this is worth ${usd(v.potential)} a year`];
+    const STEP = {
+      night: { when: '1 AM to 5 AM', head: 'Power is cheap. The battery fills up.',
+        body: 'Most people are asleep, so power costs the least. The battery charges from the grid.',
+        num: cents(night), label: `average price of a kWh at night in ${name}`, cap: 'Night: the battery is charging.' },
+      evening: { when: '5 PM to 9 PM', head: 'Power costs the most. The battery runs the home.',
+        body: `Everyone is home, cooking and cooling. The home runs on what the battery stored at night, so nobody buys the expensive power. Over a year that is worth about ${usd(v.energy)} for one battery in ${name}.`,
+        num: cents(evening), label: `average price of a kWh in the evening in ${name}`, cap: 'Evening: the battery is running the home.' },
+      peak: { when: 'A few hot afternoons a year', head: 'A few hours set next year\u2019s charges.',
+        body: 'Every home pays two yearly charges: one for power plants kept on standby (capacity) and one for the big power lines (transmission). Both are set by how much power the home used in the busiest hours of the year. If the battery covers the home in those hours, both charges drop the next year.',
+        num: peakNum[0], label: peakNum[1], cap: `Busiest hours in ${name} last summer started around ${peakHours.map(clockHour).join(' and ')}.` },
+      outage: { when: 'When the grid goes down', head: 'The lights stay on.',
+        body: 'The battery takes over within seconds. Base says one battery can run a home for up to 36 hours. This page counts no dollars for backup, though it is the reason many homes sign up.',
+        num: '36 hours', label: 'of backup from one battery, Base\u2019s figure', cap: 'Outage: the grid is off and the battery powers the home.' },
+    }[step];
+    $('step').innerHTML = `<p class="pjm-step-when">${esc(STEP.when)}</p><h3>${esc(STEP.head)}</h3><p>${esc(STEP.body)}</p>
+      <p class="pjm-step-num"><b>${esc(STEP.num)}</b><span>${esc(STEP.label)}</span></p>`;
+    $('step').setAttribute('aria-labelledby', 'tab-' + step);
+    $('art-cap').textContent = STEP.cap;
+    document.querySelectorAll('.pjm-steps [data-step]').forEach((b) => { const on = b.dataset.step === step; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; });
+    if (window.PjmHouse) window.PjmHouse.set(step);
+    else $('house-fallback').dataset.mode = step;
+    // Price chart: one bar per hour, real yearly averages.
+    const max = Math.max(...h);
+    $('price-zone').textContent = name;
+    $('pricebars').innerHTML = h.map((x, i) => `<i class="${lit.includes(i) ? (step === 'night' ? 'on-charge' : 'on-use') : ''}" style="height:${Math.max(4, (x / max) * 100)}%" title="${clockHour(i)}: ${cents(x)} per kWh"></i>`).join('');
+    $('pricebars').setAttribute('aria-label', `Average price of power for each hour of the day in ${name}. Cheapest around ${clockHour(h.indexOf(Math.min(...h)))} at ${cents(Math.min(...h))} per kWh, highest around ${clockHour(h.indexOf(max))} at ${cents(max)}.`);
+    $('price-note').textContent = `Average wholesale price for each hour, ${V.period.start} to ${V.period.endExclusive}, from PJM. Cheapest about ${clockHour(h.indexOf(Math.min(...h)))} (${cents(Math.min(...h))} a kWh), highest about ${clockHour(h.indexOf(max))} (${cents(max)}). A home pays more than this: its bill adds delivery and other charges.`;
+    // The company's side, for the picked utility.
+    const row = (k, x, note) => `<dt>${k}${note ? `<small>${note}</small>` : ''}</dt><dd>${x}</dd>`;
+    const held = v.potential > 0 ? `not counted: ${name}\u2019s rules are not confirmed` : status === 'profile' ? `${name} bills from an average home` : '';
+    $('company').innerHTML = row('Pays for the battery and the install', 'Yes') +
+      row('Earns by buying cheap at night and using it at the peak', usd(v.energy)) +
+      row('Earns from a lower capacity charge', usd(v.capacity), held) +
+      row('Earns from a lower transmission charge', usd(v.transmission), z.transmission.bypassable === false ? 'this utility charges every home the same, whatever the battery does' : held) +
+      `<dt class="pjm-total-row">One battery, one year, in ${esc(name)}</dt><dd class="pjm-total-row">${usd(v.total)}</dd>`;
+    $('company-note').innerHTML = `An outside estimate from public prices, not Base\u2019s revenue. It leaves out what the battery costs, the home\u2019s $19 a month, and the margin on the power the home buys. Base\u2019s own words for the model: \u201cWe earn from the grid, not you\u201d (<a href="https://www.basepowercompany.com/">basepowercompany.com</a>).`;
+  }
+
   function render() {
     const p = params();
     $('o-tag').textContent = p.tagKw + ' kW';
@@ -26,7 +84,7 @@
     $('o-scale').textContent = p.capacityScale.toFixed(2) + 'x';
     const ranked = C().rank(zonesNow(), p);
     const max = Math.max(...ranked.map((r) => r.value.total + r.value.potential), 1);
-    const short = (z) => z.shortName || z.utility.split(' (')[0].split(':')[0];
+    const short = shortName;
     const openZones = ranked.filter((r) => r.zone.choice === 'open');
     const top = openZones.slice(0, 3);
     const by = (st) => zonesNow().filter((z) => z.choice !== 'none' && C().tagStatus(z) === st);
@@ -59,6 +117,7 @@
             : z.choice === 'partly' ? '<span class="badge badge-yellow">Partly open</span>' : '');
     const LIMIT = 8;
     const list = showAll ? ranked : ranked.filter((r, i) => i < LIMIT || r.zone.id === open || r.zone.baseStatus === 'operating');
+    story(ranked);
     $('zones').innerHTML = list.map((r) => {
       const z = r.zone, v = r.value, w = (x) => Math.max(0, (x / max) * 100), i = ranked.indexOf(r);
       return `<li class="pjm-zone${open === z.id ? ' is-open' : ''}"><button type="button" class="pjm-row" data-zone="${esc(z.id)}" aria-expanded="${open === z.id}">
@@ -76,7 +135,7 @@
   function detail(z, v) {
     const st = S && S.states ? z.states.map((c) => S.states.find((x) => x.code === c)).filter(Boolean) : [];
     return `<div class="pjm-detail"><p class="pjm-small"><b>${esc(z.utility)}</b> <code>${esc(z.id)}</code></p><dl>
-      <dt>Energy, ${params().allowExports ? 'full 20 kW exports (from Feb 2028)' : 'home load only'} (charge 1 to 5 AM, discharge 5 to 9 PM ${esc(z.timezone)})</dt><dd>${usd(v.energy)}</dd>
+      <dt>Buying cheap, using at peak: ${params().allowExports ? 'full 20 kW exports (from Feb 2028)' : 'home load only'} (charge 1 to 5 AM, discharge 5 to 9 PM ${esc(z.timezone)})</dt><dd>${usd(v.energy)}</dd>
       <dt>Energy with full 20 kW exports, for comparison</dt><dd>${usd(z.energyExportUsdPerYear)}</dd>
       <dt>Capacity charge saved (paid the year after the peaks)</dt><dd>${usd(v.capacity)}</dd>
       <dt>Transmission charge saved (NITS ${usd(z.nitsUsdPerMwYear)}/MW-yr${z.nonbypass ? ', zeroed: nonbypassable' : ''})</dt><dd>${usd(v.transmission)}</dd>
@@ -216,6 +275,21 @@
     $('zones').addEventListener('click', (e) => { const b = e.target.closest('[data-zone]'); if (!b) return; open = open === b.dataset.zone ? null : b.dataset.zone; render(); });
     $('dl').addEventListener('click', csv);
     $('show-all').addEventListener('click', () => { showAll = !showAll; render(); });
+    // Utility picker: retail-choice areas first, Base's own market selected.
+    const order = [...V.zones].sort((a, b) => (a.choice === 'none') - (b.choice === 'none') || shortName(a).localeCompare(shortName(b)));
+    $('zone-pick').innerHTML = order.map((z) => `<option value="${esc(z.id)}">${esc(shortName(z))} (${esc(z.states.join(', '))})${z.baseStatus === 'operating' ? ', where Base operates' : ''}</option>`).join('');
+    $('zone-pick').value = pick;
+    $('zone-pick').addEventListener('change', (e) => { pick = e.target.value; render(); });
+    const tabs = [...document.querySelectorAll('.pjm-steps [data-step]')];
+    tabs.forEach((b, i) => {
+      b.addEventListener('click', () => { step = b.dataset.step; render(); });
+      b.addEventListener('keydown', (e) => {
+        const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+        if (!d) return;
+        e.preventDefault();
+        const n = tabs[(i + d + tabs.length) % tabs.length]; step = n.dataset.step; render(); n.focus();
+      });
+    });
     render(); states(); method(); mountYours();
   }
   const get = (u) => fetch(u).then((r) => { if (!r.ok) throw new Error(u + ' ' + r.status); return r.json(); });

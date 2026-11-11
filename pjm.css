@@ -113,3 +113,62 @@
 
 /* Use your own data panel (yourdata.js), sized for this page. */
 .pjm-yours .yd { margin: 0 0 12px; border-radius: var(--radius-panel); }
+
+/* ---------- The day story: Base's how-it-works pattern (headline left, house right) ---------- */
+.pjm-hero { margin: 32px 0 20px; }
+.pjm-hero h1 { max-width: 20ch; }
+.pjm-where { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 16px; font-weight: 600; font-size: var(--text-body-md); }
+.pjm-where select { min-width: 220px; max-width: 100%; }
+.pjm-day { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 24px 32px; align-items: start; background: #fff; border: 1px solid var(--grey-20); border-radius: var(--radius-panel); padding: 24px; }
+.pjm-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin: 0 0 20px; }
+.pjm-steps button { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 56px; padding: 8px 10px; border: 1px solid var(--grey-20); border-radius: var(--radius-control); background: #fff; color: var(--grey-100); font: 600 var(--text-body-md)/1.3 var(--body); text-align: left; cursor: pointer; }
+.pjm-steps button span { font-size: var(--text-body-sm); font-weight: 500; color: var(--grey-80); }
+.pjm-steps button:hover { border-color: var(--grey-100); }
+.pjm-steps button[aria-selected=true] { background: var(--green-20); border-color: transparent; color: var(--green-90); }
+.pjm-steps button[aria-selected=true] span { color: var(--green-90); }
+.pjm-step-when { margin: 0 0 6px; font: 600 var(--text-body-sm)/1.5 var(--body); letter-spacing: .12em; text-transform: uppercase; color: var(--green-90); }
+.pjm-step h3 { font-size: var(--text-heading-md); line-height: 1.2; margin: 0 0 10px; }
+.pjm-step p { margin: 0; color: var(--grey-80); max-width: 46ch; }
+.pjm-step-num { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; margin-top: 20px !important; padding-top: 16px; border-top: 1px solid var(--grey-20); }
+.pjm-step-num b { font-size: var(--text-display-md); line-height: 1; font-weight: 600; color: var(--green-90); font-variant-numeric: tabular-nums; }
+.pjm-step-num span { font-size: var(--text-body-md); color: var(--grey-80); flex: 1 1 180px; }
+.pjm-day-art { position: relative; }
+#house-canvas { display: block; width: 100%; height: 340px; border-radius: 12px; }
+.pjm-house-fallback { height: 340px; border-radius: 12px; display: grid; place-items: center; background: var(--grey-5); transition: background-color .3s; }
+.pjm-house-fallback svg { width: min(100%, 420px); height: auto; }
+.pjm-house-fallback .hf-ground { fill: var(--green-60); }
+.pjm-house-fallback .hf-battery { fill: var(--grey-20); }
+.pjm-house-fallback[data-mode=night] { background: var(--green-100); }
+.pjm-house-fallback[data-mode=night] .hf-battery, .pjm-house-fallback[data-mode=outage] .hf-battery { fill: var(--green-20); }
+.pjm-house-fallback[data-mode=evening] { background: var(--orange-5); }
+.pjm-house-fallback[data-mode=peak] { background: var(--yellow-5); }
+.pjm-house-fallback[data-mode=evening] .hf-battery, .pjm-house-fallback[data-mode=peak] .hf-battery { fill: var(--orange-60); }
+.pjm-house-fallback[data-mode=outage] { background: var(--grey-100); }
+.pjm-art-cap { margin: 8px 0 0; font-size: var(--text-body-sm); color: var(--grey-80); }
+.pjm-prices { grid-column: 1 / -1; border-top: 1px solid var(--grey-20); padding-top: 16px; }
+.pjm-prices .pjm-h { margin-top: 0; }
+.pjm-pricebars { display: grid; grid-template-columns: repeat(24, 1fr); align-items: end; gap: 3px; height: 120px; }
+.pjm-pricebars i { display: block; background: var(--grey-20); border-radius: 3px 3px 0 0; min-height: 4px; transition: background-color .2s; }
+.pjm-pricebars i.on-charge { background: var(--green-60); }
+.pjm-pricebars i.on-use { background: var(--orange-60); }
+.pjm-priceaxis { display: flex; justify-content: space-between; margin-top: 4px; font-size: var(--text-body-sm); color: var(--grey-80); }
+.pjm-sides { margin-top: 32px; }
+.pjm-sides-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.pjm-side h3 { font-size: var(--text-heading-sm); margin: 0 0 12px; }
+.pjm-side dl { display: grid; grid-template-columns: 1fr auto; gap: 0; margin: 0 0 12px; font-size: var(--text-body-md); }
+.pjm-side dt, .pjm-side dd { padding: 10px 0; border-top: 1px solid var(--grey-20); margin: 0; }
+.pjm-side dt { color: var(--grey-80); padding-right: 12px; }
+.pjm-side dt small { display: block; font-size: var(--text-body-sm); color: var(--grey-80); }
+.pjm-side dd { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pjm-side .pjm-total-row { border-top: 2px solid var(--grey-100); color: var(--grey-100); font-weight: 600; }
+.pjm-side dd.pjm-total-row { font-size: var(--text-heading-sm); color: var(--green-90); }
+.pjm-rank-lede { margin: 0 0 8px; }
+@media (max-width: 820px) {
+  .pjm-day { grid-template-columns: 1fr; padding: 16px; }
+  .pjm-day-art { order: -1; }
+  #house-canvas, .pjm-house-fallback { height: 240px; }
+  .pjm-sides-grid { grid-template-columns: 1fr; }
+  .pjm-steps button { padding: 8px; font-size: var(--text-body-sm); }
+}
+@media (prefers-reduced-motion: reduce) { .pjm-house-fallback, .pjm-pricebars i { transition: none; } }
+.pjm-house-fallback[hidden], #house-canvas[hidden] { display: none; }

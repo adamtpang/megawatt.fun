@@ -122,6 +122,10 @@ const zones = Object.keys(ZONES).map((id) => {
   const energyByKw = {};
   for (const kw of KW_STEPS) energyByKw[kw] = r2(D.backtest(rows, { ...spec, power: kw }, { schedule }).net);
   const rts = z.rows.map((x) => x[4]);
+  // Average real-time price for each local hour of the day (index 0 is midnight to 1 AM), $/MWh.
+  const sums = Array(24).fill(0), counts = Array(24).fill(0);
+  for (const row of rows) { sums[row[1] - 1] += row[4]; counts[row[1] - 1]++; }
+  const hourlyAvgRt = sums.map((v, i) => r2(v / counts[i]));
   const monthly = full.months.map((m) => ({ month: m.month, usd: r2(m.net) }));
   const best2 = [...monthly].sort((a, b) => b.usd - a.usd).slice(0, 2);
   const shift = CENTRAL.has(id) ? 1 : 0;
@@ -146,6 +150,7 @@ const zones = Object.keys(ZONES).map((id) => {
     maxRtUsdPerMwh: r2(Math.max(...rts)),
     hours: z.rows.length,
     avgRtUsdPerMwh: r2(rts.reduce((a, b) => a + b, 0) / rts.length),
+    hourlyAvgRt,
   };
 });
 const defaults = P.rank(zones, {});
