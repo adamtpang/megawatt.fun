@@ -470,3 +470,8 @@ input[type=range] { accent-color: var(--brand-foreground); }
 @media (max-width: 700px) {
   .trust-page h1, .live-page h1 { font-size: var(--bpc-text-heading-lg-size); }
 }
+
+/* Homepage pointer to the PJM page. */
+.roi-next { margin-top: var(--bpc-space-6, 24px); }
+.roi-next h2 { margin: 0 0 4px; }
+.roi-next .btn { margin-top: 12px; }
