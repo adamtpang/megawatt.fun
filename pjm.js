@@ -6,7 +6,7 @@
   const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
   const usd = (n) => '$' + Math.round(n).toLocaleString('en-US');
   const C = () => window.PjmCore;
-  let V = null, S = null, open = null;
+  let V = null, S = null, open = null, showAll = false;
 
   function params() {
     const year = V.capacity.deliveryYears.find((y) => y.year === $('capYear').value) || V.capacity.deliveryYears[0];
@@ -19,8 +19,6 @@
   // PPL's proposal makes transmission a utility charge for every customer, so no supplier keeps the tag saving.
   const zonesNow = () => V.zones.map((z) => ($('pplNonbypass').checked && z.id === 'PPL' ? { ...z, nitsUsdPerMwYear: 0, nonbypass: true } : z));
 
-  const CHOICE = { open: ['Retail choice', 'badge-green'], partly: ['Partly open', 'badge-yellow'], none: ['No residential choice', 'badge'] };
-
   function render() {
     const p = params();
     $('o-tag').textContent = p.tagKw + ' kW';
@@ -28,40 +26,56 @@
     $('o-scale').textContent = p.capacityScale.toFixed(2) + 'x';
     const ranked = C().rank(zonesNow(), p);
     const max = Math.max(...ranked.map((r) => r.value.total), 1);
+    const short = (z) => z.utility.split(' (')[0].split(':')[0];
     const openZones = ranked.filter((r) => r.zone.choice === 'open');
-    const top = openZones.slice(0, 3).map((r) => `${r.zone.utility.split(' (')[0]} (${usd(r.value.total)})`);
+    const top = openZones.slice(0, 3);
     const span = (k) => { const xs = ranked.map((r) => r.value[k]); return Math.max(...xs) - Math.min(...xs); };
     const drivers = [['energy', span('energy')], ['transmission', span('transmission')]].sort((a, b) => b[1] - a[1]);
-    const flagged = openZones.slice(0, 3).filter((r) => (r.zone.flags || []).length).map((r) => r.zone.utility.split(' (')[0]);
     const ohio = V.zones.filter((z) => z.transmission && z.transmission.bypassable === false).length;
     const missed = V.zones.filter((z) => z.peaks.rtoFiveCP.some((x) => !x.coveredByClock) || !z.peaks.zoneOneCP.coveredByClock).map((z) => z.id);
-    $('lede').textContent = `With these assumptions, the most valuable PJM zones where homes can choose their supplier are ${top.length > 1 ? top.slice(0, -1).join(', ') + ' and ' + top[top.length - 1] : top.join('')} a year for one battery.` +
-      (flagged.length ? ` Read the launch rules before chasing ${flagged.join(' and ')}: see the flags below.` : '');
+    const baseZone = ranked.find((r) => r.zone.baseStatus === 'operating');
+    const names = top.map((r) => short(r.zone));
+    $('lede').textContent = top.length
+      ? `${names.length > 1 ? names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1] : names[0]} lead: one battery is worth about ${usd(top[top.length - 1].value.total)} to ${usd(top[0].value.total)} a year there.` +
+        (baseZone ? ` ${short(baseZone.zone)}, where Base operates, is ${usd(baseZone.value.total)}.` : '')
+      : 'No zone has a value with these settings.';
     $('keyfacts').innerHTML = [
       `<b>What drives the spread.</b> ${drivers[0][0] === 'energy' ? 'Energy' : 'Transmission'} varies most between zones (${usd(drivers[0][1])} from top to bottom), then ${drivers[1][0]} (${usd(drivers[1][1])}).`,
-      `<b>Ohio.</b> In ${ohio} Ohio zones transmission is already a nonbypassable utility charge, so its tag counts as 0.`,
-      p.allowExports ? '<b>Exports.</b> Energy here assumes full 20 kW exports, which PJM opens to aggregated home batteries on 1 Feb 2028.' : '<b>Exports.</b> Energy is capped at the home\u2019s own load: a home battery cannot sell exports into PJM until DER aggregation opens on 1 Feb 2028.',
-      `<b>Peak timing.</b> A fixed 5 to 9 PM clock misses some summer 2026 tag-setting peaks in ${missed.length} of ${V.zones.length} zones${missed.includes('COMED') ? ', ComEd among them' : ''}, so tag value assumes a separate peak-day dispatch from about 2 PM.`,
+      `<b>Ohio.</b> In ${ohio} Ohio zones transmission is already a utility charge no supplier can avoid, so it counts as 0.`,
+      p.allowExports ? '<b>Exports.</b> Energy here assumes full 20 kW exports, which PJM opens to aggregated home batteries on 1 Feb 2028.' : '<b>Exports.</b> Energy is capped at the home\u2019s own load: a home battery cannot sell exports into PJM until 1 Feb 2028.',
+      `<b>Peak timing.</b> A fixed 5 to 9 PM clock misses some summer 2026 peak hours in ${missed.length} of ${V.zones.length} zones${missed.includes('COMED') ? ', ComEd among them' : ''}. The capacity and transmission numbers assume the battery also covers the home from about 2 PM on peak days.`,
+      '<b>Who keeps it.</b> A supplier keeps these savings only where the utility bills it from the home\u2019s own meter. That is confirmed for PPL and not yet for the others.',
     ].map((t) => `<li>${t}</li>`).join('');
-    $('rank-note').textContent = `${V.period.start} to ${V.period.endExclusive} prices for energy. ${p.tagKw * p.hitRate} kW of tag reduction at ${usd(C().capacityPerKwYear(C().inputs(p).inputs))} per kW-year of capacity. Not Base revenue: an outside estimate from public data.`;
-    $('zones').innerHTML = ranked.map((r, i) => {
-      const z = r.zone, v = r.value, w = (x) => Math.max(0, (x / max) * 100);
-      const [cl, cc] = CHOICE[z.choice] || ['', 'badge'];
+    $('rank-note').textContent = `A year of real PJM prices (${V.period.start} to ${V.period.endExclusive}) and PJM\u2019s published capacity and transmission rates. An outside estimate from public data, not Base revenue.`;
+    // One badge per row, the most important first.
+    const badge = (z) => (z.baseStatus === 'operating' ? '<span class="badge badge-solid">Base operates here</span>'
+      : z.choice === 'none' ? '<span class="badge">No retail choice</span>'
+        : z.nonbypass || (z.transmission && z.transmission.bypassable === false) ? '<span class="badge badge-red">No transmission value</span>'
+          : (z.flags || []).length ? '<span class="badge badge-orange">Launch flag</span>'
+            : z.choice === 'partly' ? '<span class="badge badge-yellow">Partly open</span>' : '');
+    const LIMIT = 8;
+    const list = showAll ? ranked : ranked.filter((r, i) => i < LIMIT || r.zone.id === open || r.zone.baseStatus === 'operating');
+    $('zones').innerHTML = list.map((r) => {
+      const z = r.zone, v = r.value, w = (x) => Math.max(0, (x / max) * 100), i = ranked.indexOf(r);
       return `<li class="pjm-zone${open === z.id ? ' is-open' : ''}"><button type="button" class="pjm-row" data-zone="${esc(z.id)}" aria-expanded="${open === z.id}">
         <span class="pjm-rank">${i + 1}</span>
-        <span class="pjm-name"><b>${esc(z.utility)}</b><span class="pjm-meta"><code>${esc(z.id)}</code> ${esc(z.states.join(', '))} <span class="badge ${cc}">${esc(cl)}</span>${z.baseStatus === 'operating' ? ' <span class="badge badge-solid">Base operates here</span>' : z.baseStatus === 'docket' ? ' <span class="badge badge-blue">Base in a PUC docket</span>' : ''}${z.nonbypass || (z.transmission && z.transmission.bypassable === false) ? ' <span class="badge badge-red">Transmission nonbypassable</span>' : ''}${(z.flags || []).length ? ' <span class="badge badge-orange">Launch flag</span>' : ''}</span></span>
+        <span class="pjm-name"><b>${esc(short(z))}</b><span class="pjm-meta">${esc(z.states.join(', '))} ${badge(z)}</span></span>
         <span class="pjm-bar" aria-hidden="true"><i class="e" style="width:${w(v.energy)}%"></i><i class="c" style="width:${w(v.capacity)}%"></i><i class="t" style="width:${w(v.transmission)}%"></i></span>
         <span class="pjm-total">${usd(v.total)}<small>/yr</small></span></button>
         ${open === z.id ? detail(z, v) : ''}</li>`;
     }).join('');
+    const btn = $('show-all');
+    btn.hidden = ranked.length <= LIMIT;
+    btn.textContent = showAll ? `Show the top ${LIMIT}` : `Show all ${ranked.length} zones`;
+    btn.setAttribute('aria-expanded', String(showAll));
   }
   function detail(z, v) {
     const st = S && S.states ? z.states.map((c) => S.states.find((x) => x.code === c)).filter(Boolean) : [];
-    return `<div class="pjm-detail"><dl>
+    return `<div class="pjm-detail"><p class="pjm-small"><b>${esc(z.utility)}</b> <code>${esc(z.id)}</code></p><dl>
       <dt>Energy, ${params().allowExports ? 'full 20 kW exports (from Feb 2028)' : 'home load only'} (charge 1 to 5 AM, discharge 5 to 9 PM ${esc(z.timezone)})</dt><dd>${usd(v.energy)}</dd>
       <dt>Energy with full 20 kW exports, for comparison</dt><dd>${usd(z.energyExportUsdPerYear)}</dd>
-      <dt>Capacity tag (paid the year after the peaks)</dt><dd>${usd(v.capacity)}</dd>
-      <dt>Transmission tag (NITS ${usd(z.nitsUsdPerMwYear)}/MW-yr${z.nonbypass ? ', zeroed: nonbypassable' : ''})</dt><dd>${usd(v.transmission)}</dd>
+      <dt>Capacity charge saved (paid the year after the peaks)</dt><dd>${usd(v.capacity)}</dd>
+      <dt>Transmission charge saved (NITS ${usd(z.nitsUsdPerMwYear)}/MW-yr${z.nonbypass ? ', zeroed: nonbypassable' : ''})</dt><dd>${usd(v.transmission)}</dd>
       <dt>Energy from the two best months (${esc(z.energyTopTwoMonths.months.join(', '))}, full exports)</dt><dd>${Math.round(z.energyTopTwoMonths.share * 100)}%</dd>
       <dt>Average real-time price (highest hour)</dt><dd>$${z.avgRtUsdPerMwh.toFixed(2)} ($${Math.round(z.maxRtUsdPerMwh).toLocaleString('en-US')})/MWh</dd>
       <dt>Who sells to homes</dt><dd>${esc(z.choiceNote || (z.choice === 'open' ? 'Retail choice' : z.choice))}</dd></dl>
@@ -154,6 +168,7 @@
     ['tagKw', 'hitRate', 'capYear', 'capacityScale', 'includeEnergy', 'includeCapacity', 'includeTransmission', 'allowExports', 'pplNonbypass'].forEach((id) => $(id).addEventListener('input', render));
     $('zones').addEventListener('click', (e) => { const b = e.target.closest('[data-zone]'); if (!b) return; open = open === b.dataset.zone ? null : b.dataset.zone; render(); });
     $('dl').addEventListener('click', csv);
+    $('show-all').addEventListener('click', () => { showAll = !showAll; render(); });
     render(); states(); method();
   }
   const get = (u) => fetch(u).then((r) => { if (!r.ok) throw new Error(u + ' ' + r.status); return r.json(); });

@@ -18,20 +18,33 @@
 <header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/" aria-current="page">PJM</a><a href="/battery">Texas battery</a><a href="/live">Live</a><a href="/notes">Notes</a></nav></header>
 <main id="main" class="pjm">
   <header class="pjm-intro">
-    <p class="eyebrow">PJM, the next market</p>
-    <h1>Where a home battery pays in PJM, and what it takes to launch there.</h1>
+    <p class="eyebrow">One home battery in PJM</p>
+    <h1>Where a home battery pays in PJM.</h1>
     <p class="lede" id="lede" aria-live="polite">Loading PJM prices…</p>
     <p class="pjm-what"><b>PJM</b> runs the power grid and wholesale electricity market for 13 states and Washington DC, from Chicago to New Jersey and Virginia. It is to those states what ERCOT is to Texas.</p>
-    <ul class="pjm-keyfacts" id="keyfacts" aria-live="polite"></ul>
-    <p class="pjm-quote">In comments to the Pennsylvania PUC, Base said it saves customers money by dispatching batteries to lower the capacity and transmission tags (PLC and NSPL) on its customers’ bills (<a id="quote-src" href="https://www.energychoicematters.com/news/retail-supplier-expresses-concern-with-ppl-electric-s-nonbypassable-nits-proposa">Energy Choice Matters, 2 Nov 2026</a>). This page values those two tags, plus energy, for one battery in every PJM zone.</p>
   </header>
 
   <div id="error" role="alert"></div>
 
-  <section class="card pjm-controls" aria-labelledby="ctl-h">
-    <h2 id="ctl-h">Assumptions</h2>
-    <div class="pjm-grid">
-      <label class="pjm-field"><span>Home load the battery covers <output id="o-tag">3 kW</output></span><input type="range" id="tagKw" min="0" max="8" step="0.5" value="3"><small>An assumption. Caps evening energy (the battery serves only its home today) and sets how much each tag drops.</small></label>
+  <section aria-labelledby="rank-h">
+    <h2 id="rank-h" class="sr-only">Value of one battery, by PJM utility zone</h2>
+    <div class="pjm-one">
+      <label class="pjm-slider" for="tagKw"><span>Home load the battery covers</span><output id="o-tag">3 kW</output></label>
+      <input type="range" id="tagKw" min="0" max="8" step="0.5" value="3" aria-describedby="tag-help">
+      <p class="pjm-small" id="tag-help">The one assumption that matters most. Drag it to see every zone change.</p>
+    </div>
+    <p class="pjm-legend"><span class="sw sw-e"></span>Energy <span class="sw sw-c"></span>Capacity charge <span class="sw sw-t"></span>Transmission charge</p>
+    <ol class="pjm-zones" id="zones"><li class="pjm-small">Loading…</li></ol>
+    <p class="pjm-actions"><button type="button" class="btn btn-outline btn-sm" id="show-all" aria-expanded="false">Show all 20 zones</button></p>
+    <p class="pjm-small" id="rank-note"></p>
+
+    <details class="pjm-fold" id="fold-know"><summary>What to know before trusting these numbers</summary>
+      <ul class="pjm-keyfacts" id="keyfacts" aria-live="polite"></ul>
+      <p class="pjm-small"><b>Policy risk.</b> This is already the rule in Ohio: AEP Ohio, FirstEnergy Ohio and AES Ohio recover transmission from every customer through a nonbypassable rider, so the page counts their transmission tags as 0. PPL Electric has proposed the same in Pennsylvania: transmission (NITS) as a charge every customer pays the utility, whatever their supplier. A supplier could then no longer save its members money by cutting their transmission tags. Base asked the Pennsylvania PUC to let suppliers opt out and take on those costs themselves (dockets P-2026-3065185, P-2026-3065186 and P-2024-3047290). Tick “Model PPL’s nonbypassable transmission proposal” under “Change the other assumptions” to see what the PPL zone is worth without it.</p>
+      <p class="pjm-quote">In comments to the Pennsylvania PUC, Base said it saves customers money by dispatching batteries to lower the capacity and transmission tags (PLC and NSPL) on its customers’ bills (<a id="quote-src" href="https://www.energychoicematters.com/news/retail-supplier-expresses-concern-with-ppl-electric-s-nonbypassable-nits-proposa">Energy Choice Matters, 2 Nov 2026</a>). This page values those two tags, plus energy, for one battery in every PJM zone.</p>
+    </details>
+    <details class="pjm-fold" id="fold-assume"><summary>Change the other assumptions</summary>
+      <div class="pjm-grid">
       <label class="pjm-field"><span>Peak hours actually covered <output id="o-hit">100%</output></span><input type="range" id="hitRate" min="0" max="1" step="0.05" value="1"><small>Peaks are set by a few hours a year, known only afterwards. Lower this for missed calls.</small></label>
       <label class="pjm-field"><span>Capacity price</span><select id="capYear"></select><small>PJM auction price; every zone cleared at the cap. Tags from summer 2026 peaks are paid in 2027/2028, summer 2027 in 2028/2029.</small></label>
       <label class="pjm-field"><span>Capacity scaling <output id="o-scale">1.00x</output></span><input type="range" id="capacityScale" min="0.8" max="1.2" step="0.01" value="1"><small>Zonal scaling factor times forecast pool requirement. They differ by zone and year; 1.00 leaves them out.</small></label>
@@ -42,25 +55,14 @@
         <label><input type="checkbox" id="allowExports"> Full 20 kW exports (PJM DER aggregation, from Feb 2028)</label>
         <label><input type="checkbox" id="pplNonbypass"> Model PPL’s nonbypassable transmission proposal</label>
       </fieldset>
-    </div>
-  </section>
-
-  <section aria-labelledby="rank-h">
-    <div class="pjm-head"><h2 id="rank-h">Value of one battery, by PJM zone</h2><p class="pjm-legend"><span class="sw sw-e"></span>Energy <span class="sw sw-c"></span>Capacity tag <span class="sw sw-t"></span>Transmission tag</p></div>
-    <p class="pjm-small" id="rank-note"></p>
-    <ol class="pjm-zones" id="zones"><li class="pjm-small">Loading…</li></ol>
-    <p class="pjm-actions"><button type="button" class="btn btn-outline btn-sm" id="dl">Download zones (CSV)</button><a class="btn btn-outline btn-sm" href="/api/v1/pjm">JSON API</a><a class="btn btn-outline btn-sm" href="/data/pjm-value.json">Data file</a></p>
-  </section>
-
-  <section class="card pjm-risk" aria-labelledby="risk-h">
-    <p class="eyebrow">Policy risk to watch</p>
-    <h2 id="risk-h">Nonbypassable transmission takes the transmission tag off the table.</h2>
-    <p id="risk-body">This is already the rule in Ohio: AEP Ohio, FirstEnergy Ohio and AES Ohio recover transmission from every customer through a nonbypassable rider, so the page counts their transmission tags as 0. PPL Electric has proposed the same in Pennsylvania: transmission (NITS) as a charge every customer pays the utility, whatever their supplier. A supplier could then no longer save its members money by cutting their transmission tags. Base asked the Pennsylvania PUC to let suppliers opt out and take on those costs themselves (dockets P-2026-3065185, P-2026-3065186 and P-2024-3047290). Tick “Model PPL’s nonbypassable transmission proposal” above to see what the PPL zone is worth without it.</p>
+      </div>
+      <p class="pjm-actions"><button type="button" class="btn btn-outline btn-sm" id="dl">Download zones (CSV)</button><a class="btn btn-outline btn-sm" href="/api/v1/pjm">JSON API</a><a class="btn btn-outline btn-sm" href="/data/pjm-value.json">Data file</a></p>
+    </details>
   </section>
 
   <section aria-labelledby="states-h">
-    <h2 id="states-h">What it takes to launch, state by state</h2>
-    <p class="pjm-small">Supplier license, billing, recurring filings and the rules that matter most for a battery offer, each with its source. Checked against primary sources where one exists; anything not confirmed is marked.</p>
+    <h2 id="states-h">What it takes to launch there</h2>
+    <p class="pjm-small">License, billing, filings and consumer rules for each state, with sources. Anything not confirmed is marked.</p>
     <div id="states"><p class="pjm-small">Loading…</p></div>
   </section>
 

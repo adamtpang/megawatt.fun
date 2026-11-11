@@ -77,3 +77,23 @@
 .pjm-field small { overflow-wrap: anywhere; }
 .pjm-what { margin: 12px 0 0; max-width: 72ch; font-size: var(--text-body-md); color: var(--grey-80); }
 .pjm-what b { color: var(--grey-100); }
+
+/* Radically simple layout: one control, one list, the rest behind toggles. */
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.pjm-intro h1 { max-width: 18ch; }
+.pjm-one { background: #fff; border: 1px solid var(--grey-20); border-radius: var(--radius-panel); padding: 16px 20px; margin: 0 0 16px; }
+.pjm-slider { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-weight: 600; }
+.pjm-slider output { font-size: var(--text-heading-sm); color: var(--green-90); font-variant-numeric: tabular-nums; }
+.pjm-one input[type=range] { width: 100%; min-height: 44px; accent-color: var(--green-90); }
+.pjm-one .pjm-small { margin: 0; }
+.pjm-legend { margin: 0 0 8px; }
+.pjm-legend .sw:first-child { margin-left: 0; }
+.pjm-fold { border-top: 1px solid var(--grey-20); padding: 4px 0; }
+.pjm-fold:last-of-type { border-bottom: 1px solid var(--grey-20); }
+.pjm-fold > summary { cursor: pointer; font-weight: 600; min-height: 44px; display: flex; align-items: center; gap: 8px; list-style: none; }
+.pjm-fold > summary::-webkit-details-marker { display: none; }
+.pjm-fold > summary::before { content: '\25B8'; color: var(--grey-80); width: 12px; }
+.pjm-fold[open] > summary::before { content: '\25BE'; }
+.pjm-fold[open] { padding-bottom: 16px; }
+.pjm-fold .pjm-quote { margin-top: 12px; }
+#rank-note { margin: 12px 0 16px; }
