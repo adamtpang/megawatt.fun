@@ -154,3 +154,90 @@ test('page: no em dashes, quote is attributed as a report not a direct quote', (
   assert.match(html, /Base said it saves customers money/);
   assert.doesNotMatch(html, /“Base saves customers money/);
 });
+
+// ---------- Use your own data: one row per zone ----------
+const YD = require('../yourdata.js');
+const IDS = DATA.zones.map((z) => z.id);
+const csvFile = (t) => ({ kind: 'csv', data: YD.parseCSV(t) });
+
+test('your data: values replace that zone only, blanks keep the public number', () => {
+  const r = P.loadYours(csvFile('zone,home_kw,peak_coverage_pct,tag_rules,energy_usd_per_year,capacity_scale\ncomed,4,80,,,\nBGE,,,interval,,\nPECO,,,,"1,200",\n'), IDS);
+  assert.deepEqual(r.errors, []);
+  assert.deepEqual(r.yours, { COMED: { homeKw: 4, hitRate: 0.8 }, BGE: { tagRules: 'interval' }, PECO: { energyUsdPerYear: 1200 } });
+  const zones = P.applyYours(DATA.zones, r.yours);
+  assert.equal(DATA.zones.find((z) => z.id === 'COMED').yours, undefined, 'public data is not changed');
+  const v = (id, zs = zones) => P.valueZone(zs.find((z) => z.id === id), {});
+  const pub = (id) => v(id, DATA.zones);
+  // ComEd: 4 kW at 80% coverage. Capacity = 4 x 0.8 x 333.44 x 365 / 1000.
+  assert.equal(v('COMED').capacity, Math.round(4 * 0.8 * 333.44 * 365 / 1000 * 100) / 100);
+  assert.equal(v('COMED').energy, DATA.zones.find((z) => z.id === 'COMED').energyByKw[4]);
+  assert.deepEqual(v('COMED').yours, ['homeKw', 'hitRate']);
+  // BGE: the company says interval, so its tags now count and nothing is held back.
+  assert.equal(pub('BGE').capacity, 0);
+  assert.ok(v('BGE').capacity > 0);
+  assert.equal(v('BGE').potential, 0);
+  assert.equal(v('BGE').tagStatus, 'interval');
+  // PECO: own energy value; tags stay 0 because the public rule is still a class profile.
+  assert.equal(v('PECO').energy, 1200);
+  assert.equal(v('PECO').capacity, 0);
+  // A zone not in the file is untouched.
+  assert.deepEqual(v('PPL'), pub('PPL'));
+  // "profile" from the company zeroes a confirmed zone.
+  const off = P.applyYours(DATA.zones, P.loadYours({ kind: 'json', data: { zones: [{ zone: 'PPL', tag_rules: 'profile' }] } }, IDS).yours);
+  assert.equal(v('PPL', off).capacity, 0);
+});
+
+test('your data: bad files stop the load with a row-level message', () => {
+  const bad = P.loadYours(csvFile('zone,home_kw,Foo\nNOPE,3,1\nCOMED,"3,5",\nCOMED,2,\nPPL,99,\nBGE,,\n'), IDS);
+  assert.deepEqual(bad.yours, {});
+  assert.match(bad.errors[0], /^Row 2: unknown zone "NOPE"/);
+  assert.match(bad.errors[1], /^Row 3, column "home_kw": "3,5" is not a number\. A comma is only a thousands separator/);
+  assert.match(bad.errors[2], /^Row 4: COMED appears again \(first at Row 3\)/);
+  assert.match(bad.errors[3], /^Row 5, column "home_kw": 99 is outside 0 to 8 kW/);
+  assert.match(bad.warnings[0], /Ignored unknown column "Foo"/);
+  assert.match(P.loadYours({ kind: 'json', data: { zones: [{ zone: 'ppl', tag_rules: 'maybe' }] } }, IDS).errors[0], /tag_rules": "maybe" is not one of interval, profile, unknown/);
+  assert.match(P.loadYours(csvFile('home_kw\n3\n'), IDS).errors[0], /needs a "zone" column/);
+  assert.match(P.loadYours(csvFile('zone,home_kw\nCOMED,\n'), IDS).errors[0], /No zone has a value/);
+  assert.match(P.loadYours({ kind: 'json', data: { zones: 'x' } }, IDS).errors[0], /one row per zone/);
+  assert.match(P.loadYours({ kind: 'json', data: [1, 2] }, IDS).errors[0], /row of named fields/);
+  assert.match(P.loadYours(csvFile('zone,Zone\nCOMED,PPL\n'), IDS).errors[0], /same column/);
+  assert.match(P.loadYours({ kind: 'json', data: Array.from({ length: 201 }, () => ({ zone: 'COMED' })) }, IDS).errors[0], /limit is 200/);
+  // Keys that could reach Object.prototype are just unknown zones.
+  assert.match(P.loadYours({ kind: 'json', data: [{ zone: '__proto__', home_kw: 1 }] }, IDS).errors[0], /unknown zone/);
+});
+
+test('your data: the template round-trips and names every zone', () => {
+  const text = YD.toCSV(P.templateRows(DATA.zones), P.COLUMNS);
+  const rows = YD.parseCSV(text);
+  assert.equal(rows.length, 20);
+  assert.deepEqual(Object.keys(rows[0]), P.COLUMNS);
+  // Loaded as is, the template only restates the public tag rules, so no total changes.
+  const r = P.loadYours({ kind: 'csv', data: rows }, IDS);
+  assert.deepEqual(r.errors, []);
+  const a = P.rank(P.applyYours(DATA.zones, r.yours), {}).map((x) => [x.zone.id, x.value.total]);
+  const b = P.rank(DATA.zones, {}).map((x) => [x.zone.id, x.value.total]);
+  assert.deepEqual(a, b);
+});
+
+test('API: zones as JSON rows, as CSV text, and as a CSV body all match the core', async () => {
+  const rows = [{ zone: 'COMED', home_kw: 4, peak_coverage_pct: 90 }, { zone: 'BGE', tag_rules: 'interval' }];
+  const want = P.rank(P.applyYours(DATA.zones, P.loadYours({ kind: 'json', data: rows }, IDS).yours), {});
+  const j = (await call('POST', JSON.stringify({ zones: rows }))).json();
+  assert.equal(j.ok, true);
+  assert.deepEqual(j.inputs_used.your_zones, ['COMED', 'BGE']);
+  assert.deepEqual(j.result.zones.map((z) => [z.zone, z.total_usd_yr]), want.map((x) => [x.zone.id, x.value.total]));
+  assert.deepEqual(j.result.zones.find((z) => z.zone === 'COMED').yours, ['homeKw', 'hitRate']);
+  const text = 'zone,home_kw,peak_coverage_pct,tag_rules\nCOMED,4,90,\nBGE,,,interval\n';
+  const asText = (await call('POST', JSON.stringify({ zones: text }))).json();
+  assert.deepEqual(asText.result.zones.map((z) => z.total_usd_yr), j.result.zones.map((z) => z.total_usd_yr));
+  const res = mockRes();
+  await H({ method: 'POST', headers: { 'content-type': 'text/csv' }, body: text, url: '/api/v1/pjm' }, res);
+  assert.equal(res.statusCode, 200);
+  assert.deepEqual(res.json().result.zones.map((z) => z.total_usd_yr), j.result.zones.map((z) => z.total_usd_yr));
+  const bad = await call('POST', JSON.stringify({ zones: [{ zone: 'NOPE', home_kw: 3 }] }));
+  assert.equal(bad.statusCode, 422);
+  assert.match(bad.json().errors[0], /unknown zone "NOPE"/);
+  // The usage example runs.
+  const ex = (await call('GET')).json().example;
+  assert.equal((await call('POST', JSON.stringify(ex))).statusCode, 200);
+});

@@ -1,6 +1,6 @@
 ## Home battery ROI {#home}
 
-Page: `/`. One Texas home. The same code answers `POST /api/v1/home`.
+Page: `/battery`. One Texas home. The same code answers `POST /api/v1/home`.
 
 Send JSON. `query` is a ZIP (`77002`), a place (`Houston`), or a street address that contains a ZIP. `preset` is `bungalow`, `suburban` or `ranch`. `revenueCase` is `merchant`, `toll` or `stacked`. `fleetCount` is the fleet roll-up. `zone` is optional: send it when the ZIP is served by Oncor or TNMP, or when no load zone is on file.
 

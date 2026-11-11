@@ -110,3 +110,6 @@
 .pjm-rules summary { cursor: pointer; min-height: 32px; display: flex; align-items: center; }
 .pjm-detail .notice:not(.notice-green):not(.notice-red) { background: var(--grey-5); color: var(--grey-100); }
 @media (max-width: 700px) { .pjm-row { grid-template-columns: 24px minmax(0, 1fr) 118px; } }
+
+/* Use your own data panel (yourdata.js), sized for this page. */
+.pjm-yours .yd { margin: 0 0 12px; border-radius: var(--radius-panel); }

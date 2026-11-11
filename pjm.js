@@ -6,7 +6,7 @@
   const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
   const usd = (n) => '$' + Math.round(n).toLocaleString('en-US');
   const C = () => window.PjmCore;
-  let V = null, S = null, open = null, showAll = false;
+  let V = null, S = null, open = null, showAll = false, yours = null; // yours: { ZONE: {...} } from a loaded file
 
   function params() {
     const year = V.capacity.deliveryYears.find((y) => y.year === $('capYear').value) || V.capacity.deliveryYears[0];
@@ -17,7 +17,7 @@
     };
   }
   // PPL's proposal makes transmission a utility charge for every customer, so no supplier keeps the tag saving.
-  const zonesNow = () => V.zones.map((z) => ($('pplNonbypass').checked && z.id === 'PPL' ? { ...z, nitsUsdPerMwYear: 0, nonbypass: true } : z));
+  const zonesNow = () => C().applyYours(V.zones, yours).map((z) => ($('pplNonbypass').checked && z.id === 'PPL' ? { ...z, nitsUsdPerMwYear: 0, nonbypass: true } : z));
 
   function render() {
     const p = params();
@@ -29,7 +29,7 @@
     const short = (z) => z.shortName || z.utility.split(' (')[0].split(':')[0];
     const openZones = ranked.filter((r) => r.zone.choice === 'open');
     const top = openZones.slice(0, 3);
-    const by = (st) => V.zones.filter((z) => z.choice !== 'none' && C().tagStatus(z) === st);
+    const by = (st) => zonesNow().filter((z) => z.choice !== 'none' && C().tagStatus(z) === st);
     const confirmed = by('interval').concat(by('partly')), profiled = by('profile'), unknown = by('unknown');
     const span = (k) => { const xs = ranked.map((r) => r.value[k]); return Math.max(...xs) - Math.min(...xs); };
     const drivers = [['energy', span('energy')], ['transmission', span('transmission')]].sort((a, b) => b[1] - a[1]);
@@ -50,7 +50,7 @@
     ].map((t) => `<li>${t}</li>`).join('');
     $('rank-note').textContent = `A year of real PJM prices (${V.period.start} to ${V.period.endExclusive}) and PJM\u2019s published capacity and transmission rates. ${p.countUnconfirmed ? 'Capacity and transmission savings are counted in every zone, confirmed or not.' : `Capacity and transmission savings are counted only in the ${confirmed.length} zones where the utility\u2019s own rules confirm a battery can earn them; the striped part of a bar is not in the total.`} An outside estimate from public data, not Base revenue.`;
     // One badge per row, the most important first.
-    const badge = (z) => (z.baseStatus === 'operating' ? '<span class="badge badge-solid">Base operates here</span>'
+    const badge = (z) => (z.yours ? '<span class="badge badge-solid">Yours</span>' : '') + (z.baseStatus === 'operating' ? '<span class="badge badge-solid">Base operates here</span>'
       : z.choice === 'none' ? '<span class="badge">No retail choice</span>'
         : C().tagStatus(z) === 'profile' ? '<span class="badge">Charges set by class average</span>'
         : C().tagStatus(z) === 'unknown' ? '<span class="badge badge-yellow">Rules not confirmed</span>'
@@ -84,6 +84,7 @@
       <dt>Energy from the two best months (${esc(z.energyTopTwoMonths.months.join(', '))}, full exports)</dt><dd>${Math.round(z.energyTopTwoMonths.share * 100)}%</dd>
       <dt>Average real-time price (highest hour)</dt><dd>$${z.avgRtUsdPerMwh.toFixed(2)} ($${Math.round(z.maxRtUsdPerMwh).toLocaleString('en-US')})/MWh</dd>
       <dt>Who sells to homes</dt><dd>${esc(z.choiceNote || (z.choice === 'open' ? 'Retail choice' : z.choice))}</dd></dl>
+      ${z.yours ? `<p class="notice notice-green"><span class="badge badge-solid">Yours</span> From your file: ${esc(Object.entries(z.yours).map(([k, x]) => `${YOURS_LABEL[k] || k} ${k === 'hitRate' ? Math.round(x * 100) + '%' : x}`).join(', '))}. Everything else for this zone is the public number.</p>` : ''}
       ${peakTable(z)}
       ${tagRules(z)}
       <p class="pjm-small"><b>Transmission:</b> ${esc(z.transmission.note)}${z.transmission.quote ? ` \u201c${esc(z.transmission.quote)}\u201d` : ''}${srcLink(z.transmission.source)}</p>
@@ -102,6 +103,31 @@
       const part = (name, x) => (x ? `<li><b>${name}:</b> ${esc(AMI[x.residential_with_ami] || 'not confirmed')}. ${esc(x.text || '')}${x.quote ? ` \u201c${esc(x.quote)}\u201d` : ''}${x.source_kind === 'secondary' ? ' <span class="badge">Secondary source</span>' : ''}${srcLink(x.source)}</li>` : '');
       return `<p class="pjm-rules-u">${esc(u.utility)}</p><ul>${part('Capacity', u.plc)}${part('Transmission', u.nspl)}</ul>${u.notes ? `<details><summary>Caveats</summary><p>${esc(u.notes)}</p></details>` : ''}`;
     }).join('') + '</div>';
+  }
+
+  const YOURS_LABEL = { homeKw: 'home load kW', hitRate: 'peak coverage', tagRules: 'capacity and transmission rules', energyUsdPerYear: 'energy $ a year', capacityScale: 'capacity scaling' };
+  // "Use your own data": one row per zone, read in the browser by yourdata.js, checked by pjm-core.js.
+  function mountYours() {
+    const Y = window.YourData;
+    if (!Y || !$('yourdata')) return;
+    const ids = V.zones.map((z) => z.id);
+    Y.mount({
+      el: $('yourdata'),
+      tool: 'pjm',
+      what: 'your own numbers for each zone: home load, peak coverage, what you know about each utility\u2019s rules, your own energy value',
+      docs: '/plug-and-play#pjm',
+      templates: [{ name: 'pjm-zones.csv', label: 'Zone template', text: () => Y.toCSV(C().templateRows(V.zones), C().COLUMNS) }],
+      load(parsed) {
+        const r = C().loadYours(parsed, ids);
+        const n = Object.keys(r.yours).length;
+        return {
+          errors: r.errors, warnings: r.warnings,
+          summary: `${n} zone${n === 1 ? '' : 's'} now use your numbers (${Object.keys(r.yours).join(', ')}). They are tagged Yours in the list.`,
+          apply: () => { yours = r.yours; render(); },
+        };
+      },
+      reset: () => { yours = null; render(); },
+    });
   }
 
   const srcLink = (u) => (!u ? '' : /^unverified$/i.test(u) ? ' <span class="badge badge-yellow">Unverified</span>' : ` <a href="${esc(u)}">Source</a>.`);
@@ -187,7 +213,7 @@
     $('zones').addEventListener('click', (e) => { const b = e.target.closest('[data-zone]'); if (!b) return; open = open === b.dataset.zone ? null : b.dataset.zone; render(); });
     $('dl').addEventListener('click', csv);
     $('show-all').addEventListener('click', () => { showAll = !showAll; render(); });
-    render(); states(); method();
+    render(); states(); method(); mountYours();
   }
   const get = (u) => fetch(u).then((r) => { if (!r.ok) throw new Error(u + ' ' + r.status); return r.json(); });
   function load() {
