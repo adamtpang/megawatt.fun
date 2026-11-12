@@ -19,7 +19,7 @@ PUBLIC_FILES = [
     "data/deployment/LZ_NORTH.csv", "data/deployment/LZ_SOUTH.csv",
     "demo/texas-deployment/README.md", "demo/texas-deployment/METHOD.md", "demo/texas-deployment/VALIDATION.md",
     "demo/texas-deployment/results.json", "demo/texas-deployment/monthly.csv",
-    "favicon.ico", "index.html", "siting.html", "siting.css", "siting.js", "siting-core.js",
+    "favicon.ico", "index.html", "battery.html", "siting.html", "siting.css", "siting.js", "siting-core.js",
     "siting-map.js", "datacenter.js", "datacenter-core.js",
     "tools.html", "live.html", "kardashev.html", "titans.html",
     "style.css", "climb.css", "climb.js", "vercel.json", "api/prices.js",

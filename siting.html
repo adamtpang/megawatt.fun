@@ -13,7 +13,7 @@
 </head>
 <body class="tool-page">
 <a class="skip" href="#main">Skip to the tool</a>
-<header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/">Home battery</a><a href="/siting" aria-current="page">Siting</a><a href="/live">Live</a><a href="/notes">Notes</a></nav></header>
+<header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/">PJM</a><a href="/market">US map</a><a href="/battery">Texas battery</a><a href="/live">Live</a><a href="/notes">Notes</a></nav></header>
 <main id="main" class="roi siting">
   <p class="eyebrow">Texas · public data</p>
   <h1>Where the price is, and what a megawatt costs.</h1>
@@ -43,9 +43,9 @@
           </label>
           <label>Price spread
             <select name="spread">
-              <option value="spreadNodeDam" selected>Resource-node day-ahead median (short window, proxy)</option>
-              <option value="spreadZoneRt">Load-zone real-time, twelve months</option>
+              <option value="spreadZoneRt" selected>Load-zone real-time, twelve months</option>
               <option value="spreadZoneDam">Load-zone day-ahead, twelve months</option>
+              <option value="spreadNodeDam">Resource-node day-ahead median (one month, proxy)</option>
             </select>
           </label>
           <label>Wires, ZCTA only
@@ -86,6 +86,7 @@
     <div class="siting-split">
       <section class="card siting-block">
         <h2>Ranked areas</h2>
+        <p class="fine">The list starts on the load-zone real-time series because a home settles at its load zone. Areas with no owner-occupied one-unit homes are left out.</p>
         <p id="home-count" class="fine"></p>
         <div class="table-scroll" id="home-table"></div>
         <div id="home-detail"></div>
@@ -115,6 +116,7 @@
     <a href="/live">Live</a>
     <a href="/notes">Notes</a>
     <a href="/sources">Sources</a>
+    <a href="/battery">Texas battery</a>
   </div>
   <p>Independent. Not affiliated with Base Power. No real batteries are controlled. Counts only, never a parcel.</p>
 </footer>

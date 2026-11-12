@@ -258,8 +258,12 @@ input[type=range] { accent-color: var(--brand-foreground); }
 @media (max-width: 480px) {
   .site-top { gap: 6px; padding-left: 12px; padding-right: 12px; }
   .site-top .brand { font-size: 18px; }
-  .site-top nav > a, .nav-more > summary { padding: 8px 4px; font-size: 13px; }
+  .site-top nav > a, .nav-more > summary { padding: 8px 6px; }
   .site-top .nav-more-menu { right: 0; left: auto; max-width: calc(100vw - 24px); }
+  /* Five links do not fit beside the brand on a phone: the links take their own row. */
+  .site-top { flex-wrap: wrap; row-gap: 0; padding-top: 6px; padding-bottom: 2px; }
+  .site-top nav { flex: 1 0 100%; margin: 0 -6px; overflow-x: auto; scrollbar-width: none; }
+  .site-top nav > a { min-height: 40px; }
 }
 
 /* The five home-battery company tools link to each other. */
@@ -470,3 +474,8 @@ input[type=range] { accent-color: var(--brand-foreground); }
 @media (max-width: 700px) {
   .trust-page h1, .live-page h1 { font-size: var(--bpc-text-heading-lg-size); }
 }
+
+/* Homepage pointer to the PJM page. */
+.roi-next { margin-top: var(--bpc-space-6, 24px); }
+.roi-next h2 { margin: 0 0 4px; }
+.roi-next .btn { margin-top: 12px; }

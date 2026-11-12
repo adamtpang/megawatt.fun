@@ -63,6 +63,7 @@ Every POST body needs `Content-Type: application/json` or `Content-Type: text/cs
 | `/api/v1/market` | usage | states and Texas zones ranked |
 | `/api/v1/pitch` | usage | pitch for one utility |
 | `/api/v1/zip` | usage | utility, permit office, and days for one ZIP |
+| `/api/v1/pjm` | usage | one battery's value in each PJM utility zone |
 
 ### Health
 
@@ -168,7 +169,7 @@ Result: `summary` (the page's summary, word for word: weeks show one decimal, or
 
 ### Market
 
-States ranked for home batteries, and Texas load zones ranked by what one battery earned from energy arbitrage on a fixed daily clock (charge 10 AM to 2 PM, discharge 7 to 9 PM Central). Trading hubs are not ranked. Same scoring as [/market](https://megawatt.fun/market): at the default weights, which include the retail-choice path (a sourced per-state legal flag for open residential retail choice, checked 2026-11-04), the top three are Texas 73, Michigan 73 and Maryland 71. Each state's `footprint` (Base's public marks: `operating`, `announced`, or `equipment` for Colorado and Connecticut, where Base's site footer says it offers home battery equipment and installation, not retail) is returned as data and is not part of the score.
+States ranked for home batteries, and Texas load zones ranked by what one battery earned from energy arbitrage on a fixed daily clock (charge 10 AM to 2 PM, discharge 7 to 9 PM Central). Trading hubs are not ranked. Same scoring as [/market](https://megawatt.fun/market): at the default weights, which include the retail-choice path (a sourced per-state legal flag for open residential retail choice, checked 2026-11-04), the top three are Texas 74, Michigan 69 and California 68. Each state's `footprint` (Base's public marks: `operating`, `announced`, or `equipment` for Colorado and Connecticut, where Base's site footer says it offers home battery equipment and installation, not retail) is returned as data and is not part of the score.
 
 ```json
 {
@@ -218,6 +219,16 @@ curl -X POST https://megawatt.fun/api/v1/zip \
 Coverage is Texas, Illinois, Georgia, and Connecticut ZCTAs from the 2020 Census, joined to the NREL/OpenEI 2024 ZIP file. OpenEI does not list Oncor, CenterPoint, AEP Texas, or TNMP, so for Texas the wires companies inside retail choice come from Power to Choose, the PUCT plan site, queried ZIP by ZIP. A ZIP split between a retail-choice wires company and a city utility or co-op (Denton 76201) lists both and warns. A city utility or co-op that Power to Choose lists, such as Lubbock Power & Light (in retail choice since March 2024), gets the path `retail_choice_public`: a retail provider sells the power and the utility owns the wires. A ZIP outside the file returns `covered: false` and `unknown` for the figures. It is not an error.
 
 Result: `utility` when exactly one wires utility is listed, `utilities` always (one per EIA number, each with `source` `openei-2024` or `ptc`, and `ptc_listed` when Power to Choose lists it), `gaps` (the caveats for all states plus the ZIP's own state), `ahj` (city or county), `solarapp` (`yes`, `no`, or `unknown`), `interconnection_path`, and `days_to_first_install`. The total uses `permit_review_days + interconnection_days + crew_days` and is `unknown` unless every input is a calendar-day number. Published clocks that are outside limits or business-day windows are listed and are not added. Retail power marketer rows are not the wires utility.
+
+### PJM
+
+One 20 kW / 39.2 kWh battery's yearly value in each of 20 PJM utility zones, the same way the [homepage](https://megawatt.fun/) does: energy on a fixed daily clock (charge 1 to 5 AM, discharge 5 to 9 PM local time, at the zone real-time price, 12 real months of PJM Data Miner prices), capped at the home's own load unless `allowExports` is true (PJM DER aggregation opens 1 Feb 2028), plus the capacity tag (PLC: `tagKw` x capacity price x 365) and the transmission tag (NSPL: `tagKw` x the zone's June 2026 NITS rate, 0 where transmission is a nonbypassable utility charge, as in Ohio).
+
+```json
+{ "tagKw": 3, "hitRate": 0.8, "capacityUsdPerMwDay": 333.44, "pplNonbypass": true }
+```
+
+All optional. `tagKw` 0 to 8 (default 3, an assumption), `allowExports` true or false (default false), `countUnconfirmed` true or false (default false), `hitRate` 0 to 1, `capacityScale` 0 to 2, `includeEnergy`, `includeCapacity`, `includeTransmission` true or false. `pplNonbypass: true` models PPL's proposed nonbypassable transmission charge (P-2026-3065185): the PPL transmission tag is then worth 0 to a supplier. Capacity and transmission are counted only where the utility's own documents confirm a home's tags come from its interval meter (`tag_rules`: `interval` or `partly`); for `unknown` they are 0 and reported as `not_counted_if_confirmed_usd_yr` unless `countUnconfirmed` is true, and for `profile` (a class average) they are always 0. The per-utility quotes and sources are in [/data/pjm-tags.json](https://megawatt.fun/data/pjm-tags.json). Each zone also returns `transmission_bypassable` and `peaks`: the summer 2026 hours that set the tags, and whether the fixed clock covered them. Result: `zones` ranked by `total_usd_yr`, each with `energy_usd_yr`, `capacity_usd_yr`, `transmission_usd_yr`, `retail_choice` (open, partly, none), utility and states. Tag value counts only where the utility sets tags from the home's interval meter and the party keeping the savings is billed for them. Not Base revenue.
 
 ### BOM checker
 

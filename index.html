@@ -1,126 +1,145 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fleet battery ROI · megawatt.fun</title>
-<meta name="description" content="What one installed battery earns a fleet operator in ERCOT, and why a homeowner buying the pack is a different model. Every figure is sourced, partly sourced, an assumption, or not modeled yet.">
-<meta name="theme-color" content="#1e4d2b">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>megawatt.fun: where a home battery pays in PJM</title>
 <link rel="canonical" href="https://megawatt.fun/">
-<link rel="stylesheet" href="/site.css">
-<link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48 64x64" type="image/x-icon">
-</head>
-<body class="tool-page">
-<a class="skip" href="#main">Skip to the tool</a>
-<header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/" aria-current="page">Home battery</a><a href="/siting">Siting</a><a href="/live">Live</a><a href="/notes">Notes</a></nav></header>
-<main id="main" class="roi">
-  <p class="eyebrow">One tool · fleet operator</p>
-  <h1>What one battery earns the fleet.</h1>
-  <p class="lede">Batteries move energy through time. The fleet owns the pack, sells the electricity, and the member gets a lower bill plus backup. This page prices that per installed battery. It does not sell a battery to the house. Independent. Not affiliated with Base Power.</p>
-
-  <form id="roi-form" class="roi-form">
-    <div>
-      <label for="home-query">Address or ZIP</label>
-      <input id="home-query" name="query" type="text" inputmode="text" autocomplete="postal-code" value="77002" required>
-    </div>
-    <fieldset>
-      <legend class="eyebrow">Home</legend>
-      <div class="preset-row" role="radiogroup" aria-label="Home preset">
-        <label><input type="radio" name="preset" value="bungalow"> Small bungalow</label>
-        <label><input type="radio" name="preset" value="suburban" checked> 2-story suburban</label>
-        <label><input type="radio" name="preset" value="ranch"> Large ranch</label>
-      </div>
-    </fieldset>
-    <fieldset>
-      <legend class="eyebrow">Landed cost</legend>
-      <div class="preset-row" role="radiogroup" aria-label="Hardware cost">
-        <label><input type="radio" name="hardware" value="shelf" checked> Off the shelf</label>
-        <label><input type="radio" name="hardware" value="base"> Base-built, assumed discount</label>
-      </div>
-      <label for="reduction">Percent below the shelf cost</label>
-      <input id="reduction" name="reductionPct" type="number" min="0" max="100" step="1" value="0">
-      <p class="roi-note">0% is an explicit assumption: no discount until you set one. It is not a Base Core price.</p>
-    </fieldset>
-    <div class="roi-actions">
-      <div class="grow">
-        <label for="bill-share">Member share of wholesale (%)</label>
-        <input id="bill-share" name="billCreditPct" type="number" min="0" max="100" step="1" placeholder="Not set">
-      </div>
-      <div class="grow">
-        <label for="contract">Utility contract ($/battery/year)</label>
-        <input id="contract" name="contractUsd" type="number" min="0" step="1" placeholder="Not set">
-      </div>
-      <div class="grow">
-        <label for="fleet-count">Fleet size</label>
-        <input id="fleet-count" name="fleetCount" type="number" min="1" max="10000000" step="1" value="1000">
-      </div>
-      <button class="btn" type="submit">Estimate this battery</button>
-    </div>
-    <div id="mode-pick-wrap" hidden>
-      <label for="mode-pick">Which company serves this meter</label>
-      <select id="mode-pick" name="marketMode">
-        <option value="">Not chosen</option>
-        <option value="member">Retail choice: sell electricity</option>
-        <option value="vendor">Municipal or co-op: megawatts as a service</option>
-      </select>
-    </div>
-    <div id="zone-pick-wrap" hidden>
-      <label for="zone-pick">Load zone</label>
-      <select id="zone-pick" name="zone"></select>
-      <p class="roi-note" id="zone-why"></p>
-    </div>
-  </form>
-
-  <p id="roi-status" class="notice roi-status" role="status">Loading the public price files.</p>
-
-  <div class="roi-layout">
-    <section class="house-card" aria-labelledby="house-title">
-      <h2 id="house-title">The house</h2>
-      <div class="house-stage">
-        <canvas id="house-canvas" hidden></canvas>
-        <div class="house-fallback" id="house-fallback" role="img" aria-label="A simple drawing of the chosen house with a battery on the side wall.">
-          <svg viewBox="0 0 320 220" width="100%" height="100%">
-            <rect x="70" y="90" width="160" height="90" fill="#f0eeeb" stroke="#292826"/>
-            <polygon points="60,90 150,40 240,90" fill="#1e4d2b"/>
-            <rect id="fallback-battery" x="214" y="118" width="22" height="48" fill="#b2dd79" stroke="#1e4d2b"/>
-            <rect x="108" y="128" width="28" height="28" fill="#cce5f5" stroke="#292826"/>
-          </svg>
-        </div>
-      </div>
-      <p class="house-caption" id="house-caption">The battery sits on the side wall. Midday charge is green. The evening peak is orange. Prices: <a href="https://www.ercot.com/mktinfo/prices">ERCOT</a>.</p>
-      <div class="price-bars" id="price-bars" aria-hidden="true"></div>
-    </section>
-
-    <section class="result-card" aria-labelledby="result-title">
-      <h2 id="result-title">Per installed battery</h2>
-      <div id="result" aria-live="polite"></div>
-    </section>
-  </div>
-</main>
-<footer class="site-bottom">
-  <div class="footer-links">
-    <a href="/about">About</a>
-    <a href="/contact">Contact</a>
-    <a href="/privacy">Privacy</a>
-    <a href="/live">Live</a>
-    <a href="/notes">Notes</a>
-    <a href="/notes/kardashev-stack">Make, move, store, sell</a>
-    <a href="/sources">Sources</a>
-  </div>
-  <p>Independent. Not affiliated with Base Power. No real batteries are controlled.</p>
-</footer>
-<script src="/zip-launch-core.js"></script>
-<script src="/yourdata.js"></script>
-<script src="/market-core.js"></script>
-<script src="/notes/score.js"></script>
-<script src="/market-score.js"></script>
-<script src="/finance-core.js"></script>
-<script src="/home-roi-core.js"></script>
-<script src="/fleet-roi-core.js"></script>
-<script src="/home.js"></script>
+<meta name="description" content="Where one home battery pays in each PJM utility zone (energy, capacity and transmission tags), and what it takes to launch a retail battery offer in each PJM state. Public PJM data. Independent, not affiliated with Base Power.">
+<meta property="og:title" content="PJM, the Next Market">
+<meta property="og:description" content="One home battery's value in each PJM utility zone, and what each PJM state requires to launch. Public data. Not affiliated with Base Power.">
+<meta property="og:url" content="https://megawatt.fun/">
+<meta property="og:type" content="website">
+<link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/site.css"><link rel="stylesheet" href="/pjm.css">
+<script src="/yourdata.js" defer></script>
+<script src="/pjm-core.js" defer></script>
+<script src="/pjm.js" defer></script>
 <script type="importmap">
 { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js" } }
 </script>
-<script type="module" src="/house-scene.js"></script>
+<script type="module" src="/pjm-scene.js"></script>
+</head>
+<body class="tool-page pjm-page">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/" aria-current="page">PJM</a><a href="/market">US map</a><a href="/battery">Texas battery</a><a href="/live">Live</a><a href="/notes">Notes</a></nav></header>
+<main id="main" class="pjm">
+  <header class="pjm-hero">
+    <p class="eyebrow">How a home battery pays</p>
+    <h1>One battery on the wall. Two sides win.</h1>
+    <p class="lede">A company puts a big battery on the side of a home. The home gets backup power and a steady bill. The company earns money from the power grid. Here is one day, with real prices.</p>
+    <label class="pjm-where" for="zone-pick">Show me a home served by <select id="zone-pick"></select></label>
+  </header>
+
+  <div id="error" role="alert"></div>
+
+  <section class="pjm-day" aria-labelledby="day-h">
+    <h2 id="day-h" class="sr-only">One day in the life of a home battery</h2>
+    <div class="pjm-day-copy">
+      <div class="pjm-steps" role="tablist" aria-label="Moments in the battery's day">
+        <button type="button" role="tab" id="tab-night" data-step="night" aria-selected="true" aria-controls="step"><span>1</span>Night</button>
+        <button type="button" role="tab" id="tab-evening" data-step="evening" aria-selected="false" aria-controls="step" tabindex="-1"><span>2</span>Evening</button>
+        <button type="button" role="tab" id="tab-peak" data-step="peak" aria-selected="false" aria-controls="step" tabindex="-1"><span>3</span>Hottest days</button>
+        <button type="button" role="tab" id="tab-outage" data-step="outage" aria-selected="false" aria-controls="step" tabindex="-1"><span>4</span>Outage</button>
+      </div>
+      <div class="pjm-step" id="step" role="tabpanel" aria-labelledby="tab-night" aria-live="polite"><p class="pjm-small">Loading prices…</p></div>
+    </div>
+    <div class="pjm-day-art">
+      <canvas id="house-canvas" hidden aria-hidden="true"></canvas>
+      <div id="house-fallback" class="pjm-house-fallback" data-mode="night">
+        <svg viewBox="0 0 320 220" role="img" aria-label="A house with a battery on its side wall">
+          <ellipse cx="160" cy="186" rx="150" ry="26" class="hf-ground"/>
+          <path d="M70 110 L160 52 L250 110 Z" fill="#54524f"/>
+          <rect x="84" y="110" width="152" height="74" fill="#fff" stroke="#292826" stroke-width="2"/>
+          <rect x="146" y="138" width="28" height="46" fill="#d8d7d5" stroke="#292826" stroke-width="2"/>
+          <rect x="100" y="126" width="30" height="26" fill="#cce5f5" stroke="#292826" stroke-width="2"/>
+          <rect x="190" y="126" width="30" height="26" fill="#cce5f5" stroke="#292826" stroke-width="2"/>
+          <rect x="242" y="142" width="22" height="42" rx="3" class="hf-battery" stroke="#292826" stroke-width="2"/>
+        </svg>
+      </div>
+      <p class="pjm-art-cap" id="art-cap"></p>
+    </div>
+    <div class="pjm-prices">
+      <p class="pjm-h">What power costs through an average day, <span id="price-zone">…</span></p>
+      <div class="pjm-pricebars" id="pricebars" role="img" aria-label="Average price of power for each hour of the day"></div>
+      <div class="pjm-priceaxis" aria-hidden="true"><span>12 AM</span><span>6 AM</span><span>Noon</span><span>6 PM</span><span>11 PM</span></div>
+      <p class="pjm-small" id="price-note"></p>
+    </div>
+  </section>
+
+  <section class="pjm-sides" aria-labelledby="sides-h">
+    <h2 id="sides-h">Who gets what</h2>
+    <div class="pjm-sides-grid">
+      <article class="card pjm-side">
+        <p class="eyebrow">The home</p>
+        <h3>Backup power and a steady bill.</h3>
+        <dl>
+          <dt>Pays once, for installation</dt><dd>$695</dd>
+          <dt>Pays each month, as a member</dt><dd>$19</dd>
+          <dt>Gets a battery on the wall</dt><dd>39.2 kWh</dd>
+          <dt>Gets backup when the grid is down</dt><dd>up to 36 hours</dd>
+          <dt>Owns or maintains the battery</dt><dd>No</dd>
+        </dl>
+        <p class="pjm-small">These are Base Power’s published Texas prices and battery figures (<a href="https://www.basepowercompany.com/">basepowercompany.com</a>, read 11 Nov 2026). Prices in other states may differ. The home also buys its power at a fixed rate where Base is the power provider.</p>
+      </article>
+      <article class="card pjm-side">
+        <p class="eyebrow">The company</p>
+        <h3>Earns from the grid, not from the home.</h3>
+        <dl id="company"></dl>
+        <p class="pjm-small" id="company-note"></p>
+      </article>
+    </div>
+  </section>
+
+  <section aria-labelledby="rank-h">
+    <h2 id="rank-h">Where it pays most</h2>
+    <p class="lede pjm-rank-lede" id="lede" aria-live="polite">Loading…</p>
+    <p class="pjm-what"><b>PJM</b> runs the power grid and the wholesale power market for 13 states and Washington DC, from Chicago to New Jersey and Virginia. It is to those states what ERCOT is to Texas. Below is one battery’s yearly value in each of its 20 utility areas. For all 50 states, see the <a href="/market">US market map</a>.</p>
+    <div class="pjm-one">
+      <label class="pjm-slider" for="tagKw"><span>Home load the battery covers</span><output id="o-tag">3 kW</output></label>
+      <input type="range" id="tagKw" min="0" max="8" step="0.5" value="3" aria-describedby="tag-help">
+      <p class="pjm-small" id="tag-help">The one assumption that matters most. Drag it to see every zone change.</p>
+    </div>
+    <p class="pjm-legend"><span class="sw sw-e"></span>Buying cheap, using at peak <span class="sw sw-c"></span>Lower capacity charge <span class="sw sw-t"></span>Lower transmission charge <span class="sw sw-p"></span>Not confirmed, not counted</p>
+    <ol class="pjm-zones" id="zones"><li class="pjm-small">Loading…</li></ol>
+    <p class="pjm-actions"><button type="button" class="btn btn-outline btn-sm" id="show-all" aria-expanded="false">Show all 20 zones</button></p>
+    <p class="pjm-small" id="rank-note"></p>
+
+    <div id="yourdata" class="pjm-yours"></div>
+
+    <details class="pjm-fold" id="fold-know"><summary>What to know before trusting these numbers</summary>
+      <ul class="pjm-keyfacts" id="keyfacts" aria-live="polite"></ul>
+      <p class="pjm-small"><b>Policy risk.</b> This is already the rule in Ohio: AEP Ohio, FirstEnergy Ohio and AES Ohio recover transmission from every customer through a nonbypassable rider, so the page counts their transmission tags as 0. PPL Electric has proposed the same in Pennsylvania: transmission (NITS) as a charge every customer pays the utility, whatever their supplier. A supplier could then no longer save its members money by cutting their transmission tags. Base asked the Pennsylvania PUC to let suppliers opt out and take on those costs themselves (dockets P-2026-3065185, P-2026-3065186 and P-2024-3047290). Tick “Model PPL’s nonbypassable transmission proposal” under “Change the other assumptions” to see what the PPL zone is worth without it.</p>
+      <p class="pjm-quote">In comments to the Pennsylvania PUC, Base said it saves customers money by dispatching batteries to lower the capacity and transmission tags (PLC and NSPL) on its customers’ bills (<a id="quote-src" href="https://www.energychoicematters.com/news/retail-supplier-expresses-concern-with-ppl-electric-s-nonbypassable-nits-proposa">Energy Choice Matters, 2 Nov 2026</a>). This page values those two tags, plus energy, for one battery in every PJM zone.</p>
+    </details>
+    <details class="pjm-fold" id="fold-assume"><summary>Change the other assumptions</summary>
+      <div class="pjm-grid">
+      <label class="pjm-field"><span>Peak hours actually covered <output id="o-hit">100%</output></span><input type="range" id="hitRate" min="0" max="1" step="0.05" value="1"><small>Peaks are set by a few hours a year, known only afterwards. Lower this for missed calls.</small></label>
+      <label class="pjm-field"><span>Capacity price</span><select id="capYear"></select><small>PJM auction price; every zone cleared at the cap. Tags from summer 2026 peaks are paid in 2027/2028, summer 2027 in 2028/2029.</small></label>
+      <label class="pjm-field"><span>Capacity scaling <output id="o-scale">1.00x</output></span><input type="range" id="capacityScale" min="0.8" max="1.2" step="0.01" value="1"><small>Zonal scaling factor times forecast pool requirement. They differ by zone and year; 1.00 leaves them out.</small></label>
+      <fieldset class="pjm-field pjm-checks"><legend>Count these</legend>
+        <label><input type="checkbox" id="includeEnergy" checked> Energy</label>
+        <label><input type="checkbox" id="includeCapacity" checked> Capacity tag</label>
+        <label><input type="checkbox" id="includeTransmission" checked> Transmission tag</label>
+        <label><input type="checkbox" id="allowExports"> Full 20 kW exports (PJM DER aggregation, from Feb 2028)</label>
+        <label><input type="checkbox" id="countUnconfirmed"> Also count zones whose capacity and transmission rules are not confirmed</label>
+        <label><input type="checkbox" id="pplNonbypass"> Model PPL’s nonbypassable transmission proposal</label>
+      </fieldset>
+      </div>
+      <p class="pjm-actions"><button type="button" class="btn btn-outline btn-sm" id="dl">Download zones (CSV)</button><a class="btn btn-outline btn-sm" href="/api/v1/pjm">JSON API</a><a class="btn btn-outline btn-sm" href="/data/pjm-value.json">Data file</a></p>
+    </details>
+  </section>
+
+  <section aria-labelledby="states-h">
+    <h2 id="states-h">What it takes to launch there</h2>
+    <p class="pjm-small">License, billing, filings and consumer rules for each state, with sources. Anything not confirmed is marked.</p>
+    <div id="states"><p class="pjm-small">Loading…</p></div>
+  </section>
+
+  <details class="pjm-method card"><summary>Method, limits and sources</summary>
+    <div id="method"></div>
+  </details>
+
+  <nav class="gift-set" aria-label="Home battery company tools"><span>For a home-battery company</span><a href="/" aria-current="page">PJM, the next market</a><a href="/battery">The same battery in Texas</a><a href="/market">US market map</a><a href="/siting">Texas siting</a></nav>
+</main>
+<footer class="site-bottom"><div class="footer-links"><a href="/about">About</a><a href="/contact">Contact</a><a href="/privacy">Privacy</a><a href="/live">Live</a><a href="/notes">Notes</a><a href="/notes/kardashev-stack">Make, move, store, sell</a><a href="/sources">Sources</a></div><p>Independent. Not affiliated with Base Power.</p></footer>
 </body>
 </html>

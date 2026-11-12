@@ -9,6 +9,7 @@ const SUPPLY = require('../../data/supply.json');
 const MAP = require('../../data/expansion-map.json');
 const MARKET = require('../../data/market-states.json');
 const ZIP = require('../../data/zip-launch.json');
+const PJM = require('../../data/pjm-value.json');
 
 const TOOLS = [
   ['home', 'One Texas home: ERCOT load zone, what one battery earns, payback, IRR and debt capacity.'],
@@ -18,6 +19,7 @@ const TOOLS = [
   ['market', 'States ranked for home batteries, and Texas zones ranked by $/battery/year.'],
   ['pitch', 'The outside-view pitch for one utility, and who to call first in its state.'],
   ['zip', 'Wires utility, permit office, interconnection path, and days to a first install for one US ZIP.'],
+  ['pjm', 'One home battery\u2019s yearly value in each PJM utility zone: energy, capacity tag and transmission tag.'],
 ];
 
 function version() {
@@ -40,6 +42,7 @@ function body() {
       expansion_map: MAP.generated,
       market_states: MARKET.retrieved,
       zip_launch: ZIP.generated,
+      pjm_value: { built: PJM.built, period_start: PJM.period.start, period_end_exclusive: PJM.period.endExclusive },
     },
     docs: L.SITE + '/docs/api.md',
     note: 'Public data only. Nothing you send is stored.',

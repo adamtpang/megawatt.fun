@@ -8,8 +8,9 @@
 .stat-value { font-size: 1.75rem; font-weight: 600; color: #1e4d2b; margin: 0; font-variant-numeric: tabular-nums; }
 .stat-value span { font-size: 1rem; color: var(--bpc-color-text-muted); }
 .fine { color: var(--bpc-color-text-muted); font-size: 0.875rem; }
-.siting-split { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 16px; align-items: start; }
-.tx-map { width: 100%; height: auto; background: #f0eeeb; border-radius: 12px; }
+/* The ranked table has eight columns: it gets the full width, and the map sits under it. */
+.siting-split { display: grid; grid-template-columns: 1fr; gap: 16px; align-items: start; }
+.tx-map { width: 100%; max-width: 640px; height: auto; background: #f0eeeb; border-radius: 12px; }
 .tx-map path { cursor: pointer; }
 .zone-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; padding: 0; list-style: none; }
 .swatch { display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: 6px; border: 1px solid #292826; }

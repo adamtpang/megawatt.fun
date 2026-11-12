@@ -39,7 +39,7 @@ function usage() {
     },
     example: { query: '77002', preset: 'suburban', revenueCase: 'merchant' },
     docs: L.docsUrl('home'),
-    page: L.SITE + '/',
+    page: L.SITE + '/battery',
   };
 }
 

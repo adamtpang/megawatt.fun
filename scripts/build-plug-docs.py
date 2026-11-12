@@ -12,7 +12,7 @@ import pathlib
 import re
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-ORDER = ["home", "market", "pitch", "supply", "finance", "launch"]
+ORDER = ["pjm", "home", "market", "pitch", "supply", "finance", "launch"]
 
 
 def inline(text):

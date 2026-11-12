@@ -24,7 +24,7 @@
 </style>
 </head>
 <body class="tool-page">
-<header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/">Home battery</a><a href="/siting">Siting</a><a href="/live">Live</a><a href="/notes">Notes</a></nav></header>
+<header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/">PJM</a><a href="/market">US map</a><a href="/battery">Texas battery</a><a href="/live">Live</a><a href="/notes">Notes</a></nav></header>
 
 <main class="pp" id="main">
   <section class="pp-intro">
@@ -41,8 +41,22 @@
   </section>
 
 <section class="pp-card card">
+<h2 id="pjm">PJM</h2>
+<p>Page: <code>/</code> (the homepage). One battery's yearly value in each of 20 PJM utility zones. The same code answers <code>POST /api/v1/pjm</code>.</p>
+<p><strong>File:</strong> CSV with one row per zone, or JSON <code>{ "zones": [ { ... } ] }</code> with the same fields (a bare list of rows also works). Download the template from the page: it lists every zone with the public tag rule filled in. Only <code>zone</code> is required. A blank cell keeps the public number for that zone, so you can send one column for one zone.</p>
+<div class="pp-table"><table><thead><tr><th scope="col">Field</th><th scope="col">Meaning</th><th scope="col">Unit</th></tr></thead><tbody><tr><td><code>zone</code></td><td>PJM zone code, any case: <code>COMED</code>, <code>PPL</code>, <code>PSEG</code>, <code>BGE</code> and so on (required)</td><td>id</td></tr><tr><td><code>home_kw</code></td><td>home load the battery covers in the evening and at peaks, 0 to 8</td><td>kW</td></tr><tr><td><code>peak_coverage_pct</code></td><td>share of tag-setting peak hours your dispatch actually covers, 0 to 100</td><td>%</td></tr><tr><td><code>tag_rules</code></td><td>what you know about how the utility sets a home's capacity and transmission tags: <code>interval</code> (the home's own meter), <code>profile</code> (a class average) or <code>unknown</code></td><td>text</td></tr><tr><td><code>energy_usd_per_year</code></td><td>your own energy value per battery, 0 to 100,000. Replaces the public backtest for that zone</td><td>$ a year</td></tr><tr><td><code>capacity_scale</code></td><td>zonal scaling factor times forecast pool requirement, 0 to 2</td><td>multiplier</td></tr></tbody></table></div>
+<p><strong>Rules:</strong> each value replaces the page-wide setting for that zone only. <code>tag_rules</code> decides whether capacity and transmission count: <code>interval</code> counts them, <code>profile</code> makes them 0, <code>unknown</code> holds them back as "not counted" unless you tick the box that counts unconfirmed zones. Transmission stays 0 in zones where it is a nonbypassable utility charge. Zones from your file are tagged <strong>Yours</strong> in the list and in the zone detail. Column names match in any case; a column the tool does not know is named in a warning and ignored. An unknown zone, a zone written twice, a <code>tag_rules</code> value outside the three, a non-number (plain decimals only, with a comma only as a thousands separator: <code>1,200</code> is a number, <code>3,5</code> is an error) and a value outside its range stop the load and are listed by row. A file holds at most 200 rows. The file is read in the browser and never uploaded.</p>
+<p><strong>Example:</strong></p>
+<pre><code>zone,home_kw,peak_coverage_pct,tag_rules,energy_usd_per_year,capacity_scale
+COMED,4,90,,,
+BGE,,,interval,,
+PPL,,,,520,1.05</code></pre>
+<p><strong>API:</strong> send the same rows as <code>zones</code> in a JSON body next to the other options, or send the CSV as the body with <code>Content-Type: text/csv</code>.</p>
+<pre><code>{ &quot;tagKw&quot;: 3, &quot;zones&quot;: [ { &quot;zone&quot;: &quot;COMED&quot;, &quot;home_kw&quot;: 4, &quot;peak_coverage_pct&quot;: 90 }, { &quot;zone&quot;: &quot;BGE&quot;, &quot;tag_rules&quot;: &quot;interval&quot; } ] }</code></pre>
+</section>
+<section class="pp-card card">
 <h2 id="home">Home battery ROI</h2>
-<p>Page: <code>/</code>. One Texas home. The same code answers <code>POST /api/v1/home</code>.</p>
+<p>Page: <code>/battery</code>. One Texas home. The same code answers <code>POST /api/v1/home</code>.</p>
 <p>Send JSON. <code>query</code> is a ZIP (<code>77002</code>), a place (<code>Houston</code>), or a street address that contains a ZIP. <code>preset</code> is <code>bungalow</code>, <code>suburban</code> or <code>ranch</code>. <code>revenueCase</code> is <code>merchant</code>, <code>toll</code> or <code>stacked</code>. <code>fleetCount</code> is the fleet roll-up. <code>zone</code> is optional: send it when the ZIP is served by Oncor or TNMP, or when no load zone is on file.</p>
 <p>Suburban annual use is the 2024 Texas residential average, 1,097 kWh a month. Bungalow (9,000 kWh) and ranch (18,000 kWh) are labeled assumptions. Earnings use <code>data/zone-value.json</code> (real-time load-zone prices, 2025-10-01 to 2026-10-01, fixed clock). Debt, payback, simple ROI and IRR use <code>finance-core.js</code>. Backup is $0 of cash flow: the replay already holds a 20% reserve, and no outage dollar is in the file.</p>
 <p>A ZIP that does not pick one zone returns <code>needsZone: true</code> and does not invent a zone.</p>

@@ -25,6 +25,8 @@ class Handler(SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(body)
             return
+        if path == "/pjm":
+            self.send_response(301); self.send_header("Location", "/"); self.end_headers(); return
         if path == "/notes":
             self.path = "/notes/index.html"
         elif path == "/notes/expansion-map":
@@ -35,12 +37,14 @@ class Handler(SimpleHTTPRequestHandler):
             self.path = "/notes/kardashev-stack.html"
         elif path == "/notes/financing-a-home-battery":
             self.path = "/notes/financing-a-home-battery.html"
-        elif path in {"/ops", "/market", "/pitch", "/launch", "/finance", "/supply", "/plug-and-play", "/deploy", "/tools", "/kardashev", "/live", "/titans", "/roadmap", "/essay", "/why", "/sources", "/base", "/bench", "/about", "/contact", "/privacy", "/siting"}:
+        elif path in {"/ops", "/market", "/battery", "/pitch", "/launch", "/finance", "/supply", "/plug-and-play", "/deploy", "/tools", "/kardashev", "/live", "/titans", "/roadmap", "/essay", "/why", "/sources", "/base", "/bench", "/about", "/contact", "/privacy", "/siting"}:
             self.path = path + ".html"
         super().do_GET()
 
 
 if __name__ == "__main__":
-    server = ThreadingHTTPServer(("127.0.0.1", 8765), Handler)
-    print("Megawatt preview: http://127.0.0.1:8765", flush=True)
+    import os
+    port = int(os.environ.get("PORT", "8765"))
+    server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
+    print(f"Megawatt preview: http://127.0.0.1:{port}", flush=True)
     server.serve_forever()

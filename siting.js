@@ -99,6 +99,8 @@
       let list = grain === 'zip' ? model.areas.zips : model.areas.tracts;
       if (grain === 'zip' && flag !== 'all') list = list.filter(function (row) { return row.flag === flag; });
       if (picked) list = list.filter(function (row) { return row.countyGeoid === picked; });
+      // An area with no owner-occupied one-unit homes has nowhere to put a battery.
+      list = list.filter(function (row) { return row.singleFamily !== 0; });
       const byId = {};
       list.forEach(function (row) { byId[row.id] = row; });
       const ranked = Siting.rankAreas(list.map(function (row) {
@@ -151,15 +153,16 @@
       const out = rows();
       const spreadLabel = form.elements.spread.selectedOptions[0].textContent;
       const top = out.ranked.slice(0, 25);
+      const zip = form.elements.grain.value === 'zip';
       document.getElementById('home-count').textContent = out.ranked.length + ' areas have this spread. ' + out.skipped.length + ' are not ranked.';
-      tableHost.innerHTML = '<table class="ds-table"><thead><tr><th>Area</th><th>County</th><th>Zone</th><th>Wires</th><th class="num">Owner-occupied one-unit homes</th><th class="num">Spread, $/MWh</th><th class="num">Profit, $/battery-year</th><th class="num">Profit x homes</th></tr></thead><tbody>'
+      tableHost.innerHTML = '<table class="ds-table"><thead><tr><th>Area</th><th>County</th><th>Zone</th>' + (zip ? '<th>Wires</th>' : '') + '<th class="num">Owner-occupied one-unit homes</th><th class="num">Spread, $/MWh</th><th class="num">Profit, $/battery-year</th><th class="num">Profit x homes</th></tr></thead><tbody>'
         + (top.length ? top.map(function (row, index) {
           const county = countyById[row.countyGeoid] || {};
           const wires = row.kind === 'zip'
             ? ((row.utilities && row.utilities.length ? row.utilities.join(', ') : '') + (row.tdus && row.tdus.length ? ' [' + row.tdus.join(', ') + ']' : '') + ' ' + (row.flag || ''))
             : 'Tract has no utility flag';
-          return '<tr><th>' + (index + 1) + '. ' + esc(row.kind === 'zip' ? row.id : row.name || row.id) + '</th><td>' + esc(row.countyName || '') + '</td><td>' + esc(row.zone || 'Unassigned') + (county.pricedNodes ? ' <span class="fine">' + county.pricedNodes + ' priced nodes</span>' : '') + '</td><td>' + esc(wires) + '</td><td class="num">' + num(row.singleFamily) + '</td><td class="num">' + (row.spreadUsdPerMwh == null ? '' : row.spreadUsdPerMwh.toFixed(2)) + '</td><td class="num">' + usd(row.profitUsdPerYear) + '</td><td class="num">' + (row.screenUsdPerYear == null ? 'Not in the file' : usd(row.screenUsdPerYear)) + '</td></tr>';
-        }).join('') : '<tr><td colspan="8">No area has this spread under the current filter.</td></tr>')
+          return '<tr><th>' + (index + 1) + '. ' + esc(row.kind === 'zip' ? row.id : row.name || row.id) + '</th><td>' + esc(row.countyName || '') + '</td><td>' + esc(row.zone || 'Unassigned') + (county.pricedNodes ? ' <span class="fine">' + county.pricedNodes + (county.pricedNodes === 1 ? ' priced node' : ' priced nodes') + '</span>' : '') + '</td>' + (zip ? '<td>' + esc(wires) + '</td>' : '') + '<td class="num">' + num(row.singleFamily) + '</td><td class="num">' + (row.spreadUsdPerMwh == null ? '' : row.spreadUsdPerMwh.toFixed(2)) + '</td><td class="num">' + usd(row.profitUsdPerYear) + '</td><td class="num">' + (row.screenUsdPerYear == null ? 'Not in the file' : usd(row.screenUsdPerYear)) + '</td></tr>';
+        }).join('') : '<tr><td colspan="' + (zip ? 8 : 7) + '">No area has this spread under the current filter.</td></tr>')
         + '</tbody></table>';
       const lead = top[0];
       if (!lead || !mathInputsReady(assumptions())) {
@@ -183,7 +186,7 @@
       }
       detail.innerHTML = '<p><strong>' + esc(lead.id) + '</strong> in ' + esc(lead.countyName || 'an unassigned county') + ', ' + esc(lead.zone || 'no zone') + '.</p>'
         + '<p class="formula-line">(' + lead.spreadUsdPerMwh.toFixed(2) + ' / 1000) x ' + current.cyclesPerYear + ' x ' + current.usableKwh + ' x ' + current.roundTripEfficiency + ' - ' + current.degradationUsdPerYear + ' = ' + usd(math.profitUsdPerYear, 2) + '</p>'
-        + '<p class="fine">Spread series: ' + esc(spreadLabel) + '. Zone real-time spread on the same county is ' + (lead.spreadZoneRt == null ? 'not assigned' : '$' + lead.spreadZoneRt.toFixed(2) + '/MWh') + '. Resource-node median is ' + (lead.spreadNodeDam == null ? 'not in the file' : '$' + lead.spreadNodeDam.toFixed(2) + '/MWh') + ' from ' + (county.pricedNodes || 0) + ' priced nodes. Assignment: ' + esc(lead.zoneAssignment || 'unassigned') + '.</p>'
+        + '<p class="fine">Spread series: ' + esc(spreadLabel) + '. Zone real-time spread on the same county is ' + (lead.spreadZoneRt == null ? 'not assigned' : '$' + lead.spreadZoneRt.toFixed(2) + '/MWh') + '. Resource-node median is ' + (lead.spreadNodeDam == null ? 'not in the file' : '$' + lead.spreadNodeDam.toFixed(2) + '/MWh') + ' from ' + (county.pricedNodes || 0) + (county.pricedNodes === 1 ? ' priced node' : ' priced nodes') + '. Assignment: ' + esc(lead.zoneAssignment || 'unassigned') + '.</p>'
         + '<p class="fine">Profit x homes is a screening product, not a forecast of what a fleet would earn.</p>';
       paint();
     }
