@@ -19,7 +19,7 @@ PUBLIC_FILES = [
     "data/deployment/LZ_NORTH.csv", "data/deployment/LZ_SOUTH.csv",
     "demo/texas-deployment/README.md", "demo/texas-deployment/METHOD.md", "demo/texas-deployment/VALIDATION.md",
     "demo/texas-deployment/results.json", "demo/texas-deployment/monthly.csv",
-    "favicon.ico", "index.html", "battery.html", "tools.html", "live.html", "kardashev.html", "titans.html",
+    "favicon.ico", "index.html", "day.css", "day.js", "day-core.js", "day-scene.js", "pjm.html", "battery.html", "tools.html", "live.html", "kardashev.html", "titans.html",
     "style.css", "climb.css", "climb.js", "vercel.json", "api/prices.js",
     "data/kardashev-baseline.json", "scorecard.css",
     "data/progress-scorecard.json", "data/progress-scorecard.csv",

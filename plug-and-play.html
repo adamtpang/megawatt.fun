@@ -24,7 +24,7 @@
 </style>
 </head>
 <body class="tool-page">
-<header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/">PJM</a><a href="/market">US map</a><a href="/battery">Texas battery</a><a href="/live">Live</a><a href="/notes">Notes</a></nav></header>
+<header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/pjm">PJM</a><a href="/market">US map</a><a href="/battery">Texas battery</a><a href="/live">Live</a><a href="/notes">Notes</a></nav></header>
 
 <main class="pp" id="main">
   <section class="pp-intro">
@@ -42,7 +42,7 @@
 
 <section class="pp-card card">
 <h2 id="pjm">PJM</h2>
-<p>Page: <code>/</code> (the homepage). One battery's yearly value in each of 20 PJM utility zones. The same code answers <code>POST /api/v1/pjm</code>.</p>
+<p>Page: <code>/pjm</code>. One battery's yearly value in each of 20 PJM utility zones. The same code answers <code>POST /api/v1/pjm</code>.</p>
 <p><strong>File:</strong> CSV with one row per zone, or JSON <code>{ "zones": [ { ... } ] }</code> with the same fields (a bare list of rows also works). Download the template from the page: it lists every zone with the public tag rule filled in. Only <code>zone</code> is required. A blank cell keeps the public number for that zone, so you can send one column for one zone.</p>
 <div class="pp-table"><table><thead><tr><th scope="col">Field</th><th scope="col">Meaning</th><th scope="col">Unit</th></tr></thead><tbody><tr><td><code>zone</code></td><td>PJM zone code, any case: <code>COMED</code>, <code>PPL</code>, <code>PSEG</code>, <code>BGE</code> and so on (required)</td><td>id</td></tr><tr><td><code>home_kw</code></td><td>home load the battery covers in the evening and at peaks, 0 to 8</td><td>kW</td></tr><tr><td><code>peak_coverage_pct</code></td><td>share of tag-setting peak hours your dispatch actually covers, 0 to 100</td><td>%</td></tr><tr><td><code>tag_rules</code></td><td>what you know about how the utility sets a home's capacity and transmission tags: <code>interval</code> (the home's own meter), <code>profile</code> (a class average) or <code>unknown</code></td><td>text</td></tr><tr><td><code>energy_usd_per_year</code></td><td>your own energy value per battery, 0 to 100,000. Replaces the public backtest for that zone</td><td>$ a year</td></tr><tr><td><code>capacity_scale</code></td><td>zonal scaling factor times forecast pool requirement, 0 to 2</td><td>multiplier</td></tr></tbody></table></div>
 <p><strong>Rules:</strong> each value replaces the page-wide setting for that zone only. <code>tag_rules</code> decides whether capacity and transmission count: <code>interval</code> counts them, <code>profile</code> makes them 0, <code>unknown</code> holds them back as "not counted" unless you tick the box that counts unconfirmed zones. Transmission stays 0 in zones where it is a nonbypassable utility charge. Zones from your file are tagged <strong>Yours</strong> in the list and in the zone detail. Column names match in any case; a column the tool does not know is named in a warning and ignored. An unknown zone, a zone written twice, a <code>tag_rules</code> value outside the three, a non-number (plain decimals only, with a comma only as a thousands separator: <code>1,200</code> is a number, <code>3,5</code> is an error) and a value outside its range stop the load and are listed by row. A file holds at most 200 rows. The file is read in the browser and never uploaded.</p>

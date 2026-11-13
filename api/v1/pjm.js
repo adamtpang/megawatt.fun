@@ -33,7 +33,7 @@ function usage() {
     returns: 'zones ranked by total $/year with energy, capacity and transmission parts, retail choice, utility, states, whether transmission is bypassable, and the summer 2026 tag-setting hours.',
     data_as_of: { built: DATA.built, prices: DATA.period, nits: DATA.nits.effective },
     docs: L.docsUrl('pjm'),
-    page: L.SITE + '/',
+    page: L.SITE + '/pjm',
   };
 }
 
