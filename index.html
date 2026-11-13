@@ -4,7 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>megawatt.fun: one battery, one day</title>
 <link rel="canonical" href="https://megawatt.fun/">
-<meta name="description" content="Drag through one day of a home battery on real PJM prices: when it charges, when it runs the home, and what that is worth to the home, the company that owns it, a lender and a data center. Independent, not affiliated with Base Power.">
+<meta name="description" content="Drag through one day of a home battery on real PJM and Texas prices: when it charges, when it runs the home, and what that is worth to the home, the company that owns it, a lender and a data center. Independent, not affiliated with Base Power.">
 <meta property="og:title" content="One battery, one day">
 <meta property="og:description" content="What a home battery does through a day of real grid prices, and who makes what. Public data. Not affiliated with Base Power.">
 <meta property="og:url" content="https://megawatt.fun/">
@@ -67,8 +67,8 @@
         <div class="scrub-row">
           <ul class="legend">
             <li><i style="background:var(--charge)"></i>Charging</li>
-            <li><i style="background:var(--run)"></i>Running the home</li>
-            <li><i style="background:var(--peak)"></i>Grid peak</li>
+            <li><i style="background:var(--run)"></i><span id="leg-run">Running the home</span></li>
+            <li id="leg-peak"><i style="background:var(--peak)"></i>Grid peak</li>
           </ul>
           <button class="play" id="play" type="button">Play the day</button>
         </div>
@@ -107,7 +107,7 @@
         <dl id="owner-dl"></dl>
         <p class="call" id="owner-call"></p>
         <p class="src" id="owner-src"></p>
-        <p class="more"><a href="/pjm">All 20 PJM utility areas, ranked, and what each state needs to launch</a></p>
+        <p class="more" id="owner-more"><a href="/pjm">All 20 PJM utility areas, ranked, and what each state needs to launch</a></p>
       </div>
 
       <div class="panel" role="tabpanel" id="p-fund" aria-labelledby="t-fund" hidden>

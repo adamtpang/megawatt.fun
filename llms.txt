@@ -4,7 +4,7 @@
 
 ## Start here
 
-- [One battery, one day](https://megawatt.fun/) (the homepage): Drag through one average day of a home battery on real PJM prices, then see what it is worth to the home, the company that owns it, a lender and a data center.
+- [One battery, one day](https://megawatt.fun/) (the homepage): Drag through one average day of a home battery on real prices in 20 PJM utility areas and 8 Texas (ERCOT) load zones, then see what it is worth to the home, the company that owns it, a lender and a data center.
 - [PJM, the next market](https://megawatt.fun/pjm): One battery's yearly value in each of 20 PJM utility zones (energy, capacity tag, transmission tag) on a year of PJM prices, and launch requirements for each PJM retail-choice state. API: https://megawatt.fun/api/v1/pjm.
 - [US market map](https://megawatt.fun/market): Every US state scored for a home-battery program on public Census, EIA and FEMA data, with a retail path and a utility-partner path, and what one battery earns in each Texas load zone.
 - [Texas home battery ROI](https://megawatt.fun/battery): Pick a Texas ZIP and a house. See the ERCOT load zone, what one battery earns, the payback, simple ROI, IRR and debt capacity. Every figure is sourced, partly sourced, or an assumption.

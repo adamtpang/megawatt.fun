@@ -25,30 +25,46 @@
   /* One average day. The battery follows the fixed clock in data/pjm-value.json: it charges in the cheap
      hours and runs the home, at homeKw, in the evening hours. Each hour reports its state, how full the
      battery is at the end of it, and the cash so far (negative while it is buying). */
-  function day(zone, schedule, spec, homeKw) {
+  /* Two ways to run it, matching the two yearly models on the site:
+     - opts.homeKw (PJM): the battery only covers the home's own load, homeKw, through the evening window,
+       and refills evenly through the cheap window. Exports are not counted there.
+     - opts.exportKw (Texas): it charges and discharges at up to exportKw until full, then until the backup
+       reserve, the way scripts/zone-value.cjs does. The evening kWh are sold at the zone price.
+     A zone with no peak-hour data (Texas) has peakHour null. */
+  function day(zone, schedule, spec, opts) {
     const h = zone.hourlyAvgRt, c0 = schedule.charge[0], c1 = schedule.charge[1], r0 = schedule.discharge[0], r1 = schedule.discharge[1];
-    const out = homeKw * (r1 - r0), cap = spec.capacity, eff = spec.efficiency;
-    const peakHour = zone.peaks.rtoFiveCP[0].localStart;
+    const cap = spec.capacity, eff = spec.efficiency, exporting = opts.exportKw != null;
+    const kw = exporting ? opts.exportKw : opts.homeKw;
+    const out = exporting ? Math.min(kw * (r1 - r0), cap * (1 - spec.reserve)) : kw * (r1 - r0);
+    const peaks = zone.peaks && zone.peaks.rtoFiveCP;
+    const peakHour = peaks ? peaks[0].localStart : null;
     const low = 1 - out / cap;
-    let soc = low, cash = 0;
+    let soc = low, cash = 0, toStore = out, toSell = out;
     const hours = h.map((price, i) => {
       let state = 'idle';
-      if (i >= c0 && i < c1) { state = 'charge'; soc += (out / cap) / (c1 - c0); cash -= (out / eff / (c1 - c0)) * price / 1000; }
-      else if (i >= r0 && i < r1) { state = 'run'; soc -= (out / cap) / (r1 - r0); cash += homeKw * price / 1000; }
+      if (i >= c0 && i < c1 && toStore > 1e-9) {
+        const stored = exporting ? Math.min(kw * eff, toStore) : out / (c1 - c0);
+        state = 'charge'; toStore -= stored; soc += stored / cap; cash -= (stored / eff) * price / 1000;
+      } else if (i >= r0 && i < r1 && toSell > 1e-9) {
+        const sold = Math.min(kw, toSell);
+        state = 'run'; toSell -= sold; soc -= sold / cap; cash += sold * price / 1000;
+      }
       return { i, price, state, peak: i === peakHour, soc: Math.max(0, Math.min(1, soc)), cash };
     });
-    return { hours, homeKw, out, low, peakHour, c0, c1, r0, r1, night: mean(h.slice(c0, c1)), evening: mean(h.slice(r0, r1)), top: Math.max.apply(null, h),
-      peakMissed: peakHour < r0 || peakHour >= r1, allPeaksSameHour: zone.peaks.rtoFiveCP.every((p) => p.localStart === peakHour) };
+    return { hours, kw, exporting, out, low, peakHour, c0, c1, r0, r1, night: mean(h.slice(c0, c1)), evening: mean(h.slice(r0, r1)), top: Math.max.apply(null, h),
+      peakMissed: peakHour != null && (peakHour < r0 || peakHour >= r1), allPeaksSameHour: !!peaks && peaks.every((p) => p.localStart === peakHour) };
   }
 
   /* A large load's yearly power bill from the same public rates. Where transmission is nonbypassable
      (Ohio) it is still paid, but cutting peak load does not lower it. */
   function load(zone, capacityUsdPerMwDay, mw, loadFactor) {
-    const capPerMw = capacityUsdPerMwDay * 365, txPerMw = zone.nitsUsdPerMwYear;
+    // Texas: no capacity market (rate is null), and the transmission rate is not in the data (null, not zero).
+    const capPerMw = capacityUsdPerMwDay == null ? null : capacityUsdPerMwDay * 365;
+    const txPerMw = zone.nitsUsdPerMwYear == null ? null : zone.nitsUsdPerMwYear;
     const txFixed = !!(zone.transmission && zone.transmission.bypassable === false);
     const energy = mw * zone.avgRtUsdPerMwh * 8760 * loadFactor;
-    return { mw, energy, capPerMw, txPerMw, txFixed, capacity: mw * capPerMw, transmission: mw * txPerMw,
-      total: energy + mw * (capPerMw + txPerMw), avoidedPerMw: capPerMw + (txFixed ? 0 : txPerMw) };
+    return { mw, energy, capPerMw, txPerMw, txFixed, capacity: capPerMw == null ? null : mw * capPerMw, transmission: txPerMw == null ? null : mw * txPerMw,
+      total: energy + mw * ((capPerMw || 0) + (txPerMw || 0)), avoidedPerMw: (capPerMw || 0) + (txFixed ? 0 : (txPerMw || 0)) };
   }
 
   /* Raw inputs for FinanceCore: the debt model's defaults, then the published-figures preset, then the

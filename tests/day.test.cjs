@@ -8,14 +8,18 @@ const P = require('../pjm-core.js');
 const F = require('../finance-core.js');
 const V = require('../data/pjm-value.json');
 const D = require('../data/finance-defaults.json');
+const T = require('../data/day-ercot.json');
+const ZV = require('../data/zone-value.json');
 
 const root = (f) => path.join(__dirname, '..', f);
 const zone = (id) => V.zones.find((z) => z.id === id);
-const dayOf = (id) => C.day(zone(id), V.schedule, V.spec, P.DEFAULTS.tagKw);
+const dayOf = (id) => C.day(zone(id), V.schedule, V.spec, { homeKw: P.DEFAULTS.tagKw });
+const tz = (id) => T.zones.find((z) => z.id === id);
+const texasDay = (id) => C.day(tz(id), T.schedule, T.spec, { exportKw: T.spec.power });
 
 test('day: 24 hours, the battery ends the day where it started, and never leaves 0 to 100%', () => {
   for (const z of V.zones) {
-    const d = C.day(z, V.schedule, V.spec, P.DEFAULTS.tagKw);
+    const d = C.day(z, V.schedule, V.spec, { homeKw: P.DEFAULTS.tagKw });
     assert.equal(d.hours.length, 24, z.id);
     assert.ok(d.hours.every((h) => h.soc >= 0 && h.soc <= 1), z.id);
     assert.ok(Math.abs(d.hours[23].soc - d.low) < 1e-9, z.id + ' ends at its low point');
@@ -35,7 +39,7 @@ test('day: cash is negative while buying and ends positive; it matches the hand 
   const d = dayOf('COMED'), h = zone('COMED').hourlyAvgRt;
   assert.ok(d.hours[4].cash < 0);
   const buy = (d.out / V.spec.efficiency / 4) * (h[1] + h[2] + h[3] + h[4]) / 1000;
-  const sell = d.homeKw * (h[17] + h[18] + h[19] + h[20]) / 1000;
+  const sell = d.kw * (h[17] + h[18] + h[19] + h[20]) / 1000;
   assert.ok(Math.abs(d.hours[23].cash - (sell - buy)) < 1e-9);
   assert.ok(d.hours[23].cash > 0);
 });
@@ -52,6 +56,40 @@ test('day: ComEd peaks begin at 4 PM Central, outside the evening window', () =>
   assert.equal(d.peakMissed, true);
   assert.equal(d.allPeaksSameHour, true);
   assert.equal(d.hours[16].peak, true);
+});
+
+test('texas: eight ERCOT zones built from the repo\'s own price files, with the yearly value from zone-value.json', () => {
+  assert.equal(T.zones.length, 8);
+  for (const z of T.zones) {
+    assert.equal(z.hourlyAvgRt.length, 24, z.id);
+    assert.ok(z.hours >= 8759 && z.hours <= 8761, z.id + ' covers a year');
+    assert.equal(z.energyUsdPerYear, ZV.zones.find((x) => x.id === z.id).usdPerYear, z.id);
+    assert.ok(Math.abs(z.hourlyAvgRt.reduce((s, x) => s + x, 0) / 24 - z.avgRtUsdPerMwh) < 0.5, z.id + ' hourly average agrees with the yearly average');
+  }
+  for (const id of ['LZ_AEN', 'LZ_CPS', 'LZ_LCRA']) assert.equal(tz(id).choice, 'none', id + ' is a city utility or co-op zone');
+  assert.equal(tz('LZ_NORTH').choice, 'open');
+});
+
+test('texas day: charges at midday until full, sells in the evening down to the backup reserve', () => {
+  const d = texasDay('LZ_AEN'), usable = T.spec.capacity * (1 - T.spec.reserve);
+  assert.ok(Math.abs(d.out - usable) < 1e-9);
+  assert.ok(Math.abs(d.low - T.spec.reserve) < 1e-9, 'ends at the reserve');
+  assert.deepEqual(d.hours.filter((h) => h.state === 'charge').map((h) => h.i), [10, 11], 'full after two hours at 20 kW');
+  assert.deepEqual(d.hours.filter((h) => h.state === 'run').map((h) => h.i), [19, 20]);
+  assert.ok(Math.abs(Math.max(...d.hours.map((h) => h.soc)) - 1) < 1e-9);
+  assert.equal(d.peakHour, null);
+  assert.equal(d.peakMissed, false);
+  assert.ok(d.hours.every((h) => !h.peak));
+  // An average day times 365 is close to the simulated year, not equal to it.
+  const perYear = d.hours[23].cash * 365;
+  assert.ok(Math.abs(perYear - tz('LZ_AEN').energyUsdPerYear) / tz('LZ_AEN').energyUsdPerYear < 0.3, perYear + ' vs ' + tz('LZ_AEN').energyUsdPerYear);
+});
+
+test('texas load: energy only; the missing capacity and transmission lines are null, never zero dollars', () => {
+  const L = C.load(tz('LZ_WEST'), null, 100, 0.9);
+  assert.equal(L.capacity, null);
+  assert.equal(L.transmission, null);
+  assert.ok(Math.abs(L.total - L.energy) < 1e-6);
 });
 
 test('sky: a color pair for every hour, dark at night and light at noon', () => {
@@ -109,7 +147,7 @@ test('page: the homepage loads its parts, links the other tools, and keeps the i
   assert.match(html, /<input id="hour" type="range" min="0" max="23"/);
   assert.match(html, /Not affiliated with Base Power/);
   assert.equal((html.match(/role="tab"/g) || []).length, 4);
-  for (const f of ['index.html', 'day.css', 'day.js', 'day-core.js', 'day-scene.js']) {
+  for (const f of ['index.html', 'day.css', 'day.js', 'day-core.js', 'day-scene.js', 'scripts/day-ercot.cjs', 'data/day-ercot.json']) {
     assert.ok(!fs.readFileSync(root(f), 'utf8').includes(String.fromCharCode(0x2014)), f + ' has no em dash');
   }
   assert.ok(fs.existsSync(root('fonts/bricolage-grotesque-latin-800-normal.woff2')));
