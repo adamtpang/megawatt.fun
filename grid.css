@@ -1,0 +1,24 @@
+/* /grid: how power moves through Texas. Loads after Carbon, shell.css, day.css and generation.css (for the
+   source colors). This file adds the flow diagram and the two four-column tables. */
+.flow-head { display: grid; grid-template-columns: 1fr auto 1fr; gap: 1rem; margin-bottom: .5rem; font-size: .75rem; letter-spacing: .32px; color: var(--cds-text-secondary); }
+.flow-head span:last-child { text-align: right; }
+.flow { background: var(--cds-layer-01, #f4f4f4); padding: 1rem; }
+.flow svg { display: block; width: 100%; height: auto; overflow: visible; }
+.flow .band { opacity: .55; }
+.flow .band.use { fill: #a8a8a8; opacity: .5; }
+.flow .band.store { fill: var(--g-other); opacity: .55; }
+.flow .node.use { fill: var(--mw-text-2); }
+.flow .node.store { fill: var(--g-other); }
+.flow .node.grid { fill: var(--mw-text); }
+.flow .f-small { fill: var(--g-hydro); }
+.flow text { font: 400 12px var(--mw-font); fill: var(--mw-text); paint-order: stroke; stroke: rgba(255, 255, 255, .8); stroke-width: 3px; stroke-linejoin: round; }
+.flow text .n { fill: var(--mw-text-2); font-variant-numeric: tabular-nums; }
+.grid-table td:nth-child(n+2), .grid-table th:nth-child(n+2) { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.grid-table th, .grid-table td { padding-inline: .75rem; }
+.grid-table td:first-child i { display: inline-block; width: .625rem; height: .625rem; margin-right: .5rem; }
+.peak-kpis { margin: 0 0 1rem; border: 1px solid var(--cds-border-subtle-00, #e0e0e0); }
+.peak-kpis .kpi .v { font-size: 1.75rem; }
+.peak-kpis .kpi .when { margin-top: .25rem; font-size: .75rem; letter-spacing: .32px; color: var(--cds-text-secondary); }
+.call + .call { margin-top: .5rem; }
+@media (max-width: 41.99rem) { .peak-kpis { grid-template-columns: 1fr; } }
+@media (min-width: 42rem) { .peak-kpis { grid-template-columns: repeat(3, 1fr); } }

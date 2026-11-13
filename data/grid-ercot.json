@@ -1,0 +1,197 @@
+{
+ "built": "2026-11-13",
+ "grid": "ERCOT",
+ "period": {
+  "start": "2025-10-01",
+  "endExclusive": "2026-10-01",
+  "hours": 8760
+ },
+ "previous": {
+  "start": "2024-10-01",
+  "endExclusive": "2025-10-01"
+ },
+ "sourceGeneration": {
+  "title": "ERCOT Interval Generation by Fuel, 2025 and 2026 workbooks",
+  "page": "https://www.ercot.com/gridinfo/generation"
+ },
+ "sourceLoad": {
+  "title": "ERCOT Native Load by weather zone, hourly, 2024 to 2026",
+  "page": "https://www.ercot.com/gridinfo/load/load_hist",
+  "files": [
+   "https://www.ercot.com/files/docs/2024/02/06/Native_Load_2024.zip",
+   "https://www.ercot.com/files/docs/2025/02/11/Native_Load_2025.zip",
+   "https://www.ercot.com/files/docs/2026/02/10/Native_Load_2026.zip"
+  ]
+ },
+ "sourcePrice": {
+  "title": "ERCOT hub average real-time price, hourly",
+  "file": "/data/deployment/HB_HUBAVG.csv",
+  "manifest": "/data/deployment/manifest.json"
+ },
+ "madeGwh": 518459.6,
+ "sources": [
+  {
+   "id": "gas",
+   "name": "Natural gas",
+   "gwh": 202762.0,
+   "share": 0.3911,
+   "valueUsd": 7963521027,
+   "avgPriceUsdPerMwh": 39.28
+  },
+  {
+   "id": "wind",
+   "name": "Wind",
+   "gwh": 121965.7,
+   "share": 0.2352,
+   "valueUsd": 3367226096,
+   "avgPriceUsdPerMwh": 27.61
+  },
+  {
+   "id": "solar",
+   "name": "Solar",
+   "gwh": 81303.5,
+   "share": 0.1568,
+   "valueUsd": 1889659321,
+   "avgPriceUsdPerMwh": 23.24
+  },
+  {
+   "id": "coal",
+   "name": "Coal",
+   "gwh": 62355.2,
+   "share": 0.1203,
+   "valueUsd": 2243961903,
+   "avgPriceUsdPerMwh": 35.99
+  },
+  {
+   "id": "nuclear",
+   "name": "Nuclear",
+   "gwh": 40532.9,
+   "share": 0.0782,
+   "valueUsd": 1312920892,
+   "avgPriceUsdPerMwh": 32.39
+  },
+  {
+   "id": "other",
+   "name": "Other",
+   "gwh": 8701.2,
+   "share": 0.0168,
+   "valueUsd": 473732159,
+   "avgPriceUsdPerMwh": 54.44
+  },
+  {
+   "id": "hydro",
+   "name": "Hydro",
+   "gwh": 329.0,
+   "share": 0.0006,
+   "valueUsd": 16330859,
+   "avgPriceUsdPerMwh": 49.64
+  },
+  {
+   "id": "biomass",
+   "name": "Biomass",
+   "gwh": 510.1,
+   "share": 0.001,
+   "valueUsd": 18820228,
+   "avgPriceUsdPerMwh": 36.89
+  }
+ ],
+ "usedGwh": 508545.8,
+ "zones": [
+  {
+   "id": "NCENT",
+   "name": "North Central",
+   "places": "Dallas and Fort Worth",
+   "gwh": 142540.5,
+   "share": 0.2803,
+   "previousGwh": 132526.3,
+   "change": 0.0756
+  },
+  {
+   "id": "COAST",
+   "name": "Coast",
+   "places": "Houston",
+   "gwh": 131221.5,
+   "share": 0.258,
+   "previousGwh": 128783.6,
+   "change": 0.0189
+  },
+  {
+   "id": "SCENT",
+   "name": "South Central",
+   "places": "Austin and San Antonio",
+   "gwh": 80581.2,
+   "share": 0.1585,
+   "previousGwh": 76641.7,
+   "change": 0.0514
+  },
+  {
+   "id": "FWEST",
+   "name": "Far West",
+   "places": "Midland, Odessa and the Permian Basin",
+   "gwh": 66971.6,
+   "share": 0.1317,
+   "previousGwh": 63878.6,
+   "change": 0.0484
+  },
+  {
+   "id": "SOUTH",
+   "name": "South",
+   "places": "Corpus Christi and the Rio Grande Valley",
+   "gwh": 41259.9,
+   "share": 0.0811,
+   "previousGwh": 38093.2,
+   "change": 0.0831
+  },
+  {
+   "id": "EAST",
+   "name": "East",
+   "places": "Tyler",
+   "gwh": 16670.8,
+   "share": 0.0328,
+   "previousGwh": 15710.3,
+   "change": 0.0611
+  },
+  {
+   "id": "NORTH",
+   "name": "North",
+   "places": "Wichita Falls",
+   "gwh": 14693.1,
+   "share": 0.0289,
+   "previousGwh": 14389.3,
+   "change": 0.0211
+  },
+  {
+   "id": "WEST",
+   "name": "West",
+   "places": "Abilene and San Angelo",
+   "gwh": 14607.1,
+   "share": 0.0287,
+   "previousGwh": 11822.1,
+   "change": 0.2356
+  }
+ ],
+ "usedPreviousGwh": 481845.0,
+ "usedChange": 0.0554,
+ "peak": {
+  "date": "2026-07-22",
+  "hourEnding": 18,
+  "mw": 91134
+ },
+ "low": {
+  "date": "2025-11-02",
+  "hourEnding": 4,
+  "mw": 39042
+ },
+ "averageMw": 58053,
+ "storage": {
+  "chargingGwh": 10317.5,
+  "chargingCostUsd": 235880108,
+  "chargingAvgPriceUsdPerMwh": 22.86,
+  "note": "ERCOT lists battery charging as WSL (wholesale storage load). Its file has no line named for batteries discharging; the 'Other' line probably holds most of it, but the file does not say so."
+ },
+ "differenceGwh": -403.6,
+ "loadValueUsd": 17101590352,
+ "loadAvgPriceUsdPerMwh": 33.63,
+ "averagePriceUsdPerMwh": 32.2,
+ "notIncluded": "The split by customer type (homes, businesses, industry) is not here. The public EIA state file reachable on the build date stopped at 2021."
+}
