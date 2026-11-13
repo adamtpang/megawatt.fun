@@ -2,144 +2,155 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>megawatt.fun: where a home battery pays in PJM</title>
+<title>megawatt.fun: one battery, one day</title>
 <link rel="canonical" href="https://megawatt.fun/">
-<meta name="description" content="Where one home battery pays in each PJM utility zone (energy, capacity and transmission tags), and what it takes to launch a retail battery offer in each PJM state. Public PJM data. Independent, not affiliated with Base Power.">
-<meta property="og:title" content="PJM, the Next Market">
-<meta property="og:description" content="One home battery's value in each PJM utility zone, and what each PJM state requires to launch. Public data. Not affiliated with Base Power.">
+<meta name="description" content="Drag through one day of a home battery on real PJM and Texas prices: when it charges, when it runs the home, and what that is worth to the home, the company that owns it, a lender and a data center. Independent, not affiliated with Base Power.">
+<meta property="og:title" content="One battery, one day">
+<meta property="og:description" content="What a home battery does through a day of real grid prices, and who makes what. Public data. Not affiliated with Base Power.">
 <meta property="og:url" content="https://megawatt.fun/">
 <meta property="og:type" content="website">
-<link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/site.css"><link rel="stylesheet" href="/pjm.css">
-<script src="/yourdata.js" defer></script>
+<meta name="theme-color" content="#101a2b">
+<link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/day.css">
 <script src="/pjm-core.js" defer></script>
-<script src="/pjm.js" defer></script>
+<script src="/finance-core.js" defer></script>
+<script src="/day-core.js" defer></script>
+<script src="/day.js" defer></script>
 <script type="importmap">
 { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js" } }
 </script>
-<script type="module" src="/pjm-scene.js"></script>
+<script type="module" src="/day-scene.js"></script>
 </head>
-<body class="tool-page pjm-page">
-<a class="skip" href="#main">Skip to content</a>
-<header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/" aria-current="page">PJM</a><a href="/market">US map</a><a href="/battery">Texas battery</a><a href="/live">Live</a><a href="/notes">Notes</a></nav></header>
-<main id="main" class="pjm">
-  <header class="pjm-hero">
-    <p class="eyebrow">How a home battery pays</p>
-    <h1>One battery on the wall. Two sides win.</h1>
-    <p class="lede">A company puts a big battery on the side of a home. The home gets backup power and a steady bill. The company earns money from the power grid. Here is one day, with real prices.</p>
-    <label class="pjm-where" for="zone-pick">Show me a home served by <select id="zone-pick"></select></label>
+<body>
+<a class="skip" href="#main">Skip to the day</a>
+<div class="wrap">
+  <header class="bar">
+    <a class="mark" href="/">megawatt.fun</a>
+    <nav aria-label="Main navigation"><a href="/pjm">PJM</a><a href="/market">US map</a><a href="/battery">Texas battery</a><a href="/live">Live</a><a href="/notes">Notes</a></nav>
+    <label class="place" for="zone"><span>Utility area</span><select id="zone"></select></label>
   </header>
 
-  <div id="error" role="alert"></div>
+  <main id="main">
+    <h1>One battery, one day.</h1>
+    <p class="say" id="say">Loading real prices.</p>
 
-  <section class="pjm-day" aria-labelledby="day-h">
-    <h2 id="day-h" class="sr-only">One day in the life of a home battery</h2>
-    <div class="pjm-day-copy">
-      <div class="pjm-steps" role="tablist" aria-label="Moments in the battery's day">
-        <button type="button" role="tab" id="tab-night" data-step="night" aria-selected="true" aria-controls="step"><span>1</span>Night</button>
-        <button type="button" role="tab" id="tab-evening" data-step="evening" aria-selected="false" aria-controls="step" tabindex="-1"><span>2</span>Evening</button>
-        <button type="button" role="tab" id="tab-peak" data-step="peak" aria-selected="false" aria-controls="step" tabindex="-1"><span>3</span>Hottest days</button>
-        <button type="button" role="tab" id="tab-outage" data-step="outage" aria-selected="false" aria-controls="step" tabindex="-1"><span>4</span>Outage</button>
+    <section class="stage" aria-label="A day in the life of a home battery">
+      <div class="scene" id="scene">
+        <div class="orb" id="orb" aria-hidden="true"></div>
+        <canvas id="stage-canvas" hidden aria-hidden="true"></canvas>
+        <div class="fallback" id="stage-fallback">
+          <svg viewBox="0 0 320 200" role="img" aria-label="A house with a battery on its side wall">
+            <ellipse cx="160" cy="184" rx="156" ry="18" fill="#6f9a58"/>
+            <path d="M66 104 L160 44 L254 104 Z" fill="#3b4558"/>
+            <rect x="82" y="104" width="156" height="78" fill="#fbfbfd" stroke="#101a2b" stroke-width="2"/>
+            <rect x="146" y="134" width="28" height="48" fill="#dfe3ea" stroke="#101a2b" stroke-width="2"/>
+            <rect x="98" y="122" width="30" height="26" fill="#cfe6fa" stroke="#101a2b" stroke-width="2"/>
+            <rect x="192" y="122" width="30" height="26" fill="#cfe6fa" stroke="#101a2b" stroke-width="2"/>
+            <rect class="batt" x="244" y="138" width="22" height="44" rx="4" stroke="#101a2b" stroke-width="2"/>
+          </svg>
+        </div>
+        <p class="clock" id="clock">6 PM</p>
       </div>
-      <div class="pjm-step" id="step" role="tabpanel" aria-labelledby="tab-night" aria-live="polite"><p class="pjm-small">Loading prices…</p></div>
-    </div>
-    <div class="pjm-day-art">
-      <canvas id="house-canvas" hidden aria-hidden="true"></canvas>
-      <div id="house-fallback" class="pjm-house-fallback" data-mode="night">
-        <svg viewBox="0 0 320 220" role="img" aria-label="A house with a battery on its side wall">
-          <ellipse cx="160" cy="186" rx="150" ry="26" class="hf-ground"/>
-          <path d="M70 110 L160 52 L250 110 Z" fill="#54524f"/>
-          <rect x="84" y="110" width="152" height="74" fill="#fff" stroke="#292826" stroke-width="2"/>
-          <rect x="146" y="138" width="28" height="46" fill="#d8d7d5" stroke="#292826" stroke-width="2"/>
-          <rect x="100" y="126" width="30" height="26" fill="#cce5f5" stroke="#292826" stroke-width="2"/>
-          <rect x="190" y="126" width="30" height="26" fill="#cce5f5" stroke="#292826" stroke-width="2"/>
-          <rect x="242" y="142" width="22" height="42" rx="3" class="hf-battery" stroke="#292826" stroke-width="2"/>
-        </svg>
+
+      <div class="read" aria-live="polite">
+        <p class="chip" id="chip">Standing by</p>
+        <div class="stat"><p class="k">Power costs</p><p class="v"><span id="price">0.0¢</span> <small>a kWh</small></p></div>
+        <div class="stat"><p class="k">Battery</p><p class="v"><span id="soc">100%</span></p><div class="gauge" id="gauge"><i id="gauge-fill" style="width:100%"></i></div></div>
+        <div class="stat"><p class="k">Cash so far today</p><p class="v" id="tally">$0.00</p></div>
+        <div class="stat"><p class="k">A whole year</p><p class="v" id="year">$0</p></div>
+        <p class="why" id="why"></p>
       </div>
-      <p class="pjm-art-cap" id="art-cap"></p>
-    </div>
-    <div class="pjm-prices">
-      <p class="pjm-h">What power costs through an average day, <span id="price-zone">…</span></p>
-      <div class="pjm-pricebars" id="pricebars" role="img" aria-label="Average price of power for each hour of the day"></div>
-      <div class="pjm-priceaxis" aria-hidden="true"><span>12 AM</span><span>6 AM</span><span>Noon</span><span>6 PM</span><span>11 PM</span></div>
-      <p class="pjm-small" id="price-note"></p>
-    </div>
-  </section>
 
-  <section class="pjm-sides" aria-labelledby="sides-h">
-    <h2 id="sides-h">Who gets what</h2>
-    <div class="pjm-sides-grid">
-      <article class="card pjm-side">
-        <p class="eyebrow">The home</p>
-        <h3>Backup power and a steady bill.</h3>
-        <dl>
-          <dt>Pays once, for installation</dt><dd>$695</dd>
-          <dt>Pays each month, as a member</dt><dd>$19</dd>
-          <dt>Gets a battery on the wall</dt><dd>39.2 kWh</dd>
-          <dt>Gets backup when the grid is down</dt><dd>up to 36 hours</dd>
-          <dt>Owns or maintains the battery</dt><dd>No</dd>
-        </dl>
-        <p class="pjm-small">These are Base Power’s published Texas prices and battery figures (<a href="https://www.basepowercompany.com/">basepowercompany.com</a>, read 11 Nov 2026). Prices in other states may differ. The home also buys its power at a fixed rate where Base is the power provider.</p>
-      </article>
-      <article class="card pjm-side">
-        <p class="eyebrow">The company</p>
-        <h3>Earns from the grid, not from the home.</h3>
-        <dl id="company"></dl>
-        <p class="pjm-small" id="company-note"></p>
-      </article>
-    </div>
-  </section>
-
-  <section aria-labelledby="rank-h">
-    <h2 id="rank-h">Where it pays most</h2>
-    <p class="lede pjm-rank-lede" id="lede" aria-live="polite">Loading…</p>
-    <p class="pjm-what"><b>PJM</b> runs the power grid and the wholesale power market for 13 states and Washington DC, from Chicago to New Jersey and Virginia. It is to those states what ERCOT is to Texas. Below is one battery’s yearly value in each of its 20 utility areas. For all 50 states, see the <a href="/market">US market map</a>.</p>
-    <div class="pjm-one">
-      <label class="pjm-slider" for="tagKw"><span>Home load the battery covers</span><output id="o-tag">3 kW</output></label>
-      <input type="range" id="tagKw" min="0" max="8" step="0.5" value="3" aria-describedby="tag-help">
-      <p class="pjm-small" id="tag-help">The one assumption that matters most. Drag it to see every zone change.</p>
-    </div>
-    <p class="pjm-legend"><span class="sw sw-e"></span>Buying cheap, using at peak <span class="sw sw-c"></span>Lower capacity charge <span class="sw sw-t"></span>Lower transmission charge <span class="sw sw-p"></span>Not confirmed, not counted</p>
-    <ol class="pjm-zones" id="zones"><li class="pjm-small">Loading…</li></ol>
-    <p class="pjm-actions"><button type="button" class="btn btn-outline btn-sm" id="show-all" aria-expanded="false">Show all 20 zones</button></p>
-    <p class="pjm-small" id="rank-note"></p>
-
-    <div id="yourdata" class="pjm-yours"></div>
-
-    <details class="pjm-fold" id="fold-know"><summary>What to know before trusting these numbers</summary>
-      <ul class="pjm-keyfacts" id="keyfacts" aria-live="polite"></ul>
-      <p class="pjm-small"><b>Policy risk.</b> This is already the rule in Ohio: AEP Ohio, FirstEnergy Ohio and AES Ohio recover transmission from every customer through a nonbypassable rider, so the page counts their transmission tags as 0. PPL Electric has proposed the same in Pennsylvania: transmission (NITS) as a charge every customer pays the utility, whatever their supplier. A supplier could then no longer save its members money by cutting their transmission tags. Base asked the Pennsylvania PUC to let suppliers opt out and take on those costs themselves (dockets P-2026-3065185, P-2026-3065186 and P-2024-3047290). Tick “Model PPL’s nonbypassable transmission proposal” under “Change the other assumptions” to see what the PPL zone is worth without it.</p>
-      <p class="pjm-quote">In comments to the Pennsylvania PUC, Base said it saves customers money by dispatching batteries to lower the capacity and transmission tags (PLC and NSPL) on its customers’ bills (<a id="quote-src" href="https://www.energychoicematters.com/news/retail-supplier-expresses-concern-with-ppl-electric-s-nonbypassable-nits-proposa">Energy Choice Matters, 2 Nov 2026</a>). This page values those two tags, plus energy, for one battery in every PJM zone.</p>
-    </details>
-    <details class="pjm-fold" id="fold-assume"><summary>Change the other assumptions</summary>
-      <div class="pjm-grid">
-      <label class="pjm-field"><span>Peak hours actually covered <output id="o-hit">100%</output></span><input type="range" id="hitRate" min="0" max="1" step="0.05" value="1"><small>Peaks are set by a few hours a year, known only afterwards. Lower this for missed calls.</small></label>
-      <label class="pjm-field"><span>Capacity price</span><select id="capYear"></select><small>PJM auction price; every zone cleared at the cap. Tags from summer 2026 peaks are paid in 2027/2028, summer 2027 in 2028/2029.</small></label>
-      <label class="pjm-field"><span>Capacity scaling <output id="o-scale">1.00x</output></span><input type="range" id="capacityScale" min="0.8" max="1.2" step="0.01" value="1"><small>Zonal scaling factor times forecast pool requirement. They differ by zone and year; 1.00 leaves them out.</small></label>
-      <fieldset class="pjm-field pjm-checks"><legend>Count these</legend>
-        <label><input type="checkbox" id="includeEnergy" checked> Energy</label>
-        <label><input type="checkbox" id="includeCapacity" checked> Capacity tag</label>
-        <label><input type="checkbox" id="includeTransmission" checked> Transmission tag</label>
-        <label><input type="checkbox" id="allowExports"> Full 20 kW exports (PJM DER aggregation, from Feb 2028)</label>
-        <label><input type="checkbox" id="countUnconfirmed"> Also count zones whose capacity and transmission rules are not confirmed</label>
-        <label><input type="checkbox" id="pplNonbypass"> Model PPL’s nonbypassable transmission proposal</label>
-      </fieldset>
+      <div class="scrub">
+        <div class="bars" id="bars" aria-hidden="true"></div>
+        <input id="hour" type="range" min="0" max="23" step="1" value="18" aria-label="Hour of the day">
+        <div class="ticks" aria-hidden="true"><span>12 AM</span><span>6 AM</span><span>Noon</span><span>6 PM</span></div>
+        <div class="scrub-row">
+          <ul class="legend">
+            <li><i style="background:var(--charge)"></i>Charging</li>
+            <li><i style="background:var(--run)"></i><span id="leg-run">Running the home</span></li>
+            <li id="leg-peak"><i style="background:var(--peak)"></i>Grid peak</li>
+          </ul>
+          <button class="play" id="play" type="button">Play the day</button>
+        </div>
       </div>
-      <p class="pjm-actions"><button type="button" class="btn btn-outline btn-sm" id="dl">Download zones (CSV)</button><a class="btn btn-outline btn-sm" href="/api/v1/pjm">JSON API</a><a class="btn btn-outline btn-sm" href="/data/pjm-value.json">Data file</a></p>
-    </details>
-  </section>
+    </section>
+    <p class="note" id="strip-cap"></p>
 
-  <section aria-labelledby="states-h">
-    <h2 id="states-h">What it takes to launch there</h2>
-    <p class="pjm-small">License, billing, filings and consumer rules for each state, with sources. Anything not confirmed is marked.</p>
-    <div id="states"><p class="pjm-small">Loading…</p></div>
-  </section>
+    <section class="who" aria-labelledby="h-who">
+      <h2 id="h-who">Who makes what</h2>
+      <div class="tabs" role="tablist" aria-label="Who makes what">
+        <button role="tab" id="t-home" aria-controls="p-home" aria-selected="true" type="button">The home</button>
+        <button role="tab" id="t-owner" aria-controls="p-owner" aria-selected="false" type="button" tabindex="-1">The battery's owner</button>
+        <button role="tab" id="t-fund" aria-controls="p-fund" aria-selected="false" type="button" tabindex="-1">A lender</button>
+        <button role="tab" id="t-load" aria-controls="p-load" aria-selected="false" type="button" tabindex="-1">A data center</button>
+      </div>
 
-  <details class="pjm-method card"><summary>Method, limits and sources</summary>
-    <div id="method"></div>
-  </details>
+      <div class="panel" role="tabpanel" id="p-home" aria-labelledby="t-home">
+        <p>The household does not buy the battery. It pays a small fee and gets backup power. These are Base Power's published Texas terms, shown as the model.</p>
+        <div class="cols">
+          <div><h3>What it pays</h3><dl>
+            <div><dt>Install, once</dt><dd>$695</dd></div>
+            <div><dt>Membership, a month</dt><dd>$19</dd></div>
+            <div class="sum"><dt>First year, all in</dt><dd>$923</dd></div>
+          </dl></div>
+          <div><h3>What it gets</h3><dl>
+            <div><dt>Battery on the wall</dt><dd>39.2 kWh</dd></div>
+            <div><dt>Backup in an outage</dt><dd>up to 36 hours</dd></div>
+            <div><dt id="home-used-k">Used on an average day</dt><dd id="home-used">31%</dd></div>
+          </dl><p class="call calm" id="home-call"></p></div>
+        </div>
+        <p class="src">Source: basepowercompany.com, read 11 Nov 2026. First year is $695 plus 12 months at $19.</p>
+      </div>
 
-  <nav class="gift-set" aria-label="Home battery company tools"><span>For a home-battery company</span><a href="/" aria-current="page">PJM, the next market</a><a href="/battery">The same battery in Texas</a><a href="/market">US market map</a></nav>
-</main>
-<footer class="site-bottom"><div class="footer-links"><a href="/about">About</a><a href="/contact">Contact</a><a href="/privacy">Privacy</a><a href="/live">Live</a><a href="/notes">Notes</a><a href="/notes/kardashev-stack">Make, move, store, sell</a><a href="/sources">Sources</a></div><p>Independent. Not affiliated with Base Power.</p></footer>
+      <div class="panel" role="tabpanel" id="p-owner" aria-labelledby="t-owner" hidden>
+        <p id="owner-say"></p>
+        <dl id="owner-dl"></dl>
+        <p class="call" id="owner-call"></p>
+        <p class="src" id="owner-src"></p>
+        <p class="more" id="owner-more"><a href="/pjm">All 20 PJM utility areas, ranked, and what each state needs to launch</a></p>
+      </div>
+
+      <div class="panel" role="tabpanel" id="p-fund" aria-labelledby="t-fund" hidden>
+        <p id="fund-say"></p>
+        <div class="knobs">
+          <label for="f-cost">Installed cost, $ a kWh<input id="f-cost" type="number" inputmode="decimal" min="0" max="5000" step="10"></label>
+          <label for="f-rate">Interest, % a year<input id="f-rate" type="number" inputmode="decimal" min="0" max="30" step="0.25"></label>
+          <label for="f-tenor">Loan, years<input id="f-tenor" type="number" inputmode="numeric" min="1" max="30" step="1"></label>
+          <label for="f-dscr">Cash cover wanted<input id="f-dscr" type="number" inputmode="decimal" min="1" max="3" step="0.05"></label>
+        </div>
+        <div class="cols">
+          <div><h3>What has to be paid for</h3><dl id="cost-dl"></dl></div>
+          <div><h3>What the cash supports</h3><dl id="debt-dl"></dl></div>
+        </div>
+        <p class="call" id="debt-call"></p>
+        <div class="years">
+          <h3>Cash in, year by year</h3>
+          <div class="ybars" id="ybars" role="img"></div>
+          <div class="ynums" id="ynums" aria-hidden="true"></div>
+          <ul class="legend" style="margin-top:10px">
+            <li><i style="background:var(--bar)"></i>Membership fees</li>
+            <li><i style="background:var(--peak)"></i>Peak charges avoided</li>
+            <li><i style="background:var(--run)"></i>Buying low, using high</li>
+          </ul>
+        </div>
+        <p class="src" id="fund-src"></p>
+      </div>
+
+      <div class="panel" role="tabpanel" id="p-load" aria-labelledby="t-load" hidden>
+        <p id="load-say"></p>
+        <p class="one-knob"><label for="mw">Size, MW</label><input id="mw" type="number" inputmode="numeric" min="1" max="2000" step="1" value="100"></p>
+        <dl id="load-dl"></dl>
+        <p class="call" id="load-call"></p>
+        <p class="src" id="load-src"></p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="foot-links"><a href="/pjm">PJM ranking</a><a href="/market">US map</a><a href="/battery">Texas battery</a><a href="/live">Live</a><a href="/notes">Notes</a><a href="/notes/kardashev-stack">Make, move, store, sell</a><a href="/about">About</a><a href="/contact">Contact</a><a href="/privacy">Privacy</a><a href="/sources">Sources</a></div>
+    <p>Independent. Not affiliated with Base Power or PJM. Every figure is public data or a labelled estimate.</p>
+    <details><summary>Sources</summary><ol id="sources"></ol></details>
+  </footer>
+</div>
 </body>
 </html>

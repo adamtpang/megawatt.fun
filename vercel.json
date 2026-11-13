@@ -28,11 +28,6 @@
       "source": "/notes/expansion-map",
       "destination": "/market",
       "permanent": true
-    },
-    {
-      "source": "/pjm",
-      "destination": "/",
-      "permanent": false
     }
   ]
 }

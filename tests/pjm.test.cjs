@@ -147,10 +147,10 @@ test('API: GET is usage, POST matches the core, PPL nonbypassable zeroes only PP
 });
 
 test('page: no em dashes, quote is attributed as a report not a direct quote', () => {
-  for (const f of ['index.html', 'pjm.js', 'pjm-core.js', 'pjm.css', 'api/v1/pjm.js', 'scripts/pjm-value.cjs', 'scripts/fetch-pjm-prices.cjs']) {
+  for (const f of ['pjm.html', 'pjm.js', 'pjm-core.js', 'pjm.css', 'api/v1/pjm.js', 'scripts/pjm-value.cjs', 'scripts/fetch-pjm-prices.cjs']) {
     assert.ok(!fs.readFileSync(path.join(__dirname, '..', f), 'utf8').includes(String.fromCharCode(0x2014)), f);
   }
-  const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  const html = fs.readFileSync(path.join(__dirname, '..', 'pjm.html'), 'utf8');
   assert.match(html, /Base said it saves customers money/);
   assert.doesNotMatch(html, /“Base saves customers money/);
 });
@@ -255,7 +255,7 @@ test('story data: every zone has 24 hourly prices, cheaper at night than in the 
 });
 
 test('story page: four steps, the Blender house with a flat fallback, both sides, Base figures sourced', () => {
-  const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  const html = fs.readFileSync(path.join(__dirname, '..', 'pjm.html'), 'utf8');
   for (const s of ['night', 'evening', 'peak', 'outage']) assert.match(html, new RegExp('role="tab"[^>]*data-step="' + s + '"'));
   assert.match(html, /id="house-canvas" hidden/);
   assert.match(html, /id="house-fallback"/);
