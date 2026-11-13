@@ -1,0 +1,53 @@
+/* /generation: where power comes from. Loads after Carbon, shell.css and day.css, and reuses their stage,
+   chart, number row, table and notification. This file adds the source colors and the two stacked charts.
+   Source colors are from Carbon's categorical data palette, one per source, used nowhere else on the site. */
+:root {
+  --g-nuclear: #9f1853; /* magenta 70 */
+  --g-coal: #525252;    /* gray 70 */
+  --g-gas: #6929c4;     /* purple 70 */
+  --g-wind: #1192e8;    /* cyan 50 */
+  --g-solar: #f1c21b;   /* yellow 30 */
+  --g-other: #009d9a;   /* teal 50 */
+  --g-hydro: #002d9c;   /* blue 80 */
+  --g-biomass: #198038; /* green 60 */
+}
+.f-nuclear { fill: var(--g-nuclear); background: var(--g-nuclear); }
+.f-coal { fill: var(--g-coal); background: var(--g-coal); }
+.f-gas { fill: var(--g-gas); background: var(--g-gas); }
+.f-wind { fill: var(--g-wind); background: var(--g-wind); }
+.f-solar { fill: var(--g-solar); background: var(--g-solar); }
+.f-other { fill: var(--g-other); background: var(--g-other); }
+.f-hydro { fill: var(--g-hydro); background: var(--g-hydro); }
+.f-biomass { fill: var(--g-biomass); background: var(--g-biomass); }
+
+section { margin-top: 3rem; }
+section:first-of-type { margin-top: 0; }
+
+/* The year as one bar. */
+.table-scroll { overflow-x: auto; }
+.gen-table th, .gen-table td { padding-inline: .75rem; }
+.mixbar { display: flex; height: 3rem; margin-bottom: 1rem; gap: 1px; background: var(--mw-bg); }
+.mixbar i { display: block; min-width: 2px; }
+.gen-table td:nth-child(n+2), .gen-table th:nth-child(n+2) { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.gen-table td:first-child i { display: inline-block; width: .625rem; height: .625rem; margin-right: .5rem; }
+.gen-table .dim { color: var(--cds-text-helper, #6f6f6f); }
+
+/* The average day: numbers on top, the stacked chart and the price under it. */
+.gen-stage { display: flex; flex-direction: column; }
+.gen-stage .read { order: 0; padding-bottom: 0; }
+.gen-stage .scrub { order: 1; grid-column: auto; border-top: 0; }
+.gen-stage .state::before { display: none; }
+.gen-stage .kpi .v { font-size: 1.5rem; }
+.gen-stage .kpi .k i { display: inline-block; width: .5rem; height: .5rem; margin-right: .375rem; }
+.gen-price-title { margin-top: 1rem; }
+#g-chart rect.on, #g-months rect.on { stroke: var(--mw-text); }
+#g-chart .col-hit { fill: transparent; }
+#g-chart .sel { fill: none; stroke: var(--mw-blue); stroke-width: 2; }
+.gen-months .chart { cursor: default; background: var(--cds-layer-01, #f4f4f4); padding: 1rem; }
+.gen-day .call, .gen-day .src { max-width: 46rem; }
+
+@media (min-width: 66rem) {
+  .gen-stage .read { padding: 1.5rem 1.5rem 0; }
+  .gen-stage .kpis { margin: 1rem -1.5rem 0; }
+  .gen-stage .scrub { padding: 1.5rem; }
+}
