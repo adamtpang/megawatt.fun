@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>What a data center pays for power in Texas · megawatt.fun</title>
+<link rel="canonical" href="https://megawatt.fun/data-centers">
+<meta name="description" content="What a data center pays for power in Texas: energy at real ERCOT prices by zone, the transmission charge set by four summer peak hours, what flexibility saves, and the large-load queue. Public data. Independent.">
+<meta property="og:title" content="What a data center pays for power in Texas">
+<meta property="og:description" content="Energy at real ERCOT prices, the charge set by four summer peak hours, and what flexibility saves. Public data.">
+<meta property="og:url" content="https://megawatt.fun/data-centers">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/favicon.ico">
+<link rel="stylesheet" href="/vendor/carbon/styles.min.css"><link rel="stylesheet" href="/shell.css"><link rel="stylesheet" href="/day.css"><link rel="stylesheet" href="/largeload.css">
+<script src="/nav.js" defer></script>
+<script src="/largeload-core.js" defer></script>
+<script src="/largeload.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to the page</a>
+<!--mw-header--><header class="mw-header"><a class="mw-name" href="/">megawatt<span>.fun</span></a><button class="mw-menu-btn" type="button" aria-expanded="false" aria-controls="mw-nav" aria-label="Menu"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 14.8h16V16H2zm0-5.4h16v1.2H2zM2 4h16v1.2H2z"/></svg></button><nav class="mw-nav" id="mw-nav" aria-label="Main navigation"><ul><li><a href="/generation">Power supply</a></li><li><button type="button" aria-expanded="false">Homes<svg viewBox="0 0 10 6" aria-hidden="true"><path d="M5 6 0 1l.7-.7L5 4.6 9.3.3l.7.7z"/></svg></button><ul class="sub"><li><a href="/">One battery, one day</a></li><li><a href="/battery">Texas battery tool</a></li><li><a href="/pjm">PJM utility ranking</a></li><li><a href="/market">US market map</a></li></ul></li><li><button type="button" aria-expanded="false">Data centers<svg viewBox="0 0 10 6" aria-hidden="true"><path d="M5 6 0 1l.7-.7L5 4.6 9.3.3l.7.7z"/></svg></button><ul class="sub"><li><a href="/data-centers">What a data center pays</a></li><li><a href="/siting">Texas siting and the queue</a></li></ul></li><li><button type="button" aria-expanded="false">Grid<svg viewBox="0 0 10 6" aria-hidden="true"><path d="M5 6 0 1l.7-.7L5 4.6 9.3.3l.7.7z"/></svg></button><ul class="sub"><li><a href="/grid">How power flows</a></li><li><a href="/live">Live prices</a></li></ul></li><li><a href="/finance">Financing</a></li><li><a href="/notes">Notes</a></li></ul></nav></header><!--/mw-header-->
+<main id="main" class="wrap">
+  <h1>What a data center pays for power in Texas.</h1>
+  <p class="say" id="say">Loading a year of ERCOT prices.</p>
+
+  <section aria-labelledby="h-bill">
+    <h2 id="h-bill">A year's power bill</h2>
+    <div class="ll-knobs">
+      <div class="cds--form-item"><label class="cds--label" for="ll-mw">Size, MW</label><input id="ll-mw" class="cds--text-input" type="number" inputmode="numeric" min="1" max="5000" step="1" value="100"></div>
+      <div class="cds--form-item"><div class="cds--select"><label class="cds--label" for="ll-zone">ERCOT load zone</label><div class="cds--select-input__wrapper"><select id="ll-zone" class="cds--select-input"></select><svg class="cds--select__arrow" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11 3 6l.7-.7L8 9.6l4.3-4.3.7.7z"/></svg></div></div></div>
+      <div class="cds--form-item"><label class="cds--label" for="ll-run">Running at, % of size</label><input id="ll-run" class="cds--text-input" type="number" inputmode="numeric" min="1" max="100" step="1" value="90"></div>
+    </div>
+    <fieldset class="ll-flex">
+      <legend>Flexibility</legend>
+      <div class="cds--form-item"><label class="cds--label" for="ll-peaks">Off the grid in the four peak hours, % of load</label><input id="ll-peaks" type="range" min="0" max="100" step="5" value="0"><output id="ll-peaks-out" for="ll-peaks">0%</output></div>
+      <div class="cds--form-item"><div class="cds--select"><label class="cds--label" for="ll-skip">Sits out the priciest hours of the year</label><div class="cds--select-input__wrapper"><select id="ll-skip" class="cds--select-input"></select><svg class="cds--select__arrow" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11 3 6l.7-.7L8 9.6l4.3-4.3.7.7z"/></svg></div></div></div>
+    </fieldset>
+    <div class="kpis ll-kpis" id="ll-kpis" aria-live="polite"></div>
+    <table class="cds--data-table cds--data-table--md ledger"><thead><tr><th><div class="cds--table-header-label" id="ll-head">The bill</div></th><th><div class="cds--table-header-label">A year</div></th></tr></thead><tbody id="ll-rows"></tbody></table>
+    <p class="call" id="ll-call"></p>
+    <p class="src" id="ll-src"></p>
+  </section>
+
+  <section aria-labelledby="h-peaks">
+    <h2 id="h-peaks">Four hours set the wires bill</h2>
+    <p class="intro" id="peaks-say"></p>
+    <div class="table-scroll"><table class="cds--data-table cds--data-table--md ledger ll-table"><thead><tr>
+      <th><div class="cds--table-header-label">Month</div></th><th><div class="cds--table-header-label">Peak hour</div></th><th><div class="cds--table-header-label">Grid demand</div></th>
+    </tr></thead><tbody id="peaks-rows"></tbody></table></div>
+    <p class="call calm" id="peaks-call"></p>
+    <p class="src" id="peaks-src"></p>
+  </section>
+
+  <section aria-labelledby="h-where">
+    <h2 id="h-where">Where power is cheapest</h2>
+    <p class="intro" id="where-say"></p>
+    <div class="table-scroll"><table class="cds--data-table cds--data-table--md ledger ll-table"><thead><tr>
+      <th><div class="cds--table-header-label">Load zone</div></th><th><div class="cds--table-header-label">Average</div></th>
+      <th><div class="cds--table-header-label">Hours over 20¢</div></th><th><div class="cds--table-header-label">Energy, a year</div></th>
+    </tr></thead><tbody id="where-rows"></tbody></table></div>
+    <p class="src" id="where-src"></p>
+  </section>
+
+  <section aria-labelledby="h-queue">
+    <h2 id="h-queue">Who else is connecting</h2>
+    <p class="intro" id="queue-say"></p>
+    <div class="kpis ll-three" id="queue-kpis"></div>
+    <p class="call calm" id="queue-call"></p>
+    <p class="src" id="queue-src"></p>
+    <p class="more"><a class="cds--link" href="/siting">The full queue by zone, and the 75 MW rule</a></p>
+    <p class="more"><a class="cds--link" href="/grid">Where Texas demand is growing</a></p>
+  </section>
+
+  <section aria-labelledby="h-not">
+    <h2 id="h-not">What is not in this bill</h2>
+    <ul class="ll-list" id="not-list"></ul>
+  </section>
+
+  <footer>
+    <div class="foot-links"><a href="/generation">Power supply</a><a href="/grid">How power flows</a><a href="/siting">Texas siting</a><a href="/">One battery, one day</a><a href="/notes">Notes</a><a href="/about">About</a><a href="/privacy">Privacy</a><a href="/sources">Sources</a></div>
+    <p>Independent. Not affiliated with ERCOT, Oncor or any data center company. An outside estimate from public data, not a quote.</p>
+    <details open><summary>Sources</summary><ol id="ll-sources"></ol></details>
+  </footer>
+</main>
+</body>
+</html>

@@ -1,0 +1,30 @@
+/* /data-centers. Loads after Carbon, shell.css and day.css and reuses their number row, tables and notes.
+   This file adds the form layout and the three-column tables. */
+section { margin-top: 3rem; }
+section:first-of-type { margin-top: 0; }
+.table-scroll { overflow-x: auto; }
+.ll-knobs { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+.ll-knobs .cds--form-item:nth-child(2) { grid-column: 1 / -1; grid-row: 1; }
+.ll-knobs .cds--select, .ll-knobs .cds--select-input__wrapper, .ll-knobs .cds--select-input,
+.ll-flex .cds--select, .ll-flex .cds--select-input__wrapper, .ll-flex .cds--select-input { inline-size: 100%; max-inline-size: none; }
+.ll-knobs .cds--text-input, .ll-knobs .cds--select-input, .ll-flex .cds--select-input { min-block-size: 2.75rem; }
+.ll-flex { display: grid; gap: 1rem; margin: 0 0 1.5rem; padding: 1rem; border: 1px solid var(--cds-border-subtle-00, #e0e0e0); }
+.ll-flex legend { padding: 0 .5rem; margin-left: -.5rem; font-size: .875rem; font-weight: 600; letter-spacing: .16px; }
+.ll-flex input[type=range] { margin: 0; }
+.ll-flex output { font-size: .875rem; font-variant-numeric: tabular-nums; color: var(--cds-text-secondary); }
+.ll-kpis, .ll-three { margin: 0 0 1rem; border: 1px solid var(--cds-border-subtle-00, #e0e0e0); }
+.ll-kpis .kpi .when, .ll-three .kpi .when { margin-top: .25rem; font-size: .75rem; letter-spacing: .32px; color: var(--cds-text-secondary); }
+.ll-table td:nth-child(n+2), .ll-table th:nth-child(n+2) { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ll-table th, .ll-table td { padding-inline: .75rem; }
+.ll-table tr.pick td { background: #edf5ff; }
+.ll-list { margin: 0; padding-left: 1.25rem; max-width: 40rem; list-style: disc; color: var(--cds-text-secondary); line-height: 1.5; }
+.ll-list li { margin-bottom: .5rem; }
+.call + .call { margin-top: .5rem; }
+@media (max-width: 41.99rem) { .ll-three { grid-template-columns: 1fr; } }
+@media (min-width: 42rem) {
+  .ll-knobs { grid-template-columns: 10rem 1fr 12rem; }
+  .ll-knobs .cds--form-item:nth-child(2) { grid-column: auto; grid-row: auto; }
+  .ll-flex { grid-template-columns: 1fr 1fr; align-items: end; }
+  .ll-kpis { grid-template-columns: repeat(4, 1fr); }
+  .ll-three { grid-template-columns: repeat(3, 1fr); }
+}
