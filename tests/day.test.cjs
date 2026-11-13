@@ -169,7 +169,7 @@ test('design language: Carbon is vendored with no outside URLs, and every page h
     assert.ok(fs.existsSync(root('fonts/ibm-plex-sans-latin-' + w + '-normal.woff2')));
   }
   const header = /<!--mw-header-->[\s\S]*?<!--\/mw-header-->/.exec(fs.readFileSync(root('index.html'), 'utf8'))[0];
-  for (const href of ['/', '/battery', '/pjm', '/market', '/#data-center', '/live', '/finance', '/notes']) assert.ok(header.includes('href="' + href + '"'), href);
+  for (const href of ['/generation', '/', '/battery', '/pjm', '/market', '/data-centers', '/siting', '/grid', '/live', '/finance', '/notes']) assert.ok(header.includes('href="' + href + '"'), href);
   const pages = fs.readdirSync(root('.')).filter((f) => f.endsWith('.html')).concat(fs.readdirSync(root('notes')).map((f) => 'notes/' + f).filter((f) => f.endsWith('.html')));
   let shared = 0;
   for (const f of pages) {

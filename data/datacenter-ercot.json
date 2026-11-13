@@ -1,0 +1,330 @@
+{
+ "built": "2026-11-13",
+ "grid": "ERCOT",
+ "period": {
+  "start": "2025-10-01",
+  "endExclusive": "2026-10-01"
+ },
+ "steps": [
+  0,
+  10,
+  25,
+  50,
+  100,
+  200,
+  300,
+  500
+ ],
+ "zones": [
+  {
+   "id": "LZ_HOUSTON",
+   "name": "Houston",
+   "choice": "open",
+   "who": "mostly retail choice (CenterPoint area)",
+   "avgRtUsdPerMwh": 33.43,
+   "maxRtUsdPerMwh": 903.17,
+   "hours": 8760,
+   "hoursOver1000": 0,
+   "hoursOver200": 47,
+   "topHoursSumUsdPerMw": [
+    0.0,
+    5818.26,
+    10586.17,
+    16104.25,
+    24465.74,
+    36217.04,
+    45187.84,
+    59635.93
+   ]
+  },
+  {
+   "id": "LZ_NORTH",
+   "name": "North Texas",
+   "choice": "open",
+   "who": "mostly retail choice (Oncor and TNMP areas), with some city and co-op territory that has not opted in",
+   "avgRtUsdPerMwh": 33.73,
+   "maxRtUsdPerMwh": 1392.33,
+   "hours": 8760,
+   "hoursOver1000": 4,
+   "hoursOver200": 86,
+   "topHoursSumUsdPerMw": [
+    0.0,
+    9676.08,
+    17926.84,
+    26211.92,
+    37372.85,
+    52578.08,
+    63380.08,
+    79747.37
+   ]
+  },
+  {
+   "id": "LZ_SOUTH",
+   "name": "South Texas",
+   "choice": "open",
+   "who": "mostly retail choice (AEP Texas Central and other areas), with some city and co-op territory that has not opted in",
+   "avgRtUsdPerMwh": 33.75,
+   "maxRtUsdPerMwh": 898.21,
+   "hours": 8760,
+   "hoursOver1000": 0,
+   "hoursOver200": 84,
+   "topHoursSumUsdPerMw": [
+    0.0,
+    6610.8,
+    13101.21,
+    20659.37,
+    31434.15,
+    45444.03,
+    55514.88,
+    71180.4
+   ]
+  },
+  {
+   "id": "LZ_RAYBN",
+   "name": "Rayburn Electric",
+   "choice": "none",
+   "who": "Rayburn Country Electric Cooperative members, co-ops without retail choice",
+   "avgRtUsdPerMwh": 33.84,
+   "maxRtUsdPerMwh": 1464.75,
+   "hours": 8760,
+   "hoursOver1000": 7,
+   "hoursOver200": 87,
+   "topHoursSumUsdPerMw": [
+    0.0,
+    10650.45,
+    19367.21,
+    27738.64,
+    38873.67,
+    53627.22,
+    64226.9,
+    80402.55
+   ]
+  },
+  {
+   "id": "LZ_WEST",
+   "name": "West Texas",
+   "choice": "open",
+   "who": "mostly retail choice (AEP Texas North, Oncor and TNMP areas), with some co-op territory that has not opted in",
+   "avgRtUsdPerMwh": 35.27,
+   "maxRtUsdPerMwh": 1329.65,
+   "hours": 8760,
+   "hoursOver1000": 3,
+   "hoursOver200": 94,
+   "topHoursSumUsdPerMw": [
+    0.0,
+    8825.34,
+    16275.89,
+    24821.82,
+    36721.64,
+    52454.54,
+    63719.6,
+    81889.0
+   ]
+  },
+  {
+   "id": "LZ_AEN",
+   "name": "Austin Energy",
+   "choice": "none",
+   "who": "Austin Energy, a city utility (no retail choice)",
+   "avgRtUsdPerMwh": 35.32,
+   "maxRtUsdPerMwh": 971.18,
+   "hours": 8760,
+   "hoursOver1000": 0,
+   "hoursOver200": 97,
+   "topHoursSumUsdPerMw": [
+    0.0,
+    7908.94,
+    14939.27,
+    23049.88,
+    34793.83,
+    50133.7,
+    60914.06,
+    77433.94
+   ]
+  },
+  {
+   "id": "LZ_CPS",
+   "name": "CPS Energy, San Antonio",
+   "choice": "none",
+   "who": "CPS Energy, the San Antonio city utility (no retail choice)",
+   "avgRtUsdPerMwh": 35.33,
+   "maxRtUsdPerMwh": 1275.23,
+   "hours": 8760,
+   "hoursOver1000": 3,
+   "hoursOver200": 102,
+   "topHoursSumUsdPerMw": [
+    0.0,
+    9218.96,
+    16817.96,
+    25602.74,
+    37674.29,
+    53532.13,
+    64264.6,
+    80693.78
+   ]
+  },
+  {
+   "id": "LZ_LCRA",
+   "name": "LCRA",
+   "choice": "none",
+   "who": "LCRA wholesale customers, mostly cities and co-ops without retail choice",
+   "avgRtUsdPerMwh": 35.57,
+   "maxRtUsdPerMwh": 1081.23,
+   "hours": 8760,
+   "hoursOver1000": 1,
+   "hoursOver200": 109,
+   "topHoursSumUsdPerMw": [
+    0.0,
+    8171.99,
+    15273.61,
+    23461.95,
+    36009.51,
+    52676.55,
+    64105.55,
+    81003.43
+   ]
+  }
+ ],
+ "pricesSource": {
+  "title": "ERCOT load zone settlement point prices, real-time, hourly",
+  "url": "https://www.ercot.com/mktinfo/prices",
+  "manifest": "/data/deployment/manifest.json"
+ },
+ "tariff": {
+  "utility": "Oncor Electric Delivery",
+  "class": "Transmission service",
+  "asOf": "2026-11-01",
+  "read": "2026-11-13",
+  "source": "https://ftp.puc.texas.gov/public/puct-info/industry/electric/rates/tdr/tdu/Oncor_Rate_Report.pdf",
+  "sourceTitle": "Oncor Electric Delivery Company LLC, PUCT Monthly Report, as of November 1, 2026",
+  "per4cpKwMonthUsd": 6.260839,
+  "perBillingKwMonthUsd": 0.163822,
+  "customerMonthUsd": 258.8,
+  "meteringMonthUsd": 321.63,
+  "note": "Oncor is the largest wires company in ERCOT and is used here as the example. CenterPoint, AEP Texas and TNMP publish their own rates, and the city utilities and co-ops (Austin Energy, CPS Energy, LCRA, Rayburn) set their own."
+ },
+ "rules": [
+  {
+   "id": "4cp",
+   "status": "in force",
+   "title": "16 TAC 25.192, transmission service rates",
+   "what": "A transmission provider's rate is its approved cost of service divided by the average of ERCOT's coincident peak demand in June, July, August and September (4CP).",
+   "source": "https://ftp.puc.texas.gov/public/puct-info/agency/rulesnlaws/subrules/electric/25.192/25.192.pdf"
+  },
+  {
+   "id": "12cp",
+   "status": "proposal",
+   "title": "PUCT Project 58000, proposal for publication, 9 July 2026",
+   "what": "Would replace the four coincident peak (4CP) method with a twelve coincident peak (12CP) method for assigning transmission costs. Not adopted as a rule when this was built.",
+   "source": "https://www.ercot.com/files/docs/2026/07/23/PUCT-Project-58000-pfp_adopted-9-July-2026.pdf"
+  }
+ ],
+ "peaks": {
+  "year": 2026,
+  "hours": [
+   {
+    "date": "2026-06-18",
+    "hourEnding": 17,
+    "mw": 82772
+   },
+   {
+    "date": "2026-07-22",
+    "hourEnding": 18,
+    "mw": 91134
+   },
+   {
+    "date": "2026-08-24",
+    "hourEnding": 18,
+    "mw": 90817
+   },
+   {
+    "date": "2026-09-12",
+    "hourEnding": 17,
+    "mw": 86647
+   }
+  ],
+  "source": "https://www.ercot.com/gridinfo/load/load_hist",
+  "note": "The highest hour of ERCOT demand in each of June, July, August and September, from ERCOT's hourly native load file. ERCOT sets the official 4CP on fifteen-minute intervals, so its times can differ from these by part of an hour."
+ },
+ "queue": {
+  "asOf": "2026-06-18",
+  "what": "ERCOT large-load interconnection status. The deck does not say these loads are data centers. County and customer names are not in the slides that this build could read.",
+  "approvedMw": 8927,
+  "peakSeenMw": 3900,
+  "peakSeenTogetherMw": 3675,
+  "byZone": [
+   {
+    "zone": "LZ_WEST",
+    "remainingApprovedMw": 3142,
+    "observedNonSimultaneousPeakMw": 1908,
+    "totalMw": 5050
+   },
+   {
+    "zone": "Other",
+    "remainingApprovedMw": 2394,
+    "observedNonSimultaneousPeakMw": 1482,
+    "totalMw": 3876,
+    "note": "ERCOT did not split this bar into Houston, South, or the NOIE load zones."
+   }
+  ],
+  "source": "https://www.ercot.com/files/docs/2026/06/18/June-19-LLWG-Report.pptx",
+  "page": "/siting"
+ },
+ "growth": [
+  {
+   "name": "West",
+   "places": "Abilene and San Angelo",
+   "change": 0.2356,
+   "gwh": 14607.1
+  },
+  {
+   "name": "South",
+   "places": "Corpus Christi and the Rio Grande Valley",
+   "change": 0.0831,
+   "gwh": 41259.9
+  },
+  {
+   "name": "North Central",
+   "places": "Dallas and Fort Worth",
+   "change": 0.0756,
+   "gwh": 142540.5
+  },
+  {
+   "name": "East",
+   "places": "Tyler",
+   "change": 0.0611,
+   "gwh": 16670.8
+  },
+  {
+   "name": "South Central",
+   "places": "Austin and San Antonio",
+   "change": 0.0514,
+   "gwh": 80581.2
+  },
+  {
+   "name": "Far West",
+   "places": "Midland, Odessa and the Permian Basin",
+   "change": 0.0484,
+   "gwh": 66971.6
+  },
+  {
+   "name": "North",
+   "places": "Wichita Falls",
+   "change": 0.0211,
+   "gwh": 14693.1
+  },
+  {
+   "name": "Coast",
+   "places": "Houston",
+   "change": 0.0189,
+   "gwh": 131221.5
+  }
+ ],
+ "gridPeakMw": 91134,
+ "notIncluded": [
+  "How long a site waits to connect. ERCOT publishes queue totals, not a wait for each site.",
+  "The retail provider's margin, ERCOT's own fees, reserve (ancillary service) costs passed through, and taxes.",
+  "Wires charges for any utility other than Oncor.",
+  "The cost of the building, the chips, cooling and backup generators."
+ ]
+}
