@@ -1,6 +1,6 @@
 ## PJM {#pjm}
 
-Page: `/` (the homepage). One battery's yearly value in each of 20 PJM utility zones. The same code answers `POST /api/v1/pjm`.
+Page: `/pjm`. One battery's yearly value in each of 20 PJM utility zones. The same code answers `POST /api/v1/pjm`.
 
 **File:** CSV with one row per zone, or JSON `{ "zones": [ { ... } ] }` with the same fields (a bare list of rows also works). Download the template from the page: it lists every zone with the public tag rule filled in. Only `zone` is required. A blank cell keeps the public number for that zone, so you can send one column for one zone.
 

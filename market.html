@@ -9,15 +9,16 @@
 <meta property="og:description" content="Every US state scored for a home-battery program on public Census, EIA-861, FEMA and ERCOT data, with outages, prices and bills as map layers. Not affiliated with Base Power.">
 <meta property="og:url" content="https://megawatt.fun/market">
 <meta property="og:type" content="website">
-<link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/site.css"><link rel="stylesheet" href="/market.css">
+<link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/site.css"><link rel="stylesheet" href="/shell.css"><link rel="stylesheet" href="/market.css">
 <script src="/notes/score.js" defer></script>
 <script src="/market-core.js" defer></script>
 <script src="/yourdata.js" defer></script>
 <script src="/market.js" defer></script>
+<script src="/nav.js" defer></script>
 </head>
 <body class="market-page tool-page">
 <a class="skip" href="#map">Skip to map</a>
-<header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/">PJM</a><a href="/market" aria-current="page">US map</a><a href="/battery">Texas battery</a><a href="/live">Live</a><a href="/notes">Notes</a></nav></header>
+<!--mw-header--><header class="mw-header"><a class="mw-name" href="/">megawatt<span>.fun</span></a><button class="mw-menu-btn" type="button" aria-expanded="false" aria-controls="mw-nav" aria-label="Menu"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 14.8h16V16H2zm0-5.4h16v1.2H2zM2 4h16v1.2H2z"/></svg></button><nav class="mw-nav" id="mw-nav" aria-label="Main navigation"><ul><li><button type="button" aria-expanded="false">Homes<svg viewBox="0 0 10 6" aria-hidden="true"><path d="M5 6 0 1l.7-.7L5 4.6 9.3.3l.7.7z"/></svg></button><ul class="sub"><li><a href="/">One battery, one day</a></li><li><a href="/battery">Texas battery tool</a></li><li><a href="/pjm">PJM utility ranking</a></li><li><a href="/market">US market map</a></li></ul></li><li><a href="/#data-center">Data centers</a></li><li><a href="/live">Grid prices</a></li><li><a href="/finance">Financing</a></li><li><a href="/notes">Notes</a></li></ul></nav></header><!--/mw-header-->
 
 <main class="mm" id="main">
   <div class="mm-map" id="map" role="img" aria-label="US map shaded by the selected layer. Select a state for its numbers."></div>
@@ -66,7 +67,7 @@
         <p class="mm-h">Left out, and why</p><ul class="mm-small" id="omitted"></ul>
         <p class="mm-h">Sources</p><ul class="mm-small" id="sources"></ul>
       </details>
-      <nav class="gift-set" aria-label="Home battery company tools"><span>For a home-battery company</span><a href="/">PJM, the next market</a><a href="/market" aria-current="page">US market map</a><a href="/battery">The same battery in Texas</a><a href="/siting">Texas siting</a></nav>
+      <nav class="gift-set" aria-label="Home battery company tools"><span>For a home-battery company</span><a href="/pjm">PJM, the next market</a><a href="/market" aria-current="page">US market map</a><a href="/battery">The same battery in Texas</a></nav>
     </div>
   </section>
 

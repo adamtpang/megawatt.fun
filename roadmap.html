@@ -11,12 +11,13 @@
 <link rel="stylesheet" href="/scorecard.css">
 <script src="/climb.js" defer></script>
 <script data-posthog-fleet>(function(){if(location.hostname==='localhost'||location.hostname==='127.0.0.1'||window.__posthogFleet)return;window.__posthogFleet=1;var s=document.createElement('script');s.async=true;s.src='https://us-assets.i.posthog.com/static/array.js';s.onload=function(){if(!window.posthog||!window.posthog.init)return;window.posthog.init('phc_FCpCP9mIsb9IcxpX0Qqi6FmJ48sVvscAYIrZmtRHIq4',{api_host:'https://us.i.posthog.com',person_profiles:'identified_only',capture_pageview:'history_change',capture_pageleave:true,autocapture:false,disable_session_recording:true,disable_surveys:true,loaded:function(p){p.register({site:location.hostname})}});};document.head.appendChild(s);})();</script>
-<link rel="stylesheet" href="/site.css">
+<link rel="stylesheet" href="/site.css"><link rel="stylesheet" href="/shell.css">
 <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48 64x64" type="image/x-icon">
+<script src="/nav.js" defer></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to the plan</a>
-<header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/">PJM</a><a href="/market">US map</a><a href="/battery">Texas battery</a><a href="/live">Live</a><a href="/notes">Notes</a></nav></header>
+<!--mw-header--><header class="mw-header"><a class="mw-name" href="/">megawatt<span>.fun</span></a><button class="mw-menu-btn" type="button" aria-expanded="false" aria-controls="mw-nav" aria-label="Menu"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 14.8h16V16H2zm0-5.4h16v1.2H2zM2 4h16v1.2H2z"/></svg></button><nav class="mw-nav" id="mw-nav" aria-label="Main navigation"><ul><li><button type="button" aria-expanded="false">Homes<svg viewBox="0 0 10 6" aria-hidden="true"><path d="M5 6 0 1l.7-.7L5 4.6 9.3.3l.7.7z"/></svg></button><ul class="sub"><li><a href="/">One battery, one day</a></li><li><a href="/battery">Texas battery tool</a></li><li><a href="/pjm">PJM utility ranking</a></li><li><a href="/market">US market map</a></li></ul></li><li><a href="/#data-center">Data centers</a></li><li><a href="/live">Grid prices</a></li><li><a href="/finance">Financing</a></li><li><a href="/notes">Notes</a></li></ul></nav></header><!--/mw-header-->
 <main id="main">
   <section class="intro" aria-labelledby="intro-title">
     <div class="intro-copy">

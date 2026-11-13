@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>One day proof · megawatt.fun</title>
+<!-- Proof screen, version 2: scrub through one day and watch the house, the price and the money change.
+     Not linked, not in the sitemap. Real data: /data/pjm-value.json through /pjm-core.js and /finance-core.js.
+     Bricolage Grotesque (SIL OFL) loads from Google Fonts here; a shipped version would self-host it. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&display=swap">
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js" } }
+</script>
+<style>
+  @font-face { font-family: "Instrument Sans"; src: url("/fonts/instrument-sans-latin-400-normal.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+  @font-face { font-family: "Instrument Sans"; src: url("/fonts/instrument-sans-latin-500-normal.woff2") format("woff2"); font-weight: 500; font-display: swap; }
+  @font-face { font-family: "Instrument Sans"; src: url("/fonts/instrument-sans-latin-600-normal.woff2") format("woff2"); font-weight: 600; font-display: swap; }
+  :root {
+    /* Layout: one stage (sky, house, readout, day scrubber), then one panel at a time. Phone first. */
+    --ground: #f4f5f8;
+    --card: #ffffff;
+    --ink: #101a2b;
+    --soft: #55627a;
+    --line: #dfe3ea;
+    --bar: #c3cbd8;
+    /* Battery states. Each has a strong fill, a soft ground and a text color that passes on the soft ground. */
+    --charge: #0d8f86; --charge-soft: #d9f3ef; --charge-ink: #075e58;
+    --run: #f59e0b; --run-soft: #fff0cf; --run-ink: #7a4a00;
+    --peak: #d92d55; --peak-soft: #ffe1e8; --peak-ink: #9d1838;
+    --idle-soft: #e9ecf2;
+    --show: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif;
+    --text: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --r-stage: 24px; --r-card: 16px; --r-ctl: 12px;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--ground); color: var(--ink); font: 400 16px/1.5 var(--text); }
+  a { color: inherit; text-underline-offset: 3px; }
+  button, select, input { font: inherit; color: inherit; }
+  :focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+  [hidden] { display: none !important; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
+
+  .bar { display: flex; align-items: center; gap: 12px; padding: 12px 0; }
+  .mark { font: 800 20px/1 var(--show); letter-spacing: -.02em; text-decoration: none; }
+  .place { margin-left: auto; min-width: 0; display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--soft); }
+  .place span { display: none; }
+  select, input[type=number] { min-height: 44px; min-width: 0; max-width: 100%; padding: 8px 12px; border: 1.5px solid var(--line); border-radius: var(--r-ctl); background: var(--card); font-weight: 600; }
+  select { text-overflow: ellipsis; max-width: 62vw; }
+
+  h1 { margin: 12px 0 8px; font: 800 clamp(38px, 10.5vw, 76px)/.95 var(--show); letter-spacing: -.035em; text-wrap: balance; }
+  .say { margin: 0 0 18px; max-width: 46ch; color: var(--soft); font-size: 17px; }
+
+  /* The stage */
+  .stage { display: flex; flex-direction: column; background: var(--card); border-radius: var(--r-stage); overflow: hidden; box-shadow: 0 1px 0 var(--line), 0 18px 40px -28px rgba(16, 26, 43, .35); }
+  .scene { position: relative; height: 210px; background: linear-gradient(var(--sky-a, #8ec9f5), var(--sky-b, #d9efff)); }
+  .scene canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .orb { position: absolute; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%; background: #fff3c4; box-shadow: 0 0 0 8px rgba(255, 243, 196, .25); transition: left .5s, top .5s; }
+  .orb.moon { background: #e8ecf6; box-shadow: inset -9px -3px 0 #b9c2d6; }
+  .clock { position: absolute; left: 14px; top: 14px; padding: 6px 12px; border-radius: 999px; background: rgba(255, 255, 255, .92); font: 700 15px/1.2 var(--show); font-variant-numeric: tabular-nums; }
+  .fallback { position: absolute; inset: 0; display: grid; place-items: end center; }
+  .fallback svg { width: min(320px, 82%); height: auto; }
+  .fallback .batt { fill: var(--glow, #e9ecf2); }
+
+  .read { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; padding: 16px; }
+  .chip { grid-column: 1 / -1; justify-self: start; margin: 0; padding: 6px 12px; border-radius: 999px; background: var(--idle-soft); font-weight: 600; font-size: 14px; }
+  .chip[data-s=charge] { background: var(--charge-soft); color: var(--charge-ink); }
+  .chip[data-s=run] { background: var(--run-soft); color: var(--run-ink); }
+  .chip[data-s=peak] { background: var(--peak-soft); color: var(--peak-ink); }
+  .stat p { margin: 0; }
+  .stat .k { color: var(--soft); font-size: 13px; }
+  .stat .v { font: 700 34px/1.05 var(--show); letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+  .stat .v small { font: 500 14px/1 var(--text); letter-spacing: 0; color: var(--soft); }
+  .gauge { height: 10px; margin-top: 8px; border-radius: 999px; background: var(--idle-soft); overflow: hidden; }
+  .gauge i { display: block; height: 100%; border-radius: 999px; background: var(--ink); transition: width .4s; }
+  .gauge[data-s=charge] i { background: var(--charge); }
+  .gauge[data-s=run] i { background: var(--run); }
+  .why { grid-column: 1 / -1; margin: 0; font-size: 15px; }
+
+  .scrub { order: 2; padding: 14px 16px 4px; }
+  .read { order: 3; }
+  .bars { display: grid; grid-template-columns: repeat(24, 1fr); gap: 2px; height: 84px; align-items: end; touch-action: pan-y; cursor: pointer; }
+  .bars i { display: block; min-height: 3px; border-radius: 3px 3px 0 0; background: var(--bar); }
+  .bars i.c { background: var(--charge); }
+  .bars i.r { background: var(--run); }
+  .bars i.p { background: var(--peak); }
+  .bars i.on { outline: 2.5px solid var(--ink); outline-offset: 1px; }
+  .bars i.past { opacity: .55; }
+  .bars i.on.past { opacity: 1; }
+  input[type=range] { display: block; width: 100%; height: 44px; margin: -4px 0 -8px; accent-color: var(--ink); }
+  .ticks { display: grid; grid-template-columns: repeat(4, 1fr); color: var(--soft); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .scrub-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 10px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 0; padding: 0; list-style: none; color: var(--soft); font-size: 13px; }
+  .legend i { display: inline-block; width: 10px; height: 10px; margin-right: 5px; border-radius: 2px; }
+  .play { flex: none; min-height: 44px; padding: 8px 16px; border: 0; border-radius: 999px; background: var(--ink); color: #fff; font-weight: 600; cursor: pointer; }
+  .note { margin: 10px 0 0; color: var(--soft); font-size: 13px; }
+
+  /* Who makes what: one panel at a time */
+  .who { margin-top: 36px; }
+  h2 { margin: 0 0 12px; font: 800 clamp(28px, 6.4vw, 40px)/1 var(--show); letter-spacing: -.03em; }
+  .tabs { display: flex; gap: 8px; margin: 0 -16px; padding: 2px 16px 12px; overflow-x: auto; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tabs button { flex: none; min-height: 44px; padding: 8px 16px; border: 1.5px solid var(--line); border-radius: 999px; background: var(--card); font-weight: 600; cursor: pointer; }
+  .tabs button[aria-selected=true] { border-color: var(--ink); background: var(--ink); color: #fff; }
+  .panel { background: var(--card); border-radius: var(--r-card); padding: 20px 16px; box-shadow: 0 1px 0 var(--line); }
+  .panel > p:first-child { margin: 0 0 14px; max-width: 56ch; font-size: 17px; }
+  .cols { display: grid; gap: 24px; }
+  h3 { margin: 0 0 4px; font: 700 18px/1.2 var(--show); letter-spacing: -.01em; }
+  dl { margin: 0; }
+  dl div { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 11px 0; border-bottom: 1px solid var(--line); }
+  dt small { display: block; color: var(--soft); font-size: 13px; }
+  dd { margin: 0; white-space: nowrap; text-align: right; font: 700 20px/1.1 var(--show); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  dl .sum { border-bottom: 0; border-top: 2px solid var(--ink); margin-top: -1px; }
+  dl .sum dt { font-weight: 600; }
+  dl .sum dd { font-size: 32px; font-weight: 800; }
+  dl .off dt, dl .off dd { color: var(--soft); }
+  dl .off dd { font: 500 15px/1.2 var(--text); letter-spacing: 0; }
+  .est { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px; background: var(--idle-soft); color: var(--soft); font: 600 11px/1.5 var(--text); vertical-align: 2px; }
+  .was { display: block; margin-top: 3px; color: var(--soft); font: 400 13px/1.2 var(--text); letter-spacing: 0; }
+  .call { margin: 16px 0 0; padding: 14px 16px; border-radius: var(--r-ctl); background: var(--peak-soft); color: var(--peak-ink); font-size: 15px; }
+  .call strong { font: 800 22px/1 var(--show); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .call.calm { background: var(--idle-soft); color: var(--ink); }
+  .src { margin: 12px 0 0; color: var(--soft); font-size: 13px; }
+
+  .knobs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 0 16px; font-size: 13px; color: var(--soft); }
+  .knobs label { display: grid; gap: 4px; }
+  .knobs input { width: 100%; color: var(--ink); }
+  .one-knob { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 0 0 14px; font-size: 14px; color: var(--soft); }
+  .one-knob input { width: 10ch; color: var(--ink); }
+  .years { padding: 22px 0 0; }
+  .ybars { position: relative; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 3px; height: 150px; align-items: end; }
+  .ybars .col { display: flex; flex-direction: column-reverse; height: 100%; }
+  .ybars .col i { display: block; }
+  .ybars .col i:last-child { border-radius: 3px 3px 0 0; }
+  .ybars .fee { background: var(--bar); } .ybars .tag { background: var(--peak); } .ybars .nrg { background: var(--run); }
+  .ybars .ln { position: absolute; left: 0; height: 0; border-top: 2.5px solid var(--ink); }
+  .ybars .ln.cost { border-top-style: dashed; width: 100%; }
+  .ybars .ln b { position: absolute; right: 0; bottom: 3px; padding: 1px 6px; border-radius: 6px; background: var(--card); white-space: nowrap; font: 600 12px/1.3 var(--text); }
+  .ynums { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 3px; margin-top: 5px; color: var(--soft); text-align: center; font-size: 12px; font-variant-numeric: tabular-nums; }
+
+  footer { margin: 40px 0 32px; color: var(--soft); font-size: 13px; }
+  footer summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; color: var(--ink); }
+  footer ol { margin: 4px 0 0; padding-left: 20px; }
+
+  @media (min-width: 560px) {
+    .place span { display: inline; }
+    .knobs { grid-template-columns: repeat(4, 1fr); }
+  }
+  @media (min-width: 880px) {
+    .wrap { padding: 0 32px; }
+    .bar { padding: 20px 0; }
+    .mark { font-size: 22px; }
+    h1 { margin-top: 28px; }
+    .say { font-size: 19px; margin-bottom: 24px; }
+    .stage { display: grid; grid-template-columns: 1.1fr 1fr; grid-template-rows: auto auto; }
+    .scene { height: auto; min-height: 380px; grid-row: 1 / 3; grid-column: 1; }
+    .read, .scrub { grid-column: 2; }
+    .read { order: 0; padding: 28px 28px 8px; align-content: start; gap: 18px 20px; }
+    .stat .v { font-size: 44px; }
+    .why { font-size: 16px; }
+    .scrub { order: 0; padding: 8px 28px 24px; }
+    .bars { height: 110px; }
+    .tabs { margin: 0; padding: 2px 0 14px; }
+    .panel { padding: 28px; }
+    .cols { grid-template-columns: 1fr 1fr; gap: 40px; }
+    .ybars { height: 190px; gap: 6px; } .ynums { gap: 6px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .orb, .gauge i { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="bar">
+    <a class="mark" href="/">megawatt.fun</a>
+    <label class="place" for="zone"><span>Utility area</span><select id="zone"></select></label>
+  </header>
+
+  <main>
+    <h1>One battery, one day.</h1>
+    <p class="say" id="say">Loading real prices.</p>
+
+    <section class="stage" aria-label="A day in the life of a home battery">
+      <div class="scene" id="scene">
+        <div class="orb" id="orb" aria-hidden="true"></div>
+        <canvas id="stage-canvas" hidden aria-hidden="true"></canvas>
+        <div class="fallback" id="stage-fallback">
+          <svg viewBox="0 0 320 200" role="img" aria-label="A house with a battery on its side wall">
+            <ellipse cx="160" cy="184" rx="156" ry="18" fill="#6f9a58"/>
+            <path d="M66 104 L160 44 L254 104 Z" fill="#3b4558"/>
+            <rect x="82" y="104" width="156" height="78" fill="#fbfbfd" stroke="#101a2b" stroke-width="2"/>
+            <rect x="146" y="134" width="28" height="48" fill="#dfe3ea" stroke="#101a2b" stroke-width="2"/>
+            <rect x="98" y="122" width="30" height="26" fill="#cfe6fa" stroke="#101a2b" stroke-width="2"/>
+            <rect x="192" y="122" width="30" height="26" fill="#cfe6fa" stroke="#101a2b" stroke-width="2"/>
+            <rect class="batt" x="244" y="138" width="22" height="44" rx="4" stroke="#101a2b" stroke-width="2"/>
+          </svg>
+        </div>
+        <p class="clock" id="clock">6 PM</p>
+      </div>
+
+      <div class="read" aria-live="polite">
+        <p class="chip" id="chip">Standing by</p>
+        <div class="stat"><p class="k">Power costs</p><p class="v"><span id="price">0.0¢</span> <small>a kWh</small></p></div>
+        <div class="stat"><p class="k">Battery</p><p class="v"><span id="soc">100%</span></p><div class="gauge" id="gauge"><i id="gauge-fill" style="width:100%"></i></div></div>
+        <div class="stat"><p class="k">Cash so far today</p><p class="v" id="tally">$0.00</p></div>
+        <div class="stat"><p class="k">A whole year</p><p class="v" id="year">$0</p></div>
+        <p class="why" id="why"></p>
+      </div>
+
+      <div class="scrub">
+        <div class="bars" id="bars" aria-hidden="true"></div>
+        <input id="hour" type="range" min="0" max="23" step="1" value="18" aria-label="Hour of the day">
+        <div class="ticks" aria-hidden="true"><span>12 AM</span><span>6 AM</span><span>Noon</span><span>6 PM</span></div>
+        <div class="scrub-row">
+          <ul class="legend">
+            <li><i style="background:var(--charge)"></i>Charging</li>
+            <li><i style="background:var(--run)"></i>Running the home</li>
+            <li><i style="background:var(--peak)"></i>Grid peak</li>
+          </ul>
+          <button class="play" id="play" type="button">Play the day</button>
+        </div>
+      </div>
+    </section>
+    <p class="note" id="strip-cap"></p>
+
+    <section class="who" aria-labelledby="h-who">
+      <h2 id="h-who">Who makes what</h2>
+      <div class="tabs" role="tablist" aria-label="Who makes what">
+        <button role="tab" id="t-home" aria-controls="p-home" aria-selected="true" type="button">The home</button>
+        <button role="tab" id="t-owner" aria-controls="p-owner" aria-selected="false" type="button" tabindex="-1">The battery's owner</button>
+        <button role="tab" id="t-fund" aria-controls="p-fund" aria-selected="false" type="button" tabindex="-1">A lender</button>
+        <button role="tab" id="t-load" aria-controls="p-load" aria-selected="false" type="button" tabindex="-1">A data center</button>
+      </div>
+
+      <div class="panel" role="tabpanel" id="p-home" aria-labelledby="t-home">
+        <p>The household does not buy the battery. It pays a small fee and gets backup power. These are Base Power's published Texas terms, shown as the model.</p>
+        <div class="cols">
+          <div><h3>What it pays</h3><dl>
+            <div><dt>Install, once</dt><dd>$695</dd></div>
+            <div><dt>Membership, a month</dt><dd>$19</dd></div>
+            <div class="sum"><dt>First year, all in</dt><dd>$923</dd></div>
+          </dl></div>
+          <div><h3>What it gets</h3><dl>
+            <div><dt>Battery on the wall</dt><dd>39.2 kWh</dd></div>
+            <div><dt>Backup in an outage</dt><dd>up to 36 hours</dd></div>
+            <div><dt id="home-used-k">Used on an average day</dt><dd id="home-used">31%</dd></div>
+          </dl><p class="call calm" id="home-call"></p></div>
+        </div>
+        <p class="src">Source: basepowercompany.com, read 11 Nov 2026. First year is $695 plus 12 months at $19.</p>
+      </div>
+
+      <div class="panel" role="tabpanel" id="p-owner" aria-labelledby="t-owner" hidden>
+        <p id="owner-say"></p>
+        <dl id="owner-dl"></dl>
+        <p class="call" id="owner-call"></p>
+        <p class="src" id="owner-src"></p>
+      </div>
+
+      <div class="panel" role="tabpanel" id="p-fund" aria-labelledby="t-fund" hidden>
+        <p id="fund-say"></p>
+        <div class="knobs">
+          <label for="f-cost">Installed cost, $ a kWh<input id="f-cost" type="number" inputmode="decimal" min="0" max="5000" step="10"></label>
+          <label for="f-rate">Interest, % a year<input id="f-rate" type="number" inputmode="decimal" min="0" max="30" step="0.25"></label>
+          <label for="f-tenor">Loan, years<input id="f-tenor" type="number" inputmode="numeric" min="1" max="30" step="1"></label>
+          <label for="f-dscr">Cash cover wanted<input id="f-dscr" type="number" inputmode="decimal" min="1" max="3" step="0.05"></label>
+        </div>
+        <div class="cols">
+          <div><h3>What has to be paid for</h3><dl id="cost-dl"></dl></div>
+          <div><h3>What the cash supports</h3><dl id="debt-dl"></dl></div>
+        </div>
+        <p class="call" id="debt-call"></p>
+        <div class="years">
+          <h3>Cash in, year by year</h3>
+          <div class="ybars" id="ybars" role="img"></div>
+          <div class="ynums" id="ynums" aria-hidden="true"></div>
+          <ul class="legend" style="margin-top:10px">
+            <li><i style="background:var(--bar)"></i>Membership fees</li>
+            <li><i style="background:var(--peak)"></i>Peak charges avoided</li>
+            <li><i style="background:var(--run)"></i>Buying low, using high</li>
+          </ul>
+        </div>
+        <p class="src" id="fund-src"></p>
+      </div>
+
+      <div class="panel" role="tabpanel" id="p-load" aria-labelledby="t-load" hidden>
+        <p id="load-say"></p>
+        <p class="one-knob"><label for="mw">Size, MW</label><input id="mw" type="number" inputmode="numeric" min="1" max="2000" step="1" value="100"></p>
+        <dl id="load-dl"></dl>
+        <p class="call" id="load-call"></p>
+        <p class="src" id="load-src"></p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Independent. Not affiliated with Base Power or PJM. Every figure is public data or a labelled estimate.</p>
+    <details><summary>Sources</summary><ol id="sources"></ol></details>
+  </footer>
+</div>
+
+<script src="/pjm-core.js"></script>
+<script src="/finance-core.js"></script>
+<script type="module" src="/design/stage-scene.js"></script>
+<script>
+(function () {
+  'use strict';
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const cents = (usdPerMwh) => (usdPerMwh / 10).toFixed(1) + '¢';
+  const usd = (n) => (n < 0 ? '-' : '') + '$' + Math.round(Math.abs(n)).toLocaleString('en-US');
+  const usd2 = (n) => (n < -0.004 ? '-' : '') + '$' + Math.abs(n).toFixed(2);
+  const big = (n) => n >= 1e6 ? '$' + (n / 1e6).toFixed(n >= 1e7 ? 1 : 2) + 'M' : usd(n);
+  const clock = (h) => (h % 12 || 12) + (h < 12 ? ' AM' : ' PM');
+  const mean = (a) => a.reduce((s, x) => s + x, 0) / a.length;
+  const F = window.FinanceCore, P = window.PjmCore;
+  const LOAD_FACTOR = 0.9; // assumption, labelled on the page
+  const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  let V, D, BASE, timer = null;
+
+  function row(label, value, cls, small) {
+    return '<div' + (cls ? ' class="' + cls + '"' : '') + '><dt>' + label + (small ? '<small>' + small + '</small>' : '') + '</dt><dd>' + value + '</dd></div>';
+  }
+
+  // Sky colors through the day: [hour, top, bottom]. Blended between stops.
+  const SKY = [[0, '#0b1430', '#1b2a55'], [4.5, '#141f47', '#3a3a6e'], [6.5, '#f3a877', '#ffdcae'], [9, '#7fc2f5', '#d6eeff'], [15, '#74bbf2', '#d0eaff'], [18.5, '#ef8344', '#ffd08a'], [20.5, '#28295c', '#6b4b7f'], [24, '#0b1430', '#1b2a55']];
+  const hex = (c) => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16));
+  const mix = (a, b, t) => '#' + hex(a).map((x, i) => Math.round(x + (hex(b)[i] - x) * t).toString(16).padStart(2, '0')).join('');
+  function sky(h) {
+    const t = h + 0.5;
+    let i = 0;
+    while (i < SKY.length - 2 && SKY[i + 1][0] <= t) i++;
+    const a = SKY[i], b = SKY[i + 1], k = Math.min(1, Math.max(0, (t - a[0]) / (b[0] - a[0])));
+    return [mix(a[1], b[1], k), mix(a[2], b[2], k)];
+  }
+  const daylight = (h) => Math.max(0, Math.min(1, Math.sin(((h + 0.5 - 5) / 15) * Math.PI) * 1.7));
+
+  // One average day of one battery: what it does each hour, how full it is, and the cash so far.
+  function day(z) {
+    const h = z.hourlyAvgRt, [c0, c1] = V.schedule.charge, [r0, r1] = V.schedule.discharge;
+    const kw = P.DEFAULTS.tagKw, out = kw * (r1 - r0), cap = V.spec.capacity, eff = V.spec.efficiency;
+    const peakHour = z.peaks.rtoFiveCP[0].localStart;
+    const low = 1 - out / cap;
+    let soc = low, cash = 0;
+    const hours = h.map((price, i) => {
+      let s = 'idle';
+      if (i >= c0 && i < c1) { s = 'charge'; soc += (out / cap) / (c1 - c0); cash -= (out / eff / (c1 - c0)) * price / 1000; }
+      else if (i >= r0 && i < r1) { s = 'run'; soc -= (out / cap) / (r1 - r0); cash += kw * price / 1000; }
+      return { i, price, state: s, peak: i === peakHour, soc: Math.max(0, Math.min(1, soc)), cash };
+    });
+    return { hours, kw, out, low, peakHour, c0, c1, r0, r1, night: mean(h.slice(c0, c1)), evening: mean(h.slice(r0, r1)), top: Math.max.apply(null, h) };
+  }
+
+  function zone() { return V.zones.find((x) => x.id === $('zone').value); }
+
+  function renderHour() {
+    const z = zone(), d = day(z), i = Number($('hour').value), x = d.hours[i];
+    const s = x.peak && x.state === 'idle' ? 'peak' : x.state;
+    const [a, b] = sky(i);
+    $('scene').style.setProperty('--sky-a', a); $('scene').style.setProperty('--sky-b', b);
+    const sunUp = i >= 6 && i < 19, arc = sunUp ? (i + 0.5 - 6) / 13 : ((i + 0.5 + 24 - 19) % 24) / 11;
+    $('orb').className = 'orb' + (sunUp ? '' : ' moon');
+    $('orb').style.left = (12 + arc * 76) + '%'; $('orb').style.top = (46 - Math.sin(arc * Math.PI) * 30) + '%';
+    $('clock').textContent = clock(i);
+    $('chip').dataset.s = s;
+    $('chip').textContent = { charge: 'Charging from the grid', run: 'Running the home', peak: 'Grid peak hour', idle: 'Standing by' }[s];
+    $('price').textContent = cents(x.price);
+    $('soc').textContent = Math.round(x.soc * 100) + '%';
+    $('gauge').dataset.s = x.state; $('gauge-fill').style.width = (x.soc * 100).toFixed(0) + '%';
+    $('tally').textContent = usd2(x.cash);
+    $('why').textContent = {
+      charge: 'Power is cheapest now, so the battery fills up from the grid.',
+      run: 'Power costs the most now. The battery runs the home, so the home buys nothing.',
+      peak: 'The grid\'s busiest hours of 2026 began at this time. A few hours like this set next year\'s capacity and transmission charges.',
+      idle: x.soc > 0.99 ? 'The home runs on the grid. The battery waits, full, in case the power goes out.'
+        : 'The home runs on the grid. The battery waits at ' + Math.round(x.soc * 100) + '% and will refill overnight.',
+    }[s];
+    Array.prototype.forEach.call($('bars').children, (el, k) => { el.classList.toggle('on', k === i); el.classList.toggle('past', k < i); });
+    $('hour').setAttribute('aria-valuetext', clock(i) + ', ' + cents(x.price) + ' a kWh, ' + $('chip').textContent);
+    window.StagePending = { name: s, glow: x.state === 'charge' ? css('--charge') : x.state === 'run' ? css('--run') : null, daylight: daylight(i) };
+    if (window.Stage) window.Stage.set({ name: s, glow: x.state === 'charge' ? css('--charge') : x.state === 'run' ? css('--run') : null, daylight: daylight(i) });
+  }
+
+  function fundInputs(v, over) {
+    const raw = {};
+    D.groups.forEach((g) => g.fields.forEach((f) => { raw[f.key] = f.value; }));
+    D.presets.base_published.values.forEach((x) => { raw[x.key] = x.value; });
+    Object.assign(raw, over || {});
+    raw.revenueCase = 'stacked';
+    raw.arbPerYear = v.energy;                                  // buying low, using high
+    raw.tollPerKwYear = (v.capacity + v.transmission) / raw.kw;  // peak charges avoided, carried on the per-kW line
+    raw.ancPerKwYear = 0;
+    raw.retailMarginMonthly = 0;                                 // no public PJM retail margin: left out
+    return F.normalize(raw);
+  }
+  // Highest installed cost at which the loan covers everything the credit and the install payment do not.
+  function fundedCost(v, over) {
+    let lo = 0, hi = 3000;
+    for (let k = 0; k < 40; k++) {
+      const mid = (lo + hi) / 2;
+      if (F.sizeDebt(fundInputs(v, Object.assign({}, over, { capexPerKwh: mid }))).equity < 0.5) lo = mid; else hi = mid;
+    }
+    return lo;
+  }
+
+  function render() {
+    const z = zone(), name = z.shortName || z.utility, d = day(z), v = P.valueZone(z, {});
+    const counted = v.tagStatus === 'interval' || v.tagStatus === 'partly';
+    $('say').textContent = 'In ' + name + ', power costs ' + cents(d.night) + ' overnight and ' + cents(d.evening) + ' at dinner time. Drag through the day to see what a home battery does about it.';
+    $('bars').innerHTML = d.hours.map((x) => '<i class="' + (x.state === 'charge' ? 'c' : x.state === 'run' ? 'r' : x.peak ? 'p' : '') + '" style="height:' + (x.price / d.top * 100).toFixed(1) + '%"></i>').join('');
+    $('year').textContent = usd(v.total);
+    const missed = d.peakHour < d.r0 || d.peakHour >= d.r1;
+    $('strip-cap').textContent = 'Average price each hour, ' + V.period.start + ' to ' + V.period.endExclusive + ', ' + z.timezone + ' time. The day shown is an average one; the yearly figure uses every real hour.';
+
+    // The home
+    $('home-used').textContent = Math.round((1 - d.low) * 100) + '%';
+    $('home-call').textContent = 'The rest of the battery, ' + Math.round(d.low * 100) + '%, sits ready for an outage.';
+
+    // The battery's owner
+    $('owner-say').textContent = 'What that one battery earns the company that owns it in ' + name + ', in a year.';
+    $('owner-dl').innerHTML =
+      row('Buying low, using high', usd(v.energy), '', cents(d.night) + ' in, ' + cents(d.evening) + ' out')
+      + row('Capacity charge avoided', counted ? usd(v.capacity) : 'not counted', counted ? '' : 'off', counted ? 'set by five peak hours a year' : '')
+      + row('Transmission charge avoided', counted && v.transmission ? usd(v.transmission) : 'not counted', counted && v.transmission ? '' : 'off')
+      + row('A year, one battery <span class="est">estimate</span>', usd(v.total), 'sum');
+    $('owner-call').hidden = !(counted && missed);
+    $('owner-call').textContent = 'All five 2026 peak hours began at ' + clock(d.peakHour) + ' here, an hour before the evening window. A battery on a fixed clock misses them; one that watches the grid does not.';
+    $('owner-src').textContent = (counted ? '' : 'Peak charges are not counted here: this utility sets them by class average, or its rules are not confirmed'
+      + (v.potential ? ' (' + usd(v.potential) + ' more if confirmed). ' : '. ')) + 'Outside estimate, not Base\'s revenue. Sources 1 to 3.';
+
+    // A lender
+    const over = { capexPerKwh: Number($('f-cost').value), ratePct: Number($('f-rate').value), tenorYears: Number($('f-tenor').value), dscr: Number($('f-dscr').value) };
+    const r = F.sizeDebt(fundInputs(v, over)), base = F.sizeDebt(fundInputs(v, BASE));
+    const changed = Object.keys(BASE).some((k) => BASE[k] !== over[k]);
+    $('fund-say').textContent = 'A lender looks at the cash one battery makes each year in ' + name + ' and asks how big a loan it can repay. The starting numbers are Base\'s published ones. Change them to test your own.';
+    $('cost-dl').innerHTML =
+      row('Installed cost', usd(r.capex), '', usd(over.capexPerKwh) + ' a kWh, 39.2 kWh')
+      + row('Tax credit, sold for cash', usd(-r.itc), '', Math.round(r.itcRate * 100) + '% at ' + Math.round(r.itcPrice * 1000) / 10 + ' cents on the dollar')
+      + row('Member pays at install', usd(-r.upfront))
+      + row('Left to fund', usd(r.netCapex), 'sum');
+    const share = r.netCapex > 0 ? Math.round(r.debt / r.netCapex * 100) : 100;
+    $('debt-dl').innerHTML =
+      row('Cash after running cost, year 1', usd(r.year1Cfads), '', 'weakest loan year: ' + usd(r.minCfads))
+      + row('Loan the cash supports <span class="est">estimate</span>', usd(r.debt) + (changed ? '<span class="was">published figures: ' + usd(base.debt) + '</span>' : ''), '', r.tenor + ' years at ' + over.ratePct + '%, ' + over.dscr + 'x cover')
+      + row('Owner\'s own money', usd(r.equity))
+      + row('Loan covers', share + '%', 'sum');
+    $('debt-call').innerHTML = r.debt <= 0 ? 'No loan: the weakest year has no cash left after running cost.'
+      : 'A loan alone would fund the battery at <strong>' + usd(fundedCost(v, over)) + '</strong> a kWh installed, or less.';
+    const top = Math.max.apply(null, r.years.map((y) => y.revenue)) || 1, pct = (n) => (n / top * 100).toFixed(1) + '%';
+    $('ybars').innerHTML = r.years.map((y) => '<div class="col"><i class="fee" style="height:' + pct(y.member) + '"></i><i class="tag" style="height:' + pct(y.toll) + '"></i><i class="nrg" style="height:' + pct(y.arb) + '"></i></div>').join('')
+      + '<span class="ln cost" style="bottom:' + pct(Math.min(r.opex, top)) + '"><b>running cost ' + usd(r.opex) + '</b></span>'
+      + (r.debtService > 0 ? '<span class="ln" style="bottom:' + pct(Math.min(r.opex + r.debtService, top)) + ';width:' + (r.tenor / r.life * 100).toFixed(1) + '%"><b>plus loan ' + usd(r.debtService) + '</b></span>' : '');
+    $('ybars').setAttribute('aria-label', 'Cash in each year for ' + r.life + ' years: ' + usd(r.years[0].revenue) + ' in year 1 falling to ' + usd(r.years[r.life - 1].revenue)
+      + '. Running cost ' + usd(r.opex) + ' a year. Loan payment ' + usd(r.debtService) + ' a year for ' + r.tenor + ' years.');
+    $('ynums').innerHTML = r.years.map((y) => '<span>' + y.year + '</span>').join('');
+    $('fund-src').textContent = 'The gap between the bars and the solid line is the lender\'s cushion. Battery income fades 2% a year; fees do not. Cost is the midpoint of the $300 to $400 a kWh Base publishes, which may include its margin. '
+      + 'Retail margin is left out (no public PJM figure). Interest, term, cover, running cost and life are assumptions. Outside estimate, not Base\'s books. Sources 4 and 5.';
+
+    // A data center
+    const mw = Math.min(2000, Math.max(1, Number($('mw').value) || 100));
+    const capPerMw = V.capacity.deliveryYears[0].usdPerMwDay * 365, txPerMw = z.nitsUsdPerMwYear;
+    const txFixed = !!(z.transmission && z.transmission.bypassable === false); // still paid, but peak cuts do not lower it (Ohio)
+    const energy = mw * z.avgRtUsdPerMwh * 8760 * LOAD_FACTOR;
+    $('load-say').textContent = 'The same prices and the same peak hours, at ' + mw.toLocaleString('en-US') + ' MW. What it pays for power in ' + name + ' in a year, running at ' + (LOAD_FACTOR * 100) + '% (an assumption).';
+    $('load-dl').innerHTML =
+      row('Energy', big(energy), '', 'at the average price, ' + cents(z.avgRtUsdPerMwh) + ' a kWh')
+      + row('Capacity charge', big(mw * capPerMw), '', usd(capPerMw) + ' per MW')
+      + row('Transmission charge', big(mw * txPerMw), '', usd(txPerMw) + ' per MW' + (txFixed ? ', fixed in this state' : ''))
+      + row('A year <span class="est">estimate</span>', big(energy + mw * (capPerMw + txPerMw)), 'sum');
+    $('load-call').innerHTML = 'Each MW kept off the grid in the peak hours that set ' + (txFixed ? 'the capacity charge' : 'those charges') + ' avoids <strong>'
+      + usd(capPerMw + (txFixed ? 0 : txPerMw)) + '</strong> a year. A battery on site is one way to do it.';
+    $('load-src').textContent = 'A sketch from the same public rates, not yet a tool. Assumes the charges follow the site\'s own metered use in the peak hours. Delivery charges are not included. Sources 1 to 3.';
+
+    renderHour();
+  }
+
+  function pickTab(tab) {
+    document.querySelectorAll('[role=tab]').forEach((t) => {
+      const on = t === tab;
+      t.setAttribute('aria-selected', on ? 'true' : 'false'); t.tabIndex = on ? 0 : -1;
+      $(t.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  function stop() { clearInterval(timer); timer = null; $('play').textContent = 'Play the day'; }
+  function wire() {
+    const tabs = Array.from(document.querySelectorAll('[role=tab]'));
+    tabs.forEach((t, k) => {
+      t.addEventListener('click', () => pickTab(t));
+      t.addEventListener('keydown', (e) => {
+        const step = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+        if (!step) return;
+        const next = tabs[(k + step + tabs.length) % tabs.length];
+        pickTab(next); next.focus(); e.preventDefault();
+      });
+    });
+    $('hour').addEventListener('input', () => { stop(); renderHour(); });
+    // Tap or drag across the bars to pick an hour.
+    const bars = $('bars');
+    const at = (e) => { const b = bars.getBoundingClientRect(); return Math.max(0, Math.min(23, Math.floor((e.clientX - b.left) / b.width * 24))); };
+    let dragging = false;
+    bars.addEventListener('pointerdown', (e) => { dragging = true; stop(); $('hour').value = at(e); renderHour(); });
+    bars.addEventListener('pointermove', (e) => { if (dragging) { $('hour').value = at(e); renderHour(); } });
+    addEventListener('pointerup', () => { dragging = false; });
+    $('play').addEventListener('click', () => {
+      if (timer) return stop();
+      $('hour').value = 0; renderHour(); $('play').textContent = 'Pause';
+      timer = setInterval(() => {
+        const next = Number($('hour').value) + 1;
+        if (next > 23) return stop();
+        $('hour').value = next; renderHour();
+      }, 650);
+    });
+    $('zone').addEventListener('change', render);
+    ['mw', 'f-cost', 'f-rate', 'f-tenor', 'f-dscr'].forEach((id) => $(id).addEventListener('input', render));
+  }
+
+  Promise.all([fetch('/data/pjm-value.json').then((r) => r.json()), fetch('/data/finance-defaults.json').then((r) => r.json())]).then((both) => {
+    V = both[0]; D = both[1];
+    const dflt = {};
+    D.groups.forEach((g) => g.fields.forEach((f) => { dflt[f.key] = f.value; }));
+    D.presets.base_published.values.forEach((x) => { dflt[x.key] = x.value; });
+    BASE = { capexPerKwh: dflt.capexPerKwh, ratePct: dflt.ratePct, tenorYears: dflt.tenorYears, dscr: dflt.dscr };
+    $('f-cost').value = BASE.capexPerKwh; $('f-rate').value = BASE.ratePct; $('f-tenor').value = BASE.tenorYears; $('f-dscr').value = BASE.dscr;
+    $('zone').innerHTML = V.zones.map((z) => '<option value="' + esc(z.id) + '"' + (z.id === 'COMED' ? ' selected' : '') + '>'
+      + esc((z.shortName || z.utility) + ' (' + z.states.join(', ') + ')') + '</option>').join('');
+    const cap = V.capacity.deliveryYears[0];
+    $('sources').innerHTML = [
+      '<a href="' + esc(V.pricesSource.url) + '">' + esc(V.pricesSource.title) + '</a>, fetched ' + esc(V.period.fetched) + '. Peak hours computed from metered load; PJM\'s official list may differ slightly.',
+      '<a href="' + esc(cap.source) + '">PJM capacity auction for ' + esc(cap.year) + '</a>: $' + cap.usdPerMwDay + ' per MW-day.',
+      '<a href="' + esc(V.nits.source) + '">PJM network transmission rates</a>, effective ' + esc(V.nits.effective) + '.',
+      '<a href="https://www.basepowercompany.com/utilities">Base Power, utilities page</a>: landed cost of storage about $300 to $400 a kWh; $695 install and $19 a month. Read 29 Oct 2026.',
+      '<a href="https://www.law.cornell.edu/uscode/text/26/48E">26 U.S.C. 48E</a>, investment credit for energy storage; sale price from the Crux Q1 2026 market update.',
+    ].map((s) => '<li>' + s + '</li>').join('');
+    wire();
+    render();
+  }).catch((err) => { $('say').textContent = 'The price file did not load: ' + err.message; });
+})();
+</script>
+</body>
+</html>

@@ -5,12 +5,13 @@
 <title>Where batteries go · Megawatt</title>
 <link rel="canonical" href="https://megawatt.fun/deploy">
 <meta name="description" content="A Texas battery deployment screen. ERCOT hubs and load zones, twelve months of evidence, and assumptions you can change.">
-<link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/site.css"><link rel="stylesheet" href="/deploy.css">
+<link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/site.css"><link rel="stylesheet" href="/shell.css"><link rel="stylesheet" href="/deploy.css">
 <script src="/deployment-core.js" defer></script><script src="/market-intelligence.js" defer></script><script src="/deploy.js" defer></script><script src="/candidate-scoring.js" defer></script>
+<script src="/nav.js" defer></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to decision tool</a>
-<header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/">PJM</a><a href="/market">US map</a><a href="/battery">Texas battery</a><a href="/live">Live</a><a href="/notes">Notes</a></nav><button id="franklin-launch" class="franklin-launch" type="button" aria-controls="franklin-panel" aria-expanded="false"><span aria-hidden="true">ϟ</span> Ask Franklin</button></header>
+<!--mw-header--><header class="mw-header"><a class="mw-name" href="/">megawatt<span>.fun</span></a><button class="mw-menu-btn" type="button" aria-expanded="false" aria-controls="mw-nav" aria-label="Menu"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 14.8h16V16H2zm0-5.4h16v1.2H2zM2 4h16v1.2H2z"/></svg></button><nav class="mw-nav" id="mw-nav" aria-label="Main navigation"><ul><li><button type="button" aria-expanded="false">Homes<svg viewBox="0 0 10 6" aria-hidden="true"><path d="M5 6 0 1l.7-.7L5 4.6 9.3.3l.7.7z"/></svg></button><ul class="sub"><li><a href="/">One battery, one day</a></li><li><a href="/battery">Texas battery tool</a></li><li><a href="/pjm">PJM utility ranking</a></li><li><a href="/market">US market map</a></li></ul></li><li><a href="/#data-center">Data centers</a></li><li><a href="/live">Grid prices</a></li><li><a href="/finance">Financing</a></li><li><a href="/notes">Notes</a></li></ul></nav></header><!--/mw-header-->
 <main id="main">
   <header class="page-heading"><p class="eyebrow">Texas deployment study</p><h1>Where batteries go.</h1><p>Find the next place to investigate.</p><div class="status-line"><span class="dot"></span><span id="data-status" role="status">Loading public data…</span></div></header>
   <nav class="section-nav" aria-label="Page sections"><a href="#value" aria-current="location">Value map</a><a href="#sites">Shortlist</a><a href="#economics">Economics</a><a class="method-link" href="/ops">Operations lab ↗</a></nav>
