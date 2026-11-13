@@ -1,0 +1,480 @@
+{
+  "asOf": "2026-06-18",
+  "whatItIs": "ERCOT large-load interconnection status. The deck does not say these loads are data centers. County and customer names are not in the slides that this build could read.",
+  "textFigures": [
+    {
+      "id": "approved-to-energize",
+      "value": 8927,
+      "unit": "MW",
+      "label": "Approval to Energize",
+      "quote": "Of the 8927 MW that have received Approval to Energize",
+      "slide": 8
+    },
+    {
+      "id": "non-simultaneous-peak",
+      "value": 3900,
+      "unit": "MW",
+      "label": "Non-simultaneous monthly peak, June 2026",
+      "quote": "a non-simultaneous monthly peak consumption of 3900 MW in June 2026",
+      "slide": 8
+    },
+    {
+      "id": "simultaneous-peak",
+      "value": 3675,
+      "unit": "MW",
+      "label": "Simultaneous monthly peak, June 2026",
+      "quote": "a simultaneous monthly peak consumption of 3675 MW in June 2026",
+      "slide": 9
+    }
+  ],
+  "charts": [
+    {
+      "image": "ppt/media/image13.png",
+      "sha256": "ee563986dfc5234ca3ec323a06e9e3f8a29012543272a32b6fa01bf45a7c66cf",
+      "slide": 7,
+      "title": "Approved to Energize by Load Zone",
+      "note": "Printed segment labels. LZ_WEST 3142 + 1908 = 5050. Other 2394 + 1482 = 3876. The two totals sum to 8926 MW. Slide 8 text says 8927 MW approved to energize. The 1 MW difference is left as printed.",
+      "rows": [
+        {
+          "zone": "LZ_WEST",
+          "remainingApprovedMw": 3142,
+          "observedNonSimultaneousPeakMw": 1908,
+          "totalMw": 5050
+        },
+        {
+          "zone": "Other",
+          "remainingApprovedMw": 2394,
+          "observedNonSimultaneousPeakMw": 1482,
+          "totalMw": 3876,
+          "note": "ERCOT did not split this bar into Houston, South, or the NOIE load zones."
+        }
+      ]
+    },
+    {
+      "image": "ppt/media/image14.png",
+      "sha256": "37440e1284122da14b18c5f69d478978340652bceb2e09e527ec390608c7d912",
+      "slide": 7,
+      "title": "Approved to Energize by Project Type",
+      "note": "Co-located 918 + 1144 = 2062. Standalone 4882 + 1982 = 6864. Sum 8926 MW, against 8927 MW in the slide text.",
+      "rows": [
+        {
+          "type": "Co-Located",
+          "remainingApprovedMw": 918,
+          "observedNonSimultaneousPeakMw": 1144,
+          "totalMw": 2062
+        },
+        {
+          "type": "Standalone",
+          "remainingApprovedMw": 4882,
+          "observedNonSimultaneousPeakMw": 1982,
+          "totalMw": 6864
+        }
+      ]
+    },
+    {
+      "image": "ppt/media/image22.png",
+      "sha256": "f4f16064390259cd9bd4a4e85cae38acc0aae13c5e30edb82b019cc4fc250438",
+      "slide": 15,
+      "title": "Large load study status by load zone, MW",
+      "note": "Queue requests, not operating load. Printed totals: LZ_WEST 82247 (segments sum to 82246), LZ_NORTH 56788, Other 60927.",
+      "rows": [
+        {
+          "zone": "LZ_WEST",
+          "underReviewMw": 57790,
+          "section94OnlyMw": 4268,
+          "section9495MetMw": 20188,
+          "printedTotalMw": 82247
+        },
+        {
+          "zone": "LZ_NORTH",
+          "underReviewMw": 44016,
+          "section94OnlyMw": 4021,
+          "section9495MetMw": 8751,
+          "printedTotalMw": 56788
+        },
+        {
+          "zone": "Other",
+          "underReviewMw": 49267,
+          "section94OnlyMw": 3514,
+          "section9495MetMw": 8146,
+          "printedTotalMw": 60927
+        }
+      ]
+    },
+    {
+      "image": "ppt/media/image23.png",
+      "sha256": "e93635eb0ef1457bce173cd0b649bc91385912129205f2255d870226278a5dd9",
+      "slide": 16,
+      "title": "Large load study status by load zone, project count",
+      "note": null,
+      "rows": [
+        {
+          "zone": "LZ_WEST",
+          "underReview": 59,
+          "section94Only": 7,
+          "section9495Met": 44,
+          "total": 110
+        },
+        {
+          "zone": "LZ_NORTH",
+          "underReview": 60,
+          "section94Only": 10,
+          "section9495Met": 22,
+          "total": 92
+        },
+        {
+          "zone": "Other",
+          "underReview": 78,
+          "section94Only": 10,
+          "section9495Met": 14,
+          "total": 102
+        }
+      ]
+    },
+    {
+      "image": "ppt/media/image17.png",
+      "sha256": "c4383c273a22fbfdb388dfa8efb4e1707d2c6425ca7f85cd2cde14f7247c383c",
+      "slide": 10,
+      "title": "Distribution of Large Load Projects by Size",
+      "note": "Requested MW, not observed consumption. ERCOT does not label these projects as data centers.",
+      "rows": [
+        {
+          "bin": "75-<250 MW",
+          "projects": 115,
+          "requestedMw": 18686
+        },
+        {
+          "bin": "250-<500 MW",
+          "projects": 144,
+          "requestedMw": 50198
+        },
+        {
+          "bin": "500-<1000 MW",
+          "projects": 175,
+          "requestedMw": 114851
+        },
+        {
+          "bin": "1000+ MW",
+          "projects": 207,
+          "requestedMw": 305149
+        }
+      ]
+    }
+  ],
+  "growth": {
+    "image": "ppt/media/image10.png",
+    "sha256": "0cf2bef51ff2c131f151bea88a445dee66a14eb0ca30ce4d3d253cbdaecceed8",
+    "slide": 4,
+    "title": "Actual and Projected Large Load Growth 2022-2033",
+    "unit": "GW",
+    "note": "Printed table on the chart. 2026 and later years mix operating load with requests that have no studies. Not a forecast this site endorses.",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025,
+      2026,
+      2027,
+      2028,
+      2029,
+      2030,
+      2031,
+      2032,
+      2033
+    ],
+    "rows": [
+      {
+        "status": "No Studies Submitted",
+        "gw": [
+          0.0,
+          0.0,
+          0.0,
+          4.1,
+          32.3,
+          102.4,
+          188.9,
+          232.4,
+          245.8,
+          257.3,
+          257.6,
+          257.6
+        ]
+      },
+      {
+        "status": "Under ERCOT Review",
+        "gw": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          8.1,
+          52.9,
+          111.0,
+          131.2,
+          147.7,
+          148.2,
+          151.1,
+          151.1
+        ]
+      },
+      {
+        "status": "Section 9.4 Requirements Only",
+        "gw": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.5,
+          5.7,
+          7.2,
+          10.4,
+          11.8,
+          11.8,
+          11.8,
+          11.8
+        ]
+      },
+      {
+        "status": "Section 9.4/9.5 Requirements Met",
+        "gw": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          10.1,
+          31.0,
+          36.1,
+          36.8,
+          36.8,
+          36.8,
+          37.1,
+          37.1
+        ]
+      },
+      {
+        "status": "A2E but not operational",
+        "gw": [
+          0.0,
+          0.4,
+          1.8,
+          3.1,
+          3.2,
+          3.2,
+          3.2,
+          3.2,
+          3.2,
+          3.2,
+          3.2,
+          3.2
+        ]
+      },
+      {
+        "status": "Observed Energized",
+        "gw": [
+          3.3,
+          4.3,
+          4.8,
+          5.7,
+          5.7,
+          5.7,
+          5.7,
+          5.7,
+          5.7,
+          5.7,
+          5.7,
+          5.7
+        ]
+      }
+    ],
+    "totalGw": [
+      3.3,
+      4.7,
+      6.6,
+      12.9,
+      60.8,
+      201.0,
+      352.2,
+      419.7,
+      451.0,
+      463.0,
+      466.5,
+      466.5
+    ]
+  },
+  "batchZeroWeatherZones": {
+    "image": "ppt/media/image24.png",
+    "sha256": "d48ecd486ff7798d1cd0dd93309759f3e45285d399428f5b48f5617c1d42c27d",
+    "slide": 17,
+    "title": "Batch Zero Tracking by Weather Zone (GW)",
+    "generated": "2026-06-02",
+    "unit": "GW",
+    "note": "ERCOT weather zones, not counties and not load zones. Printed table on the chart.",
+    "zones": [
+      "North Central",
+      "North",
+      "West",
+      "South Central",
+      "Far West",
+      "South",
+      "Coast",
+      "East",
+      "Not Specified"
+    ],
+    "rows": [
+      {
+        "bucket": "(1) Base Load Eligible",
+        "gw": [
+          3.4,
+          13.1,
+          1.8,
+          1.2,
+          1.9,
+          1.4,
+          0.7,
+          1.4,
+          0.0
+        ],
+        "totalGw": 24.9
+      },
+      {
+        "bucket": "(2a) Studies Complete",
+        "gw": [
+          0.0,
+          1.3,
+          1.1,
+          0.0,
+          0.0,
+          1.6,
+          2.7,
+          1.9,
+          0.0
+        ],
+        "totalGw": 8.7
+      },
+      {
+        "bucket": "(2b) Potentially Invalid",
+        "gw": [
+          0.3,
+          1.6,
+          1.6,
+          0.5,
+          0.0,
+          0.0,
+          0.1,
+          0.0,
+          0.0
+        ],
+        "totalGw": 4.2
+      },
+      {
+        "bucket": "(2c) Under Review",
+        "gw": [
+          0.5,
+          1.5,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "totalGw": 3.0
+      },
+      {
+        "bucket": "(3) Studied/Base Eligible",
+        "gw": [
+          3.7,
+          0.1,
+          1.6,
+          1.0,
+          0.9,
+          0.2,
+          2.1,
+          0.0,
+          0.1
+        ],
+        "totalGw": 9.6
+      },
+      {
+        "bucket": "(4) One Study Complete",
+        "gw": [
+          19.8,
+          7.7,
+          1.4,
+          7.6,
+          2.4,
+          3.8,
+          0.5,
+          3.5,
+          0.0
+        ],
+        "totalGw": 46.6
+      },
+      {
+        "bucket": "(5) Path to Studied",
+        "gw": [
+          16.1,
+          21.9,
+          16.2,
+          9.0,
+          8.0,
+          11.5,
+          11.9,
+          2.6,
+          0.0
+        ],
+        "totalGw": 97.2
+      },
+      {
+        "bucket": "(6) Not Included",
+        "gw": [
+          100.2,
+          58.8,
+          27.7,
+          31.7,
+          17.9,
+          11.1,
+          11.0,
+          19.1,
+          9.6
+        ],
+        "totalGw": 287.2
+      }
+    ],
+    "totalGw": [
+      144.0,
+      106.0,
+      52.4,
+      51.0,
+      31.1,
+      29.6,
+      29.0,
+      28.5,
+      9.7,
+      481.4
+    ]
+  },
+  "rules": [
+    {
+      "id": "sb6",
+      "citation": "SB 6, 89th Legislature, enrolled",
+      "url": "https://capitol.texas.gov/tlodocs/89R/billtext/html/SB00006F.htm",
+      "quote": "The commission shall establish a demand threshold of 75 megawatts unless the commission determines that a lower threshold is necessary to accomplish the purposes described by Subsection (b)."
+    },
+    {
+      "id": "puct-58481-proposal",
+      "citation": "PUCT Project No. 58481, proposal for publication of section 25.194",
+      "url": "https://ftp.puc.texas.gov/public/puct-info/agency/rulesnlaws/subrules/electric/25.194/58481pub.pdf",
+      "quote": "(b) Applicability. This section applies to a large load customer that seeks: (1) a new interconnection that is equal to or exceeds 75 megawatts (MW); (2) an expanded interconnection that equals or exceeds 75 MW for the first time; and (3) an expanded interconnection that exceeds 75 MW by 75 MW or more.",
+      "label": "PROPOSAL"
+    }
+  ],
+  "retailContext": {
+    "id": "eia-texas-average-retail",
+    "centsPerKwh": 9.79,
+    "year": 2024,
+    "url": "https://www.eia.gov/electricity/state/texas/",
+    "label": "Texas average retail price, all sectors. Not a data-center tariff and not the ERCOT nodal price."
+  }
+}

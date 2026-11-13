@@ -13,6 +13,7 @@ Independent. Not affiliated with Base Power.
 | Question | Page | API |
 | --- | --- | --- |
 | What does one battery earn at this home, and how much debt can it carry? | [/](https://megawatt.fun/) | `POST /api/v1/home` |
+| Where in Texas does the public price record put a home battery, and what does a large-load megawatt cost? | [/siting](https://megawatt.fun/siting) | The page reads `data/siting/`. Rebuild with `python3 scripts/build_siting.py`. |
 
 Pitch, supply, launch, bench, base, deploy and ops stay in the repo and are not linked from the site. Their APIs still answer. House models: `docs/models.md`.
 
