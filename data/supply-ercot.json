@@ -1,0 +1,562 @@
+{
+ "built": "2026-11-13",
+ "grid": "ERCOT",
+ "period": {
+  "start": "2025-10-01",
+  "endExclusive": "2026-10-01",
+  "days": 365,
+  "timezone": "America/Chicago"
+ },
+ "sourceEnergy": {
+  "title": "ERCOT Interval Generation by Fuel, 2025 and 2026 workbooks",
+  "page": "https://www.ercot.com/gridinfo/generation",
+  "files": [
+   "https://www.ercot.com/files/docs/2025/02/07/IntGenbyFuel2025.xlsx",
+   "https://www.ercot.com/files/docs/2026/02/09/IntGenbyFuel2026.xlsx"
+  ],
+  "note": "Fifteen-minute generation by fuel from settlement. A plant that can burn more than one fuel is counted under its primary fuel.",
+  "settlement": {
+   "2025-10": "FINAL",
+   "2025-11": "FINAL",
+   "2025-12": "FINAL",
+   "2026-01": "FINAL",
+   "2026-02": "FINAL",
+   "2026-03": "FINAL",
+   "2026-04": "FINAL",
+   "2026-05": "FINAL",
+   "2026-06": "FINAL",
+   "2026-07": "FINAL",
+   "2026-08": "FINAL",
+   "2026-09": "INITIAL"
+  }
+ },
+ "sourceCapacity": {
+  "title": "ERCOT fuel mix dashboard, installed capacity",
+  "url": "https://www.ercot.com/api/1/services/read/dashboards/fuel-mix.json",
+  "asOf": "2026-11-13"
+ },
+ "sourcePrice": {
+  "title": "ERCOT hub average real-time price, by hour of day",
+  "file": "/data/deployment/HB_HUBAVG.csv",
+  "manifest": "/data/deployment/manifest.json"
+ },
+ "totalGwh": 518459.6,
+ "sources": [
+  {
+   "id": "nuclear",
+   "name": "Nuclear",
+   "ercotFuels": [
+    "Nuclear"
+   ],
+   "gwh": 40532.9,
+   "share": 0.0782,
+   "capacityMw": 5268,
+   "avgMwByHour": [
+    4622.4,
+    4623.4,
+    4611.0,
+    4626.9,
+    4628.9,
+    4630.5,
+    4630.6,
+    4631.8,
+    4632.3,
+    4631.8,
+    4631.0,
+    4631.6,
+    4627.3,
+    4626.5,
+    4626.1,
+    4626.1,
+    4625.9,
+    4626.0,
+    4627.3,
+    4628.7,
+    4627.6,
+    4625.5,
+    4626.3,
+    4623.6
+   ]
+  },
+  {
+   "id": "coal",
+   "name": "Coal",
+   "ercotFuels": [
+    "Coal"
+   ],
+   "gwh": 62355.2,
+   "share": 0.1203,
+   "capacityMw": 13705,
+   "avgMwByHour": [
+    7426.6,
+    7160.0,
+    6961.7,
+    6907.8,
+    6962.5,
+    7212.1,
+    7524.3,
+    7521.3,
+    6804.9,
+    6131.2,
+    5961.4,
+    5943.1,
+    6095.4,
+    6328.4,
+    6532.2,
+    6673.9,
+    6916.9,
+    7390.1,
+    7909.4,
+    8269.1,
+    8324.5,
+    8207.7,
+    7976.6,
+    7695.1
+   ]
+  },
+  {
+   "id": "gas",
+   "name": "Natural gas",
+   "ercotFuels": [
+    "Gas",
+    "Gas-CC"
+   ],
+   "gwh": 202762.0,
+   "share": 0.3911,
+   "capacityMw": 69569,
+   "avgMwByHour": [
+    23768.8,
+    22850.7,
+    22316.9,
+    22188.4,
+    22342.5,
+    22928.7,
+    23547.5,
+    23246.7,
+    20586.6,
+    18397.7,
+    17929.9,
+    18008.3,
+    18652.4,
+    19630.4,
+    20534.2,
+    21519.3,
+    23329.8,
+    25825.5,
+    27890.7,
+    29209.2,
+    29317.9,
+    28666.0,
+    27312.6,
+    25511.7
+   ]
+  },
+  {
+   "id": "wind",
+   "name": "Wind",
+   "ercotFuels": [
+    "Wind"
+   ],
+   "gwh": 121965.7,
+   "share": 0.2352,
+   "capacityMw": 40405,
+   "avgMwByHour": [
+    17677.1,
+    17347.2,
+    16820.2,
+    16226.6,
+    15607.4,
+    15019.4,
+    14487.9,
+    13777.4,
+    12223.7,
+    11218.6,
+    10986.6,
+    10586.8,
+    10210.8,
+    10156.9,
+    10406.4,
+    10890.4,
+    11533.2,
+    12303.0,
+    13476.1,
+    14830.9,
+    15949.5,
+    16972.0,
+    17632.3,
+    17812.4
+   ]
+  },
+  {
+   "id": "solar",
+   "name": "Solar",
+   "ercotFuels": [
+    "Solar"
+   ],
+   "gwh": 81303.5,
+   "share": 0.1568,
+   "capacityMw": 40226,
+   "avgMwByHour": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    37.2,
+    2261.2,
+    11657.6,
+    19704.6,
+    22476.3,
+    23627.8,
+    24189.9,
+    24293.5,
+    24012.4,
+    23020.5,
+    20130.0,
+    15011.9,
+    9199.1,
+    2943.5,
+    183.6,
+    0.1,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "other",
+   "name": "Other",
+   "ercotFuels": [
+    "Other"
+   ],
+   "gwh": 8701.2,
+   "share": 0.0168,
+   "capacityMw": null,
+   "avgMwByHour": [
+    235.2,
+    158.9,
+    134.8,
+    133.7,
+    190.1,
+    509.4,
+    1607.0,
+    1629.3,
+    524.4,
+    210.1,
+    154.7,
+    163.2,
+    208.2,
+    264.6,
+    307.8,
+    302.7,
+    528.0,
+    1532.7,
+    2585.0,
+    4196.4,
+    4270.6,
+    2585.8,
+    1024.3,
+    382.0
+   ]
+  },
+  {
+   "id": "hydro",
+   "name": "Hydro",
+   "ercotFuels": [
+    "Hydro"
+   ],
+   "gwh": 329.0,
+   "share": 0.0006,
+   "capacityMw": 579,
+   "avgMwByHour": [
+    13.9,
+    19.4,
+    20.8,
+    21.5,
+    27.0,
+    37.9,
+    45.4,
+    42.8,
+    20.9,
+    13.9,
+    13.8,
+    17.6,
+    14.8,
+    16.0,
+    17.9,
+    23.6,
+    36.2,
+    54.1,
+    79.1,
+    110.4,
+    105.2,
+    76.9,
+    49.2,
+    23.1
+   ]
+  },
+  {
+   "id": "biomass",
+   "name": "Biomass",
+   "ercotFuels": [
+    "Biomass"
+   ],
+   "gwh": 510.1,
+   "share": 0.001,
+   "capacityMw": null,
+   "avgMwByHour": [
+    57.1,
+    56.3,
+    55.4,
+    55.4,
+    55.6,
+    55.8,
+    56.2,
+    57.3,
+    56.4,
+    55.0,
+    54.8,
+    54.8,
+    54.5,
+    54.5,
+    54.9,
+    55.4,
+    56.7,
+    59.6,
+    64.1,
+    68.2,
+    69.9,
+    67.5,
+    63.2,
+    58.9
+   ]
+  }
+ ],
+ "storage": {
+  "chargingGwh": 10317.5,
+  "chargingAvgMwByHour": [
+   859.1,
+   1120.6,
+   1214.8,
+   1063.3,
+   710.6,
+   342.5,
+   202.3,
+   417.7,
+   2196.9,
+   3990.1,
+   3818.7,
+   2719.9,
+   1921.4,
+   1543.0,
+   1436.5,
+   1243.8,
+   821.2,
+   520.8,
+   310.2,
+   172.4,
+   198.1,
+   287.4,
+   441.5,
+   714.3
+  ],
+  "capacityMw": 20948,
+  "note": "ERCOT's file lists battery charging as WSL (wholesale storage load), a negative number, and has no line named for batteries discharging. Its 'Other' line rises and falls with WSL, so it probably holds most battery discharge, but the file does not say so."
+ },
+ "months": [
+  {
+   "month": "2025-10",
+   "settlement": "FINAL",
+   "gwh": {
+    "nuclear": 2838.0,
+    "coal": 5558.0,
+    "gas": 17446.6,
+    "wind": 9000.3,
+    "solar": 6179.5,
+    "other": 558.5,
+    "hydro": 12.0,
+    "biomass": 36.2
+   }
+  },
+  {
+   "month": "2025-11",
+   "settlement": "FINAL",
+   "gwh": {
+    "nuclear": 3307.5,
+    "coal": 4521.7,
+    "gas": 12938.0,
+    "wind": 9877.9,
+    "solar": 4886.8,
+    "other": 544.0,
+    "hydro": 11.8,
+    "biomass": 23.1
+   }
+  },
+  {
+   "month": "2025-12",
+   "settlement": "FINAL",
+   "gwh": {
+    "nuclear": 3793.2,
+    "coal": 4664.1,
+    "gas": 14920.9,
+    "wind": 10312.8,
+    "solar": 4067.5,
+    "other": 618.6,
+    "hydro": 17.7,
+    "biomass": 54.5
+   }
+  },
+  {
+   "month": "2026-01",
+   "settlement": "FINAL",
+   "gwh": {
+    "nuclear": 3797.3,
+    "coal": 5450.1,
+    "gas": 16438.7,
+    "wind": 9616.7,
+    "solar": 4566.7,
+    "other": 684.8,
+    "hydro": 27.5,
+    "biomass": 55.1
+   }
+  },
+  {
+   "month": "2026-02",
+   "settlement": "FINAL",
+   "gwh": {
+    "nuclear": 3428.6,
+    "coal": 4410.2,
+    "gas": 10453.5,
+    "wind": 9533.2,
+    "solar": 5394.5,
+    "other": 646.5,
+    "hydro": 10.3,
+    "biomass": 44.2
+   }
+  },
+  {
+   "month": "2026-03",
+   "settlement": "FINAL",
+   "gwh": {
+    "nuclear": 3352.9,
+    "coal": 3988.5,
+    "gas": 10583.7,
+    "wind": 13305.8,
+    "solar": 6773.0,
+    "other": 761.8,
+    "hydro": 25.0,
+    "biomass": 34.7
+   }
+  },
+  {
+   "month": "2026-04",
+   "settlement": "FINAL",
+   "gwh": {
+    "nuclear": 2875.9,
+    "coal": 4422.7,
+    "gas": 13392.2,
+    "wind": 11347.8,
+    "solar": 5771.1,
+    "other": 731.4,
+    "hydro": 43.6,
+    "biomass": 9.7
+   }
+  },
+  {
+   "month": "2026-05",
+   "settlement": "FINAL",
+   "gwh": {
+    "nuclear": 2967.1,
+    "coal": 4250.0,
+    "gas": 17117.7,
+    "wind": 9688.0,
+    "solar": 7884.7,
+    "other": 740.8,
+    "hydro": 29.8,
+    "biomass": 49.7
+   }
+  },
+  {
+   "month": "2026-06",
+   "settlement": "FINAL",
+   "gwh": {
+    "nuclear": 3265.5,
+    "coal": 5343.2,
+    "gas": 19190.9,
+    "wind": 11454.3,
+    "solar": 8016.0,
+    "other": 716.7,
+    "hydro": 42.6,
+    "biomass": 49.8
+   }
+  },
+  {
+   "month": "2026-07",
+   "settlement": "FINAL",
+   "gwh": {
+    "nuclear": 3689.2,
+    "coal": 6724.6,
+    "gas": 22241.6,
+    "wind": 9337.7,
+    "solar": 9658.4,
+    "other": 841.1,
+    "hydro": 53.6,
+    "biomass": 49.8
+   }
+  },
+  {
+   "month": "2026-08",
+   "settlement": "FINAL",
+   "gwh": {
+    "nuclear": 3653.1,
+    "coal": 6697.4,
+    "gas": 24234.6,
+    "wind": 9835.2,
+    "solar": 10049.2,
+    "other": 938.1,
+    "hydro": 27.0,
+    "biomass": 52.7
+   }
+  },
+  {
+   "month": "2026-09",
+   "settlement": "INITIAL",
+   "gwh": {
+    "nuclear": 3564.7,
+    "coal": 6324.9,
+    "gas": 23803.6,
+    "wind": 8655.9,
+    "solar": 8056.1,
+    "other": 918.9,
+    "hydro": 28.1,
+    "biomass": 50.4
+   }
+  }
+ ],
+ "priceByHourUsdPerMwh": [
+  30.4,
+  28.71,
+  28.39,
+  28.04,
+  29.03,
+  31.34,
+  34.34,
+  34.83,
+  23.48,
+  18.99,
+  18.43,
+  18.52,
+  19.81,
+  21.76,
+  23.33,
+  24.61,
+  29.86,
+  39.39,
+  49.82,
+  57.25,
+  57.5,
+  52.13,
+  40.29,
+  32.53
+ ]
+}

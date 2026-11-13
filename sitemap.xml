@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://megawatt.fun/</loc></url>
+  <url><loc>https://megawatt.fun/generation</loc></url>
   <url><loc>https://megawatt.fun/pjm</loc></url>
   <url><loc>https://megawatt.fun/market</loc></url>
   <url><loc>https://megawatt.fun/battery</loc></url>
@@ -11,6 +12,7 @@
   <url><loc>https://megawatt.fun/contact</loc></url>
   <url><loc>https://megawatt.fun/privacy</loc></url>
   <url><loc>https://megawatt.fun/tools</loc></url>
+  <url><loc>https://megawatt.fun/siting</loc></url>
   <url><loc>https://megawatt.fun/notes</loc></url>
   <url><loc>https://megawatt.fun/notes/kardashev-stack</loc></url>
   <url><loc>https://megawatt.fun/notes/financing-a-home-battery</loc></url>
