@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>How power moves through Texas · megawatt.fun</title>
+<link rel="canonical" href="https://megawatt.fun/grid">
+<meta name="description" content="How power moves through Texas: where a year of ERCOT electricity was made, which regions used it, the one hour the grid is built for, and what each source earned. Public ERCOT data. Independent.">
+<meta property="og:title" content="How power moves through Texas">
+<meta property="og:description" content="Where a year of Texas electricity was made, where it went, and what it was worth. Public ERCOT data.">
+<meta property="og:url" content="https://megawatt.fun/grid">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/favicon.ico">
+<link rel="stylesheet" href="/vendor/carbon/styles.min.css"><link rel="stylesheet" href="/shell.css"><link rel="stylesheet" href="/day.css"><link rel="stylesheet" href="/generation.css"><link rel="stylesheet" href="/grid.css">
+<script src="/nav.js" defer></script>
+<script src="/grid-core.js" defer></script>
+<script src="/grid.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to the page</a>
+<!--mw-header--><header class="mw-header"><a class="mw-name" href="/">megawatt<span>.fun</span></a><button class="mw-menu-btn" type="button" aria-expanded="false" aria-controls="mw-nav" aria-label="Menu"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 14.8h16V16H2zm0-5.4h16v1.2H2zM2 4h16v1.2H2z"/></svg></button><nav class="mw-nav" id="mw-nav" aria-label="Main navigation"><ul><li><a href="/generation">Power supply</a></li><li><button type="button" aria-expanded="false">Homes<svg viewBox="0 0 10 6" aria-hidden="true"><path d="M5 6 0 1l.7-.7L5 4.6 9.3.3l.7.7z"/></svg></button><ul class="sub"><li><a href="/">One battery, one day</a></li><li><a href="/battery">Texas battery tool</a></li><li><a href="/pjm">PJM utility ranking</a></li><li><a href="/market">US market map</a></li></ul></li><li><a href="/#data-center">Data centers</a></li><li><button type="button" aria-expanded="false">Grid<svg viewBox="0 0 10 6" aria-hidden="true"><path d="M5 6 0 1l.7-.7L5 4.6 9.3.3l.7.7z"/></svg></button><ul class="sub"><li><a href="/grid">How power flows</a></li><li><a href="/live">Live prices</a></li></ul></li><li><a href="/finance">Financing</a></li><li><a href="/notes">Notes</a></li></ul></nav></header><!--/mw-header-->
+<main id="main" class="wrap">
+  <h1>How power moves through Texas.</h1>
+  <p class="say" id="say">Loading a year of ERCOT data.</p>
+
+  <section aria-labelledby="h-flow">
+    <h2 id="h-flow">From plants to places</h2>
+    <div class="flow-head" aria-hidden="true"><span>Where it is made</span><span>The grid</span><span>Where it goes</span></div>
+    <div class="flow" id="flow" role="img"></div>
+    <p class="src" id="flow-src"></p>
+  </section>
+
+  <section aria-labelledby="h-go">
+    <h2 id="h-go">Where it goes</h2>
+    <p class="intro" id="go-say"></p>
+    <div class="table-scroll"><table class="cds--data-table cds--data-table--md ledger grid-table"><thead><tr>
+      <th><div class="cds--table-header-label">Region</div></th><th><div class="cds--table-header-label">TWh</div></th>
+      <th><div class="cds--table-header-label">Share</div></th><th><div class="cds--table-header-label">In a year</div></th>
+    </tr></thead><tbody id="go-rows"></tbody></table></div>
+    <p class="call" id="go-call"></p>
+    <p class="src" id="go-src"></p>
+  </section>
+
+  <section aria-labelledby="h-peak">
+    <h2 id="h-peak">Built for one hour</h2>
+    <p class="intro" id="peak-say"></p>
+    <div class="kpis peak-kpis" id="peak-kpis"></div>
+    <p class="src">Demand on the whole ERCOT grid, hourly. A megawatt is a rate of use; a megawatt-hour is that rate held for an hour.</p>
+  </section>
+
+  <section aria-labelledby="h-worth">
+    <h2 id="h-worth">What it was worth</h2>
+    <p class="intro" id="worth-say"></p>
+    <div class="table-scroll"><table class="cds--data-table cds--data-table--md ledger grid-table"><thead><tr>
+      <th><div class="cds--table-header-label">Source</div></th><th><div class="cds--table-header-label">TWh</div></th>
+      <th><div class="cds--table-header-label">Earned a kWh</div></th><th><div class="cds--table-header-label">Value</div></th>
+    </tr></thead><tbody id="worth-rows"></tbody></table></div>
+    <p class="call" id="worth-call"></p>
+    <p class="call calm" id="lend-call"></p>
+    <p class="src" id="worth-src"></p>
+    <p class="more"><a class="cds--link" href="/#lender">How a lender reads one battery's cash</a></p>
+  </section>
+
+  <section aria-labelledby="h-not">
+    <h2 id="h-not">What is not here</h2>
+    <p class="intro" id="not-say"></p>
+  </section>
+
+  <footer>
+    <div class="foot-links"><a href="/generation">Power supply</a><a href="/">One battery, one day</a><a href="/siting">Texas siting</a><a href="/live">Live</a><a href="/notes">Notes</a><a href="/about">About</a><a href="/privacy">Privacy</a><a href="/sources">Sources</a></div>
+    <p>Independent. Not affiliated with ERCOT. Every figure is ERCOT's public data, summed here.</p>
+    <details open><summary>Sources</summary><ol id="grid-sources"></ol></details>
+  </footer>
+</main>
+</body>
+</html>
