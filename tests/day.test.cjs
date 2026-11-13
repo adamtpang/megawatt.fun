@@ -140,7 +140,7 @@ test('fund: a utility that pays more supports more debt, and the funded cost is 
 
 test('page: the homepage loads its parts, links the other tools, and keeps the independence line', () => {
   const html = fs.readFileSync(root('index.html'), 'utf8');
-  for (const f of ['day.css', 'pjm-core.js', 'finance-core.js', 'day-core.js', 'day.js', 'day-scene.js']) assert.ok(html.includes('/' + f), f);
+  for (const f of ['vendor/carbon/styles.min.css', 'shell.css', 'nav.js', 'day.css', 'pjm-core.js', 'finance-core.js', 'day-core.js', 'day.js', 'day-scene.js']) assert.ok(html.includes('/' + f), f);
   for (const href of ['/pjm', '/market', '/battery', '/live', '/notes', '/about', '/privacy', '/sources']) assert.ok(html.includes('href="' + href + '"'), href);
   assert.match(html, /id="stage-canvas" hidden/);
   assert.match(html, /id="stage-fallback"/);
@@ -152,8 +152,35 @@ test('page: the homepage loads its parts, links the other tools, and keeps the i
   }
   assert.match(html, /id="chart"/);
   assert.ok(!fs.readFileSync(root('day.css'), 'utf8').includes('Bricolage'), 'one typeface');
+  assert.match(html, /class="cds--tabs"/);
+  assert.match(html, /class="cds--data-table/);
   assert.ok(!fs.readFileSync(root('day.css'), 'utf8').includes('fonts.googleapis'), 'fonts are self-hosted');
   assert.ok(!html.includes('fonts.googleapis'), 'fonts are self-hosted');
+});
+
+test('design language: Carbon is vendored with no outside URLs, and every page has the shared header', () => {
+  const carbon = fs.readFileSync(root('vendor/carbon/styles.min.css'), 'utf8');
+  assert.ok(!/url\(https?:/.test(carbon), 'no font or image is fetched from another site');
+  assert.ok(!carbon.includes('@font-face{'), 'fonts are declared in shell.css');
+  assert.ok(carbon.includes('.cds--data-table') && carbon.includes('.cds--tabs'));
+  const shell = fs.readFileSync(root('shell.css'), 'utf8');
+  for (const w of [300, 400, 600]) {
+    assert.ok(shell.includes('/fonts/ibm-plex-sans-latin-' + w + '-normal.woff2'));
+    assert.ok(fs.existsSync(root('fonts/ibm-plex-sans-latin-' + w + '-normal.woff2')));
+  }
+  const header = /<!--mw-header-->[\s\S]*?<!--\/mw-header-->/.exec(fs.readFileSync(root('index.html'), 'utf8'))[0];
+  for (const href of ['/', '/battery', '/pjm', '/market', '/#data-center', '/live', '/finance', '/notes']) assert.ok(header.includes('href="' + href + '"'), href);
+  const pages = fs.readdirSync(root('.')).filter((f) => f.endsWith('.html')).concat(fs.readdirSync(root('notes')).map((f) => 'notes/' + f).filter((f) => f.endsWith('.html')));
+  let shared = 0;
+  for (const f of pages) {
+    const html = fs.readFileSync(root(f), 'utf8');
+    if (!html.includes('class="mw-header"')) continue;
+    shared += 1;
+    assert.ok(html.includes(header), f + ' has the same header as the homepage');
+    assert.ok(html.includes('/shell.css') && html.includes('/nav.js'), f + ' loads the shell');
+    assert.ok(!html.includes('class="site-top"'), f + ' has no old header');
+  }
+  assert.ok(shared >= 28, shared + ' pages share the header');
 });
 
 test('page: the PJM ranking moved to /pjm and nothing still redirects it home', () => {

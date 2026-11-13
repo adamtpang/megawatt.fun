@@ -9,8 +9,10 @@
 <meta property="og:description" content="What a home battery does through a day of real grid prices, and who makes what. Public data. Not affiliated with Base Power.">
 <meta property="og:url" content="https://megawatt.fun/">
 <meta property="og:type" content="website">
-<meta name="theme-color" content="#f6f7f9">
-<link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/day.css">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/favicon.ico">
+<link rel="stylesheet" href="/vendor/carbon/styles.min.css"><link rel="stylesheet" href="/shell.css"><link rel="stylesheet" href="/day.css">
+<script src="/nav.js" defer></script>
 <script src="/pjm-core.js" defer></script>
 <script src="/finance-core.js" defer></script>
 <script src="/day-core.js" defer></script>
@@ -22,132 +24,131 @@
 </head>
 <body>
 <a class="skip" href="#main">Skip to the day</a>
-<div class="wrap">
-  <header class="bar">
-    <a class="mark" href="/">megawatt.fun</a>
-    <nav aria-label="Main navigation"><a href="/pjm">PJM</a><a href="/market">US map</a><a href="/battery">Texas battery</a><a href="/live">Live</a><a href="/notes">Notes</a></nav>
-    <label class="place" for="zone"><span>Utility area</span><select id="zone"></select></label>
-  </header>
+<!--mw-header--><header class="mw-header"><a class="mw-name" href="/">megawatt<span>.fun</span></a><button class="mw-menu-btn" type="button" aria-expanded="false" aria-controls="mw-nav" aria-label="Menu"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 14.8h16V16H2zm0-5.4h16v1.2H2zM2 4h16v1.2H2z"/></svg></button><nav class="mw-nav" id="mw-nav" aria-label="Main navigation"><ul><li><button type="button" aria-expanded="false">Homes<svg viewBox="0 0 10 6" aria-hidden="true"><path d="M5 6 0 1l.7-.7L5 4.6 9.3.3l.7.7z"/></svg></button><ul class="sub"><li><a href="/">One battery, one day</a></li><li><a href="/battery">Texas battery tool</a></li><li><a href="/pjm">PJM utility ranking</a></li><li><a href="/market">US market map</a></li></ul></li><li><a href="/#data-center">Data centers</a></li><li><a href="/live">Grid prices</a></li><li><a href="/finance">Financing</a></li><li><a href="/notes">Notes</a></li></ul></nav></header><!--/mw-header-->
 
-  <main id="main">
-    <h1>One battery, one day.</h1>
-    <p class="say" id="say">Loading real prices.</p>
+<main id="main" class="wrap">
+  <h1>One battery, one day.</h1>
+  <p class="say" id="say">Loading real prices.</p>
+  <div class="place cds--form-item"><div class="cds--select"><label class="cds--label" for="zone">Utility area</label><div class="cds--select-input__wrapper"><select id="zone" class="cds--select-input"></select><svg class="cds--select__arrow" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11 3 6l.7-.7L8 9.6l4.3-4.3.7.7z"/></svg></div></div></div>
 
-    <section class="stage" aria-label="A day in the life of a home battery">
-      <div class="scene" id="scene">
-        <canvas id="stage-canvas" hidden aria-hidden="true"></canvas>
-        <div class="fallback" id="stage-fallback">
-          <svg viewBox="0 0 320 200" role="img" aria-label="A house with a battery on its side wall">
-            <ellipse cx="160" cy="184" rx="150" ry="14" fill="#d5dbe3"/>
-            <path d="M66 104 L160 44 L254 104 Z" fill="#4a5568"/>
-            <rect x="82" y="104" width="156" height="78" fill="#fbfbfd" stroke="#0f1728" stroke-width="1.5"/>
-            <rect x="146" y="134" width="28" height="48" fill="#e1e5eb" stroke="#0f1728" stroke-width="1.5"/>
-            <rect x="98" y="122" width="30" height="26" fill="#dbe7f3" stroke="#0f1728" stroke-width="1.5"/>
-            <rect x="192" y="122" width="30" height="26" fill="#dbe7f3" stroke="#0f1728" stroke-width="1.5"/>
-            <rect class="batt" x="244" y="138" width="22" height="44" rx="3" stroke="#0f1728" stroke-width="1.5"/>
-          </svg>
+  <section class="stage" aria-label="A day in the life of a home battery">
+    <div class="scene" id="scene">
+      <canvas id="stage-canvas" hidden aria-hidden="true"></canvas>
+      <div class="fallback" id="stage-fallback">
+        <svg viewBox="0 0 320 200" role="img" aria-label="A house with a battery on its side wall">
+          <ellipse cx="160" cy="184" rx="150" ry="14" fill="#e0e0e0"/>
+          <path d="M66 104 L160 44 L254 104 Z" fill="#525252"/>
+          <rect x="82" y="104" width="156" height="78" fill="#ffffff" stroke="#161616" stroke-width="1.5"/>
+          <rect x="146" y="134" width="28" height="48" fill="#e0e0e0" stroke="#161616" stroke-width="1.5"/>
+          <rect x="98" y="122" width="30" height="26" fill="#d0e2ff" stroke="#161616" stroke-width="1.5"/>
+          <rect x="192" y="122" width="30" height="26" fill="#d0e2ff" stroke="#161616" stroke-width="1.5"/>
+          <rect class="batt" x="244" y="138" width="22" height="44" stroke="#161616" stroke-width="1.5"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="read" aria-live="polite">
+      <div class="now"><p class="state" id="chip" data-s="idle">Standing by</p><p class="clock" id="clock">6 PM</p></div>
+      <p class="why" id="why"></p>
+      <div class="kpis">
+        <div class="cds--tile kpi"><p class="k">Power costs</p><p class="v"><span id="price">0.0¢</span><small>a kWh</small></p></div>
+        <div class="cds--tile kpi"><p class="k">Battery</p><p class="v"><span id="soc">100%</span></p><div class="gauge" id="gauge"><i id="gauge-fill" style="width:100%"></i></div></div>
+        <div class="cds--tile kpi"><p class="k">Cash so far today</p><p class="v" id="tally">$0.00</p></div>
+        <div class="cds--tile kpi"><p class="k">Yearly value</p><p class="v" id="year">$0</p></div>
+      </div>
+    </div>
+
+    <div class="scrub">
+      <div class="chart-head"><p class="chart-title" id="chart-title">Price of power through an average day, cents a kWh</p><button class="cds--btn cds--btn--primary cds--btn--sm play" id="play" type="button">Play the day</button></div>
+      <div class="chart" id="chart" aria-hidden="true"></div>
+      <input id="hour" type="range" min="0" max="23" step="1" value="18" aria-label="Hour of the day">
+      <ul class="legend">
+        <li><i class="l-charge"></i>Charging</li>
+        <li><i class="l-run"></i><span id="leg-run">Running the home</span></li>
+        <li id="leg-peak"><i class="l-peak"></i>Grid peak hour</li>
+      </ul>
+    </div>
+  </section>
+  <p class="note" id="strip-cap"></p>
+
+  <section class="who" id="who" aria-labelledby="h-who">
+    <h2 id="h-who">Who makes what</h2>
+    <div class="cds--tabs"><div class="cds--tab--list" role="tablist" aria-label="Who makes what">
+      <button class="cds--tabs__nav-item cds--tabs__nav-link cds--tabs__nav-item--selected" role="tab" id="t-home" aria-controls="p-home" aria-selected="true" type="button">The home</button>
+      <button class="cds--tabs__nav-item cds--tabs__nav-link" role="tab" id="t-owner" aria-controls="p-owner" aria-selected="false" type="button" tabindex="-1">The battery's owner</button>
+      <button class="cds--tabs__nav-item cds--tabs__nav-link" role="tab" id="t-fund" aria-controls="p-fund" aria-selected="false" type="button" tabindex="-1">A lender</button>
+      <button class="cds--tabs__nav-item cds--tabs__nav-link" role="tab" id="t-load" aria-controls="p-load" aria-selected="false" type="button" tabindex="-1">A data center</button>
+    </div></div>
+
+    <div class="panel" role="tabpanel" id="p-home" aria-labelledby="t-home">
+      <p class="intro">The household does not buy the battery. It pays a small fee and gets backup power. These are Base Power's published Texas terms, shown as the model.</p>
+      <div class="cols">
+        <table class="cds--data-table cds--data-table--md ledger"><thead><tr><th><div class="cds--table-header-label">What it pays</div></th><th></th></tr></thead><tbody>
+          <tr><td>Install, once</td><td>$695</td></tr>
+          <tr><td>Membership, a month</td><td>$19</td></tr>
+          <tr class="sum"><td>First year, all in</td><td>$923</td></tr>
+        </tbody></table>
+        <div>
+          <table class="cds--data-table cds--data-table--md ledger"><thead><tr><th><div class="cds--table-header-label">What it gets</div></th><th></th></tr></thead><tbody>
+            <tr><td>Battery on the wall</td><td>39.2 kWh</td></tr>
+            <tr><td>Backup in an outage</td><td>up to 36 hours</td></tr>
+            <tr><td id="home-used-k">Used on an average day</td><td id="home-used">31%</td></tr>
+          </tbody></table>
+          <p class="call calm" id="home-call"></p>
         </div>
       </div>
+      <p class="src">Source: basepowercompany.com, read 11 Nov 2026. First year is $695 plus 12 months at $19.</p>
+    </div>
 
-      <div class="read" aria-live="polite">
-        <div class="now"><p class="state" id="chip" data-s="idle">Standing by</p><p class="clock" id="clock">6 PM</p></div>
-        <p class="why" id="why"></p>
-        <div class="kpis">
-          <div class="kpi"><p class="k">Power costs</p><p class="v"><span id="price">0.0¢</span><small>a kWh</small></p></div>
-          <div class="kpi"><p class="k">Battery</p><p class="v"><span id="soc">100%</span></p><div class="gauge" id="gauge"><i id="gauge-fill" style="width:100%"></i></div></div>
-          <div class="kpi"><p class="k">Cash so far today</p><p class="v" id="tally">$0.00</p></div>
-          <div class="kpi"><p class="k">Yearly value</p><p class="v" id="year">$0</p></div>
-        </div>
+    <div class="panel" role="tabpanel" id="p-owner" aria-labelledby="t-owner" hidden>
+      <p class="intro" id="owner-say"></p>
+      <table class="cds--data-table cds--data-table--md ledger"><thead><tr><th><div class="cds--table-header-label">One battery</div></th><th><div class="cds--table-header-label">A year</div></th></tr></thead><tbody id="owner-dl"></tbody></table>
+      <p class="call" id="owner-call"></p>
+      <p class="src" id="owner-src"></p>
+      <p class="more" id="owner-more"><a class="cds--link" href="/pjm">All 20 PJM utility areas, ranked, and what each state needs to launch</a></p>
+    </div>
+
+    <div class="panel" role="tabpanel" id="p-fund" aria-labelledby="t-fund" hidden>
+      <p class="intro" id="fund-say"></p>
+      <div class="knobs">
+        <div class="cds--form-item"><label class="cds--label" for="f-cost">Installed cost, $ a kWh</label><input id="f-cost" class="cds--text-input" type="number" inputmode="decimal" min="0" max="5000" step="10"></div>
+        <div class="cds--form-item"><label class="cds--label" for="f-rate">Interest, % a year</label><input id="f-rate" class="cds--text-input" type="number" inputmode="decimal" min="0" max="30" step="0.25"></div>
+        <div class="cds--form-item"><label class="cds--label" for="f-tenor">Loan, years</label><input id="f-tenor" class="cds--text-input" type="number" inputmode="numeric" min="1" max="30" step="1"></div>
+        <div class="cds--form-item"><label class="cds--label" for="f-dscr">Cash cover wanted</label><input id="f-dscr" class="cds--text-input" type="number" inputmode="decimal" min="1" max="3" step="0.05"></div>
       </div>
-
-      <div class="scrub">
-        <div class="chart-head"><p class="chart-title" id="chart-title">Price of power through an average day, cents a kWh</p><button class="play" id="play" type="button">Play the day</button></div>
-        <div class="chart" id="chart" aria-hidden="true"></div>
-        <input id="hour" type="range" min="0" max="23" step="1" value="18" aria-label="Hour of the day">
+      <div class="cols">
+        <table class="cds--data-table cds--data-table--md ledger"><thead><tr><th><div class="cds--table-header-label">What has to be paid for</div></th><th></th></tr></thead><tbody id="cost-dl"></tbody></table>
+        <table class="cds--data-table cds--data-table--md ledger"><thead><tr><th><div class="cds--table-header-label">What the cash supports</div></th><th></th></tr></thead><tbody id="debt-dl"></tbody></table>
+      </div>
+      <p class="call" id="debt-call"></p>
+      <div class="years">
+        <h3>Cash in, year by year</h3>
+        <div class="ybars" id="ybars" role="img"></div>
+        <div class="ynums" id="ynums" aria-hidden="true"></div>
         <ul class="legend">
-          <li><i class="l-charge"></i>Charging</li>
-          <li><i class="l-run"></i><span id="leg-run">Running the home</span></li>
-          <li id="leg-peak"><i class="l-peak"></i>Grid peak hour</li>
+          <li><i class="l-fee"></i>Membership fees</li>
+          <li><i class="l-tag"></i>Peak charges avoided</li>
+          <li><i class="l-nrg"></i>Buying low, using high</li>
         </ul>
       </div>
-    </section>
-    <p class="note" id="strip-cap"></p>
+      <p class="src" id="fund-src"></p>
+      <p class="more"><a class="cds--link" href="/finance">The full financing tool</a></p>
+    </div>
 
-    <section class="who" aria-labelledby="h-who">
-      <h2 id="h-who">Who makes what</h2>
-      <div class="tabs" role="tablist" aria-label="Who makes what">
-        <button role="tab" id="t-home" aria-controls="p-home" aria-selected="true" type="button">The home</button>
-        <button role="tab" id="t-owner" aria-controls="p-owner" aria-selected="false" type="button" tabindex="-1">The battery's owner</button>
-        <button role="tab" id="t-fund" aria-controls="p-fund" aria-selected="false" type="button" tabindex="-1">A lender</button>
-        <button role="tab" id="t-load" aria-controls="p-load" aria-selected="false" type="button" tabindex="-1">A data center</button>
-      </div>
-
-      <div class="panel" role="tabpanel" id="p-home" aria-labelledby="t-home">
-        <p>The household does not buy the battery. It pays a small fee and gets backup power. These are Base Power's published Texas terms, shown as the model.</p>
-        <div class="cols">
-          <div><h3>What it pays</h3><dl>
-            <div><dt>Install, once</dt><dd>$695</dd></div>
-            <div><dt>Membership, a month</dt><dd>$19</dd></div>
-            <div class="sum"><dt>First year, all in</dt><dd>$923</dd></div>
-          </dl></div>
-          <div><h3>What it gets</h3><dl>
-            <div><dt>Battery on the wall</dt><dd>39.2 kWh</dd></div>
-            <div><dt>Backup in an outage</dt><dd>up to 36 hours</dd></div>
-            <div><dt id="home-used-k">Used on an average day</dt><dd id="home-used">31%</dd></div>
-          </dl><p class="call calm" id="home-call"></p></div>
-        </div>
-        <p class="src">Source: basepowercompany.com, read 11 Nov 2026. First year is $695 plus 12 months at $19.</p>
-      </div>
-
-      <div class="panel" role="tabpanel" id="p-owner" aria-labelledby="t-owner" hidden>
-        <p id="owner-say"></p>
-        <dl id="owner-dl"></dl>
-        <p class="call" id="owner-call"></p>
-        <p class="src" id="owner-src"></p>
-        <p class="more" id="owner-more"><a href="/pjm">All 20 PJM utility areas, ranked, and what each state needs to launch</a></p>
-      </div>
-
-      <div class="panel" role="tabpanel" id="p-fund" aria-labelledby="t-fund" hidden>
-        <p id="fund-say"></p>
-        <div class="knobs">
-          <label for="f-cost">Installed cost, $ a kWh<input id="f-cost" type="number" inputmode="decimal" min="0" max="5000" step="10"></label>
-          <label for="f-rate">Interest, % a year<input id="f-rate" type="number" inputmode="decimal" min="0" max="30" step="0.25"></label>
-          <label for="f-tenor">Loan, years<input id="f-tenor" type="number" inputmode="numeric" min="1" max="30" step="1"></label>
-          <label for="f-dscr">Cash cover wanted<input id="f-dscr" type="number" inputmode="decimal" min="1" max="3" step="0.05"></label>
-        </div>
-        <div class="cols">
-          <div><h3>What has to be paid for</h3><dl id="cost-dl"></dl></div>
-          <div><h3>What the cash supports</h3><dl id="debt-dl"></dl></div>
-        </div>
-        <p class="call" id="debt-call"></p>
-        <div class="years">
-          <h3>Cash in, year by year</h3>
-          <div class="ybars" id="ybars" role="img"></div>
-          <div class="ynums" id="ynums" aria-hidden="true"></div>
-          <ul class="legend">
-            <li><i class="l-fee"></i>Membership fees</li>
-            <li><i class="l-tag"></i>Peak charges avoided</li>
-            <li><i class="l-nrg"></i>Buying low, using high</li>
-          </ul>
-        </div>
-        <p class="src" id="fund-src"></p>
-      </div>
-
-      <div class="panel" role="tabpanel" id="p-load" aria-labelledby="t-load" hidden>
-        <p id="load-say"></p>
-        <p class="one-knob"><label for="mw">Size, MW</label><input id="mw" type="number" inputmode="numeric" min="1" max="2000" step="1" value="100"></p>
-        <dl id="load-dl"></dl>
-        <p class="call" id="load-call"></p>
-        <p class="src" id="load-src"></p>
-      </div>
-    </section>
-  </main>
+    <div class="panel" role="tabpanel" id="p-load" aria-labelledby="t-load" hidden>
+      <p class="intro" id="load-say"></p>
+      <div class="knobs one"><div class="cds--form-item"><label class="cds--label" for="mw">Size, MW</label><input id="mw" class="cds--text-input" type="number" inputmode="numeric" min="1" max="2000" step="1" value="100"></div></div>
+      <table class="cds--data-table cds--data-table--md ledger"><thead><tr><th><div class="cds--table-header-label">A data center</div></th><th><div class="cds--table-header-label">A year</div></th></tr></thead><tbody id="load-dl"></tbody></table>
+      <p class="call" id="load-call"></p>
+      <p class="src" id="load-src"></p>
+    </div>
+  </section>
 
   <footer>
     <div class="foot-links"><a href="/pjm">PJM ranking</a><a href="/market">US map</a><a href="/battery">Texas battery</a><a href="/live">Live</a><a href="/notes">Notes</a><a href="/notes/kardashev-stack">Make, move, store, sell</a><a href="/about">About</a><a href="/contact">Contact</a><a href="/privacy">Privacy</a><a href="/sources">Sources</a></div>
     <p>Independent. Not affiliated with Base Power or PJM. Every figure is public data or a labelled estimate.</p>
     <details><summary>Sources</summary><ol id="sources"></ol></details>
   </footer>
-</div>
+</main>
 </body>
 </html>

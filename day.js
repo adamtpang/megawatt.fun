@@ -17,7 +17,7 @@
   let V, T, D, BASE, timer = null, G = null; // G: the chart's geometry, for the playhead and for scrubbing
 
   function row(label, value, cls, small) {
-    return '<div' + (cls ? ' class="' + cls + '"' : '') + '><dt>' + label + (small ? '<small>' + small + '</small>' : '') + '</dt><dd>' + value + '</dd></div>';
+    return '<tr' + (cls ? ' class="' + cls + '"' : '') + '><td>' + label + (small ? '<small>' + small + '</small>' : '') + '</td><td>' + value + '</td></tr>';
   }
   const texas = (z) => z.states[0] === 'TX' && T.zones.indexOf(z) >= 0;
   const zone = () => T.zones.concat(V.zones).find((x) => x.id === $('zone').value);
@@ -57,7 +57,7 @@
     // day-scene.js is a module and may start after this file: leave the hour where it can find it.
     // The floor is the backdrop's lower color, a little darker, so the house sits on it at any hour.
     const floor = '#' + [1, 3, 5].map((k) => Math.round(parseInt(pair[1].slice(k, k + 2), 16) * 0.9).toString(16).padStart(2, '0')).join('');
-    window.StagePending = { name: s, ground: floor, glow: x.state === 'charge' ? css('--charge') : x.state === 'run' ? css('--run') : null, daylight: C.daylight(i) };
+    window.StagePending = { name: s, ground: floor, glow: x.state === 'charge' ? css('--mw-charge') : x.state === 'run' ? css('--mw-run') : null, daylight: C.daylight(i) };
     if (window.Stage) window.Stage.set(window.StagePending);
   }
 
@@ -112,7 +112,7 @@
         : row('Capacity charge avoided', counted ? usd(v.capacity) : 'not counted', counted ? '' : 'off', counted ? 'set by five peak hours a year' : ''))
       + (tx ? row('Other grid services', 'not counted', 'off', 'reserves and peak programs are left out')
         : row('Transmission charge avoided', counted && v.transmission ? usd(v.transmission) : 'not counted', counted && v.transmission ? '' : 'off'))
-      + row('A year, one battery <span class="est">estimate</span>', usd(v.total), 'sum');
+      + row('A year, one battery <span class="cds--tag cds--tag--sm cds--tag--gray"><span class="cds--tag__label">estimate</span></span>', usd(v.total), 'sum');
     const cityOwned = tx && z.choice === 'none';
     $('owner-call').hidden = tx ? !cityOwned : !(counted && d.peakMissed && d.allPeaksSameHour);
     $('owner-call').className = 'call' + (tx ? ' calm' : '');
@@ -121,7 +121,7 @@
     $('owner-src').textContent = (tx ? 'A fixed clock on a year of real ERCOT prices: charge 10 AM to 2 PM, sell 7 to 9 PM. '
       : counted ? '' : 'Peak charges are not counted here: this utility sets them by class average, or its rules are not confirmed' + (v.potential ? ' (' + usd(v.potential) + ' more if confirmed). ' : '. '))
       + 'Outside estimate, not Base\'s revenue. Sources are at the foot of the page.';
-    $('owner-more').innerHTML = tx ? '<a href="/battery">The full Texas tool: pick a ZIP and a house</a>' : '<a href="/pjm">All 20 PJM utility areas, ranked, and what each state needs to launch</a>';
+    $('owner-more').innerHTML = tx ? '<a class="cds--link" href="/battery">The full Texas tool: pick a ZIP and a house</a>' : '<a class="cds--link" href="/pjm">All 20 PJM utility areas, ranked, and what each state needs to launch</a>';
 
     // A lender
     const over = { capexPerKwh: Number($('f-cost').value), ratePct: Number($('f-rate').value), tenorYears: Number($('f-tenor').value), dscr: Number($('f-dscr').value) };
@@ -136,7 +136,7 @@
     const share = r.netCapex > 0 ? Math.round(r.debt / r.netCapex * 100) : 100;
     $('debt-dl').innerHTML =
       row('Cash after running cost, year 1', usd(r.year1Cfads), '', 'weakest loan year: ' + usd(r.minCfads))
-      + row('Loan the cash supports <span class="est">estimate</span>', usd(r.debt) + (changed ? '<span class="was">published figures: ' + usd(base.debt) + '</span>' : ''), '', r.tenor + ' years at ' + over.ratePct + '%, ' + over.dscr + 'x cover')
+      + row('Loan the cash supports <span class="cds--tag cds--tag--sm cds--tag--gray"><span class="cds--tag__label">estimate</span></span>', usd(r.debt) + (changed ? '<span class="was">published figures: ' + usd(base.debt) + '</span>' : ''), '', r.tenor + ' years at ' + over.ratePct + '%, ' + over.dscr + 'x cover')
       + row('Owner\'s own money', usd(r.equity))
       + row('Loan covers', share + '%', 'sum');
     $('debt-call').innerHTML = r.debt <= 0 ? 'No loan: the weakest year has no cash left after running cost.'
@@ -162,7 +162,7 @@
         : row('Capacity charge', big(L.capacity), '', usd(L.capPerMw) + ' per MW'))
       + (tx ? row('Transmission charge', 'not in this data', 'off', 'set by four summer peaks a year')
         : row('Transmission charge', big(L.transmission), '', usd(L.txPerMw) + ' per MW' + (L.txFixed ? ', fixed in this state' : '')))
-      + row((tx ? 'Energy only, a year' : 'A year') + ' <span class="est">estimate</span>', big(L.total), 'sum');
+      + row((tx ? 'Energy only, a year' : 'A year') + ' <span class="cds--tag cds--tag--sm cds--tag--gray"><span class="cds--tag__label">estimate</span></span>', big(L.total), 'sum');
     $('load-call').className = 'call' + (tx ? ' calm' : '');
     $('load-call').innerHTML = tx ? 'In Texas a large load\'s transmission bill is set by its use in four summer peak intervals a year. Staying off the grid in those intervals is the saving a battery on site buys. The rate is not in this data yet.'
       : 'Each MW kept off the grid in the peak hours that set ' + (L.txFixed ? 'the capacity charge' : 'those charges') + ' avoids <strong>' + usd(L.avoidedPerMw) + '</strong> a year. A battery on site is one way to do it.';
@@ -189,15 +189,19 @@
   }
 
   function pickTab(tab) {
-    document.querySelectorAll('.tabs [role=tab]').forEach((t) => {
+    document.querySelectorAll('#who [role=tab]').forEach((t) => {
       const on = t === tab;
+      t.classList.toggle('cds--tabs__nav-item--selected', on);
       t.setAttribute('aria-selected', on ? 'true' : 'false'); t.tabIndex = on ? 0 : -1;
       $(t.getAttribute('aria-controls')).hidden = !on;
     });
   }
   function stop() { clearInterval(timer); timer = null; $('play').textContent = 'Play the day'; }
   function wire() {
-    const tabs = Array.from(document.querySelectorAll('.tabs [role=tab]'));
+    const tabs = Array.from(document.querySelectorAll('#who [role=tab]'));
+    // The header's "Data centers" link lands here: open that panel.
+    const fromHash = () => { const t = { '#data-center': 't-load', '#lender': 't-fund', '#owner': 't-owner' }[location.hash]; if (t) { pickTab($(t)); $('who').scrollIntoView(); } };
+    addEventListener('hashchange', fromHash); fromHash();
     tabs.forEach((t, k) => {
       t.addEventListener('click', () => pickTab(t));
       t.addEventListener('keydown', (e) => {

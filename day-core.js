@@ -7,9 +7,9 @@
   const mean = (a) => a.reduce((s, x) => s + x, 0) / a.length;
 
   // Backdrop behind the house through the day: [hour, top, bottom], blended between stops. Muted on purpose:
-  // it says night or day, and leaves the color to the battery.
-  const SKY = [[0, '#161d2b', '#222c3d'], [4.5, '#1c2433', '#2c3649'], [6.5, '#d8d3d0', '#ebe7e3'], [9, '#e6ecf2', '#f3f6f9'],
-    [15, '#e6ecf2', '#f3f6f9'], [18.5, '#dfd3c8', '#eee6dd'], [20.5, '#252d3e', '#38425a'], [24, '#161d2b', '#222c3d']];
+  // it says night or day, and leaves the color to the battery. The stops are Carbon's gray scale.
+  const SKY = [[0, '#161616', '#262626'], [4.5, '#262626', '#393939'], [6.5, '#c6c6c6', '#e0e0e0'], [9, '#f4f4f4', '#ffffff'],
+    [15, '#f4f4f4', '#ffffff'], [18.5, '#e0e0e0', '#f4f4f4'], [20.5, '#393939', '#525252'], [24, '#161616', '#262626']];
   const rgb = (c) => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16));
   const mix = (a, b, t) => '#' + rgb(a).map((x, i) => Math.round(x + (rgb(b)[i] - x) * t).toString(16).padStart(2, '0')).join('');
   // Top and bottom sky color for the middle of hour h (0 to 23).
