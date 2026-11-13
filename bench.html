@@ -5,13 +5,14 @@
 <title>Battery backup test · megawatt.fun</title>
 <meta name="description" content="Test whether repeated battery commands consume blackout backup. A simulation using recorded Texas electricity prices.">
 <link rel="canonical" href="https://megawatt.fun/bench">
-<link rel="stylesheet" href="/guide.css"><link rel="stylesheet" href="/site.css"><link rel="stylesheet" href="/bench.css">
+<link rel="stylesheet" href="/guide.css"><link rel="stylesheet" href="/site.css"><link rel="stylesheet" href="/shell.css"><link rel="stylesheet" href="/bench.css">
 <script src="/base-core.js" defer></script><script src="/dispatch-bench-core.js" defer></script><script src="/bench.js" defer></script><script src="/restart-evidence.js" defer></script>
 <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48 64x64" type="image/x-icon">
+<script src="/nav.js" defer></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to the replay</a>
-<header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/pjm">PJM</a><a href="/market">US map</a><a href="/battery">Texas battery</a><a href="/live">Live</a><a href="/notes">Notes</a></nav></header>
+<!--mw-header--><header class="mw-header"><a class="mw-name" href="/">megawatt<span>.fun</span></a><button class="mw-menu-btn" type="button" aria-expanded="false" aria-controls="mw-nav" aria-label="Menu"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 14.8h16V16H2zm0-5.4h16v1.2H2zM2 4h16v1.2H2z"/></svg></button><nav class="mw-nav" id="mw-nav" aria-label="Main navigation"><ul><li><button type="button" aria-expanded="false">Homes<svg viewBox="0 0 10 6" aria-hidden="true"><path d="M5 6 0 1l.7-.7L5 4.6 9.3.3l.7.7z"/></svg></button><ul class="sub"><li><a href="/">One battery, one day</a></li><li><a href="/battery">Texas battery tool</a></li><li><a href="/pjm">PJM utility ranking</a></li><li><a href="/market">US market map</a></li></ul></li><li><a href="/#data-center">Data centers</a></li><li><a href="/live">Grid prices</a></li><li><a href="/finance">Financing</a></li><li><a href="/notes">Notes</a></li></ul></nav></header><!--/mw-header-->
 <main id="main" class="bench">
   <header class="bench-intro"><h1>Keep backup safe.</h1><p>A battery gets told to send power to the grid. What if that instruction arrives twice?</p></header>
   <p id="load-error" role="alert" hidden></p>

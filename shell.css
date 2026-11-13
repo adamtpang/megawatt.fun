@@ -1,0 +1,58 @@
+/* megawatt.fun shell: the typeface and the header every page shares.
+   Design language: IBM Carbon (white theme). Values here are Carbon's own tokens, written out so pages that do
+   not load the full Carbon stylesheet get the same header. Font: IBM Plex Sans, SIL OFL (fonts/OFL-ibm-plex.txt). */
+@font-face { font-family: "IBM Plex Sans"; src: url("/fonts/ibm-plex-sans-latin-300-normal.woff2") format("woff2"); font-weight: 300; font-style: normal; font-display: swap; }
+@font-face { font-family: "IBM Plex Sans"; src: url("/fonts/ibm-plex-sans-latin-400-normal.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "IBM Plex Sans"; src: url("/fonts/ibm-plex-sans-latin-600-normal.woff2") format("woff2"); font-weight: 600; font-style: normal; font-display: swap; }
+
+:root {
+  --mw-font: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mw-bg: #ffffff; --mw-layer: #f4f4f4; --mw-layer-hover: #e8e8e8;
+  --mw-text: #161616; --mw-text-2: #525252; --mw-text-3: #6f6f6f;
+  --mw-border: #e0e0e0; --mw-border-strong: #8d8d8d;
+  --mw-blue: #0f62fe; --mw-blue-hover: #0050e6; --mw-blue-text: #0043ce;
+  /* Data colors, from Carbon's palette. The -text variants pass on white. */
+  --mw-charge: #009d9a; --mw-charge-text: #005d5d;
+  --mw-run: #ff832b; --mw-run-text: #8a3800;
+  --mw-peak: #da1e28; --mw-peak-text: #a2191f;
+}
+
+.mw-header { box-sizing: border-box; position: sticky; top: 0; z-index: 30; display: flex; align-items: stretch; height: 48px; margin: 0; padding: 0; background: var(--mw-bg); border-bottom: 1px solid var(--mw-border); font: 400 14px/18px var(--mw-font); letter-spacing: .1px; color: var(--mw-text); }
+.mw-header *, .mw-header *::before { box-sizing: border-box; }
+.mw-header a, .mw-header button { font: inherit; letter-spacing: inherit; color: var(--mw-text-2); text-decoration: none; background: none; border: 0; border-radius: 0; margin: 0; cursor: pointer; }
+.mw-header :focus-visible { outline: 2px solid var(--mw-blue); outline-offset: -2px; }
+.mw-name { display: flex; align-items: center; padding: 0 16px; font-weight: 600; color: var(--mw-text) !important; white-space: nowrap; }
+.mw-name span { font-weight: 400; }
+.mw-nav { display: flex; }
+.mw-nav ul { display: flex; margin: 0; padding: 0; list-style: none; }
+.mw-nav > ul::before { content: ""; align-self: center; width: 1px; height: 24px; margin-right: 8px; background: var(--mw-border); }
+.mw-nav li { position: relative; display: flex; margin: 0; }
+.mw-nav a, .mw-nav button { display: flex; align-items: center; gap: 6px; height: 100%; padding: 0 16px; white-space: nowrap; border-bottom: 2px solid transparent; border-top: 2px solid transparent; }
+.mw-nav a:hover, .mw-nav button:hover, .mw-nav button[aria-expanded=true] { background: var(--mw-layer-hover); color: var(--mw-text); }
+.mw-nav a[aria-current=page], .mw-nav .is-current > button { color: var(--mw-text); border-bottom-color: var(--mw-blue); }
+.mw-nav button svg { width: 10px; height: 6px; fill: currentColor; transition: transform .11s; }
+.mw-nav button[aria-expanded=true] svg { transform: rotate(180deg); }
+.mw-nav .sub { display: none; position: absolute; top: 100%; left: 0; min-width: 14rem; flex-direction: column; background: var(--mw-layer); box-shadow: 0 2px 6px rgba(0, 0, 0, .3); }
+.mw-nav button[aria-expanded=true] + .sub { display: flex; }
+.mw-nav .sub a { height: 48px; border: 0; }
+.mw-nav .sub a[aria-current=page] { box-shadow: inset 3px 0 0 var(--mw-blue); color: var(--mw-text); }
+.mw-menu-btn { display: none !important; }
+
+/* Phone: the links fold under a menu button. */
+@media (max-width: 767px) {
+  .mw-menu-btn { display: flex !important; align-items: center; justify-content: center; width: 48px; height: 48px; margin-left: auto !important; }
+  .mw-menu-btn svg { width: 20px; height: 20px; fill: var(--mw-text); }
+  .mw-menu-btn[aria-expanded=true] { background: var(--mw-layer-hover); }
+  .mw-nav { display: none; position: absolute; top: 48px; left: 0; right: 0; max-height: calc(100vh - 48px); overflow-y: auto; background: var(--mw-bg); border-bottom: 1px solid var(--mw-border); box-shadow: 0 8px 12px -8px rgba(0, 0, 0, .3); }
+  .mw-header.is-open .mw-nav { display: block; }
+  .mw-nav ul, .mw-nav li { display: block; }
+  .mw-nav > ul::before { display: none; }
+  .mw-nav a, .mw-nav button { width: 100%; height: 48px; justify-content: space-between; border: 0; border-top: 1px solid var(--mw-border); }
+  .mw-nav a[aria-current=page] { box-shadow: inset 3px 0 0 var(--mw-blue); }
+  .mw-nav .sub { position: static; box-shadow: none; }
+  .mw-nav .sub a { padding-left: 32px; }
+}
+
+/* The skip link stays off screen until it has keyboard focus. */
+.skip { position: absolute; left: -999px; }
+.skip:focus { left: 16px; top: 8px; z-index: 40; padding: 8px 12px; background: var(--mw-bg); color: var(--mw-text); outline: 2px solid var(--mw-blue); }

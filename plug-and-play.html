@@ -6,7 +6,7 @@
 <meta name="description" content="File format for the home battery ROI tool, plus the formats still used by code that remains in the repo. Independent, not affiliated with Base Power.">
 <meta name="theme-color" content="#1e4d2b">
 <link rel="canonical" href="https://megawatt.fun/plug-and-play">
-<link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/site.css">
+<link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/site.css"><link rel="stylesheet" href="/shell.css">
 <style>
 .pp { max-width: 880px; margin: 0 auto; padding: 8px 16px 0; }
 .pp-intro { margin: 24px 0 16px; }
@@ -22,9 +22,10 @@
 .pp-rules { padding-left: 20px; }
 @media (min-width: 760px) { .pp-card { padding: 24px; } }
 </style>
+<script src="/nav.js" defer></script>
 </head>
 <body class="tool-page">
-<header class="site-top"><a class="brand" href="/">megawatt<span>.fun</span></a><nav aria-label="Main navigation"><a href="/pjm">PJM</a><a href="/market">US map</a><a href="/battery">Texas battery</a><a href="/live">Live</a><a href="/notes">Notes</a></nav></header>
+<!--mw-header--><header class="mw-header"><a class="mw-name" href="/">megawatt<span>.fun</span></a><button class="mw-menu-btn" type="button" aria-expanded="false" aria-controls="mw-nav" aria-label="Menu"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 14.8h16V16H2zm0-5.4h16v1.2H2zM2 4h16v1.2H2z"/></svg></button><nav class="mw-nav" id="mw-nav" aria-label="Main navigation"><ul><li><button type="button" aria-expanded="false">Homes<svg viewBox="0 0 10 6" aria-hidden="true"><path d="M5 6 0 1l.7-.7L5 4.6 9.3.3l.7.7z"/></svg></button><ul class="sub"><li><a href="/">One battery, one day</a></li><li><a href="/battery">Texas battery tool</a></li><li><a href="/pjm">PJM utility ranking</a></li><li><a href="/market">US market map</a></li></ul></li><li><a href="/#data-center">Data centers</a></li><li><a href="/live">Grid prices</a></li><li><a href="/finance">Financing</a></li><li><a href="/notes">Notes</a></li></ul></nav></header><!--/mw-header-->
 
 <main class="pp" id="main">
   <section class="pp-intro">

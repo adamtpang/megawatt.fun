@@ -1,15 +1,16 @@
 /* The house on the homepage stage. Loads /models/house-suburban.glb (Blender export, see docs/models.md) on a
-   transparent canvas, so the sky behind it is the page's own. window.Stage.set({ glow, daylight }) tints the
+   transparent canvas, so the backdrop behind it is the page's own. window.Stage.set({ glow, daylight, ground }) tints the
    wall battery (mesh "Battery") and dims the sun: glow is a hex color or null, daylight runs 0 (night) to 1.
    No WebGL, a blocked three.js module or a missing model keeps the flat drawing already on the page.
    prefers-reduced-motion draws still frames only. */
 const canvas = document.getElementById('stage-canvas');
 const fallback = document.getElementById('stage-fallback');
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const state = { glow: null, daylight: 1, apply: null };
+const state = { glow: null, daylight: 1, ground: null, apply: null };
 window.Stage = {
   set(next) {
     state.glow = next.glow || null;
+    state.ground = next.ground || null;
     state.daylight = Math.max(0, Math.min(1, next.daylight));
     if (fallback) { fallback.dataset.glow = next.name || 'idle'; fallback.style.setProperty('--glow', next.glow || 'transparent'); }
     if (state.apply) state.apply();
@@ -40,7 +41,9 @@ async function boot() {
   const sun = new THREE.DirectionalLight(0xffffff, 1.25);
   sun.position.set(10, 16, 8);
   scene.add(ambient, sun);
-  const ground = new THREE.Mesh(new THREE.CircleGeometry(12, 64), new THREE.MeshStandardMaterial({ color: 0x6f9a58, roughness: 1 }));
+  const fill = new THREE.HemisphereLight(0xffffff, 0xb9c0cb, 0.55); // lifts the roof and the shaded walls
+  scene.add(fill);
+  const ground = new THREE.Mesh(new THREE.CircleGeometry(12, 64), new THREE.MeshStandardMaterial({ color: 0xd3d9e1, roughness: 1 }));
   ground.rotation.x = -Math.PI / 2; ground.position.y = -0.02;
   scene.add(ground);
   const lamp = new THREE.PointLight(0xffffff, 0, 14);
@@ -71,11 +74,11 @@ async function boot() {
     if (battery) { const b = new THREE.Box3().setFromObject(battery).getCenter(new THREE.Vector3()); lamp.position.set(b.x + 1.2, b.y + 0.4, b.z); }
   }
 
-  const dayGround = new THREE.Color(0x7fae63), nightGround = new THREE.Color(0x27503a), gnd = new THREE.Color(0x6f9a58), gndTo = new THREE.Color(0x6f9a58);
+  const dayGround = new THREE.Color(0xd3d9e1), nightGround = new THREE.Color(0x2c3648), gnd = new THREE.Color(0xd3d9e1), gndTo = new THREE.Color(0xd3d9e1);
   let light = 1, lightTo = 1, glow = 0, glowTo = 0;
   function apply() {
     lightTo = state.daylight;
-    gndTo.copy(nightGround).lerp(dayGround, state.daylight);
+    if (state.ground) gndTo.set(state.ground); else gndTo.copy(nightGround).lerp(dayGround, state.daylight);
     glowTo = state.glow ? 1 : 0;
     if (state.glow) lamp.color.set(state.glow);
     if (mesh && mesh.material) {
@@ -96,7 +99,7 @@ async function boot() {
     size();
     const k = reduced ? 1 : 0.14;
     light += (lightTo - light) * k; glow += (glowTo - glow) * k; gnd.lerp(gndTo, k);
-    ambient.intensity = 0.5 + 0.45 * light; sun.intensity = 0.35 + 0.95 * light;
+    ambient.intensity = 0.4 + 0.4 * light; sun.intensity = 0.3 + 0.9 * light; fill.intensity = 0.25 + 0.4 * light;
     ground.material.color.copy(gnd);
     const pulse = reduced ? 1 : 0.78 + 0.22 * Math.sin(now / 420); // a slow pulse so the eye finds the battery
     lamp.intensity = glow * (10 + 18 * (1 - light)) * pulse;

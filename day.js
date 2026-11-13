@@ -14,10 +14,10 @@
   const clock = (h) => (h % 12 || 12) + (h < 12 ? ' AM' : ' PM');
   const F = window.FinanceCore, P = window.PjmCore, C = window.DayCore;
   const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-  let V, T, D, BASE, timer = null;
+  let V, T, D, BASE, timer = null, G = null; // G: the chart's geometry, for the playhead and for scrubbing
 
   function row(label, value, cls, small) {
-    return '<div' + (cls ? ' class="' + cls + '"' : '') + '><dt>' + label + (small ? '<small>' + small + '</small>' : '') + '</dt><dd>' + value + '</dd></div>';
+    return '<tr' + (cls ? ' class="' + cls + '"' : '') + '><td>' + label + (small ? '<small>' + small + '</small>' : '') + '</td><td>' + value + '</td></tr>';
   }
   const texas = (z) => z.states[0] === 'TX' && T.zones.indexOf(z) >= 0;
   const zone = () => T.zones.concat(V.zones).find((x) => x.id === $('zone').value);
@@ -32,10 +32,7 @@
     const s = x.peak && x.state === 'idle' ? 'peak' : x.state;
     const pair = C.sky(i);
     $('scene').style.setProperty('--sky-a', pair[0]); $('scene').style.setProperty('--sky-b', pair[1]);
-    const sunUp = i >= 6 && i < 19, arc = sunUp ? (i + 0.5 - 6) / 13 : ((i + 0.5 + 24 - 19) % 24) / 11;
-    $('orb').className = 'orb' + (sunUp ? '' : ' moon');
-    $('orb').style.left = (12 + arc * 76) + '%'; $('orb').style.top = (46 - Math.sin(arc * Math.PI) * 30) + '%';
-    $('clock').textContent = clock(i);
+    $('clock').textContent = clock(i) + ' to ' + clock((i + 1) % 24);
     $('chip').dataset.s = s;
     $('chip').textContent = { charge: 'Charging from the grid', run: tx ? 'Powering the home and the grid' : 'Running the home', peak: 'Grid peak hour', idle: 'Standing by' }[s];
     $('price').textContent = cents(x.price);
@@ -49,22 +46,58 @@
       idle: x.soc > 0.99 ? 'The home runs on the grid. The battery waits, full, in case the power goes out.'
         : 'The home runs on the grid. The battery waits at ' + Math.round(x.soc * 100) + '% and will refill ' + (tx ? 'at midday.' : 'overnight.'),
     }[s];
-    Array.prototype.forEach.call($('bars').children, (el, k) => { el.classList.toggle('on', k === i); el.classList.toggle('past', k < i); });
+    if (G) { // move the playhead
+      const px = G.x(i + 0.5), py = G.y(x.price / 10), val = $('head-val');
+      $('head-line').setAttribute('x1', px); $('head-line').setAttribute('x2', px);
+      $('head-dot').setAttribute('cx', px); $('head-dot').setAttribute('cy', py);
+      val.textContent = cents(x.price);
+      val.setAttribute('x', Math.max(G.l + 16, Math.min(G.r - 16, px))); val.setAttribute('y', Math.max(11, py - 10));
+    }
     $('hour').setAttribute('aria-valuetext', clock(i) + ', ' + cents(x.price) + ' a kWh, ' + $('chip').textContent);
     // day-scene.js is a module and may start after this file: leave the hour where it can find it.
-    window.StagePending = { name: s, glow: x.state === 'charge' ? css('--charge') : x.state === 'run' ? css('--run') : null, daylight: C.daylight(i) };
+    // The floor is the backdrop's lower color, a little darker, so the house sits on it at any hour.
+    const floor = '#' + [1, 3, 5].map((k) => Math.round(parseInt(pair[1].slice(k, k + 2), 16) * 0.9).toString(16).padStart(2, '0')).join('');
+    window.StagePending = { name: s, ground: floor, glow: x.state === 'charge' ? css('--mw-charge') : x.state === 'run' ? css('--mw-run') : null, daylight: C.daylight(i) };
     if (window.Stage) window.Stage.set(window.StagePending);
+  }
+
+  // The price chart: a stepped line of hourly averages with real axes, the charge and discharge windows shaded,
+  // the grid's peak hour marked, and a playhead for the chosen hour.
+  function drawChart(d) {
+    const el = $('chart'), W = Math.max(280, Math.round(el.clientWidth)), H = W < 560 ? 168 : 216;
+    const l = 30, r = W - 6, t = 16, b = H - 22, step = (r - l) / 24;
+    const topC = d.top / 10, gap = topC > 12 ? 4 : topC > 6 ? 2 : 1, max = Math.ceil(topC / gap) * gap;
+    const x = (h) => l + h * step, y = (c) => b - (c / max) * (b - t);
+    let grid = '', axis = '';
+    for (let c = 0; c <= max + 1e-9; c += gap) {
+      grid += '<line class="' + (c === 0 ? 'base' : 'grid') + '" x1="' + l + '" x2="' + r + '" y1="' + y(c).toFixed(1) + '" y2="' + y(c).toFixed(1) + '"/>';
+      axis += '<text x="' + (l - 6) + '" y="' + (y(c) + 3.5).toFixed(1) + '" text-anchor="end">' + c + '¢</text>';
+    }
+    const every = W < 560 ? 6 : 3;
+    for (let h = 0; h <= 24; h += every) {
+      axis += '<text x="' + x(h).toFixed(1) + '" y="' + (H - 6) + '" text-anchor="' + (h === 0 ? 'start' : h === 24 ? 'end' : 'middle') + '">' + (h === 24 ? clock(0) : clock(h)) + '</text>';
+    }
+    const band = (a, z, cls) => '<rect class="' + cls + '" x="' + x(a).toFixed(1) + '" y="' + t + '" width="' + ((z - a) * step).toFixed(1) + '" height="' + (b - t) + '"/>';
+    let line = '';
+    d.hours.forEach((hh, i) => { const yy = y(hh.price / 10).toFixed(1); line += (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + yy + 'L' + x(i + 1).toFixed(1) + ' ' + yy; });
+    const charged = d.hours.filter((hh) => hh.state === 'charge').map((hh) => hh.i), ran = d.hours.filter((hh) => hh.state === 'run').map((hh) => hh.i);
+    const peak = d.peakHour == null ? '' : '<line class="peak-line" x1="' + x(d.peakHour + 0.5).toFixed(1) + '" x2="' + x(d.peakHour + 0.5).toFixed(1) + '" y1="' + t + '" y2="' + b + '"/>';
+    el.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" role="presentation">'
+      + (charged.length ? band(charged[0], charged[charged.length - 1] + 1, 'b-charge') : '') + (ran.length ? band(ran[0], ran[ran.length - 1] + 1, 'b-run') : '')
+      + grid + '<path class="area" d="' + line + 'L' + r + ' ' + b + 'L' + l + ' ' + b + 'Z"/><path class="price" d="' + line + '"/>' + peak + axis
+      + '<line class="head-line" id="head-line" y1="' + t + '" y2="' + b + '"/><circle class="head-dot" id="head-dot" r="4.5"/><text class="head-val" id="head-val" text-anchor="middle"></text></svg>';
+    G = { x, y, l, r, step };
   }
 
   function render() {
     const z = zone(), tx = texas(z), M = market(z), name = z.shortName || z.utility, d = theDay(z), v = valueOf(z);
     const counted = v.tagStatus === 'interval' || v.tagStatus === 'partly';
-    $('say').textContent = 'In ' + name + ', power costs ' + cents(d.night) + (tx ? ' at midday, when solar is strong, and ' : ' overnight and ') + cents(d.evening) + (tx ? ' after sunset.' : ' at dinner time.') + ' Drag through the day to see what a home battery does about it.';
+    $('say').textContent = 'In ' + name + ', power averages ' + cents(d.night) + ' a kWh ' + (tx ? 'at midday and ' : 'overnight and ') + cents(d.evening) + (tx ? ' after sunset.' : ' in the evening.') + ' Drag across the chart to see what a home battery does with that gap.';
     $('leg-run').textContent = tx ? 'Powering the home and the grid' : 'Running the home';
     $('leg-peak').hidden = d.peakHour == null;
-    $('bars').innerHTML = d.hours.map((x) => '<i class="' + (x.state === 'charge' ? 'c' : x.state === 'run' ? 'r' : x.peak ? 'p' : '') + '" style="height:' + (x.price / d.top * 100).toFixed(1) + '%"></i>').join('');
+    drawChart(d);
     $('year').textContent = usd(v.total);
-    $('strip-cap').textContent = 'Average price each hour, ' + M.period.start + ' to ' + M.period.endExclusive + ', ' + z.timezone + ' time. The day shown is an average one; the yearly figure uses every real hour.';
+    $('strip-cap').textContent = 'Average real-time price each hour, ' + M.period.start + ' to ' + M.period.endExclusive + ', ' + z.timezone + ' time. The day shown is an average one; the yearly figure uses every real hour.';
 
     // The home
     $('home-used').textContent = Math.round((1 - d.low) * 100) + '%';
@@ -79,7 +112,7 @@
         : row('Capacity charge avoided', counted ? usd(v.capacity) : 'not counted', counted ? '' : 'off', counted ? 'set by five peak hours a year' : ''))
       + (tx ? row('Other grid services', 'not counted', 'off', 'reserves and peak programs are left out')
         : row('Transmission charge avoided', counted && v.transmission ? usd(v.transmission) : 'not counted', counted && v.transmission ? '' : 'off'))
-      + row('A year, one battery <span class="est">estimate</span>', usd(v.total), 'sum');
+      + row('A year, one battery <span class="cds--tag cds--tag--sm cds--tag--gray"><span class="cds--tag__label">estimate</span></span>', usd(v.total), 'sum');
     const cityOwned = tx && z.choice === 'none';
     $('owner-call').hidden = tx ? !cityOwned : !(counted && d.peakMissed && d.allPeaksSameHour);
     $('owner-call').className = 'call' + (tx ? ' calm' : '');
@@ -88,7 +121,7 @@
     $('owner-src').textContent = (tx ? 'A fixed clock on a year of real ERCOT prices: charge 10 AM to 2 PM, sell 7 to 9 PM. '
       : counted ? '' : 'Peak charges are not counted here: this utility sets them by class average, or its rules are not confirmed' + (v.potential ? ' (' + usd(v.potential) + ' more if confirmed). ' : '. '))
       + 'Outside estimate, not Base\'s revenue. Sources are at the foot of the page.';
-    $('owner-more').innerHTML = tx ? '<a href="/battery">The full Texas tool: pick a ZIP and a house</a>' : '<a href="/pjm">All 20 PJM utility areas, ranked, and what each state needs to launch</a>';
+    $('owner-more').innerHTML = tx ? '<a class="cds--link" href="/battery">The full Texas tool: pick a ZIP and a house</a>' : '<a class="cds--link" href="/pjm">All 20 PJM utility areas, ranked, and what each state needs to launch</a>';
 
     // A lender
     const over = { capexPerKwh: Number($('f-cost').value), ratePct: Number($('f-rate').value), tenorYears: Number($('f-tenor').value), dscr: Number($('f-dscr').value) };
@@ -103,7 +136,7 @@
     const share = r.netCapex > 0 ? Math.round(r.debt / r.netCapex * 100) : 100;
     $('debt-dl').innerHTML =
       row('Cash after running cost, year 1', usd(r.year1Cfads), '', 'weakest loan year: ' + usd(r.minCfads))
-      + row('Loan the cash supports <span class="est">estimate</span>', usd(r.debt) + (changed ? '<span class="was">published figures: ' + usd(base.debt) + '</span>' : ''), '', r.tenor + ' years at ' + over.ratePct + '%, ' + over.dscr + 'x cover')
+      + row('Loan the cash supports <span class="cds--tag cds--tag--sm cds--tag--gray"><span class="cds--tag__label">estimate</span></span>', usd(r.debt) + (changed ? '<span class="was">published figures: ' + usd(base.debt) + '</span>' : ''), '', r.tenor + ' years at ' + over.ratePct + '%, ' + over.dscr + 'x cover')
       + row('Owner\'s own money', usd(r.equity))
       + row('Loan covers', share + '%', 'sum');
     $('debt-call').innerHTML = r.debt <= 0 ? 'No loan: the weakest year has no cash left after running cost.'
@@ -129,7 +162,7 @@
         : row('Capacity charge', big(L.capacity), '', usd(L.capPerMw) + ' per MW'))
       + (tx ? row('Transmission charge', 'not in this data', 'off', 'set by four summer peaks a year')
         : row('Transmission charge', big(L.transmission), '', usd(L.txPerMw) + ' per MW' + (L.txFixed ? ', fixed in this state' : '')))
-      + row((tx ? 'Energy only, a year' : 'A year') + ' <span class="est">estimate</span>', big(L.total), 'sum');
+      + row((tx ? 'Energy only, a year' : 'A year') + ' <span class="cds--tag cds--tag--sm cds--tag--gray"><span class="cds--tag__label">estimate</span></span>', big(L.total), 'sum');
     $('load-call').className = 'call' + (tx ? ' calm' : '');
     $('load-call').innerHTML = tx ? 'In Texas a large load\'s transmission bill is set by its use in four summer peak intervals a year. Staying off the grid in those intervals is the saving a battery on site buys. The rate is not in this data yet.'
       : 'Each MW kept off the grid in the peak hours that set ' + (L.txFixed ? 'the capacity charge' : 'those charges') + ' avoids <strong>' + usd(L.avoidedPerMw) + '</strong> a year. A battery on site is one way to do it.';
@@ -156,15 +189,19 @@
   }
 
   function pickTab(tab) {
-    document.querySelectorAll('.tabs [role=tab]').forEach((t) => {
+    document.querySelectorAll('#who [role=tab]').forEach((t) => {
       const on = t === tab;
+      t.classList.toggle('cds--tabs__nav-item--selected', on);
       t.setAttribute('aria-selected', on ? 'true' : 'false'); t.tabIndex = on ? 0 : -1;
       $(t.getAttribute('aria-controls')).hidden = !on;
     });
   }
   function stop() { clearInterval(timer); timer = null; $('play').textContent = 'Play the day'; }
   function wire() {
-    const tabs = Array.from(document.querySelectorAll('.tabs [role=tab]'));
+    const tabs = Array.from(document.querySelectorAll('#who [role=tab]'));
+    // The header's "Data centers" link lands here: open that panel.
+    const fromHash = () => { const t = { '#data-center': 't-load', '#lender': 't-fund', '#owner': 't-owner' }[location.hash]; if (t) { pickTab($(t)); $('who').scrollIntoView(); } };
+    addEventListener('hashchange', fromHash); fromHash();
     tabs.forEach((t, k) => {
       t.addEventListener('click', () => pickTab(t));
       t.addEventListener('keydown', (e) => {
@@ -176,8 +213,10 @@
     });
     $('hour').addEventListener('input', () => { stop(); renderHour(); });
     // Tap or drag across the bars to pick an hour.
-    const bars = $('bars');
-    const at = (e) => { const b = bars.getBoundingClientRect(); return Math.max(0, Math.min(23, Math.floor((e.clientX - b.left) / b.width * 24))); };
+    const bars = $('chart');
+    const at = (e) => { const b = bars.getBoundingClientRect(); return G ? Math.max(0, Math.min(23, Math.floor((e.clientX - b.left - G.l) / G.step))) : 0; };
+    let raf = 0;
+    addEventListener('resize', () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { drawChart(theDay(zone())); renderHour(); }); });
     let dragging = false;
     bars.addEventListener('pointerdown', (e) => { dragging = true; stop(); $('hour').value = at(e); renderHour(); });
     bars.addEventListener('pointermove', (e) => { if (dragging) { $('hour').value = at(e); renderHour(); } });
