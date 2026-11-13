@@ -9,7 +9,7 @@
 <meta property="og:description" content="What a home battery does through a day of real grid prices, and who makes what. Public data. Not affiliated with Base Power.">
 <meta property="og:url" content="https://megawatt.fun/">
 <meta property="og:type" content="website">
-<meta name="theme-color" content="#101a2b">
+<meta name="theme-color" content="#f6f7f9">
 <link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/day.css">
 <script src="/pjm-core.js" defer></script>
 <script src="/finance-core.js" defer></script>
@@ -35,43 +35,40 @@
 
     <section class="stage" aria-label="A day in the life of a home battery">
       <div class="scene" id="scene">
-        <div class="orb" id="orb" aria-hidden="true"></div>
         <canvas id="stage-canvas" hidden aria-hidden="true"></canvas>
         <div class="fallback" id="stage-fallback">
           <svg viewBox="0 0 320 200" role="img" aria-label="A house with a battery on its side wall">
-            <ellipse cx="160" cy="184" rx="156" ry="18" fill="#6f9a58"/>
-            <path d="M66 104 L160 44 L254 104 Z" fill="#3b4558"/>
-            <rect x="82" y="104" width="156" height="78" fill="#fbfbfd" stroke="#101a2b" stroke-width="2"/>
-            <rect x="146" y="134" width="28" height="48" fill="#dfe3ea" stroke="#101a2b" stroke-width="2"/>
-            <rect x="98" y="122" width="30" height="26" fill="#cfe6fa" stroke="#101a2b" stroke-width="2"/>
-            <rect x="192" y="122" width="30" height="26" fill="#cfe6fa" stroke="#101a2b" stroke-width="2"/>
-            <rect class="batt" x="244" y="138" width="22" height="44" rx="4" stroke="#101a2b" stroke-width="2"/>
+            <ellipse cx="160" cy="184" rx="150" ry="14" fill="#d5dbe3"/>
+            <path d="M66 104 L160 44 L254 104 Z" fill="#4a5568"/>
+            <rect x="82" y="104" width="156" height="78" fill="#fbfbfd" stroke="#0f1728" stroke-width="1.5"/>
+            <rect x="146" y="134" width="28" height="48" fill="#e1e5eb" stroke="#0f1728" stroke-width="1.5"/>
+            <rect x="98" y="122" width="30" height="26" fill="#dbe7f3" stroke="#0f1728" stroke-width="1.5"/>
+            <rect x="192" y="122" width="30" height="26" fill="#dbe7f3" stroke="#0f1728" stroke-width="1.5"/>
+            <rect class="batt" x="244" y="138" width="22" height="44" rx="3" stroke="#0f1728" stroke-width="1.5"/>
           </svg>
         </div>
-        <p class="clock" id="clock">6 PM</p>
       </div>
 
       <div class="read" aria-live="polite">
-        <p class="chip" id="chip">Standing by</p>
-        <div class="stat"><p class="k">Power costs</p><p class="v"><span id="price">0.0¢</span> <small>a kWh</small></p></div>
-        <div class="stat"><p class="k">Battery</p><p class="v"><span id="soc">100%</span></p><div class="gauge" id="gauge"><i id="gauge-fill" style="width:100%"></i></div></div>
-        <div class="stat"><p class="k">Cash so far today</p><p class="v" id="tally">$0.00</p></div>
-        <div class="stat"><p class="k">A whole year</p><p class="v" id="year">$0</p></div>
+        <div class="now"><p class="state" id="chip" data-s="idle">Standing by</p><p class="clock" id="clock">6 PM</p></div>
         <p class="why" id="why"></p>
+        <div class="kpis">
+          <div class="kpi"><p class="k">Power costs</p><p class="v"><span id="price">0.0¢</span><small>a kWh</small></p></div>
+          <div class="kpi"><p class="k">Battery</p><p class="v"><span id="soc">100%</span></p><div class="gauge" id="gauge"><i id="gauge-fill" style="width:100%"></i></div></div>
+          <div class="kpi"><p class="k">Cash so far today</p><p class="v" id="tally">$0.00</p></div>
+          <div class="kpi"><p class="k">Yearly value</p><p class="v" id="year">$0</p></div>
+        </div>
       </div>
 
       <div class="scrub">
-        <div class="bars" id="bars" aria-hidden="true"></div>
+        <div class="chart-head"><p class="chart-title" id="chart-title">Price of power through an average day, cents a kWh</p><button class="play" id="play" type="button">Play the day</button></div>
+        <div class="chart" id="chart" aria-hidden="true"></div>
         <input id="hour" type="range" min="0" max="23" step="1" value="18" aria-label="Hour of the day">
-        <div class="ticks" aria-hidden="true"><span>12 AM</span><span>6 AM</span><span>Noon</span><span>6 PM</span></div>
-        <div class="scrub-row">
-          <ul class="legend">
-            <li><i style="background:var(--charge)"></i>Charging</li>
-            <li><i style="background:var(--run)"></i><span id="leg-run">Running the home</span></li>
-            <li id="leg-peak"><i style="background:var(--peak)"></i>Grid peak</li>
-          </ul>
-          <button class="play" id="play" type="button">Play the day</button>
-        </div>
+        <ul class="legend">
+          <li><i class="l-charge"></i>Charging</li>
+          <li><i class="l-run"></i><span id="leg-run">Running the home</span></li>
+          <li id="leg-peak"><i class="l-peak"></i>Grid peak hour</li>
+        </ul>
       </div>
     </section>
     <p class="note" id="strip-cap"></p>
@@ -127,10 +124,10 @@
           <h3>Cash in, year by year</h3>
           <div class="ybars" id="ybars" role="img"></div>
           <div class="ynums" id="ynums" aria-hidden="true"></div>
-          <ul class="legend" style="margin-top:10px">
-            <li><i style="background:var(--bar)"></i>Membership fees</li>
-            <li><i style="background:var(--peak)"></i>Peak charges avoided</li>
-            <li><i style="background:var(--run)"></i>Buying low, using high</li>
+          <ul class="legend">
+            <li><i class="l-fee"></i>Membership fees</li>
+            <li><i class="l-tag"></i>Peak charges avoided</li>
+            <li><i class="l-nrg"></i>Buying low, using high</li>
           </ul>
         </div>
         <p class="src" id="fund-src"></p>

@@ -150,7 +150,8 @@ test('page: the homepage loads its parts, links the other tools, and keeps the i
   for (const f of ['index.html', 'day.css', 'day.js', 'day-core.js', 'day-scene.js', 'scripts/day-ercot.cjs', 'data/day-ercot.json']) {
     assert.ok(!fs.readFileSync(root(f), 'utf8').includes(String.fromCharCode(0x2014)), f + ' has no em dash');
   }
-  assert.ok(fs.existsSync(root('fonts/bricolage-grotesque-latin-800-normal.woff2')));
+  assert.match(html, /id="chart"/);
+  assert.ok(!fs.readFileSync(root('day.css'), 'utf8').includes('Bricolage'), 'one typeface');
   assert.ok(!fs.readFileSync(root('day.css'), 'utf8').includes('fonts.googleapis'), 'fonts are self-hosted');
   assert.ok(!html.includes('fonts.googleapis'), 'fonts are self-hosted');
 });
