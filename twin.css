@@ -62,4 +62,4 @@ section { margin-top: 3rem; }
 #site-fallback[data-s=run] .batt, #site-fallback[data-s=charge] .batt { stroke: #161616; }
 #site-fallback[data-peak="1"] .gridwire { stroke: var(--mw-peak); stroke-width: 3; }
 #dd-scale { margin-top: .25rem; }
-@media (min-width: 66rem) { .tw-site { min-height: 21rem; } }
+@media (min-width: 66rem) { .tw-stage .tw-site { min-height: 21rem; } } /* two classes, to win over .tw-stage .scene above */
