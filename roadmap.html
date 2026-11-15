@@ -7,6 +7,7 @@
 <meta name="description" content="An open roadmap for humanity to climb the Kardashev scale: measured energy, physical milestones, infrastructure bottlenecks, and work you can do now.">
 <meta name="theme-color" content="#1e4d2b">
 <link rel="canonical" href="https://megawatt.fun/roadmap">
+<link rel="preload" href="/fonts/ibm-plex-sans-latin-300-normal.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/fonts/ibm-plex-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/fonts/ibm-plex-sans-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/climb.css">
 <link rel="stylesheet" href="/scorecard.css">
 <script src="/climb.js" defer></script>
@@ -179,7 +180,8 @@
     <details id="method"><summary>How the baseline and milestones are calculated</summary><div class="method-body"><p>The baseline uses the World 2024 primary-energy row from the OWID energy dataset: 176,737.094 TWh divided by the leap year's 8,784 hours gives 20.1203 TW. The retrieved dataset has no World primary-energy value for 2025. This is a dated snapshot, not a live estimate.</p><p>Using the modern continuous convention: <code>K = (log₁₀(P in watts) − 6) / 10</code>; equivalently, <code>P = 10^(10K + 6)</code>. Type I is anchored at 10¹⁶ W. Decimal checkpoints are editorial, not additional named civilization types.</p><p>Primary-energy accounting includes conversion assumptions and is not the same as electrical output, useful work or dispatchable power. Do not mix accounting methods when comparing years or interpreting the gap. See the saved dataset metadata for the source method.</p><p>Growth scenarios use <code>years = ceil(log(target / baseline) / log(1 + growth))</code>, with the calendar result measured from 2024. Zero growth never reaches a higher target. Sustaining a constant rate for centuries is an assumption, not evidence.</p><a href="/data/kardashev-baseline.json">Download the baseline and provenance (JSON)</a></div></details>
     <div class="source-list"><a href="https://github.com/owid/energy-data"><strong>Energy data</strong><span>Our World in Data dataset and codebook</span></a><a href="https://doi.org/10.3847/1538-3881/ab792b"><strong>The scale</strong><span>Gray, The Extended Kardashev Scale (2020)</span></a><a href="https://www.iea.org/reports/electricity-grids-and-secure-energy-transitions/executive-summary"><strong>The grid constraint</strong><span>IEA, Electricity Grids and Secure Energy Transitions (2023)</span></a><a href="/titans"><strong>Lessons from builders</strong><span>Megawatt's energy-history study</span></a></div>
   </section>
+  <p class="mw-note">Independent energy experiments. No real batteries are controlled.</p>
 </main>
-<footer class="site-bottom"><div class="footer-links"><a href="/about">About</a><a href="/sources">Sources</a><a href="/contact">Contact</a><a href="/privacy">Privacy</a></div><p>Independent energy experiments. No real batteries are controlled.</p></footer>
+<!--mw-footer--><footer class="mw-footer"><nav aria-label="Site"><a href="/about">About</a><a href="/sources">Sources</a><a href="/notes">Notes</a><a href="/contact">Contact</a><a href="/privacy">Privacy</a></nav><p>megawatt.fun is independent. It is not affiliated with Base Power, ERCOT, PJM, Oncor or any company named on it. Figures are public data or labelled estimates.</p></footer><!--/mw-footer-->
 </body>
 </html>

@@ -20,14 +20,16 @@ One sentence: Airsup sells digital twins and publishes working simulations with 
 | No hindsight in the rules | Not applicable to a factory line | The watching battery policy and the peak-chasing data center rule are tested to act only on past hours. The hindsight policy is labelled as a ceiling, not a strategy | 🟢 | Stays green |
 | What-if and ramp testing | Speed multipliers, pauses, holds. Site claims "speed your line up and see where it breaks" | Levers for battery size, power, reserve, policy, site size, run rate, battery hours and rule. A ramp test sweeps battery length and marks where all four peaks hold (4 hours). An outage test cuts the power on a chosen day | 🟢 | Already matched |
 | Replay truth | Tracked units whose positions follow the model, checked by a test | The day replay draws the engine's own hourly record: price, state, charge level, cash. Tests check that days and months add up to the year | 🟢 | Already matched |
-| 3D visual fidelity | Distinct machines for 27 workcells, workers, vehicles, a campus, three camera modes | The home has one 3D house that lights with the battery state. The data center has charts only, no 3D site | 🔴 | A 3D data center site (halls, battery yard, substation, the line to the grid) that shows the engine's state hour by hour |
+| 3D visual fidelity | Distinct machines for 27 workcells, workers, vehicles, a campus, three camera modes | The home has a 3D house that lights with the battery state. The data center has a 3D site drawn in code (four halls, a battery yard, a substation, the line to the grid) that shows each hour of the engine's record: lit boxes for how full the battery is, moving dots for power from the grid, a red line in a peak hour, day and night. One fixed camera. It is a diagram, not to scale, and the page says so | 🟡 | Adam judges it by eye, and the site scales with the levers (more halls for more MW) or gains a second camera |
 | Scenario breadth | At least six public simulations | Two subjects (a home battery, a data center) across eight ERCOT load zones | 🟡 | A third subject with a different shape, for example a battery owner's fleet of homes, or a second grid such as PJM |
 | Built from a customer's real data | Site says the twin is built from the customer's drawings and data (company claim, not seen) | A visitor can change levers but cannot load their own load shape, tariff or battery | 🔴 | A visitor loads a file of their own hourly load and gets their own bill and battery result, with problems reported in plain words |
 | Asking the twin questions | "Supi" answers from the twin (company claim, not seen) | None | 🔴 | A question box that runs the engine and reports the run, and says "not understood" otherwise |
-| Shipped to real users | Public since September 2026, one named customer | On a branch with an open pull request. Not on megawatt.fun yet | 🔴 | Merged, live, and opened by one person outside this session |
+| Shipped to real users | Public since September 2026, one named customer | Live at megawatt.fun/twin since 15 Nov 2026. No one outside this session is known to have opened it | 🟡 | Opened by one person outside this session who says something back |
 | An offer | Listed prices: $17,000 to $30,000 setup, optional $57,000 to $120,000 a year | No offer, no call to action, no founder page | 🔴 | A founder page with a booking link, and one line on each tool page saying what Adam will build for a visitor |
 
 **Distance: 6/12 dimensions green** (first run, 2026-11-15).
+
+Second run (2026-11-15, later the same day): the twin was merged and is live, so "shipped" moved from red to amber. A 3D data center site was built, so 3D fidelity moved from red to amber. Still 6/12 green: both rows now wait on a person, not on more building.
 
 Verification notes (2026-11-15): megawatt side: `node --test tests/*.test.cjs` gives 451 passing, 13 of them in `tests/twin.test.cjs`; `python -m pytest -q` gives 49 passing. The page was loaded in a browser at 390 px and 1280 px with no console errors and no sideways scroll. Airsup side: its pages were read on 14 Nov 2026; its paid workspace and agent were not seen.
 
@@ -41,4 +43,4 @@ These are results of the simulation on the real year (1 Oct 2025 to 1 Oct 2026),
 
 ## Next dimension to close
 
-Shipped to real users. It needs no more building: the pull request has to be merged and opened by one person outside this session. After that, the offer (a founder page) is the cheapest red, and the 3D data center site is the most visible one.
+Shipped to real users. The page is live, so this now needs one person outside this session to open it and say something back. After that, the offer (a founder page) is the cheapest red.

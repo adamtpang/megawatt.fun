@@ -36,3 +36,16 @@
     if (menu && header.classList.contains('is-open')) { header.classList.remove('is-open'); menu.setAttribute('aria-expanded', 'false'); menu.focus(); }
   });
 })();
+
+// Pages that fill themselves in from data keep their parts hidden (shell.css, main[data-wait]) until the first
+// sentence arrives, so the page appears once, in place, instead of growing as each part lands.
+(function () {
+  var main = document.querySelector('main[data-wait]'), say = main && document.getElementById(main.getAttribute('data-wait') || 'say'); // data-wait may name the element to watch
+  if (!main) return;
+  if (!say || !window.MutationObserver) { main.setAttribute('data-ready', ''); return; }
+  var seen = new MutationObserver(function () {
+    seen.disconnect();
+    requestAnimationFrame(function () { main.setAttribute('data-ready', ''); }); // one frame, so the rest of the page is drawn too
+  });
+  seen.observe(say, { childList: true, characterData: true, subtree: true });
+})();

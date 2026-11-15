@@ -20,7 +20,7 @@
 
   let L, DCD, rows = null, zoneId = 'LZ_WEST';
   let HB = null, hbDay = null, hbCeil = null, hbCeilKey = '';
-  let DC = null, dcDay = null, timer = null;
+  let DC = null, dcDay = null, dcShown = null, DG = null, timer = null, playing = null;
 
   /* ---------------------------------------------------------------- small chart helpers */
   function yAxis(l, r, t, b, max, gap, unit, min) {
@@ -195,7 +195,7 @@
   function renderDcDay() {
     const d = DC.days[dcDay], n = (DC.days[dcDay + 1] ? DC.days[dcDay + 1].start : DC.trace.length) - d.start;
     const H24 = DC.trace.slice(d.start, d.start + n), el = $('dd-chart');
-    const W = Math.max(280, Math.round(el.clientWidth) - 24), l = 34, r = W - 6, stepW = (r - l) / n, x = (h) => l + h * stepW;
+    const W = Math.max(280, Math.round(el.clientWidth)), l = 34, r = W - 6, stepW = (r - l) / n, x = (h) => l + h * stepW;
     const t1 = 12, b1 = 118, t2 = 146, b2 = 236, H = 260;
     const gmax = nice(Math.max.apply(null, H24.map((q) => q.gridMw)) / 1000, 20), gmin = Math.floor(Math.min.apply(null, H24.map((q) => q.gridMw)) / 20000) * 20;
     const a1 = yAxis(l, r, t1, b1, gmax, 20, '', gmin), smax = nice(Math.max.apply(null, H24.map((q) => q.siteMw).concat([DC.demandMw])), gapFor(DC.demandMw) * 5 || 20);
@@ -209,12 +209,49 @@
     const site = step(H24.map((q) => q.siteMw), x, a2.y);
     el.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" role="presentation">' + bands + a1.svg + a2.svg
       + '<path class="gridline" d="' + step(H24.map((q) => q.gridMw / 1000), x, a1.y) + '"/>'
-      + '<path class="site" d="' + site + 'L' + r + ' ' + b2 + 'L' + l + ' ' + b2 + 'Z"/><path class="siteline" d="' + site + '"/>' + hourLabels(x, n, H, W >= 560) + '</svg>';
+      + '<path class="site" d="' + site + 'L' + r + ' ' + b2 + 'L' + l + ' ' + b2 + 'Z"/><path class="siteline" d="' + site + '"/>' + hourLabels(x, n, H, W >= 560)
+      + '<line class="head-line" id="dd-line" y1="' + t1 + '" y2="' + b2 + '"/><circle class="head-dot" id="dd-dot" r="4.5"/><text class="head-val" id="dd-val" text-anchor="middle"></text></svg>';
+    DG = { x, y: a2.y, l, r, stepW, n, peakSet };
     const ran = H24.filter((q) => q.state === 'run'), low = Math.min.apply(null, H24.map((q) => q.siteMw));
     $('dd-title').textContent = dayName(d.date) + (d.peak ? ', a peak day' : '');
-    el.setAttribute('aria-label', dayName(d.date) + '. Demand on the grid peaked at ' + num(Math.max.apply(null, H24.map((q) => q.gridMw))) + ' megawatts. The battery ran for ' + ran.length + ' hours and the site drew as little as ' + num(low, 1) + ' megawatts.');
     $('dd-src').textContent = ran.length ? 'The battery ran ' + ran.length + ' hour' + (ran.length === 1 ? '' : 's') + ', from ' + clock(ran[0].h) + '. The site drew as little as ' + num(low, 1) + ' MW from the grid, then more than usual overnight while the battery refilled.'
       : 'The rule did not call the battery on this day. The site drew ' + num(DC.demandMw) + ' MW all day.';
+    const hour = $('dd-hour');
+    hour.max = n - 1;
+    if (dcDay !== dcShown) { // a new day opens on the hour worth seeing: the peak, or the first hour the battery ran
+      dcShown = dcDay;
+      const pk = H24.findIndex((q) => peakSet[q.h]), first = H24.findIndex((q) => q.state === 'run');
+      hour.value = pk >= 0 ? pk : first >= 0 ? first : Math.min(n - 1, 17);
+    }
+    if (Number(hour.value) > n - 1) hour.value = n - 1;
+    renderDcHour();
+  }
+  function renderDcHour() {
+    const d = DC.days[dcDay], i = Math.min(DG.n - 1, Number($('dd-hour').value)), q = DC.trace[d.start + i], c = DC.config;
+    const isPeak = !!DG.peakSet[q.h], empty = q.trigger && q.discharge < 0.05 && c.batteryMw > 0;
+    $('dd-state').dataset.s = isPeak && q.state !== 'run' ? 'peak' : q.state;
+    $('dd-state').textContent = q.state === 'run' ? (q.siteMw < 0.05 ? 'Running on the battery' : 'Battery carrying part of the site') : q.state === 'charge' ? 'Battery refilling' : empty ? 'Called, but the battery is empty' : 'On grid power';
+    $('dd-clock').textContent = clock(q.h) + ' to ' + clock((q.h + 1) % 24) + (isPeak ? ', a peak hour' : '');
+    $('dd-why').textContent = q.state === 'run' ? 'The rule called the battery. It gave ' + num(q.discharge, 1) + ' MW, so the site drew ' + num(q.siteMw, 1) + ' MW from the grid.'
+      : q.state === 'charge' ? 'The battery took ' + num(q.charge, 1) + ' MW to refill, so the site drew ' + num(q.siteMw, 1) + ' MW.'
+      : empty ? 'The rule called the battery, but it had already run down. The site drew ' + num(q.siteMw, 1) + ' MW.'
+      : c.batteryMw > 0 ? 'The site drew ' + num(q.siteMw, 1) + ' MW from the grid. The battery waited at ' + Math.round(q.soc * 100) + '%.' : 'The site drew ' + num(q.siteMw, 1) + ' MW from the grid. There is no battery.';
+    $('dd-kpis').innerHTML = tile('Demand on the grid', num(q.gridMw / 1000, 1) + '<small>GW</small>') + tile('Site draws', num(q.siteMw, 1) + '<small>MW</small>')
+      + tile('Battery', c.batteryMw > 0 ? Math.round(q.soc * 100) + '%' : 'None') + tile('Power costs', cents(q.price) + '<small>a kWh</small>');
+    const px = DG.x(i + 0.5), py = DG.y(q.siteMw), val = $('dd-val');
+    $('dd-line').setAttribute('x1', px); $('dd-line').setAttribute('x2', px);
+    $('dd-dot').setAttribute('cx', px); $('dd-dot').setAttribute('cy', py);
+    val.textContent = num(q.siteMw, 1) + ' MW';
+    val.setAttribute('x', Math.max(DG.l + 26, Math.min(DG.r - 26, px))); val.setAttribute('y', Math.max(140, py - 10));
+    // The site: boxes lit by how full the battery is, dots on the line by how hard the site pulls on the grid.
+    const light = Math.max(0, Math.min(1, Math.sin(((q.h + 0.5 - 5) / 15) * Math.PI) * 1.7)), g = (a, b2) => Math.round(a + (b2 - a) * light).toString(16).padStart(2, '0');
+    $('site-scene').style.setProperty('--sky-a', '#' + g(0x16, 0xf4).repeat(3)); $('site-scene').style.setProperty('--sky-b', '#' + g(0x26, 0xff).repeat(3));
+    $('site-scene').dataset.night = light < 0.4 ? '1' : '0';
+    const per = DC.batteryMwh <= 480 ? 10 : Math.ceil(DC.batteryMwh / 48), boxes = DC.batteryMwh > 0 ? Math.max(1, Math.ceil(DC.batteryMwh / per)) : 0, full = DC.demandMw + c.batteryMw;
+    window.SitePending = { boxes, soc: q.soc, state: q.state, gridFlow: full > 0 ? q.siteMw / full : 0, battFlow: c.batteryMw > 0 ? (q.discharge - q.charge) / c.batteryMw : 0, peak: isPeak, daylight: light };
+    if (window.Site) window.Site.set(window.SitePending);
+    $('dd-scale').textContent = 'The drawing is a diagram, not to scale. ' + (boxes ? 'Each battery box stands for ' + num(per) + ' MWh, and the lit ones show how full the battery is. ' : '') + 'Dots on the line show power coming in from the grid.';
+    $('dd-hour').setAttribute('aria-valuetext', clock(q.h) + ', ' + $('dd-state').textContent + ', site draws ' + num(q.siteMw, 1) + ' megawatts, battery ' + Math.round(q.soc * 100) + '%');
   }
   function renderDcRamp() {
     const raw = dcRaw(), tariff = dcTariff(), c = DC.config;
@@ -278,7 +315,7 @@
     zoneId = id;
     return fetch('/data/deployment/' + id + '.csv').then((r) => { if (!r.ok) throw new Error('prices ' + r.status); return r.text(); }).then((text) => { rows = T.withLoad(T.parsePrices(text), L); runAll(); });
   }
-  function stop() { clearInterval(timer); timer = null; $('hd-play').textContent = 'Play the day'; }
+  function stop() { clearInterval(timer); timer = null; playing = null; $('hd-play').textContent = 'Play the day'; $('dd-play').textContent = 'Play the day'; }
   function wire() {
     const tabs = Array.from(document.querySelectorAll('#tw-tabs [role=tab]'));
     const pick = (tab) => { tabs.forEach((t) => { const on = t === tab; t.classList.toggle('cds--tabs__nav-item--selected', on); t.setAttribute('aria-selected', on ? 'true' : 'false'); t.tabIndex = on ? 0 : -1; $(t.getAttribute('aria-controls')).hidden = !on; }); if (rows) { if (tab.id === 'tt-dc') runDc(true); else runHome(true); } };
@@ -295,11 +332,19 @@
     box.addEventListener('pointerdown', (e) => { drag = true; stop(); $('hd-hour').value = at(e); renderHomeHour(); });
     box.addEventListener('pointermove', (e) => { if (drag) { $('hd-hour').value = at(e); renderHomeHour(); } });
     addEventListener('pointerup', () => { drag = false; }); addEventListener('pointercancel', () => { drag = false; });
-    $('hd-play').addEventListener('click', () => {
-      if (timer) return stop();
-      $('hd-hour').value = 0; renderHomeHour(); $('hd-play').textContent = 'Pause';
-      timer = setInterval(() => { const nx = Number($('hd-hour').value) + 1; if (nx > Number($('hd-hour').max)) return stop(); $('hd-hour').value = nx; renderHomeHour(); }, 600);
+    const play = (key, render) => $(key + '-play').addEventListener('click', () => {
+      const mine = playing === key; stop(); if (mine) return;
+      const hour = $(key + '-hour');
+      hour.value = 0; render(); $(key + '-play').textContent = 'Pause'; playing = key;
+      timer = setInterval(() => { const nx = Number(hour.value) + 1; if (nx > Number(hour.max)) return stop(); hour.value = nx; render(); }, 600);
     });
+    play('hd', renderHomeHour); play('dd', renderDcHour);
+    $('dd-hour').addEventListener('input', () => { stop(); renderDcHour(); });
+    const dbox = $('dd-chart'), dat = (e) => { const b = dbox.getBoundingClientRect(); return DG ? Math.max(0, Math.min(DG.n - 1, Math.floor((e.clientX - b.left - DG.l) / DG.stepW))) : 0; };
+    let ddrag = false;
+    dbox.addEventListener('pointerdown', (e) => { ddrag = true; stop(); $('dd-hour').value = dat(e); renderDcHour(); });
+    dbox.addEventListener('pointermove', (e) => { if (ddrag) { $('dd-hour').value = dat(e); renderDcHour(); } });
+    addEventListener('pointerup', () => { ddrag = false; }); addEventListener('pointercancel', () => { ddrag = false; });
     let raf = 0;
     addEventListener('resize', () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { if (!rows) return; drawHomeYear(); renderHomeDay(); if (!$('tp-dc').hidden) runDc(true); }); });
   }

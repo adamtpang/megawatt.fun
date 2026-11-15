@@ -190,3 +190,25 @@ test('page: the PJM ranking moved to /pjm and nothing still redirects it home', 
   assert.ok(!vercel.redirects.some((r) => r.source === '/pjm'));
   assert.match(fs.readFileSync(root('sitemap.xml'), 'utf8'), /megawatt\.fun\/pjm</);
 });
+
+test('frame: every page carries the same header and footer, and loads the shared shell', () => {
+  const fs2 = require('node:fs'), path2 = require('node:path'), root2 = path2.join(__dirname, '..');
+  const block = (html, name) => { const m = new RegExp('<!--' + name + '-->[^]*?<!--/' + name + '-->').exec(html); return m ? m[0] : null; };
+  const home = fs2.readFileSync(path2.join(root2, 'index.html'), 'utf8'), header = block(home, 'mw-header'), footer = block(home, 'mw-footer');
+  assert.ok(header && footer);
+  const pages = fs2.readdirSync(root2).filter((f) => f.endsWith('.html') && f !== 'essay.html').concat(fs2.readdirSync(path2.join(root2, 'notes')).filter((f) => f.endsWith('.html')).map((f) => 'notes/' + f));
+  assert.ok(pages.length >= 30);
+  for (const f of pages) {
+    const html = fs2.readFileSync(path2.join(root2, f), 'utf8');
+    assert.equal(block(html, 'mw-header'), header, f + ' header');
+    assert.equal(block(html, 'mw-footer'), footer, f + ' footer');
+    assert.ok(html.includes('/shell.css'), f + ' loads shell.css');
+    assert.ok(html.includes('/nav.js'), f + ' loads nav.js');
+    assert.ok(!html.includes('class="site-bottom"') && !html.includes('class="foot-links"'), f + ' has no footer of its own');
+    assert.ok(html.indexOf('<!--mw-footer-->') > html.lastIndexOf('</main>'), f + ' footer comes after the page');
+  }
+  const shell = fs2.readFileSync(path2.join(root2, 'shell.css'), 'utf8');
+  assert.match(shell, /html body \{ margin: 0 !important; padding: 0 !important;/);
+  assert.match(shell, /body > main:not\(\.mw-full\) \{[^}]*max-width: 66rem !important/);
+  assert.match(shell, /scrollbar-gutter: stable/);
+});

@@ -50,3 +50,16 @@ section { margin-top: 3rem; }
   .tw-knobs.three { grid-template-columns: repeat(3, minmax(0, 12rem)); }
   .tw-kpis { grid-template-columns: repeat(4, 1fr); }
 }
+/* The data center site: a 3D diagram with HTML labels placed over it. */
+.tw-site { overflow: hidden; }
+.site-labels { position: absolute; inset: 0; pointer-events: none; }
+.site-labels span { position: absolute; transform: translate(-50%, -100%); padding: 0 .25rem; font-size: .6875rem; line-height: 1.3; letter-spacing: .32px; white-space: nowrap; color: var(--mw-text); background: rgba(255, 255, 255, .78); }
+.site-labels span[data-peak="1"] { color: #fff; background: var(--mw-peak); }
+.tw-site[data-night="1"] .site-labels span:not([data-peak="1"]) { color: #f4f4f4; background: rgba(22, 22, 22, .6); }
+#site-fallback .batt { fill: #c6c6c6; }
+#site-fallback[data-s=run] .batt, #site-fallback[data-s=run] .battwire { fill: var(--mw-run); stroke: var(--mw-run); }
+#site-fallback[data-s=charge] .batt, #site-fallback[data-s=charge] .battwire { fill: var(--mw-charge); stroke: var(--mw-charge); }
+#site-fallback[data-s=run] .batt, #site-fallback[data-s=charge] .batt { stroke: #161616; }
+#site-fallback[data-peak="1"] .gridwire { stroke: var(--mw-peak); stroke-width: 3; }
+#dd-scale { margin-top: .25rem; }
+@media (min-width: 66rem) { .tw-stage .tw-site { min-height: 21rem; } } /* two classes, to win over .tw-stage .scene above */

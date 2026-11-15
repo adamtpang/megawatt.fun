@@ -11,6 +11,7 @@
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#ffffff">
 <link rel="icon" href="/favicon.ico">
+<link rel="preload" href="/fonts/ibm-plex-sans-latin-300-normal.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/fonts/ibm-plex-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/fonts/ibm-plex-sans-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/vendor/carbon/styles.min.css"><link rel="stylesheet" href="/shell.css"><link rel="stylesheet" href="/day.css"><link rel="stylesheet" href="/twin.css">
 <script src="/nav.js" defer></script>
 <script src="/finance-core.js" defer></script>
@@ -20,11 +21,12 @@
 { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js" } }
 </script>
 <script type="module" src="/day-scene.js"></script>
+<script type="module" src="/site-scene.js"></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to the twin</a>
 <!--mw-header--><header class="mw-header"><a class="mw-name" href="/">megawatt<span>.fun</span></a><button class="mw-menu-btn" type="button" aria-expanded="false" aria-controls="mw-nav" aria-label="Menu"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 14.8h16V16H2zm0-5.4h16v1.2H2zM2 4h16v1.2H2z"/></svg></button><nav class="mw-nav" id="mw-nav" aria-label="Main navigation"><ul><li><a href="/twin">The twin</a></li><li><a href="/generation">Power supply</a></li><li><button type="button" aria-expanded="false">Homes<svg viewBox="0 0 10 6" aria-hidden="true"><path d="M5 6 0 1l.7-.7L5 4.6 9.3.3l.7.7z"/></svg></button><ul class="sub"><li><a href="/">One battery, one day</a></li><li><a href="/battery">Texas battery tool</a></li><li><a href="/pjm">PJM utility ranking</a></li><li><a href="/market">US market map</a></li></ul></li><li><button type="button" aria-expanded="false">Data centers<svg viewBox="0 0 10 6" aria-hidden="true"><path d="M5 6 0 1l.7-.7L5 4.6 9.3.3l.7.7z"/></svg></button><ul class="sub"><li><a href="/data-centers">What a data center pays</a></li><li><a href="/siting">Texas siting and the queue</a></li></ul></li><li><button type="button" aria-expanded="false">Grid<svg viewBox="0 0 10 6" aria-hidden="true"><path d="M5 6 0 1l.7-.7L5 4.6 9.3.3l.7.7z"/></svg></button><ul class="sub"><li><a href="/grid">How power flows</a></li><li><a href="/live">Live prices</a></li></ul></li><li><a href="/finance">Financing</a></li><li><a href="/notes">Notes</a></li></ul></nav></header><!--/mw-header-->
-<main id="main" class="wrap">
+<main id="main" class="wrap" data-wait>
   <h1>The twin: one real year, hour by hour.</h1>
   <p class="say" id="say">Loading 8,760 hours of real prices.</p>
 
@@ -136,10 +138,36 @@
 
     <section aria-labelledby="dh-day">
       <h2 id="dh-day">Replay a day</h2>
-      <p class="chart-title" id="dd-title"></p>
-      <div class="chart tw-daybox" id="dd-chart" role="img"></div>
-      <ul class="legend"><li><i class="l-grid"></i>Demand on the grid, GW</li><li><i class="l-site"></i>What the site drew, MW</li><li><i class="l-run"></i>Battery running</li><li><i class="l-peakh"></i>Peak hour</li></ul>
+      <div class="stage tw-stage">
+        <div class="scene tw-site" id="site-scene">
+          <canvas id="site-canvas" hidden aria-hidden="true"></canvas>
+          <div class="site-labels" id="site-labels" hidden aria-hidden="true"><span data-at="halls">Data halls</span><span data-at="sub">Substation</span><span data-at="grid">To the grid</span><span data-at="yard">Battery yard</span></div>
+          <div class="fallback" id="site-fallback" data-s="idle">
+            <svg viewBox="0 0 320 200" role="img" aria-label="A data center site: four data halls, a battery yard, a substation and the line to the grid">
+              <rect x="6" y="24" width="308" height="164" fill="#e0e0e0"/>
+              <g fill="#ffffff" stroke="#161616" stroke-width="1.5"><rect x="20" y="38" width="150" height="26"/><rect x="20" y="74" width="150" height="26"/><rect x="20" y="110" width="150" height="26"/><rect x="20" y="146" width="150" height="26"/></g>
+              <path d="M170 51h22M170 87h22M170 123h22M170 159h22M192 44v122M192 56h40" fill="none" stroke="#525252" stroke-width="2"/>
+              <rect x="232" y="38" width="46" height="36" fill="#c6c6c6" stroke="#161616" stroke-width="1.5"/>
+              <path class="gridwire" d="M278 56h36" fill="none" stroke="#525252" stroke-width="2"/>
+              <path class="battwire" d="M192 138h40" fill="none" stroke="#525252" stroke-width="2"/>
+              <rect class="batt" x="232" y="112" width="62" height="56" stroke="#161616" stroke-width="1.5"/>
+            </svg>
+          </div>
+        </div>
+        <div class="read" aria-live="polite">
+          <div class="now"><p class="state" id="dd-state" data-s="idle">On grid power</p><p class="clock" id="dd-clock"></p></div>
+          <p class="why" id="dd-why"></p>
+          <div class="kpis" id="dd-kpis"></div>
+        </div>
+        <div class="scrub">
+          <div class="chart-head"><p class="chart-title" id="dd-title"></p><button class="cds--btn cds--btn--primary cds--btn--sm play" id="dd-play" type="button">Play the day</button></div>
+          <div class="chart" id="dd-chart" aria-hidden="true"></div>
+          <input id="dd-hour" type="range" min="0" max="23" step="1" value="17" aria-label="Hour of the day">
+          <ul class="legend"><li><i class="l-grid"></i>Demand on the grid, GW</li><li><i class="l-site"></i>What the site drew, MW</li><li><i class="l-run"></i>Battery running</li><li><i class="l-peakh"></i>Peak hour</li></ul>
+        </div>
+      </div>
       <p class="src" id="dd-src"></p>
+      <p class="src" id="dd-scale"></p>
     </section>
 
     <section aria-labelledby="dh-ramp">
@@ -163,10 +191,10 @@
   </section>
 
   <footer>
-    <div class="foot-links"><a href="/">One battery, one day</a><a href="/data-centers">What a data center pays</a><a href="/generation">Power supply</a><a href="/grid">How power flows</a><a href="/notes">Notes</a><a href="/about">About</a><a href="/privacy">Privacy</a><a href="/sources">Sources</a></div>
     <p>Independent. Not affiliated with Base Power, ERCOT, Oncor or any data center company. A simulation from public data, not a forecast and not advice.</p>
     <details open><summary>Sources</summary><ol id="tw-sources"></ol></details>
   </footer>
 </main>
+<!--mw-footer--><footer class="mw-footer"><nav aria-label="Site"><a href="/about">About</a><a href="/sources">Sources</a><a href="/notes">Notes</a><a href="/contact">Contact</a><a href="/privacy">Privacy</a></nav><p>megawatt.fun is independent. It is not affiliated with Base Power, ERCOT, PJM, Oncor or any company named on it. Figures are public data or labelled estimates.</p></footer><!--/mw-footer-->
 </body>
 </html>
