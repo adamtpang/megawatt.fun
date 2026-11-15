@@ -152,12 +152,13 @@ test('ramp test: reports the first value that holds', () => {
 
 test('page: loads its parts, is first in the header, and has no em dash', () => {
   const html = fs.readFileSync(root('twin.html'), 'utf8');
-  for (const f of ['vendor/carbon/styles.min.css', 'shell.css', 'day.css', 'twin.css', 'nav.js', 'finance-core.js', 'twin-core.js', 'twin.js', 'day-scene.js']) assert.ok(html.includes('/' + f), f);
+  for (const f of ['vendor/carbon/styles.min.css', 'shell.css', 'day.css', 'twin.css', 'nav.js', 'finance-core.js', 'twin-core.js', 'twin.js', 'day-scene.js', 'site-scene.js']) assert.ok(html.includes('/' + f), f);
   assert.match(html, /<link rel="canonical" href="https:\/\/megawatt\.fun\/twin">/);
   const header = /<!--mw-header-->[\s\S]*?<!--\/mw-header-->/.exec(fs.readFileSync(root('index.html'), 'utf8'))[0];
   assert.ok(header.includes('<a href="/twin">The twin</a>'));
   assert.ok(html.includes(header), 'the same header as the homepage');
   assert.match(html, /Not affiliated with Base Power, ERCOT, Oncor/);
   assert.match(html, /id="basis-rows"/);
-  for (const f of ['twin.html', 'twin.css', 'twin.js', 'twin-core.js', 'scripts/twin-ercot.py']) assert.ok(!fs.readFileSync(root(f), 'utf8').includes(String.fromCharCode(0x2014)), f + ' has no em dash');
+  for (const id of ['site-canvas', 'site-fallback', 'site-labels', 'dd-hour', 'dd-play', 'dd-chart', 'dd-scale']) assert.ok(html.includes('id="' + id + '"'), id);
+  for (const f of ['twin.html', 'twin.css', 'twin.js', 'twin-core.js', 'site-scene.js', 'scripts/twin-ercot.py']) assert.ok(!fs.readFileSync(root(f), 'utf8').includes(String.fromCharCode(0x2014)), f + ' has no em dash');
 });
