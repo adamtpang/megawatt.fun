@@ -11,6 +11,7 @@
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#ffffff">
 <link rel="icon" href="/favicon.ico">
+<link rel="preload" href="/fonts/ibm-plex-sans-latin-300-normal.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/fonts/ibm-plex-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/fonts/ibm-plex-sans-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/vendor/carbon/styles.min.css"><link rel="stylesheet" href="/shell.css"><link rel="stylesheet" href="/day.css"><link rel="stylesheet" href="/generation.css"><link rel="stylesheet" href="/grid.css">
 <script src="/nav.js" defer></script>
 <script src="/grid-core.js" defer></script>
@@ -19,7 +20,7 @@
 <body>
 <a class="skip" href="#main">Skip to the page</a>
 <!--mw-header--><header class="mw-header"><a class="mw-name" href="/">megawatt<span>.fun</span></a><button class="mw-menu-btn" type="button" aria-expanded="false" aria-controls="mw-nav" aria-label="Menu"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 14.8h16V16H2zm0-5.4h16v1.2H2zM2 4h16v1.2H2z"/></svg></button><nav class="mw-nav" id="mw-nav" aria-label="Main navigation"><ul><li><a href="/twin">The twin</a></li><li><a href="/generation">Power supply</a></li><li><button type="button" aria-expanded="false">Homes<svg viewBox="0 0 10 6" aria-hidden="true"><path d="M5 6 0 1l.7-.7L5 4.6 9.3.3l.7.7z"/></svg></button><ul class="sub"><li><a href="/">One battery, one day</a></li><li><a href="/battery">Texas battery tool</a></li><li><a href="/pjm">PJM utility ranking</a></li><li><a href="/market">US market map</a></li></ul></li><li><button type="button" aria-expanded="false">Data centers<svg viewBox="0 0 10 6" aria-hidden="true"><path d="M5 6 0 1l.7-.7L5 4.6 9.3.3l.7.7z"/></svg></button><ul class="sub"><li><a href="/data-centers">What a data center pays</a></li><li><a href="/siting">Texas siting and the queue</a></li></ul></li><li><button type="button" aria-expanded="false">Grid<svg viewBox="0 0 10 6" aria-hidden="true"><path d="M5 6 0 1l.7-.7L5 4.6 9.3.3l.7.7z"/></svg></button><ul class="sub"><li><a href="/grid">How power flows</a></li><li><a href="/live">Live prices</a></li></ul></li><li><a href="/finance">Financing</a></li><li><a href="/notes">Notes</a></li></ul></nav></header><!--/mw-header-->
-<main id="main" class="wrap">
+<main id="main" class="wrap" data-wait>
   <h1>How power moves through Texas.</h1>
   <p class="say" id="say">Loading a year of ERCOT data.</p>
 
@@ -67,10 +68,10 @@
   </section>
 
   <footer>
-    <div class="foot-links"><a href="/generation">Power supply</a><a href="/">One battery, one day</a><a href="/siting">Texas siting</a><a href="/live">Live</a><a href="/notes">Notes</a><a href="/about">About</a><a href="/privacy">Privacy</a><a href="/sources">Sources</a></div>
     <p>Independent. Not affiliated with ERCOT. Every figure is ERCOT's public data, summed here.</p>
     <details open><summary>Sources</summary><ol id="grid-sources"></ol></details>
   </footer>
 </main>
+<!--mw-footer--><footer class="mw-footer"><nav aria-label="Site"><a href="/about">About</a><a href="/sources">Sources</a><a href="/notes">Notes</a><a href="/contact">Contact</a><a href="/privacy">Privacy</a></nav><p>megawatt.fun is independent. It is not affiliated with Base Power, ERCOT, PJM, Oncor or any company named on it. Figures are public data or labelled estimates.</p></footer><!--/mw-footer-->
 </body>
 </html>

@@ -68,7 +68,7 @@ class CongestionDataTests(unittest.TestCase):
         self.assertIn("https://megawatt.fun/notes/where-batteries-earn-most", (ROOT / "llms.txt").read_text())
         home = (ROOT / "index.html").read_text()
         self.assertIn('href="/notes">Notes</a>', home)
-        self.assertIn('href="/live">Live</a>', home)
+        self.assertIn('href="/live">Live prices</a>', home)  # in the shared header
 
     def test_quantile_matches_the_builder(self):
         from analysis.build_congestion import block_of, quantile

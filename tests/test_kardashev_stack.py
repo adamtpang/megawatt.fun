@@ -26,7 +26,9 @@ class KardashevStackTest(unittest.TestCase):
         self.assertIn("https://megawatt.fun/notes/kardashev-stack", (ROOT / "sitemap.xml").read_text())
         self.assertIn("https://megawatt.fun/notes/kardashev-stack", (ROOT / "llms.txt").read_text())
         home = (ROOT / "index.html").read_text()
-        self.assertIn('href="/notes/kardashev-stack"', home)
+        # The home page links to Notes in the shared header and footer; the note is listed there.
+        self.assertIn('href="/notes">Notes</a>', home)
+        self.assertIn('href="/notes/kardashev-stack"', (ROOT / "notes" / "index.html").read_text(encoding="utf-8"))
         self.assertIn('href="/notes">Notes', home)
 
 

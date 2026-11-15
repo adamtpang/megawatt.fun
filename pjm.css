@@ -172,3 +172,5 @@
 }
 @media (prefers-reduced-motion: reduce) { .pjm-house-fallback, .pjm-pricebars i { transition: none; } }
 .pjm-house-fallback[hidden], #house-canvas[hidden] { display: none; }
+/* The line under the house is one or two lines long depending on the moment. Keep room for two, so the buttons below it stay put. */
+.pjm-art-cap { min-height: 3em; }

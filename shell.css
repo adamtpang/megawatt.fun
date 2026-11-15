@@ -56,3 +56,46 @@
 /* The skip link stays off screen until it has keyboard focus. */
 .skip { position: absolute; left: -999px; }
 .skip:focus { left: 16px; top: 8px; z-index: 40; padding: 8px 12px; background: var(--mw-bg); color: var(--mw-text); outline: 2px solid var(--mw-blue); }
+
+/* The page frame every page shares, so nothing moves when you go from one page to the next:
+   the header at the very top, one content column, one heading size, one footer.
+   Older pages set their own body margins and column widths; these rules override them on purpose.
+   A page that has to run edge to edge (the US map, the ops board) puts class="mw-full" on its <main>. */
+html { scrollbar-gutter: stable; }
+html body { margin: 0 !important; padding: 0 !important; max-width: none !important; }
+body > main:not(.mw-full) { box-sizing: border-box !important; width: auto !important; max-width: 66rem !important; margin: 0 auto !important; padding: 2rem 1rem 2rem !important; }
+body > main:not(.mw-full) > :first-child, body > main:not(.mw-full) > :first-child > :first-child, body > main:not(.mw-full) > :first-child > :first-child > :first-child { margin-top: 0 !important; padding-top: 0 !important; }
+/* The heading comes first. Small label lines that older pages put above it are dropped, and their inner columns start at the left edge. */
+body > main:not(.mw-full) :is(.eyebrow, .kicker, .edition):has(+ h1) { display: none !important; }
+body > main:not(.mw-full) > div:first-child, body > main:not(.mw-full) > :is(header, section):first-child { margin-left: 0 !important; margin-right: auto !important; }
+body > main:not(.mw-full) h1 { margin-top: 0 !important; font-family: var(--mw-font) !important; font-size: 2rem !important; line-height: 1.25 !important; font-weight: 300 !important; letter-spacing: 0 !important; }
+@media (min-width: 42rem) {
+  body > main:not(.mw-full) { padding: 3rem 2rem 2rem !important; }
+  body > main:not(.mw-full) h1 { font-size: 2.625rem !important; line-height: 1.19 !important; }
+}
+.mw-note { margin: 3rem 0 0; font-size: .75rem; line-height: 1.34; letter-spacing: .32px; color: var(--mw-text-2); max-width: 42rem; }
+.mw-note a { color: var(--mw-blue-text); }
+.mw-footer { box-sizing: border-box; max-width: 66rem; margin: 0 auto; padding: 0 1rem 2rem; font: 400 .75rem/1.34 var(--mw-font); letter-spacing: .32px; color: var(--mw-text-2); text-align: left; background: none; }
+.mw-footer nav { display: flex; flex-wrap: wrap; gap: 0 1.25rem; padding-top: .5rem; border-top: 1px solid var(--mw-border); }
+.mw-footer a { display: inline-flex; align-items: center; min-height: 2.75rem; margin: 0; color: var(--mw-text-2); text-decoration: none; }
+.mw-footer a:hover { color: var(--mw-blue-text); text-decoration: underline; }
+.mw-footer p { margin: .25rem 0 0; max-width: 42rem; }
+main.mw-full + .mw-footer { max-width: none; }
+@media (min-width: 42rem) { .mw-footer { padding-inline: 2rem; } }
+
+/* Nothing jumps while a page loads.
+   The footer stays below the fold instead of sitting under the heading and then dropping.
+   A page that fills itself in from data marks <main data-wait>: its parts stay invisible, at their place, until nav.js
+   sees the first sentence arrive and marks it ready. If that never happens the page shows itself after four seconds. */
+body > main { min-height: calc(100vh - 3rem); }
+#vc-plot { min-height: 24.5rem; }
+main[data-wait]:not([data-ready]) > :not(h1):not(:has(h1)), main[data-wait]:not([data-ready]) > :has(h1) > :not(h1) { visibility: hidden; animation: mw-show 0s 4s forwards; }
+@keyframes mw-show { to { visibility: visible; } }
+/* Buttons whose label changes keep one width, and a picked tab does not get wider. */
+.play { min-inline-size: 8.5rem; justify-content: center; }
+[role=tab], .cds--tabs .cds--tabs__nav-item--selected, .cds--tabs .cds--tabs__nav-link { font-weight: 400 !important; }
+#preset-btn { min-inline-size: 15.5rem; justify-content: center; }
+.lp-seg button[aria-pressed=true] { font-weight: 400 !important; }
+/* The "use your own data" block is added by script. Its place is kept at the size it will be on each page. */
+#yourdata { display: flow-root; }
+.lp #yourdata { min-height: 66px; } .fin #yourdata, .pt #yourdata { min-height: 82px; } .sp #yourdata { min-height: 106px; } .pjm #yourdata { min-height: 86px; } .mm #yourdata { min-height: 78px; }

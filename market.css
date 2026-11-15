@@ -174,3 +174,8 @@
   .mm-w { min-height: 44px; }
   .mm-w input[type=range] { height: 44px; }
 }
+/* Nothing in the panel or the legend shows until the first draw (market.js marks <main data-ready>), so they appear
+   once, at their final size, instead of growing as the data lands. They show themselves after four seconds regardless.
+   On a phone the panel keeps one height, so its heading does not climb as the list fills in. */
+.mm:not([data-ready]) #ov-body > :not(.eyebrow):not(h1):not(#ov-lede):not(#ov-error), .mm:not([data-ready]) .mm-legend { visibility: hidden; animation: mw-show 0s 4s forwards; }
+@media (max-width: 700px) { .mm-panel { height: calc(50% - 20px); } .mm-panel:has(#ov-body[hidden]) { height: auto; } }

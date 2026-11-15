@@ -178,6 +178,7 @@
     });
     svg.classList.toggle('warm', layer !== 'score');
     legend(); overview(ranked); tiers(ranked); shares(); partners();
+    $('main').setAttribute('data-ready', ''); // market.css keeps the panel and legend hidden until this first draw
     if (selected) detail(selected, false);
   }
 
@@ -492,6 +493,7 @@
 
   const getJSON = (url) => fetch(url).then((r) => { if (!r.ok) throw new Error(url + ' returned ' + r.status); return r.json(); });
   function failed(err) {
+    $('main').setAttribute('data-ready', '');
     $('ov-lede').textContent = '';
     $('ov-error').innerHTML = '<div class="notice notice-red"><p>The map data failed to load. Check your connection, then try again.</p><button type="button" class="btn btn-outline btn-sm" id="ov-retry">Try again</button></div>';
     $('ov-retry').addEventListener('click', load);
