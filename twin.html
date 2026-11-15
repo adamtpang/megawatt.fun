@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The twin: a real year, hour by hour · megawatt.fun</title>
+<link rel="canonical" href="https://megawatt.fun/twin">
+<meta name="description" content="A simulation of one real year on the Texas grid, hour by hour. Run a home battery or a data center with a battery through 8,760 hours of real ERCOT prices and demand, change the rules, and see where it breaks. Independent.">
+<meta property="og:title" content="The twin: a real year, hour by hour">
+<meta property="og:description" content="Run a home battery or a data center through 8,760 real hours on the Texas grid, change the rules, and see where it breaks.">
+<meta property="og:url" content="https://megawatt.fun/twin">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/favicon.ico">
+<link rel="stylesheet" href="/vendor/carbon/styles.min.css"><link rel="stylesheet" href="/shell.css"><link rel="stylesheet" href="/day.css"><link rel="stylesheet" href="/twin.css">
+<script src="/nav.js" defer></script>
+<script src="/finance-core.js" defer></script>
+<script src="/twin-core.js" defer></script>
+<script src="/twin.js" defer></script>
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js" } }
+</script>
+<script type="module" src="/day-scene.js"></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to the twin</a>
+<!--mw-header--><header class="mw-header"><a class="mw-name" href="/">megawatt<span>.fun</span></a><button class="mw-menu-btn" type="button" aria-expanded="false" aria-controls="mw-nav" aria-label="Menu"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 14.8h16V16H2zm0-5.4h16v1.2H2zM2 4h16v1.2H2z"/></svg></button><nav class="mw-nav" id="mw-nav" aria-label="Main navigation"><ul><li><a href="/twin">The twin</a></li><li><a href="/generation">Power supply</a></li><li><button type="button" aria-expanded="false">Homes<svg viewBox="0 0 10 6" aria-hidden="true"><path d="M5 6 0 1l.7-.7L5 4.6 9.3.3l.7.7z"/></svg></button><ul class="sub"><li><a href="/">One battery, one day</a></li><li><a href="/battery">Texas battery tool</a></li><li><a href="/pjm">PJM utility ranking</a></li><li><a href="/market">US market map</a></li></ul></li><li><button type="button" aria-expanded="false">Data centers<svg viewBox="0 0 10 6" aria-hidden="true"><path d="M5 6 0 1l.7-.7L5 4.6 9.3.3l.7.7z"/></svg></button><ul class="sub"><li><a href="/data-centers">What a data center pays</a></li><li><a href="/siting">Texas siting and the queue</a></li></ul></li><li><button type="button" aria-expanded="false">Grid<svg viewBox="0 0 10 6" aria-hidden="true"><path d="M5 6 0 1l.7-.7L5 4.6 9.3.3l.7.7z"/></svg></button><ul class="sub"><li><a href="/grid">How power flows</a></li><li><a href="/live">Live prices</a></li></ul></li><li><a href="/finance">Financing</a></li><li><a href="/notes">Notes</a></li></ul></nav></header><!--/mw-header-->
+<main id="main" class="wrap">
+  <h1>The twin: one real year, hour by hour.</h1>
+  <p class="say" id="say">Loading 8,760 hours of real prices.</p>
+
+  <div class="tw-top">
+    <div class="cds--form-item"><div class="cds--select"><label class="cds--label" for="tw-zone">ERCOT load zone</label><div class="cds--select-input__wrapper"><select id="tw-zone" class="cds--select-input"></select><svg class="cds--select__arrow" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11 3 6l.7-.7L8 9.6l4.3-4.3.7.7z"/></svg></div></div></div>
+  </div>
+
+  <div class="cds--tabs" id="tw-tabs"><div class="cds--tab--list" role="tablist" aria-label="What to simulate">
+    <button class="cds--tabs__nav-item cds--tabs__nav-link cds--tabs__nav-item--selected" role="tab" id="tt-home" aria-controls="tp-home" aria-selected="true" type="button">A home battery</button>
+    <button class="cds--tabs__nav-item cds--tabs__nav-link" role="tab" id="tt-dc" aria-controls="tp-dc" aria-selected="false" type="button" tabindex="-1">A data center</button>
+  </div></div>
+
+  <!-- ============================== home battery ============================== -->
+  <div role="tabpanel" id="tp-home" aria-labelledby="tt-home">
+    <section aria-labelledby="hh-run">
+      <h2 id="hh-run">Run one battery through the year</h2>
+      <div class="tw-knobs">
+        <div class="cds--form-item wide"><div class="cds--select"><label class="cds--label" for="hb-policy">How it decides</label><div class="cds--select-input__wrapper"><select id="hb-policy" class="cds--select-input">
+          <option value="clock">A fixed clock</option><option value="watch">Watches last week's prices</option><option value="hindsight">Perfect hindsight (the ceiling)</option>
+        </select><svg class="cds--select__arrow" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11 3 6l.7-.7L8 9.6l4.3-4.3.7.7z"/></svg></div></div></div>
+        <div class="cds--form-item"><label class="cds--label" for="hb-cap">Battery, kWh</label><input id="hb-cap" class="cds--text-input" type="number" inputmode="decimal" min="1" max="1000" step="0.1" value="39.2"></div>
+        <div class="cds--form-item"><label class="cds--label" for="hb-pow">Power, kW</label><input id="hb-pow" class="cds--text-input" type="number" inputmode="decimal" min="0.1" max="1000" step="1" value="20"></div>
+        <div class="cds--form-item"><label class="cds--label" for="hb-res">Held back for outages, %</label><input id="hb-res" class="cds--text-input" type="number" inputmode="numeric" min="0" max="90" step="5" value="20"></div>
+      </div>
+      <p class="src" id="hb-policy-note"></p>
+      <div class="kpis tw-kpis" id="hb-kpis" aria-live="polite"></div>
+      <p class="chart-title">Money each day of the year. Tap a day to replay it.</p>
+      <div class="chart tw-year" id="hb-year"></div>
+      <p class="src" id="hb-year-src"></p>
+    </section>
+
+    <section aria-labelledby="hh-day">
+      <h2 id="hh-day">Replay a day</h2>
+      <div class="stage tw-stage">
+        <div class="scene" id="scene">
+          <canvas id="stage-canvas" hidden aria-hidden="true"></canvas>
+          <div class="fallback" id="stage-fallback">
+            <svg viewBox="0 0 320 200" role="img" aria-label="A house with a battery on its side wall">
+              <ellipse cx="160" cy="184" rx="150" ry="14" fill="#e0e0e0"/>
+              <path d="M66 104 L160 44 L254 104 Z" fill="#525252"/>
+              <rect x="82" y="104" width="156" height="78" fill="#ffffff" stroke="#161616" stroke-width="1.5"/>
+              <rect x="146" y="134" width="28" height="48" fill="#e0e0e0" stroke="#161616" stroke-width="1.5"/>
+              <rect x="98" y="122" width="30" height="26" fill="#d0e2ff" stroke="#161616" stroke-width="1.5"/>
+              <rect x="192" y="122" width="30" height="26" fill="#d0e2ff" stroke="#161616" stroke-width="1.5"/>
+              <rect class="batt" x="244" y="138" width="22" height="44" stroke="#161616" stroke-width="1.5"/>
+            </svg>
+          </div>
+        </div>
+        <div class="read" aria-live="polite">
+          <div class="now"><p class="state" id="hd-state" data-s="idle">Standing by</p><p class="clock" id="hd-clock"></p></div>
+          <p class="why" id="hd-why"></p>
+          <div class="kpis" id="hd-kpis"></div>
+        </div>
+        <div class="scrub">
+          <div class="chart-head"><p class="chart-title" id="hd-title">Price, cents a kWh, and how full the battery is</p><button class="cds--btn cds--btn--primary cds--btn--sm play" id="hd-play" type="button">Play the day</button></div>
+          <div class="chart" id="hd-chart" aria-hidden="true"></div>
+          <input id="hd-hour" type="range" min="0" max="23" step="1" value="19" aria-label="Hour of the day">
+          <ul class="legend"><li><i class="l-charge"></i>Charging</li><li><i class="l-run"></i>Selling</li><li><i class="l-out"></i>Grid down</li><li><i class="l-soc"></i>How full</li></ul>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="hh-out">
+      <h2 id="hh-out">Cut the power</h2>
+      <p class="intro">The battery is also the home's backup. Pick when the grid fails on the day above and see how long the lights stay on.</p>
+      <div class="tw-knobs three">
+        <div class="cds--form-item"><div class="cds--select"><label class="cds--label" for="ho-hour">Grid fails at</label><div class="cds--select-input__wrapper"><select id="ho-hour" class="cds--select-input"></select><svg class="cds--select__arrow" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11 3 6l.7-.7L8 9.6l4.3-4.3.7.7z"/></svg></div></div></div>
+        <div class="cds--form-item"><label class="cds--label" for="ho-len">For, hours</label><input id="ho-len" class="cds--text-input" type="number" inputmode="numeric" min="0" max="96" step="1" value="0"></div>
+        <div class="cds--form-item"><label class="cds--label" for="ho-kw">Home draws, kW</label><input id="ho-kw" class="cds--text-input" type="number" inputmode="decimal" min="0.1" max="20" step="0.1" value="1.2"></div>
+      </div>
+      <p class="call calm" id="ho-call"></p>
+    </section>
+
+    <section aria-labelledby="hh-ramp">
+      <h2 id="hh-ramp">Where it breaks: money against backup</h2>
+      <p class="intro" id="hr-say"></p>
+      <div class="table-scroll"><table class="cds--data-table cds--data-table--md ledger tw-table"><thead><tr>
+        <th><div class="cds--table-header-label">Held back</div></th><th><div class="cds--table-header-label">Earned, a year</div></th><th><div class="cds--table-header-label">Backup after selling</div></th>
+      </tr></thead><tbody id="hr-rows"></tbody></table></div>
+      <p class="call" id="hr-call"></p>
+    </section>
+  </div>
+
+  <!-- ============================== data center ============================== -->
+  <div role="tabpanel" id="tp-dc" aria-labelledby="tt-dc" hidden>
+    <section aria-labelledby="dh-run">
+      <h2 id="dh-run">Run a data center through the year</h2>
+      <div class="tw-knobs">
+        <div class="cds--form-item"><label class="cds--label" for="dc-mw">Size, MW</label><input id="dc-mw" class="cds--text-input" type="number" inputmode="numeric" min="1" max="5000" step="1" value="100"></div>
+        <div class="cds--form-item"><label class="cds--label" for="dc-run">Running at, %</label><input id="dc-run" class="cds--text-input" type="number" inputmode="numeric" min="1" max="100" step="1" value="90"></div>
+        <div class="cds--form-item"><label class="cds--label" for="dc-bmw">Battery power, MW</label><input id="dc-bmw" class="cds--text-input" type="number" inputmode="numeric" min="0" max="5000" step="1" value="90"></div>
+        <div class="cds--form-item"><label class="cds--label" for="dc-bh">Battery lasts, hours</label><input id="dc-bh" class="cds--text-input" type="number" inputmode="decimal" min="0.25" max="12" step="0.25" value="2"></div>
+        <div class="cds--form-item wide"><div class="cds--select"><label class="cds--label" for="dc-rule">When the battery runs</label><div class="cds--select-input__wrapper"><select id="dc-rule" class="cds--select-input">
+          <option value="chase">Chases the month's peak</option><option value="level">Whenever the grid is above a level</option>
+        </select><svg class="cds--select__arrow" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11 3 6l.7-.7L8 9.6l4.3-4.3.7.7z"/></svg></div></div></div>
+        <div class="cds--form-item" id="dc-chase-wrap"><label class="cds--label" for="dc-chase">Within, % of the month's high</label><input id="dc-chase" class="cds--text-input" type="number" inputmode="numeric" min="80" max="100" step="1" value="97"></div>
+        <div class="cds--form-item" id="dc-level-wrap" hidden><label class="cds--label" for="dc-level">Grid demand at or above, MW</label><input id="dc-level" class="cds--text-input" type="number" inputmode="numeric" min="0" max="200000" step="1000" value="85000"></div>
+      </div>
+      <p class="src" id="dc-rule-note"></p>
+      <div class="kpis tw-kpis" id="dc-kpis" aria-live="polite"></div>
+      <div class="table-scroll"><table class="cds--data-table cds--data-table--md ledger tw-table"><thead><tr>
+        <th><div class="cds--table-header-label">The four peak hours</div></th><th><div class="cds--table-header-label">Grid demand</div></th><th><div class="cds--table-header-label">Site drew</div></th>
+      </tr></thead><tbody id="dc-peaks"></tbody></table></div>
+      <p class="call" id="dc-call"></p>
+      <p class="chart-title">Hours the battery ran each day. Red marks are the four peak days. Tap a day to replay it.</p>
+      <div class="chart tw-year" id="dc-year"></div>
+      <p class="src" id="dc-year-src"></p>
+    </section>
+
+    <section aria-labelledby="dh-day">
+      <h2 id="dh-day">Replay a day</h2>
+      <p class="chart-title" id="dd-title"></p>
+      <div class="chart tw-daybox" id="dd-chart" role="img"></div>
+      <ul class="legend"><li><i class="l-grid"></i>Demand on the grid, GW</li><li><i class="l-site"></i>What the site drew, MW</li><li><i class="l-run"></i>Battery running</li><li><i class="l-peakh"></i>Peak hour</li></ul>
+      <p class="src" id="dd-src"></p>
+    </section>
+
+    <section aria-labelledby="dh-ramp">
+      <h2 id="dh-ramp">Where it holds: how long the battery must last</h2>
+      <p class="intro" id="dr-say"></p>
+      <div class="table-scroll"><table class="cds--data-table cds--data-table--md ledger tw-table"><thead><tr>
+        <th><div class="cds--table-header-label">Battery lasts</div></th><th><div class="cds--table-header-label">Peaks kept off</div></th><th><div class="cds--table-header-label">Saved, a year</div></th>
+      </tr></thead><tbody id="dr-rows"></tbody></table></div>
+      <p class="call" id="dr-call"></p>
+      <p class="call calm" id="dr-loan"></p>
+    </section>
+  </div>
+
+  <section aria-labelledby="h-basis">
+    <h2 id="h-basis">Model basis</h2>
+    <p class="intro">What is real, what is assumed, and what is left out. Every assumed number is a lever above or is listed here.</p>
+    <div class="table-scroll"><table class="cds--data-table cds--data-table--md tw-basis"><thead><tr>
+      <th><div class="cds--table-header-label">Id</div></th><th><div class="cds--table-header-label">What</div></th><th><div class="cds--table-header-label">Basis</div></th>
+    </tr></thead><tbody id="basis-rows"></tbody></table></div>
+    <ul class="tw-list" id="basis-not"></ul>
+  </section>
+
+  <footer>
+    <div class="foot-links"><a href="/">One battery, one day</a><a href="/data-centers">What a data center pays</a><a href="/generation">Power supply</a><a href="/grid">How power flows</a><a href="/notes">Notes</a><a href="/about">About</a><a href="/privacy">Privacy</a><a href="/sources">Sources</a></div>
+    <p>Independent. Not affiliated with Base Power, ERCOT, Oncor or any data center company. A simulation from public data, not a forecast and not advice.</p>
+    <details open><summary>Sources</summary><ol id="tw-sources"></ol></details>
+  </footer>
+</main>
+</body>
+</html>
